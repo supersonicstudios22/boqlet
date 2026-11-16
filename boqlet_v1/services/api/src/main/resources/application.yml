@@ -29,3 +29,9 @@ management:
       group:
         readiness:
           include: readinessState,db
+boqlet:
+  auth:
+    issuer: ${BOQLET_OIDC_ISSUER:}
+    audience: ${BOQLET_OIDC_AUDIENCE:boqlet-api}
+    pilot-emails: ${BOQLET_PILOT_EMAILS:}
+    secure-cookie: ${BOQLET_SECURE_COOKIE:true}

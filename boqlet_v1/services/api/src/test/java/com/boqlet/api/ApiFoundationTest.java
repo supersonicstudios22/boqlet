@@ -3,6 +3,7 @@ package com.boqlet.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,6 +14,8 @@ import com.boqlet.api.db.Ids;
 import com.boqlet.api.http.Idempotency;
 import com.boqlet.api.http.RequestContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
+import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -22,10 +25,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -33,6 +44,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+@Import(ApiFoundationTest.Tokens.class)
 class ApiFoundationTest {
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
@@ -42,6 +54,7 @@ class ApiFoundationTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
+        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test");
     }
 
     @Autowired MockMvc http;
@@ -98,5 +111,60 @@ class ApiFoundationTest {
                 Integer.class, key)).isZero();
         assertThat(idempotency.execute(user, "test", key, () -> new Idempotency.Result(204, null)).status())
                 .isEqualTo(204);
+    }
+
+    @Test
+    void inviteOnlyLoginAndSessionTakeover() throws Exception {
+        http.perform(openSession("uninvited", false)).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("invitation_required"));
+        http.perform(openSession("unverified", false)).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("email_unverified"));
+        var first = http.perform(openSession("pilot-a", false)).andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.containsString("HttpOnly"),
+                                org.hamcrest.Matchers.containsString("SameSite=Lax"))))
+                .andReturn().getResponse().getCookie("boqlet_session");
+        assertThat(first).isNotNull();
+        http.perform(get("/api/v1/me").cookie(first)).andExpect(status().isUnauthorized());
+        http.perform(get("/api/v1/me").header(HttpHeaders.AUTHORIZATION, "Bearer pilot-a").cookie(first))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.user.email").value("pilot@example.test"));
+        http.perform(openSession("pilot-b", false)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("session_active"))
+                .andExpect(jsonPath("$.activeSession.id").value(first.getValue()));
+        var second = http.perform(openSession("pilot-b", true)).andExpect(status().isCreated())
+                .andReturn().getResponse().getCookie("boqlet_session");
+        assertThat(second).isNotNull();
+        http.perform(get("/api/v1/me").header(HttpHeaders.AUTHORIZATION, "Bearer pilot-a").cookie(first))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("session_replaced"));
+        http.perform(get("/api/v1/me").header(HttpHeaders.AUTHORIZATION, "Bearer pilot-a").cookie(second))
+                .andExpect(status().isUnauthorized());
+        http.perform(get("/api/v1/me").header(HttpHeaders.AUTHORIZATION, "Bearer pilot-b").cookie(second))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.session.id").value(second.getValue()));
+    }
+
+    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder openSession(String token,
+            boolean takeover) {
+        return post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"deviceLabel\":\"Test browser\",\"takeover\":" + takeover + "}");
+    }
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class Tokens {
+        @Bean
+        JwtDecoder testTokenDecoder() {
+            return token -> {
+                String subject = switch (token) {
+                    case "pilot-a", "pilot-b" -> "pilot";
+                    case "uninvited", "unverified" -> token;
+                    default -> throw new JwtException("Invalid test token.");
+                };
+                Instant now = Instant.now();
+                return Jwt.withTokenValue(token).header("alg", "RS256").subject(subject)
+                        .claim("sid", token).claim("email", subject + "@example.test")
+                        .claim("email_verified", !token.equals("unverified"))
+                        .issuedAt(now).expiresAt(now.plusSeconds(600)).build();
+            };
+        }
     }
 }
