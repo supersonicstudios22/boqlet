@@ -101,10 +101,20 @@ export interface Decision {
   /** Question.id. Ids are deterministic (built from content), so they stay stable across runs. */
   questionId: string;
   scope: "project" | "company";
-  answer: string | number | boolean | null;   // null = "leave it" (dismiss without answering)
+  answer: string | number | boolean | null | LineOverrideEdit;
   note?: string;
   decidedBy?: string;
   decidedAt?: string;
+}
+
+/** An engine decision with a questionId of `override:{lineKey}`. */
+export interface LineOverrideEdit {
+  quantity?: number | null;
+  description?: string;
+  unit?: Unit;
+  codes?: Record<string, string>;
+  excluded?: boolean;
+  reason?: string;
 }
 
 /* ============================================================================
@@ -166,6 +176,16 @@ export interface BoqLine {
   location?: { storey?: string; storeys?: string[] };
   tags: string[];
   notes: string[];
+  overridden?: {
+    fields: ("quantity" | "description" | "unit" | "codes" | "excluded" | "order")[];
+    engineQuantity?: number | null;
+    quantity?: number | null;
+    engineDescription?: string;
+    engineUnit?: Unit;
+    engineCodes?: Record<string, string | null>;
+    reason?: string;
+  };
+  excluded?: boolean;
 }
 
 export type QuestionKind =
@@ -175,6 +195,7 @@ export type QuestionKind =
   | "double_claim"            // two rules claim the same element for the same purpose
   | "unclassified"            // a line no map rule codes (onUnmapped: "ask")
   | "classification_conflict"
+  | "orphan_override"        // a previously edited line no longer exists
   | "contradiction"           // file contradicts itself (reported vs geometry etc.)
   | "overlap";
 

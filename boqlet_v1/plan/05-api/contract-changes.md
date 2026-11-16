@@ -35,3 +35,4 @@ require every row to be adapted, or marked "nothing to adapt".
 | Id | Date | Operation(s) | Change | Why | Breaking for the app? | Product owner needed? | Adapted (phase 3) |
 |---|---|---|---|---|---|---|---|
 | C01 | 2026-11-16 | `listQuestions`, `listWarnings`, run log and line detail | Optional engine message codes and params. Existing warning codes and fallback messages keep their values. | EN-004, structured localization | No | No | Localized rendering in FE-041 |
+| C02 | 2026-11-16 | `listQuestions` | `orphan_override` is a non-blocking question when an edited line disappears. | EN-003, line edit auditability | No | No | English question-kind label added |

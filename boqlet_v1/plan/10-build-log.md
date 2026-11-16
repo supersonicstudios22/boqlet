@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, milestone ME (engine worker) |
 | Role | **Backend agent** |
-| Last task done | EN-001 worker and HTTP transport |
-| Next task | EN-004 stable question, warning, and log message codes |
+| Last task done | EN-004 stable question, warning, and log message codes |
+| Next task | EN-003 engine line overrides, then EN-007 manual codes |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress (not committed) | EN-004 structured messages and the EN-003 override engine work. |
+| In progress (not committed) | EN-003 engine line edits and workbook output. Targeted engine tests and the mock's line edit scenarios pass. Full suites are running. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
@@ -44,6 +44,11 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-16 — EN-004 structured messages (backend agent)
+- **Built:** `cab98f3`. The engine emits stable codes and parameters for questions, warnings, and logs. The generated schema checks membership in the TypeScript code unions. Existing warning codes and English fallback text keep their meaning.
+- **Verified:** engine 196, contract 177, scenarios 169 (2 existing TODOs), typecheck and API lint (3 existing warnings). The local fixtures cover the Duplex and buildingSMART federation. The separate NBU models are absent from the checkout.
+- **Frontend:** contract change C01 is additive. The localization catalogue and rendering are tracked for FE-041.
 
 ### 2026-11-16 — EN-001 worker transport (backend agent)
 - **Built:** Python executor for parse and run, local and S3 storage adapters, HTTP progress streaming and the five RPCs; the mock now uses the worker by default.

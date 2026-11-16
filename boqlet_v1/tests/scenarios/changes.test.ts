@@ -78,7 +78,8 @@ beforeAll(async () => {
   boq = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } }, body: { name: "Tender", inputs: { classificationVersionIds: [codes] } } })).data!;
   runA = await generate();
   const { data: lines } = await api.GET("/runs/{runId}/lines", { params: { path: { runId: runA.id } } });
-  edited = lines!.items.find((l) => l.quantity && l.quantity > 1)!;
+  // A door count has no derived lines in As modelled. This fixture isolates the direct edit.
+  edited = lines!.items.find((l) => l.ruleId === "doors" && l.quantity && l.quantity > 1)!;
   expect((await api.POST("/boqs/{boqId}/overrides", { params: { path: { boqId: boq.id } }, body: { lineKey: edited.key, quantity: edited.quantity! * 2, reason: "Site measure" } })).response.status).toBe(200);
   runB = await generate();
 }, 300_000);

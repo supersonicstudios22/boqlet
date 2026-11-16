@@ -7,6 +7,7 @@ export type QuestionCode =
   | "question.unclassified"
   | "question.classification_conflict"
   | "question.missing_data"
+  | "question.orphan_override"
   | "question.overlap"
   | "question.double_claim";
 
@@ -33,6 +34,7 @@ export type LogCode =
   | "log.match.rule_set_problem"
   | "log.match.coverage"
   | "log.decision.answer_applied"
+  | "log.decision.line_override"
   | "log.summary.question"
   | "log.summary.result"
   | "log.classify.assigned"

@@ -47,9 +47,11 @@ def _header(ws, row, cols, widths):
         ws.column_dimensions[get_column_letter(i)].width = w
 
 
-def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=()):
+def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=()):
     for i, v in enumerate(values, 1):
         x = ws.cell(row=row, column=i, value=v)
+        if x.data_type == "f" and i not in formula_cols:
+            x.data_type = "s"
         x.font, x.border = font, BOX
         if fill:
             x.fill = fill
@@ -83,6 +85,8 @@ def export(result: dict, meta: dict) -> bytes:
     ws.freeze_panes = "A6"
     groups: dict[tuple, list] = {}
     for l in lines:
+        if l.get("excluded"):
+            continue
         c = l["codes"].get(primary) if primary else None
         top = (c["path"][0]["code"], c["path"][0]["title"]) if c else ("~", "Unclassified")
         groups.setdefault(top, []).append(l)
@@ -95,21 +99,36 @@ def export(result: dict, meta: dict) -> bytes:
         for l in ls:
             c = l["codes"].get(primary) if primary else None
             flagged = l["quantity"] is None
+            notes = l.get("notes", [])
+            if reason := l.get("overridden", {}).get("reason"):
+                if not any(reason in note for note in notes):
+                    notes = [*notes, "Reason: " + reason]
             _row(ws, r, [c["code"] if c else "", l["description"], l["unit"], l["quantity"], None,
-                         f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(l.get("notes", []))],
-                 NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8))
+                         f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
+                 NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
             ws.cell(row=r, column=4).number_format = _qfmt(l["unit"])
             ws.cell(row=r, column=5).fill = IN_FILL
             ws.cell(row=r, column=5).font = INPUT
             ws.cell(row=r, column=5).number_format = NUM
             ws.cell(row=r, column=6).number_format = NUM
             r += 1
-        _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL)
+        _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL,
+             formula_cols=(6,))
         ws.cell(row=r, column=6).number_format = NUM
         subtotal_cells.append(f"F{r}")
         r += 2
-    _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""], Font(name=F, size=11, bold=True))
+    _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""],
+         Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
+
+    excluded = [line for line in lines if line.get("excluded")]
+    if excluded:
+        we = wb.create_sheet("Excluded lines")
+        _header(we, 1, ["Key", "Description", "Unit", "Quantity", "Reason"], [34, 60, 10, 14, 58])
+        we.freeze_panes = "A2"
+        for i, line in enumerate(excluded, start=2):
+            _row(we, i, [line["key"], line["description"], line["unit"], line["quantity"],
+                         line.get("overridden", {}).get("reason")])
 
     # ------------------------------------------------------------------ Calculation
     wc = wb.create_sheet("Calculation")

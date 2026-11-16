@@ -4,7 +4,7 @@
  * or suspended tokens, nothing about members, decisions, questions, reviewers, vendors or prices.
  */
 import { createHash, randomBytes } from "node:crypto";
-import type { BoqLine } from "@ifc-boq/types";
+import type { BoqLine, BoqResult } from "@ifc-boq/types";
 import { audit } from "../audit.js";
 import { putBlob, signedUrl } from "../blobs.js";
 import { nowIso } from "../clock.js";
@@ -142,6 +142,11 @@ function publicLine(line: BoqLine & { overridden?: unknown; excluded?: boolean }
   return { ...rest, trace: { ...line.trace, ...(steps ? { steps } : {}) }, sortIndex };
 }
 
+function publicLog(result: BoqResult) {
+  return result.log.filter((entry) => entry.stage !== "decision"
+    && (entry.stage !== "summary" || entry.code === "log.summary.result"));
+}
+
 async function shownResult(link: ShareLinkRec) {
   const shown = shownRun(link);
   if (!shown) return null;
@@ -276,10 +281,10 @@ export const shareHandlers: Handlers = {
     const link = publicLink(params.token!);
     if (!link.include.lineDetail) throw notFound("line");
     const shown = await shownResult(link);
-    const index = shown ? shown.result.lines.findIndex((l) => l.key === query.key) : -1;
+    const index = shown ? shown.result.lines.findIndex((l) => l.key === query.key && !l.excluded) : -1;
     if (!shown || index < 0) throw notFound("line");
     const line = publicLine(shown.result.lines[index]!, index);
-    return json({ ...line, ...(link.include.log ? { log: shown.result.log.filter((e) => e.lineKey === line.key) } : {}) });
+    return json({ ...line, ...(link.include.log ? { log: publicLog(shown.result).filter((e) => e.lineKey === line.key) } : {}) });
   },
 
   async getPublicShareScene({ params, query }) {
@@ -304,21 +309,26 @@ export const shareHandlers: Handlers = {
     const link = publicLink(params.token!);
     const shown = await shownResult(link);
     if (!link.include.excel || !shown) throw notFound("export");
-    // A saved version's file is the one frozen with it (BR-25); otherwise the link's own, written once per run.
-    const frozen = shown.revision.status === "issued" ? db().exports.find((e) => e.id === shown.revision.frozen?.exportIds[0]) : undefined;
-    let key = frozen?.storageKey ?? link.exportKeys?.[shown.run.id];
-    if (!key) {
+    const grouping = hash(link.include.groupBy ?? "").slice(0, 12);
+    const key = `orgs/${link.orgId}/share-links/${link.id}/public/${shown.run.id}-${grouping}-${link.include.log ? "log" : "sheet"}.xlsx`;
+    if (link.exportKeys?.[shown.run.id] !== key) {
       const project = db().projects.find((p) => p.id === link.projectId)!;
       const boq = db().boqs.find((b) => b.id === link.boqId)!;
       const systems = shown.run.classifications ?? [];
       const ordered = link.include.groupBy ? [...systems.filter((s) => s.id === link.include.groupBy), ...systems.filter((s) => s.id !== link.include.groupBy)] : systems;
       const working = shown.revision.status !== "issued";
-      const bytes = await exportXlsx(shown.result, {
+      const bytes = await exportXlsx({
+        ...shown.result,
+        lines: shown.result.lines.filter((line) => !line.excluded).map(publicLine),
+        log: link.include.log ? publicLog(shown.result) : [],
+        checks: [],
+        warnings: [],
+        questions: [],
+      }, {
         classifications: ordered,
         modelName: `${project.name} / ${boq.name}, revision ${labelOf(shown.revision)}${working ? " (WORKING)" : ""}`,
         generatedAt: shown.run.finishedAt ?? shown.run.createdAt,
       });
-      key = `orgs/${link.orgId}/share-links/${link.id}/${shown.run.id}.xlsx`;
       await putBlob(key, bytes);
       link.exportKeys = { ...(link.exportKeys ?? {}), [shown.run.id]: key };
       persist();

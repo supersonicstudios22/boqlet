@@ -319,6 +319,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-16 | cab98f3 | EN-004: structured message codes and params for questions, warnings and logs, generated schemas, and pass-through to the app. |
 | 2026-11-16 | 0d14b8a | EN-001: engine parse/run jobs, file and S3 artifact storage, streaming HTTP and RPC; worker-backed mock verified with the Duplex, contract and scenario suites. |
 | 2026-11-16 | 34f470c | BE-000: confirmed the backend stack, invite-only pilots and configurable worker sizing. Deployment deferred to a separate session (P49). |
 | 2026-11-14 | 89bdaa9 | Phase 1 close: the dashboard's "Needs you" filled (reviews, changes requested, runs needing input, new model versions, failed jobs; live; F02-AC5 in e2e); `scenarios/isolation.test.ts` (BR-50, BR-52 and the core operations no suite called). **M4 and phase 1 done** |

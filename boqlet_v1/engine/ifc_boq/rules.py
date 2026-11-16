@@ -756,6 +756,16 @@ class RuleEngine:
                             continue
                         v, txt = self.x.explain(self.val(d["quantity"]) or "", ctx)
                         v = float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+                        if (override := srcline.get("overridden")) and "quantity" in override:
+                            txt += f"; source quantity edited to {fmt(srcline['quantity'])}"
+                            if d["scope"] == "element" and v is not None:
+                                original = override["engineQuantity"]
+                                if srcline["quantity"] is None:
+                                    v = None
+                                elif original:
+                                    v *= srcline["quantity"] / original
+                                else:
+                                    txt += "; no measured total to distribute the edit across elements"
                         factor = self.val(d.get("factor"))
                         if v is not None and factor not in (None, 1):
                             txt += f" x factor {fmt(factor)}"

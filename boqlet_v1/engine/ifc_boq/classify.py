@@ -68,7 +68,7 @@ def code_targets(target) -> list[str]:
 
 
 def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcLog,
-             decisions: dict, questions: list, warnings: list) -> None:
+             decisions: dict, questions: list, warnings: list, *, overrides: dict | None = None) -> None:
     system = code_list["id"]
     codes = {c["code"]: c for c in code_list["codes"]}
     for r in cmap["rules"]:
@@ -144,6 +144,10 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
             warnings.append({"code": "unknown_code", "message": f"[{system}] line '{line['description']}' got code '{code}', not in the code list",
                              "params": {"system": system, "description": line["description"], "code": code}})
             code = None
+        edit = (overrides or {}).get(line["key"], {}).get("codes", {}).get(system)
+        if edit in codes:
+            line.setdefault("overridden", {}).setdefault("engineCodes", {})[system] = code
+            code, src, rule_id, why = edit, "decision", None, "user edit"
         if code:
             path, cur, guard = [], codes[code], 0
             while cur and guard < 20:

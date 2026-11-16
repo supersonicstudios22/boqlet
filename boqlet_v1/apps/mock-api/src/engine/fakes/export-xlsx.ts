@@ -1,12 +1,10 @@
 /**
  * Fake "BoQ export" (mock-api.md, replaced by EN-006): the PoC engine's own Excel writer
  * (`ifc_boq.export_xlsx.export`, run with the engine's Python) over the run's result as the mock
- * keeps it, so the BoQ's line edits (applied by the "Line edits applied" fake) are in the file:
- * excluded lines leave the BoQ, and an edited line says what was edited, the engine's value and the
- * reason in its notes. Nothing is measured here (BR-01).
+ * keeps it, with the engine's edit metadata and a separate sheet for excluded lines.
  *
- * Known gaps until EN-006: the PoC layout (no cover sheet, no "Excluded lines" sheet, no hidden line
- * keys for the edits import), English only, and the WORKING mark is in the title line.
+ * Known gaps until EN-006: the PoC layout (no cover sheet, and the line key column is unprotected),
+ * English only, and the WORKING mark is in the title line.
  */
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -107,7 +105,8 @@ export async function exportXlsx(result: BoqResult, meta: ExportMeta): Promise<U
   try {
     const [resultPath, metaPath, rawPath, infoPath, outPath] = ["result.json", "meta.json", "raw.xlsx", "info.json", "boq.xlsx"].map((f) => path.join(dir, f)) as [string, string, string, string, string];
     const shown = exportedResult(result, meta.classifications[0]?.id);
-    await writeFile(resultPath, JSON.stringify(shown));
+    const excluded = result.lines.filter((line) => line.excluded);
+    await writeFile(resultPath, JSON.stringify({ ...shown, lines: [...shown.lines, ...excluded] }));
     await writeFile(metaPath, JSON.stringify(meta));
     await runPython(["-c", SCRIPT, resultPath, metaPath, rawPath], ENGINE);
     await writeFile(infoPath, JSON.stringify({ boqId: meta.boqId ?? "", primary: meta.classifications[0]?.id ?? null, lines: shown.lines.map((l) => ({ key: l.key, codes: l.codes })) }));

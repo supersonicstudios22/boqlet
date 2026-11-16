@@ -43,7 +43,7 @@ MAX_UPLOAD_MB = int(os.environ.get("IFC_BOQ_MAX_UPLOAD_MB", "300"))
 class DecisionIn(BaseModel):
     questionId: str
     scope: str = "project"
-    answer: str | float | bool | None = None
+    answer: str | float | bool | dict | None = None
     note: str | None = None
 
 

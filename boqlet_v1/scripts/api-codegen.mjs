@@ -26,14 +26,12 @@ for (const { spec, out } of targets) {
   const ast = await openapiTS(pathToFileURL(spec), { alphabetize: false, exportType: false, defaultNonNullable: false });
   const text = (header + astToString(ast)).replace(/\r\n/g, "\n");
   const rel = path.relative(root, out).split(path.sep).join("/");
-  if (check) {
-    const current = await readFile(out, "utf8").catch(() => "");
-    if (current.replace(/\r\n/g, "\n") !== text) {
-      drift = true;
-      console.error(`[api:gen] ${rel} is out of date with its OpenAPI file. Run \`npm run api:gen\` and commit.`);
-    } else {
-      console.log(`[api:gen] ${rel} up to date`);
-    }
+  const current = await readFile(out, "utf8").catch(() => "");
+  if (current.replace(/\r\n/g, "\n") === text) {
+    console.log(`[api:gen] ${rel} up to date`);
+  } else if (check) {
+    drift = true;
+    console.error(`[api:gen] ${rel} is out of date with its OpenAPI file. Run \`npm run api:gen\` and commit.`);
   } else {
     await writeFile(out, text, "utf8");
     console.log(`[api:gen] wrote ${rel}`);

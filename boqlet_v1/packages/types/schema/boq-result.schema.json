@@ -191,6 +191,7 @@
         "log.match.rule_set_problem",
         "log.match.coverage",
         "log.decision.answer_applied",
+        "log.decision.line_override",
         "log.summary.question",
         "log.summary.result",
         "log.classify.assigned",
@@ -2134,6 +2135,62 @@
           "items": {
             "type": "string"
           }
+        },
+        "overridden": {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "quantity",
+                  "description",
+                  "unit",
+                  "codes",
+                  "excluded",
+                  "order"
+                ]
+              }
+            },
+            "engineQuantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "quantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "engineDescription": {
+              "type": "string"
+            },
+            "engineUnit": {
+              "$ref": "#/definitions/Unit"
+            },
+            "engineCodes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        "excluded": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2345,6 +2402,7 @@
         "double_claim",
         "unclassified",
         "classification_conflict",
+        "orphan_override",
         "contradiction",
         "overlap"
       ]
@@ -2358,6 +2416,7 @@
         "question.unclassified",
         "question.classification_conflict",
         "question.missing_data",
+        "question.orphan_override",
         "question.overlap",
         "question.double_claim"
       ],

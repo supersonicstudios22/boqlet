@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { API_URL, client } from "../support/env";
@@ -129,8 +131,18 @@ describe("create and the public page (F18 §1–2)", () => {
     expect(res.data!.include).toMatchObject({ excel: true, log: true, viewer: true });
     const file = await pub(token, "/export");
     expect(file.status).toBe(302);
-    expect((await fetch(file.headers.get("location")!)).ok).toBe(true);
-    expect(((await (await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).json()) as { log?: unknown[] }).log).toBeInstanceOf(Array);
+    const workbook = await fetch(file.headers.get("location")!);
+    expect(workbook.ok).toBe(true);
+    const venv = process.platform === "win32" ? "Scripts/python.exe" : "bin/python";
+    const python = process.env.IFC_BOQ_PYTHON ?? fileURLToPath(new URL(`../../engine/.venv/${venv}`, import.meta.url));
+    const result = spawnSync(python, ["-c",
+      "import io,sys,zipfile; z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); sys.stdout.buffer.write(b' '.join(z.read(n) for n in z.namelist() if n.endswith('.xml')))"],
+      { encoding: "utf8", input: Buffer.from(await workbook.arrayBuffer()) });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).not.toContain(SECRET_REASON);
+    const detail = await (await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).text();
+    expect((JSON.parse(detail) as { log?: unknown[] }).log).toBeInstanceOf(Array);
+    expect(detail).not.toContain(SECRET_REASON);
   });
 });
 

@@ -404,11 +404,22 @@
           ]
         },
         "answer": {
-          "type": [
-            "string",
-            "number",
-            "boolean",
-            "null"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/LineOverrideEdit"
+            }
           ]
         },
         "note": {
@@ -428,6 +439,66 @@
       ],
       "additionalProperties": false,
       "description": "A user's answer to a Question. Decisions are stored per project (or promoted to company level) and re-applied on every run and every new model version, so the same question is never asked twice."
+    },
+    "LineOverrideEdit": {
+      "type": "object",
+      "properties": {
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/definitions/Unit"
+        },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "excluded": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "An engine decision with a questionId of `override:{lineKey}`."
+    },
+    "Unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "nr",
+            "item",
+            "sum",
+            "mm",
+            "m",
+            "km",
+            "m2",
+            "m3",
+            "kg",
+            "t",
+            "ft",
+            "ft2",
+            "ft3",
+            "yd2",
+            "yd3",
+            "lb",
+            "h"
+          ]
+        }
+      ]
     }
   }
 }

@@ -87,6 +87,12 @@ Output:
 validated by the worker before writing. Stages: `load`, `names`, `measure`, `federate`,
 `rules`, `classify`, `export`.
 
+An `override:{lineKey}` decision carries the edited fields as its answer object. Line-scope
+derived formulas consume the edited source quantity. For element-scope formulas the worker
+scales the source line's derived contributions by the ratio of edited to measured quantity.
+If the original quantity is zero or missing, the calculation trace records that no ratio is
+available. A flag-to-confirm edit clears the affected quantities. The API owns line order.
+
 ### preview
 Same input as `run` (with `runId` null), plus optional `compareWith` (a second rule-set doc,
 usually the published version). Output: `{resultKey, compareResultKey?, diffKey?}`. Outputs

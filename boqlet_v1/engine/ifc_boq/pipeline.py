@@ -34,6 +34,7 @@ from .federation import combine
 from .log import CalcLog
 from .measure import build as measure, building_measures
 from .names import Resolver, decision_entries
+from .overrides import apply_final, apply_quantity, from_decisions
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
 
 INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind")
@@ -107,6 +108,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     log = CalcLog()
     resolution = resolution or {}
     decisions = decisions or []
+    overrides = from_decisions(decisions)
     answers = {d["questionId"]: d.get("answer") for d in decisions}
 
     models = ([{"id": None, "parsed": parsed}] if isinstance(parsed, dict) and "header" in parsed
@@ -207,8 +209,14 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     eng.run_items()
     eng.finalize_lines()
     item_lines = list(eng.lines.values())
+    for line in item_lines:
+        if (edit := overrides.get(line["key"])) is not None:
+            apply_quantity(line, edit)
     derived_lines = eng.run_derived()
     manual_lines = eng.run_manual()
+    for line in derived_lines + manual_lines:
+        if (edit := overrides.get(line["key"])) is not None:
+            apply_quantity(line, edit)
     lines = item_lines + derived_lines + manual_lines
     warnings += eng.warnings
     questions: list[dict] = list(eng.questions) + fed_questions + list(measure_questions.values())
@@ -277,11 +285,14 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     if progress:
         progress("classify", 85, "Classifying lines")
     for code_list, cmap in classifications:
-        classify(lines, code_list, cmap, rv.expr, log, answers, questions, warnings)
+        classify(lines, code_list, cmap, rv.expr, log, answers, questions, warnings, overrides=overrides)
+    questions.extend(apply_final(lines, overrides, log))
 
     # 6. questions & decisions ----------------------------------------------------------
     applied = [q for q in questions if q["id"] in answers]
     for d in decisions:
+        if d["questionId"].startswith("override:"):
+            continue
         log.info("decision", f"answer applied: {d['questionId']} = {d.get('answer')!r}",
             code="log.decision.answer_applied", params=dict(questionId=d['questionId'], answer=d.get('answer')))
     questions = [q for q in questions if q["id"] not in answers]
@@ -332,6 +343,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         "stats": {
             "elements": len(elements), "measuredElements": len(eng.matched), "excludedElements": len(eng.excluded),
             "unmatchedElements": unmatched_n, "lines": len(out_lines), "flaggedLines": flagged,
-            "decisionsApplied": len(applied), "durationMs": int((time.time() - t0) * 1000),
+            "decisionsApplied": len(applied) + sum("overridden" in line for line in out_lines),
+            "durationMs": int((time.time() - t0) * 1000),
         },
     }

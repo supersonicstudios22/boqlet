@@ -14,7 +14,7 @@ import { emit } from "../events.js";
 import { notify as sendNotification } from "../notify.js";
 import { codeListsOf } from "../codes.js";
 import { decisionsSnapshot, unappliedQuestionIds } from "../decisions.js";
-import { applyManualCodes, applyOverrides } from "../engine/fakes/line-edits.js";
+import { applyManualCodes, applyLineOrder } from "../engine/fakes/line-edits.js";
 import { addTraceSteps } from "../engine/fakes/trace-steps.js";
 import { conflict, HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
@@ -509,13 +509,20 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
           const v = db().modelVersions.find((x) => x.id === m.modelVersionId)!;
           return { modelId: v.engineModelId!, discipline: m.discipline, ...(m.scope ? { scope: m.scope as Record<string, unknown> } : {}) };
         });
-        const decisions = (run.request.decisions ?? []).map((d) => ({ questionId: d.questionId, scope: "project", answer: d.answer }));
+        const decisions = [
+          ...(run.request.decisions ?? []).map((d) => ({ questionId: d.questionId, scope: "project", answer: d.answer })),
+          ...adjustments.overrides.flatMap(({ lineKey, quantity, description, unit, codes, excluded, reason }) => {
+            if (quantity === undefined && description === undefined && unit === undefined && !codes && !excluded) return [];
+            return [{ questionId: `override:${lineKey}`, scope: "project",
+              answer: { quantity, description, unit, codes, excluded, reason } }];
+          }),
+        ];
         const { result } = await engine().run({ models, ruleSet, dictionaries, classifications, decisions },
           (stage, pct) => ctx.progress(stage, Math.max(pct, 2)));
         if (ctx.cancelled()) return;
         const codeLists = codeListsOf(inputs);
         applyManualCodes(result, adjustments.manualItems, codeLists);
-        applyOverrides(result, adjustments.overrides, adjustments.manualItems, codeLists);
+        applyLineOrder(result, adjustments.overrides, adjustments.manualItems);
         // Item texts follow the codes the lines end up with (moves included), "Item texts filled" fake.
         addItemTexts(result, codeLists);
         addTraceSteps(result, (key) => {
