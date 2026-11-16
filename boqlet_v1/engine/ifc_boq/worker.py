@@ -19,11 +19,12 @@ from .export_xlsx import export
 from .geometry import load_meshes, save_meshes
 from .parse import PARSE_FORMAT, parse_file, sha256
 from .pipeline import get_boq
-from .preview import compare_lines
+from .preview import compare_lines, sample
+from .sheets import boq_import, diff_export
 from .storage import Storage, read_json_gzip, validate_key, write_json_gzip
 
 CONTRACT = "1"
-JOB_TYPES = {"parse", "run", "preview", "diff"}
+JOB_TYPES = {"parse", "run", "preview", "diff", "export_xlsx", "import_boq_edits"}
 logger = logging.getLogger(__name__)
 
 
@@ -209,7 +210,10 @@ def _preview(job, storage, prefix, progress):
     request = {**job, "export": {}}
     if compare is None:
         output, metrics = _run(request, storage, prefix, progress)
-        return {"resultKey": output["resultKey"]}, metrics
+        result = {"resultKey": output["resultKey"]}
+        if job.get("previewReport"):
+            result.update(_preview_report(storage, prefix, read_json_gzip(storage, output["resultKey"])))
+        return result, metrics
     if not isinstance(compare, dict):
         raise JobError("invalid_input", "Invalid comparison preset")
     if "schemaVersion" in compare:
@@ -226,8 +230,23 @@ def _preview(job, storage, prefix, progress):
     after = read_json_gzip(storage, output["resultKey"])
     before = read_json_gzip(storage, other["resultKey"])
     key = prefix + "diff.json.gz"
-    write_json_gzip(storage, key, {"changes": compare_lines(before, after)})
-    return {"resultKey": output["resultKey"], "compareResultKey": other["resultKey"], "diffKey": key}, {}
+    changes = compare_lines(before, after)
+    write_json_gzip(storage, key, {"changes": changes})
+    result = {"resultKey": output["resultKey"], "compareResultKey": other["resultKey"], "diffKey": key}
+    if metadata := job.get("previewReport"):
+        result.update(_preview_report(storage, prefix, after, metadata.get("compare"), changes))
+    return result, {}
+
+
+def _preview_report(storage, prefix, result, comparison=None, changes=()):
+    comparison = ({**comparison, **{kind: sum(change["change"] == kind for change in changes)
+                                   for kind in ("added", "removed", "changed")}} if comparison else None)
+    report = {"lines": [sample(line) for line in result["lines"]], "questions": len(result["questions"]),
+              "blockingQuestions": sum(q["blocking"] for q in result["questions"]), "warnings": len(result["warnings"]),
+              "compare": comparison, "changes": list(changes)}
+    key = prefix + "preview.json"
+    storage.put_bytes(key, json.dumps(report, ensure_ascii=False).encode("utf-8"))
+    return {"previewKey": key, "lineCount": len(report["lines"]), "compare": comparison}
 
 
 def _diff(job, storage, prefix, progress):
@@ -253,7 +272,39 @@ def _diff(job, storage, prefix, progress):
     return {"diffKey": key, "summary": result["summary"]}, {}
 
 
-OPERATIONS = {"parse": _parse, "run": _run, "preview": _preview, "diff": _diff}
+def _export_xlsx(job, storage, prefix, progress):
+    progress("export", 25, "Rendering workbook")
+    meta = job.get("meta", {})
+    if diff_key := job.get("diffKey"):
+        data = read_json_gzip(storage, diff_key)
+        validate(data, "run-diff")
+        contents = diff_export.render(data, meta)
+    else:
+        data = read_json_gzip(storage, job["resultKey"])
+        contents = export(data, meta)
+    key = prefix + "export.xlsx"
+    storage.put_bytes(key, contents)
+    return {"xlsxKey": key, "sizeBytes": len(contents)}, {}
+
+
+def _import_boq_edits(job, storage, prefix, progress):
+    progress("import", 25, "Reading workbook edits")
+    with storage.open(job["fileKey"]) as stream:
+        maximum = 32 << 20
+        workbook = stream.read(maximum + 1)
+    if len(workbook) > maximum:
+        raise JobError("file_too_large", "The edits workbook exceeds the 32 MiB import limit.")
+    lines = job.get("currentLines")
+    if lines is None:
+        lines = read_json_gzip(storage, job["resultKey"])["lines"]
+    report = boq_import.read(workbook, {"boqId": str(job["boqId"]), "primary": job.get("groupBy"), "lines": lines})
+    key = prefix + "edits.json.gz"
+    write_json_gzip(storage, key, report)
+    return {"reportKey": key, "counts": {field: len(values) for field, values in report.items()}}, {}
+
+
+OPERATIONS = {"parse": _parse, "run": _run, "preview": _preview, "diff": _diff,
+              "export_xlsx": _export_xlsx, "import_boq_edits": _import_boq_edits}
 
 
 def execute(envelope: dict, storage: Storage, progress=None) -> dict:

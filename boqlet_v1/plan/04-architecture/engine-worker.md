@@ -114,16 +114,19 @@ model versions. Line causes use version snapshots, element links, rule and param
 edits, and decision snapshots with question GlobalIds when available.
 
 ### export_xlsx
-Input: `{ "resultKey": "…", "diffKey": null, "meta": { …as run.export.meta…, "issuedBy": "…", "issuedAt": "…", "issueNote": "…" }, "fileName": "…" }`.
-Output: `{ "xlsxKey": "…", "sizeBytes": 123 }`. With `diffKey` it writes the change report
-instead.
+Input: `{ "resultKey": "…", "diffKey": null, "meta": { …as run.export.meta…, "issuedBy": "…", "issuedAt": "…", "issueNote": "…" } }`.
+Output: `{ "xlsxKey": "…", "sizeBytes": 123 }`. With `diffKey` the worker writes the change report.
+BoQ exports can carry project and issue metadata, grouping, position numbers and a plan watermark.
+A supplied `boqId` enables round-trip metadata and protects the line-key column.
 
 ### import_boq_edits (EN-006, F12)
 
-Input: the uploaded workbook's storage key, the revision's current run (lines with keys, codes
-and the groupBy system used at export). Output: `EditsImportReport` (openapi): proposed line
-edits by line key, proposed manual lines for rows without a key (with the group they sit
-under), and problems by sheet, row and column. Read-only, data-only openpyxl. Applies nothing.
+Input includes `fileKey`, `boqId` and `resultKey`. The mock can send its current projected lines
+as `currentLines`. Output includes `reportKey` for the gzipped `EditsImportReport` and proposal
+counts. The engine reads the original grouping from the workbook and checks proposed edits
+against the current lines. It treats an absent keyed row or a cleared keyed row as an exclusion.
+The visible data cells are editable under sheet protection. Excel may require unprotecting the
+sheet to move or physically delete rows containing a locked key.
 
 ### pricing.* (module jobs, EN-P1)
 

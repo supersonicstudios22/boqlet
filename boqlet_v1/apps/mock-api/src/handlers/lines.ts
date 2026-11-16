@@ -53,7 +53,7 @@ function separatorOf(run: RunRec, system: string): string | undefined {
  * changes, so a saved version's numbers stay as they were (BR-28).
  */
 const positionsCache = new Map<string, Map<string, string>>();
-function runPositions(run: RunRec, result: BoqResult, groupBy: string | undefined): Map<string, string> {
+export function runPositions(run: RunRec, result: BoqResult, groupBy: string | undefined): Map<string, string> {
   const system = groupBy ?? run.classifications?.[0]?.id ?? null;
   const cacheKey = `${run.id}|${system ?? ""}`;
   const hit = positionsCache.get(cacheKey);

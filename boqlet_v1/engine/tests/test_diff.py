@@ -1,17 +1,20 @@
 import json
+from io import BytesIO
 from pathlib import Path
 from time import monotonic
 
 import pytest
+from openpyxl import load_workbook
 
 from ifc_boq.diff import compare
 from ifc_boq.parse import parse_file
 from ifc_boq.paths import FIXTURES
-from ifc_boq.worker import validate
+from ifc_boq.storage import LocalStorage, write_json_gzip
+from ifc_boq.worker import execute, validate
 from test_duplex import run
 
 
-def test_duplex_revision_matches_known_changes(duplex_parsed):
+def test_duplex_revision_matches_known_changes(duplex_parsed, tmp_path):
     changed, _ = parse_file(str(FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture_v2.ifc"))
     first, second = run(duplex_parsed), run(changed)
     def model(parsed, result, version):
@@ -29,6 +32,15 @@ def test_duplex_revision_matches_known_changes(duplex_parsed):
     for key, (delta, cause) in expected["lines"].items():
         assert actual[key]["delta"] == pytest.approx(delta, abs=0.011)
         assert actual[key]["causes"] == [cause]
+    storage = LocalStorage(tmp_path)
+    write_json_gzip(storage, "diff/result.json.gz", result)
+    output = execute({"type": "export_xlsx", "contract": "1", "outputPrefix": "export/diff",
+                      "input": {"diffKey": "diff/result.json.gz"}}, storage)
+    assert output["status"] == "succeeded", output
+    workbook = load_workbook(BytesIO(storage.get_bytes(output["output"]["xlsxKey"])), read_only=True)
+    assert workbook.sheetnames == ["Summary", "Lines", "Elements"]
+    assert workbook["Elements"].max_row == 4
+    assert workbook["Lines"].max_row == 6
 
 
 def test_large_diff_compares_40000_lines_under_five_seconds():

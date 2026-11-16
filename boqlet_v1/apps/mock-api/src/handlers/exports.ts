@@ -15,7 +15,8 @@ import { createJob, jobView, projectAudience, runJob } from "../jobs.js";
 import { visibleProject } from "../projects.js";
 import { json, type Handlers } from "../router.js";
 import { db, persist, type ExportRec, type RevisionRec, type RunRec, type UserRec } from "../store.js";
-import { runFor, runResult } from "./lines.js";
+import { runFor, runPositions, runResult } from "./lines.js";
+import { planLimits } from "./orgs.js";
 
 const userRef = (id: string) => {
   const u = db().users.find((x) => x.id === id);
@@ -84,8 +85,14 @@ export function startRunExport(opts: { run: RunRec; user: UserRec; groupBy?: str
       ctx.progress("export", 10);
       const result = await runResult(run);
       const models = ((run.models ?? []) as { fileName: string }[]).map((m) => m.fileName).join(", ");
-      const title = `${project.name} / ${boq.name}, revision ${label}${working ? " (WORKING)" : issued?.note ? `: ${issued.note}` : ""}${models ? ` / ${models}` : ""}`;
-      const bytes = await exportXlsx(result, { classifications: ordered, modelName: title, generatedAt: run.finishedAt ?? run.createdAt, boqId: boq.id });
+      const numbers = runPositions(run, result, ordered[0]?.id);
+      const bytes = await exportXlsx(result, {
+        classifications: ordered, modelName: models, generatedAt: run.finishedAt ?? run.createdAt, boqId: boq.id,
+        project: project.name, boq: boq.name, revision: label, status: working ? "working" : "issued",
+        issuedAt: issued ? nowIso() : revision.issuedAt, issuedBy: issued ? user.name : undefined,
+        issueNote: issued?.note, locale: project.locale, numberFormat: org.settings.numberFormat,
+        watermark: planLimits(org).exportWatermark, positionNumbers: Object.fromEntries(numbers),
+      });
       const id = newId();
       const createdAt = nowIso();
       const fileName = exportFileName(project.code || project.name, boq.name, label, createdAt);

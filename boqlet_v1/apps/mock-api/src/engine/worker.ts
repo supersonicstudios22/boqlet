@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { gunzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, RunDiff, SceneIndex, TableReadResponse } from "@ifc-boq/types";
-import { blobPath, getBlob } from "../blobs.js";
+import { blobPath, getBlob, putBlob } from "../blobs.js";
 import { PRESETS_DIR } from "../paths.js";
 import type { TemplateImport, TemplateInput } from "./preset-template.js";
 import type { PreviewChange } from "./preset-preview.js";
 import { EngineRefused, EngineUnavailable, type DiffInputSide, type Engine, type EngineProgress, type ParsedModelSummary, type PresetFolder, type RunInput } from "./engine.js";
+import type { ExportMeta, ImportLine } from "./fakes/export-xlsx.js";
 
 type Preset = { id: string; extends?: string };
 type JobOutput = { status: string; output?: unknown; error?: { message: string; code: string } };
@@ -38,7 +39,7 @@ export class WorkerEngine implements Engine {
     return (await this.send(route, input)).json() as Promise<T>;
   }
 
-  private async job<T>(type: "parse" | "run" | "preview" | "diff", input: unknown, outputPrefix: string, progress?: EngineProgress): Promise<T> {
+  private async job<T>(type: "parse" | "run" | "preview" | "diff" | "export_xlsx" | "import_boq_edits", input: unknown, outputPrefix: string, progress?: EngineProgress): Promise<T> {
     const response = await this.send(`/jobs/${type}`, {
       jobId: randomUUID(), contract: "1", type, input, outputPrefix, orgId: "mock", attempt: 1,
     });
@@ -185,6 +186,42 @@ export class WorkerEngine implements Engine {
       fromDecisions: from.decisions, toDecisions: to.decisions, inputsChanged,
     }, prefix, progress);
     return this.result<RunDiff>(diffKey);
+  }
+
+  async exportBoq(result: BoqResult, meta: ExportMeta) {
+    const prefix = `_engine/workbooks/${randomUUID()}`;
+    try {
+      const resultKey = `${prefix}/result.json.gz`;
+      await putBlob(resultKey, gzipSync(JSON.stringify(result)));
+      const { xlsxKey } = await this.job<{ xlsxKey: string }>("export_xlsx", { resultKey, meta }, prefix);
+      return await getBlob(xlsxKey);
+    } finally {
+      await rm(blobPath(prefix), { recursive: true, force: true });
+    }
+  }
+
+  async exportDiff(diffKey: string, meta: { title: string; fromLabel: string; toLabel: string; groupBy?: string }) {
+    const prefix = `_engine/workbooks/${randomUUID()}`;
+    try {
+      const { xlsxKey } = await this.job<{ xlsxKey: string }>("export_xlsx", { diffKey, meta }, prefix);
+      return await getBlob(xlsxKey);
+    } finally {
+      await rm(blobPath(prefix), { recursive: true, force: true });
+    }
+  }
+
+  async importBoq(file: Uint8Array, info: { boqId: string; primary: string | null; lines: ImportLine[] }) {
+    const prefix = `_engine/workbooks/${randomUUID()}`;
+    try {
+      const fileKey = `${prefix}/source.xlsx`;
+      await putBlob(fileKey, file);
+      const { reportKey } = await this.job<{ reportKey: string }>("import_boq_edits", {
+        fileKey, boqId: info.boqId, groupBy: info.primary, currentLines: info.lines,
+      }, prefix);
+      return await this.result<unknown>(reportKey);
+    } finally {
+      await rm(blobPath(prefix), { recursive: true, force: true });
+    }
   }
 
   async deletePreset(kind: PresetFolder, id: string) {

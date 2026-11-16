@@ -19,6 +19,7 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from .sheets.boq_import import annotate
 
 F = "Arial"
 H_FONT = Font(name=F, size=10, bold=True, color="FFFFFF")
@@ -72,6 +73,9 @@ def _description(line, primary):
 def export(result: dict, meta: dict) -> bytes:
     wb = Workbook()
     systems = meta.get("classifications", [])          # [{id, name}]
+    group_by = meta.get("groupBy")
+    if group_by:
+        systems = sorted(systems, key=lambda system: system["id"] != group_by)
     primary = systems[0]["id"] if systems else None
     lines = result["lines"]
     text_systems = {system for line in lines for system, code in line["codes"].items() if code.get("text")}
@@ -79,7 +83,11 @@ def export(result: dict, meta: dict) -> bytes:
     # ------------------------------------------------------------------ BoQ
     ws = wb.active
     ws.title = "BoQ"
-    ws["A1"] = f"Bill of Quantities - {meta.get('modelName', '')}"
+    label = meta.get("revision")
+    status = meta.get("status")
+    working = status in {"working", "draft", "review", "approved"} if status else False
+    title = meta.get("boq") or meta.get("modelName", "")
+    ws["A1"] = f"Bill of Quantities - {title}" + (f" ({label})" if label else "") + (" (WORKING)" if working else "")
     ws["A1"].font = TITLE
     ws["A2"] = (f"Rules: {result['ruleSet']['name']} ({result['ruleSet']['meta'].get('chain', result['ruleSet']['id'])})  |  "
                 f"Grouping: {systems[0]['name'] if systems else 'none'}  |  Status: {result['status']}  |  "
@@ -102,6 +110,12 @@ def export(result: dict, meta: dict) -> bytes:
         groups.setdefault(top, []).append(l)
     r = 6
     subtotal_cells = []
+    roundtrip_rows = []
+    position_numbers = meta.get("positionNumbers") or {}
+    if position_numbers:
+        ws["J5"] = "No."
+        ws["J5"].font, ws["J5"].fill, ws["J5"].border = H_FONT, H_FILL, BOX
+        ws.column_dimensions["J"].width = 12
     for (code, title), ls in sorted(groups.items(), key=lambda kv: kv[0][0]):
         _row(ws, r, [code if code != "~" else "", title, "", "", "", "", "", ""], BOLD, SEC_FILL)
         r += 1
@@ -126,6 +140,9 @@ def export(result: dict, meta: dict) -> bytes:
             ws.cell(row=r, column=5).font = INPUT
             ws.cell(row=r, column=5).number_format = NUM
             ws.cell(row=r, column=6).number_format = NUM
+            roundtrip_rows.append((r, l["key"], code if code != "~" else ""))
+            if position := position_numbers.get(l["key"]):
+                ws.cell(r, 10, str(position)).data_type = "s"
             r += 1
         _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL,
              formula_cols=(6,))
@@ -135,6 +152,28 @@ def export(result: dict, meta: dict) -> bytes:
     _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""],
          Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
+    if meta.get("boqId"):
+        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows)
+
+    if meta.get("project") or meta.get("boq") or label or meta.get("watermark"):
+        cover = wb.create_sheet("Cover", 0)
+        cover["A1"] = "Bill of Quantities"
+        cover["A1"].font = TITLE
+        cover.column_dimensions["A"].width = 24
+        cover.column_dimensions["B"].width = 82
+        details = [
+            ("Project", meta.get("project")), ("Bill", meta.get("boq")), ("Version", label),
+            ("Status", "WORKING" if working else status), ("Model", meta.get("modelName")),
+            ("Grouping", systems[0]["name"] if systems else None), ("Generated", meta.get("generatedAt")),
+            ("Saved by", meta.get("issuedBy")), ("Saved at", meta.get("issuedAt")), ("Note", meta.get("issueNote")),
+            ("Locale", meta.get("locale")), ("Number format", json.dumps(meta["numberFormat"], ensure_ascii=False)
+             if meta.get("numberFormat") else None),
+        ]
+        for row, (heading, value) in enumerate(((name, data) for name, data in details if data is not None), 3):
+            _row(cover, row, [heading, value], wrap_cols=(2,))
+        if meta.get("watermark"):
+            _row(cover, 19, [meta["watermark"] if isinstance(meta["watermark"], str) else "Made with boqlet"], SMALL)
+        wb.active = cover
 
     excluded = [line for line in lines if line.get("excluded")]
     if excluded:

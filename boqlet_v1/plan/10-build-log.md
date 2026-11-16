@@ -22,8 +22,8 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, engine worker and Java service |
 | Role | **Backend agent** |
-| Latest verified | BE-006 model upload and BE-007 HTTP job dispatch with the real Python worker and MinIO |
-| Next task | EN-006 workbook jobs, Library routes (BE-008), and BoQ and run workflows (BE-009 through BE-012) |
+| Latest verified | EN-006 native workbook export and import, and BE-006/BE-007 native IFC upload and parse |
+| Next task | Finish BE-008 Library verification, then BoQ and run workflows (BE-009 through BE-012). EN-013 structured traces and EN-009 queue transport remain. |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
 | In progress | BE-005 sample project, attention and live project counts depend on models and BoQs. BE-027 realtime and provider revocation and BE-020 email delivery remain. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
@@ -45,8 +45,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ## Entries
 
+### 2026-11-16 — EN-006 native workbooks (backend agent)
+- **Built:** worker jobs render BoQ and diff Excel files and return read-only BoQ edit reports. BoQ workbooks include cover metadata, positioning and working and plan watermarks. The hidden key column is locked and the exported line values are stored in a very hidden worksheet.
+- **Verified:** full local suite passed with 206 Python tests, 208 app tests, 60 mock unit tests, 177 contract tests and 169 scenarios. The round-trip tests exercise quantity edit, move, exclusion, new manual line and invalid cells. The revision test renders the real Duplex diff. Excel and LibreOffice desktop checks remain.
+- **Decisions taken:** clearing a keyed row proposes an exclusion. This keeps exclusions possible while leaving the key locked. Standard Excel numeric cells retain their type and render separators using the spreadsheet application's locale. The cover records the project locale and number-format preference.
+
 ### 2026-11-16 — BE-006 model storage and BE-007 HTTP jobs (backend agent)
-- **Built:** Java model and model-version routes, signed S3 single and multipart uploads, header and size validation, protected source copy before parse, signed GLB access, scene and names reads, and PostgreSQL job claim, cancellation, retry, progress, and usage ingestion.
+- **Built:** `84e6649`. Java model and model-version routes, signed S3 single and multipart uploads, header and size validation, protected source copy before parse, signed GLB access, scene and names reads, and PostgreSQL job claim, cancellation, retry, progress, and usage ingestion.
 - **Verified:** Java `verify` passed six PostgreSQL tests including the opt-in native test. It starts MinIO and the Python worker, signs and uploads the real Duplex IFC, checks upload completion is idempotent, parses, reads the scene and GLB, queries names, and verifies recorded usage. The signed single upload was exercised in MinIO. Multipart has compiled coverage and still needs its own integration case.
 - **Decisions taken:** the HTTP dispatcher has configurable concurrency, timeout and upload size. Each attempt uses a distinct artifact prefix, so a late result cannot overwrite a committed result. The first successful identical parse within an organisation supplies the canonical artifact keys. Hash comparison currently occurs after parsing. Jobs recover lost HTTP leases by retrying with backoff.
 - **Follow-up:** run-reference protection for model deletion joins the BoQ and run work. Queue transport is EN-009 and BE-013. Artifact retention and cleanup are BE-024.

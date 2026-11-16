@@ -14,6 +14,8 @@ import path from "node:path";
 import type { BoqResult } from "@ifc-boq/types";
 import { fileURLToPath } from "node:url";
 import { PRODUCT_ROOT } from "../../paths.js";
+import { engine } from "../engine.js";
+import { WorkerEngine } from "../worker.js";
 
 export interface ExportMeta {
   /** Classifications in grouping order: the first groups the BoQ sheet. */
@@ -23,6 +25,17 @@ export interface ExportMeta {
   dictionaries?: string[];
   /** The BoQ the file is of: the edits import (FE-037) refuses a file of another BoQ. */
   boqId?: string;
+  project?: string;
+  boq?: string;
+  revision?: string;
+  status?: string;
+  issuedAt?: string;
+  issuedBy?: string;
+  issueNote?: string;
+  locale?: string;
+  watermark?: boolean;
+  numberFormat?: { decimal?: string; thousands?: string };
+  positionNumbers?: Record<string, string>;
 }
 
 const ENGINE = path.join(PRODUCT_ROOT, "engine");
@@ -63,6 +76,8 @@ export interface ImportLine {
 
 /** Reads an edited BoQ workbook back against the BoQ's current lines (F12, FE-037): the EditsImportReport. */
 export async function readEditedXlsx(xlsx: Uint8Array, info: { boqId: string; primary: string | null; lines: ImportLine[] }): Promise<unknown> {
+  const adapter = engine();
+  if (adapter instanceof WorkerEngine) return adapter.importBoq(xlsx, info);
   const dir = await mkdtemp(path.join(os.tmpdir(), "boqlet-import-"));
   try {
     await writeFile(path.join(dir, "in.xlsx"), xlsx);
@@ -75,11 +90,13 @@ export async function readEditedXlsx(xlsx: Uint8Array, info: { boqId: string; pr
 
 /** Writes the BoQ Excel of a result with the engine's exporter; returns the xlsx bytes. */
 export async function exportXlsx(result: BoqResult, meta: ExportMeta): Promise<Uint8Array> {
+  const adapter = engine();
+  if (adapter instanceof WorkerEngine) return adapter.exportBoq(result, meta);
   const dir = await mkdtemp(path.join(os.tmpdir(), "boqlet-export-"));
   try {
     const [resultPath, metaPath, rawPath, infoPath, outPath] = ["result.json", "meta.json", "raw.xlsx", "info.json", "boq.xlsx"].map((f) => path.join(dir, f)) as [string, string, string, string, string];
     await writeFile(resultPath, JSON.stringify(result));
-    await writeFile(metaPath, JSON.stringify(meta));
+    await writeFile(metaPath, JSON.stringify({ ...meta, boqId: undefined }));
     await runPython(["-c", SCRIPT, resultPath, metaPath, rawPath], ENGINE);
     await writeFile(infoPath, JSON.stringify({ boqId: meta.boqId ?? "", primary: meta.classifications[0]?.id ?? null, lines: result.lines.filter((line) => !line.excluded).map((l) => ({ key: l.key, codes: l.codes })) }));
     await runPython([ROUNDTRIP, "annotate", rawPath, infoPath, outPath]);

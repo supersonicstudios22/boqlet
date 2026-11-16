@@ -10,6 +10,7 @@ import { getBlob, putBlob } from "../blobs.js";
 import { nowIso } from "../clock.js";
 import { engine, type DiffInputSide } from "../engine/engine.js";
 import { changeReportXlsx, diffRuns, inputsChanged, type DiffResult, type DiffSide } from "../engine/fakes/diff.js";
+import { WorkerEngine } from "../engine/worker.js";
 import { HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
 import { createJob, jobView, runJob } from "../jobs.js";
@@ -157,8 +158,12 @@ export const diffHandlers: Handlers = {
       };
       const s = diff.summary as DiffResult["summary"];
       const label = (r: typeof revision) => `${revisionLabel(r.number)}${r.status === "draft" ? " (working)" : ""}`;
-      const bytes = await changeReportXlsx({
-        title: `${project.name} / ${boq.name}: changes`,
+      const title = `${project.name} / ${boq.name}: changes`;
+      const adapter = engine();
+      const bytes = adapter instanceof WorkerEngine
+        ? await adapter.exportDiff(diff.key, { title, fromLabel: label(fromRevision), toLabel: label(revision), groupBy: system })
+        : await changeReportXlsx({
+        title,
         subtitle: `${label(fromRevision)} (run of ${from.finishedAt ?? from.createdAt}) to ${label(revision)} (run of ${to.finishedAt ?? to.createdAt})`,
         summary: [
           ["Lines added", s.linesAdded],
