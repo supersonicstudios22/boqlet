@@ -15,6 +15,7 @@ export type QuestionCode =
 export type WarningCode =
   | "unknown_code"
   | "mixed_line"
+  | "item_text_blank"
   | "rule_set"
   | "federation_hole"
   | "federation_storeys"

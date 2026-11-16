@@ -12,9 +12,8 @@ import { nowIso } from "../clock.js";
 import { EngineRefused, EngineUnavailable, engine, type PresetFolder } from "../engine/engine.js";
 import { emit } from "../events.js";
 import { notify as sendNotification } from "../notify.js";
-import { codeListsOf } from "../codes.js";
 import { decisionsSnapshot, unappliedQuestionIds } from "../decisions.js";
-import { applyManualCodes, applyLineOrder } from "../engine/fakes/line-edits.js";
+import { applyLineOrder } from "../engine/fakes/line-edits.js";
 import { addTraceSteps } from "../engine/fakes/trace-steps.js";
 import { conflict, HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
@@ -34,7 +33,6 @@ import {
   type UserRec,
 } from "../store.js";
 import { planLimits } from "./orgs.js";
-import { addItemTexts } from "../engine/fakes/item-texts.js";
 import { latestPublished } from "./presets.js";
 
 type InputsPatch = Partial<RevisionInputs>;
@@ -495,13 +493,8 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
           return id;
         };
         const adjustments = run.request.adjustments ?? adjustmentsOf(boq.id, true);
-        let ruleSet = keep("rules")(await enginePresetId(version(inputs.ruleSetVersionId), saved));
-        // Manual lines go to the engine as a patch that appends them to the rule set (data-model.md "ManualItem").
-        if (adjustments.manualItems.length) {
-          const patchId = `mock-run-${run.id}`;
-          await engine().savePreset("rules", patchId, { schemaVersion: "1.0", id: patchId, name: `${boq.name}: manual lines`, version: "1", extends: ruleSet, manual: adjustments.manualItems.map((m) => m.item) });
-          ruleSet = keep("rules")(patchId);
-        }
+        const ruleSet = keep("rules")(await enginePresetId(version(inputs.ruleSetVersionId), saved));
+        const manualItems = adjustments.manualItems.map(({ item, codes }) => ({ ...item, ...(codes ? { codes } : {}) }));
         const dictionaryIds = [...inputs.dictionaryVersionIds, ...(run.request.projectDictionaryVersionId ? [run.request.projectDictionaryVersionId] : [])];
         const dictionaries = (await Promise.all(dictionaryIds.map((id) => enginePresetId(version(id))))).map(keep("dictionaries"));
         const classifications = (await Promise.all(inputs.classificationVersionIds.map((id) => enginePresetId(version(id))))).map(keep("classifications"));
@@ -517,14 +510,10 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
               answer: { quantity, description, unit, codes, excluded, reason } }];
           }),
         ];
-        const { result } = await engine().run({ models, ruleSet, dictionaries, classifications, decisions },
+        const { result } = await engine().run({ models, ruleSet, dictionaries, classifications, decisions, manualItems },
           (stage, pct) => ctx.progress(stage, Math.max(pct, 2)));
         if (ctx.cancelled()) return;
-        const codeLists = codeListsOf(inputs);
-        applyManualCodes(result, adjustments.manualItems, codeLists);
         applyLineOrder(result, adjustments.overrides, adjustments.manualItems);
-        // Item texts follow the codes the lines end up with (moves included), "Item texts filled" fake.
-        addItemTexts(result, codeLists);
         addTraceSteps(result, (key) => {
           const by = adjustments.overrides.find((o) => o.lineKey === key && o.quantity !== undefined)?.createdBy;
           return by ? db().users.find((u) => u.id === by)?.name : undefined;

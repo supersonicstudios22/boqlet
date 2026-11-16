@@ -3943,6 +3943,10 @@ export interface components {
         "Value<boolean>": boolean | components["schemas"]["ParamRef"];
         ManualItem: {
             id: string;
+            /** @description Preferred code by classification system. Unspecified systems still use their maps. */
+            codes?: {
+                [key: string]: string;
+            };
             /** @enum {string} */
             kind: "preliminary" | "provisional_sum" | "lump_sum" | "daywork" | "other";
             description: components["schemas"]["Value<Template>"];
@@ -4017,7 +4021,7 @@ export interface components {
                 title: string;
             }[];
             /** @enum {string} */
-            source: "decision" | "map" | "ifc" | "default";
+            source: "decision" | "map" | "ifc" | "default" | "item";
             mapRuleId?: string;
             /** @description The code's item text filled with this line's values (EN-010); absent when the code has none. */
             text?: string;
@@ -4078,7 +4082,7 @@ export interface components {
          * @description Existing warning codes are also used by consumers to filter warnings.
          * @enum {string}
          */
-        WarningCode: "unknown_code" | "mixed_line" | "rule_set" | "federation_hole" | "federation_storeys" | "federation_coordinates" | "federation_overlap" | "federation_unhosted" | "double_claim";
+        WarningCode: "unknown_code" | "mixed_line" | "item_text_blank" | "rule_set" | "federation_hole" | "federation_storeys" | "federation_coordinates" | "federation_overlap" | "federation_unhosted" | "double_claim";
         Warning: {
             code: components["schemas"]["WarningCode"];
             message: string;

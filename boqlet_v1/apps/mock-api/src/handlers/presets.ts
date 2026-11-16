@@ -7,16 +7,15 @@ import { limitHit } from "../limits.js";
 import { audit } from "../audit.js";
 import { putBlob, signedUrl } from "../blobs.js";
 import { nowIso } from "../clock.js";
-import { EngineUnavailable } from "../engine/engine.js";
-import { readTemplate, writeTemplate, type TemplateInput } from "../engine/fakes/preset-template.js";
+import { engine, EngineUnavailable } from "../engine/engine.js";
+import type { TemplateInput } from "../engine/preset-template.js";
 import { previewResult, previewRun, type PreviewInputs } from "../engine/fakes/preview.js";
-import { withSetupMarkers } from "../engine/fakes/setup-markers.js";
 import { createJob, jobView, runJob } from "../jobs.js";
 import { emit } from "../events.js";
 import { conflict, forbidden, HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
 import { memberOrg, orgPermissions } from "../permissions.js";
-import { blankDoc, blankPatch, checkDoc, docIdOf, renamed, slugify, uniqueSlug } from "../preset-docs.js";
+import { blankDoc, blankPatch, checkDoc, docIdOf, renamed, slugify, uniqueSlug, withParents } from "../preset-docs.js";
 import { projectRoleOf, visibleProject, writableProject } from "../projects.js";
 import { json, noContent, type Handlers } from "../router.js";
 import { db, persist, type BoqRec, type PresetRec, type PresetVersionRec, type ProjectRec, type RevisionInputs, type RevisionRec, type UserRec } from "../store.js";
@@ -164,15 +163,13 @@ async function check(preset: PresetRec, version: PresetVersionRec) {
 }
 
 /**
- * A rule-set version flattened by the engine, with the setup markers (fake). Cached by version and
- * revision: a published version never changes, a draft changes with each save, and the engine (busy with
- * runs) is asked once. A patch's flattening also depends on its parent, which is a published version.
+ * Cache the engine's flattened version by version and draft revision.
  */
 const flatCache = new Map<string, unknown>();
 async function flattenedOf(version: PresetVersionRec): Promise<unknown> {
   const key = `${version.id}:${version.rev ?? 0}:${version.extendsVersionId ?? ""}`;
   if (flatCache.has(key)) return flatCache.get(key);
-  const flat = withSetupMarkers((await checkDoc("rule_set", version.doc, version.extendsVersionId)).flattened ?? undefined);
+  const flat = (await checkDoc("rule_set", version.doc, version.extendsVersionId)).flattened ?? undefined;
   if (flatCache.size > 500) flatCache.clear();
   flatCache.set(key, flat);
   return flat;
@@ -192,7 +189,10 @@ async function templateInput(preset: PresetRec, version: PresetVersionRec | unde
   };
   if (preset.kind === "rule_set") {
     const parent = version.extendsVersionId ? db().presetVersions.find((v) => v.id === version.extendsVersionId) : undefined;
-    return { kind: "rule_set", doc: version.doc, effective: await flat(version.doc, version.extendsVersionId), ...(parent ? { parentParams: (await flat(parent.doc, parent.extendsVersionId)).params ?? {} } : {}), source };
+    const { doc: resolved, library } = withParents(version.doc, version.extendsVersionId);
+    return { kind: "rule_set", doc: version.doc, effective: await flat(version.doc, version.extendsVersionId),
+      ...(parent ? { parentParams: (await flat(parent.doc, parent.extendsVersionId)).params ?? {},
+        checkParent: resolved.extends, library } : {}), source };
   }
   if (preset.kind === "classification") {
     // Codes per line lists the BoQ items of As modelled (the master template every rule set builds on).
@@ -530,7 +530,7 @@ export const presetHandlers: Handlers = {
     const source = ((query.source as string | undefined) ?? "draft") as "draft" | "latest" | "empty";
     const input = await templateInput(preset, source === "latest" ? latestPublished(preset.id) : (draftOf(preset.id) ?? latestPublished(preset.id)), source);
     const key = `orgs/${preset.orgId ?? "system"}/templates/${newId()}/${preset.slug}.xlsx`;
-    await putBlob(key, await writeTemplate(input));
+    await putBlob(key, await engine().writeTemplate(input));
     return new Response(null, { status: 302, headers: { Location: signedUrl(key, "GET", 600).url } });
   },
 
@@ -543,7 +543,7 @@ export const presetHandlers: Handlers = {
     const file = (body as FormData).get("file");
     if (!file || typeof file === "string") throw new HttpError(400, "invalid_body", 'Send the workbook as the multipart field "file".');
     const input = await templateInput(preset, draftOf(preset.id) ?? latestPublished(preset.id), "draft");
-    const out = await readTemplate(input, new Uint8Array(await file.arrayBuffer()));
+    const out = await engine().readTemplate(input, new Uint8Array(await file.arrayBuffer()));
     if ("error" in out) throw new HttpError(400, "invalid_file", out.error);
     return json(out);
   },

@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, milestone ME (engine worker) |
 | Role | **Backend agent** |
-| Last task done | EN-004 stable question, warning, and log message codes |
-| Next task | EN-003 engine line overrides, then EN-007 manual codes |
+| Last task done | EN-012 preset templates, following EN-007, EN-010 and EN-011 |
+| Next task | EN-013 structured traces, EN-005 preview and remaining engine work. Continue BE-001 foundation. |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress (not committed) | EN-003 engine line edits and workbook output. Targeted engine tests and the mock's line edit scenarios pass. Full suites are running. |
+| In progress (not committed) | BE-001 Java foundation, OpenAPI generation and PostgreSQL integration. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
@@ -44,6 +44,16 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-16 — Engine classifications, wizard data and preset templates (backend agent)
+- **Built:** EN-007 manual codes, EN-010 item-text expressions and warnings, EN-011 setup markers and validation, and EN-012 preset spreadsheet RPC. Removed the corresponding mock computation.
+- **Verified:** full `npm test` passed (204 engine tests, 177 contract tests, 169 scenarios with 2 existing TODOs, 208 app tests and 60 mock unit tests with the separate live-engine smoke skipped). All available shipped presets round-trip without changes. Workbook tests check three answer changes and cell-level errors. The workflow tests exercise download and import through the worker.
+- **Decisions taken:** inline manual items retain sheet keys and use namespaced rule IDs in the snapshot. Item texts use the rule template evaluator. Rule patches inherit setup markers unless they replace the ordered screen list. The workbook tests used openpyxl for edits. Manual LibreOffice verification remains.
+
+### 2026-11-16 — EN-003 line overrides (backend agent)
+- **Built:** `106de54`. Quantity edits affect dependent derived lines. The engine keeps the original fields, emits non-blocking orphan questions and writes exclusions to a separate Excel sheet.
+- **Verified:** 199 engine tests, 177 shared contract tests and 169 scenarios (2 existing TODOs). The diff scenario uses an independent door count to isolate a direct edit. The engine acceptance checks the separate dependent formwork case.
+- **Deviation:** Public Excel is generated from the same saved run with the public field allowlist. It uses its own storage key. The internal frozen workbook carries private notes and is available to project members.
 
 ### 2026-11-16 — EN-004 structured messages (backend agent)
 - **Built:** `cab98f3`. The engine emits stable codes and parameters for questions, warnings, and logs. The generated schema checks membership in the TypeScript code unions. Existing warning codes and English fallback text keep their meaning.

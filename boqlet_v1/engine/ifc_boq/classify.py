@@ -15,6 +15,29 @@ from collections import Counter
 
 from .expr import Expr
 from .log import CalcLog
+from .templates import render
+
+
+def fill_item_texts(lines, classifications, evaluator, context, warnings):
+    texts = {code_list["id"]: {c["code"]: c["description"] for c in code_list["codes"] if c.get("description")}
+             for code_list, _ in classifications}
+    for line in lines:
+        for system, code in line.get("codes", {}).items():
+            if not (template := texts.get(system, {}).get(code["code"])):
+                continue
+            part = line["_parts"][0] if line.get("_parts") else line.get("_text_context", {})
+            props = part.get("props", {})
+            fields = {**part, **line_fields(line), **context, "quantity": line["quantity"], "qty": line["quantity"],
+                      "description": line["description"],
+                      "fire_rating": next((value for key, value in props.items()
+                                           if key.endswith(".FireRating") and value is not None), None)}
+            blanks = set()
+            code["text"] = render(template, evaluator, fields, blanks.add)
+            for blank in sorted(blanks):
+                warnings.append({"code": "item_text_blank", "ruleId": line["ruleId"],
+                                 "message": f"[{system}] '{line['description']}': no value for '{{{blank}}}'.",
+                                 "params": {"system": system, "lineKey": line["key"],
+                                            "description": line["description"], "blank": blank}})
 
 
 def line_fields(line: dict) -> dict:
@@ -81,8 +104,14 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
     ordered = sorted(lines, key=lambda l: l["ruleKind"] == "derived")       # sources before derived
     for line in ordered:
         fields = line_fields(line)
+        edit = (overrides or {}).get(line["key"], {}).get("codes", {}).get(system)
+        manual = line.get("_manual_codes", {}).get(system)
         code, src, rule_id, why = None, None, None, ""
+        if manual in codes:
+            code, src, why = manual, "item", "code supplied by manual item"
         for s in sources:
+            if code:
+                break
             if s == "decision":
                 ans = decisions.get(f"unclassified:{system}:{line['key']}")
                 if ans:
@@ -101,7 +130,7 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                 top = max(r.get("priority", 0) for r in cands)
                 best = [r for r in cands if r.get("priority", 0) == top]
                 rule = best[0]
-                if len(best) > 1 and cmap.get("onConflict") == "ask":
+                if len(best) > 1 and cmap.get("onConflict") == "ask" and edit not in codes:
                     questions.append({"id": f"classconflict:{system}:{line['key']}", "kind": "classification_conflict",
                                       "code": "question.classification_conflict",
                                       "params": {"system": code_list["name"], "description": line["description"],
@@ -128,13 +157,11 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                                      "message": f"[{system}] '{line['description']}' mixes elements with different "
                                                 f"{', '.join(sorted(risky))}; map rule '{rule['id']}' depends on it. "
                                                 f"Add the field to the rule's lineKey so the line splits."})
-            if code:
-                break
         if not code:
             unm = cmap.get("onUnmapped", "flag")
             if isinstance(unm, dict):
                 code, src, why = unm["code"], "default", "onUnmapped default"
-            elif unm == "ask":
+            elif unm == "ask" and edit not in codes:
                 questions.append({"id": f"unclassified:{system}:{line['key']}", "kind": "unclassified", "blocking": False,
                                   "code": "question.unclassified",
                                   "params": {"system": code_list["name"], "description": line["description"]},
@@ -144,7 +171,6 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
             warnings.append({"code": "unknown_code", "message": f"[{system}] line '{line['description']}' got code '{code}', not in the code list",
                              "params": {"system": system, "description": line["description"], "code": code}})
             code = None
-        edit = (overrides or {}).get(line["key"], {}).get("codes", {}).get(system)
         if edit in codes:
             line.setdefault("overridden", {}).setdefault("engineCodes", {})[system] = code
             code, src, rule_id, why = edit, "decision", None, "user edit"

@@ -28,7 +28,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 
-from .classify import classify
+from .classify import classify, fill_item_texts
 from .expr import Expr, fmt
 from .federation import combine
 from .log import CalcLog
@@ -37,7 +37,7 @@ from .names import Resolver, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
 
-INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind")
+INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind", "_manual_codes", "_text_context")
 
 
 def element_boxes(parsed: dict) -> dict[str, tuple]:
@@ -103,7 +103,7 @@ def names_in_model(parsed: dict, dictionaries: list[dict], resolution: dict | No
 def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]], dictionaries: list[dict],
             resolution: dict | None = None, decisions: list[dict] | None = None,
             rule_library: dict[str, dict] | None = None, federation: dict | None = None,
-            progress=None) -> dict:
+            progress=None, manual_items: list[dict] | None = None) -> dict:
     t0 = time.time()
     log = CalcLog()
     resolution = resolution or {}
@@ -141,6 +141,21 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     flat = rules if "extends" not in rules else flatten(rules, rule_library or {})
     if "chain" not in flat:
         flat = flatten(flat, {})
+    manual_keys = {}
+    if manual_items:
+        manual = list(flat.get("manual", []))
+        rule_ids = {rule["id"] for rule in flat["items"] + flat.get("derived", []) + manual}
+        line_keys = {item["id"] for item in manual}
+        for item in manual_items:
+            key = item["id"]
+            rule_id = f"boq.{key}"
+            if not key or rule_id in rule_ids:
+                raise ValueError(f"Duplicate or empty manual item id: {key}")
+            rule_ids.add(rule_id)
+            manual_keys[rule_id] = key if key not in line_keys else rule_id
+            line_keys.add(manual_keys[rule_id])
+            manual.append({**item, "id": rule_id})
+        flat = {**flat, "manual": manual}
     dec_entries = decision_entries(decisions)
     rv = Resolver(dictionaries, resolution, dec_entries)
     log.info("names", "dictionaries: " + ", ".join(f"{d['id']} ({d['layer']})" for d in dictionaries)
@@ -213,7 +228,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         if (edit := overrides.get(line["key"])) is not None:
             apply_quantity(line, edit)
     derived_lines = eng.run_derived()
-    manual_lines = eng.run_manual()
+    manual_lines = eng.run_manual(manual_keys)
     for line in derived_lines + manual_lines:
         if (edit := overrides.get(line["key"])) is not None:
             apply_quantity(line, edit)
@@ -287,6 +302,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     for code_list, cmap in classifications:
         classify(lines, code_list, cmap, rv.expr, log, answers, questions, warnings, overrides=overrides)
     questions.extend(apply_final(lines, overrides, log))
+    fill_item_texts(lines, classifications, rv.expr, {"p": eng.params, "building": building}, warnings)
 
     # 6. questions & decisions ----------------------------------------------------------
     applied = [q for q in questions if q["id"] in answers]

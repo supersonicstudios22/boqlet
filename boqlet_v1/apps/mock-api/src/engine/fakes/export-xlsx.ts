@@ -14,7 +14,6 @@ import path from "node:path";
 import type { BoqResult } from "@ifc-boq/types";
 import { fileURLToPath } from "node:url";
 import { PRODUCT_ROOT } from "../../paths.js";
-import type { EditedLine } from "./line-edits.js";
 
 export interface ExportMeta {
   /** Classifications in grouping order: the first groups the BoQ sheet. */
@@ -41,31 +40,6 @@ function python() {
   if (process.env.IFC_BOQ_PYTHON) return process.env.IFC_BOQ_PYTHON;
   const win = path.join(ENGINE, ".venv", "Scripts", "python.exe");
   return existsSync(win) ? win : path.join(ENGINE, ".venv", "bin", "python");
-}
-
-const fmt = (v: number | null | undefined) => (v === null || v === undefined ? "to confirm" : String(Math.round(v * 1e6) / 1e6));
-
-/**
- * The result the export shows: without excluded lines, each edit written in the line's notes, and
- * (P14, F06 §2) the item text of the grouping system as the Description, with what was measured in the
- * notes. An edited description wins over the item text.
- */
-export function exportedResult(result: BoqResult, groupBy?: string): BoqResult {
-  const lines = (result.lines as EditedLine[])
-    .filter((l) => !l.excluded)
-    .map((l) => {
-      const o = l.overridden;
-      const text = groupBy && !o?.fields.includes("description") ? l.codes?.[groupBy]?.text : undefined;
-      const withText = text ? { ...l, description: text, notes: [...l.notes, `Measured as: ${l.description}`] } : l;
-      if (!o) return withText;
-      const parts: string[] = [];
-      if (o.fields.includes("quantity")) parts.push(`quantity edited: ${fmt(o.quantity)} instead of ${fmt(o.engineQuantity)}${o.engineUnit ? ` ${o.engineUnit}` : ""}`);
-      if (o.fields.includes("description")) parts.push(`description edited (measured as: ${o.engineDescription})`);
-      if (o.fields.includes("codes")) parts.push("moved to another section");
-      if (o.reason) parts.push(`reason: ${o.reason}`);
-      return parts.length ? { ...withText, notes: [...withText.notes, `Edited: ${parts.join("; ")}`] } : withText;
-    });
-  return { ...result, lines };
 }
 
 function runPython(args: string[], cwd?: string): Promise<string> {
@@ -104,12 +78,10 @@ export async function exportXlsx(result: BoqResult, meta: ExportMeta): Promise<U
   const dir = await mkdtemp(path.join(os.tmpdir(), "boqlet-export-"));
   try {
     const [resultPath, metaPath, rawPath, infoPath, outPath] = ["result.json", "meta.json", "raw.xlsx", "info.json", "boq.xlsx"].map((f) => path.join(dir, f)) as [string, string, string, string, string];
-    const shown = exportedResult(result, meta.classifications[0]?.id);
-    const excluded = result.lines.filter((line) => line.excluded);
-    await writeFile(resultPath, JSON.stringify({ ...shown, lines: [...shown.lines, ...excluded] }));
+    await writeFile(resultPath, JSON.stringify(result));
     await writeFile(metaPath, JSON.stringify(meta));
     await runPython(["-c", SCRIPT, resultPath, metaPath, rawPath], ENGINE);
-    await writeFile(infoPath, JSON.stringify({ boqId: meta.boqId ?? "", primary: meta.classifications[0]?.id ?? null, lines: shown.lines.map((l) => ({ key: l.key, codes: l.codes })) }));
+    await writeFile(infoPath, JSON.stringify({ boqId: meta.boqId ?? "", primary: meta.classifications[0]?.id ?? null, lines: result.lines.filter((line) => !line.excluded).map((l) => ({ key: l.key, codes: l.codes })) }));
     await runPython([ROUNDTRIP, "annotate", rawPath, infoPath, outPath]);
     return new Uint8Array(await readFile(outPath));
   } finally {

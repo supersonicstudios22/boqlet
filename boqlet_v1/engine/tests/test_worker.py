@@ -32,12 +32,15 @@ def test_worker_duplex_http(tmp_path, monkeypatch):
         assert storage.get_bytes(artifacts["geometryKey"]).startswith(b"glTF")
 
         code_list, mapping = presets.load_classification("acme-cost-codes")
+        trades, trade_map = presets.load_classification("demo-trades")
         rules, _ = presets.load_rule_set("as-modelled")
         job = envelope("run", {
             "models": [{"id": "duplex", **artifacts}], "ruleSet": {"doc": rules},
-            "classifications": [{"codeList": code_list, "map": mapping}],
+            "classifications": [{"codeList": code_list, "map": mapping}, {"codeList": trades, "map": trade_map}],
             "dictionaries": [presets.load_dictionary("global-seed")],
             "resolution": presets.resolution(), "federation": presets.federation(),
+            "manualItems": [{"id": "site-hoarding", "kind": "preliminary", "description": "Site hoarding",
+                             "unit": "m", "quantity": 42, "codes": {code_list["id"]: "D.02"}}],
             "export": {"xlsx": True},
         }, "runs/duplex/")
         result = execute(job, storage)
@@ -45,6 +48,12 @@ def test_worker_duplex_http(tmp_path, monkeypatch):
         doc = read_json_gzip(storage, result["output"]["resultKey"])
         for rule_id, contains, expected, _ in HAND_BOQ:
             assert q(doc, rule_id, contains) == pytest.approx(expected, rel=2e-3, abs=0.011)
+        manual = next(line for line in doc["lines"] if line["key"] == "site-hoarding")
+        assert manual["ruleId"] == "boq.site-hoarding"
+        assert manual["codes"][code_list["id"]]["code"] == "D.02"
+        assert manual["codes"][code_list["id"]]["source"] == "item"
+        assert manual["codes"][trades["id"]]["code"] == "00"
+        assert manual["codes"][trades["id"]]["source"] == "map"
         assert storage.get_bytes(result["output"]["xlsxKey"]).startswith(b"PK")
 
         check = client.post("/rpc/check", json={"kind": "rules", "doc": rules})

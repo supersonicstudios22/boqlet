@@ -1,16 +1,25 @@
 """Short, synchronous engine operations shared by internal callers."""
 from __future__ import annotations
 
+from base64 import b64decode, b64encode
+
 from . import codelist_import, presets
 from .expr import syntax_problem
 from .pipeline import names_in_model
 from .storage import Storage, read_json_gzip
 from .worker import validate
 
-OPERATIONS = {"check", "names", "codelist-read", "codelist-build", "expr-check"}
+TEMPLATE_OPERATIONS = {"template-export", "template-import"}
+OPERATIONS = {"check", "names", "codelist-read", "codelist-build", "expr-check"} | TEMPLATE_OPERATIONS
 
 
 def call(op: str, request: dict, storage: Storage) -> dict:
+    if op in TEMPLATE_OPERATIONS:
+        from .sheets import templates
+
+        if op == "template-export":
+            return {"xlsx": b64encode(templates.write(request)).decode("ascii")}
+        return templates.read(request, b64decode(request["file"], validate=True))
     if op == "check":
         kind, doc, library = request["kind"], request["doc"], request.get("library")
         problems = presets.check(kind, doc, library)

@@ -5,6 +5,7 @@ import { gunzipSync } from "node:zlib";
 import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, SceneIndex, TableReadResponse } from "@ifc-boq/types";
 import { blobPath, getBlob } from "../blobs.js";
 import { PRESETS_DIR } from "../paths.js";
+import type { TemplateImport, TemplateInput } from "./preset-template.js";
 import { EngineRefused, EngineUnavailable, type Engine, type EngineProgress, type ParsedModelSummary, type PresetFolder, type RunInput } from "./engine.js";
 
 type Preset = { id: string; extends?: string };
@@ -129,6 +130,7 @@ export class WorkerEngine implements Engine {
       resolution: await this.preset("resolution", "resolution"),
       federation: await this.preset("federation", "federation"),
       decisions: input.decisions,
+      manualItems: input.manualItems ?? [],
     }, `_engine/runs/${runId}/`, progress);
     try {
       const result = JSON.parse(gunzipSync(await getBlob(resultKey)).toString("utf8")) as BoqResult;
@@ -186,5 +188,15 @@ export class WorkerEngine implements Engine {
 
   buildCodeList(request: CodeListBuildRequest) {
     return this.json<CodeListBuildResponse>("/rpc/codelist-build", request);
+  }
+
+  async writeTemplate(input: TemplateInput) {
+    const { xlsx } = await this.json<{ xlsx: string }>("/rpc/template-export", input);
+    return Buffer.from(xlsx, "base64");
+  }
+
+  readTemplate(input: TemplateInput, file: Uint8Array) {
+    return this.json<TemplateImport | { error: string }>("/rpc/template-import",
+      { ...input, file: Buffer.from(file).toString("base64") });
   }
 }

@@ -1711,6 +1711,13 @@
         "id": {
           "type": "string"
         },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Preferred code by classification system. Unspecified systems still use their maps."
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -1834,6 +1841,9 @@
                         "$ref": "#/definitions/Expr"
                       }
                     ]
+                  },
+                  "setup": {
+                    "type": "string"
                   }
                 },
                 "required": [

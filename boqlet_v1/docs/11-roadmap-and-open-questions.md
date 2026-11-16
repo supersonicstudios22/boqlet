@@ -319,6 +319,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-16 | 106de54 | EN-003: engine line overrides, recomputation of derived quantities, orphan questions and excluded-line workbooks. Private edit reasons are excluded from public share responses and workbooks. |
 | 2026-11-16 | cab98f3 | EN-004: structured message codes and params for questions, warnings and logs, generated schemas, and pass-through to the app. |
 | 2026-11-16 | 0d14b8a | EN-001: engine parse/run jobs, file and S3 artifact storage, streaming HTTP and RPC; worker-backed mock verified with the Duplex, contract and scenario suites. |
 | 2026-11-16 | 34f470c | BE-000: confirmed the backend stack, invite-only pilots and configurable worker sizing. Deployment deferred to a separate session (P49). |

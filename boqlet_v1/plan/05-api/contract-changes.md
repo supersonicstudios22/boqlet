@@ -36,3 +36,5 @@ require every row to be adapted, or marked "nothing to adapt".
 |---|---|---|---|---|---|---|---|
 | C01 | 2026-11-16 | `listQuestions`, `listWarnings`, run log and line detail | Optional engine message codes and params. Existing warning codes and fallback messages keep their values. | EN-004, structured localization | No | No | Localized rendering in FE-041 |
 | C02 | 2026-11-16 | `listQuestions` | `orphan_override` is a non-blocking question when an edited line disappears. | EN-003, line edit auditability | No | No | English question-kind label added |
+| C03 | 2026-11-16 | Run lines and manual items | An item-supplied classification code has source `item`. Engine ManualItem documents accept a code per system. | EN-007 | No | No | Public line keys are preserved |
+| C04 | 2026-11-16 | `listWarnings` | Adds the `item_text_blank` warning code for a known field that is missing on a line. | EN-010 | No | No | Warning text fallback works |

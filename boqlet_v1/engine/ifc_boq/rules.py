@@ -19,6 +19,7 @@ from collections import Counter, defaultdict
 
 from .expr import Expr, fmt
 from .log import CalcLog
+from .templates import render as render_template
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
 UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
@@ -44,6 +45,8 @@ def flatten(target: dict, library: dict[str, dict]) -> dict:
         base["params"][name] = {**base["params"].get(name, {}), **p}
     if "scope" in target:
         base["scope"] = target["scope"]
+    if "setupSteps" in target:
+        base["setupSteps"] = target["setupSteps"]
     if target.get("sections"):
         sections = {s["id"]: s for s in base.get("sections", [])}
         for s in target["sections"]:
@@ -443,23 +446,7 @@ class RuleEngine:
 
     # ---------------------------------------------------------------- template
     def render(self, tpl, part: dict, extra: dict | None = None) -> str:
-        tpl = self.val(tpl) or ""
-        ctx = {**self.ctx(part), **(extra or {})}
-
-        def sub(m):
-            src = m.group(1).strip()
-            if src.startswith("expr:"):
-                src = src[5:]
-            try:
-                v = self.x.evaluate(src, ctx)
-            except Exception:
-                return "{" + m.group(1) + "}"
-            if v is None:
-                return "-"
-            if isinstance(v, str):
-                return v
-            return fmt(round(v, 3) if isinstance(v, float) else v)
-        return re.sub(r"\{([^{}]+)\}", sub, tpl)
+        return render_template(self.val(tpl) or "", self.x, {**self.ctx(part), **(extra or {})})
 
     # ---------------------------------------------------------------- items
     def run_items(self):
@@ -790,7 +777,8 @@ class RuleEngine:
                                                             "elements": [], "sourceLine": srcline["key"]},
                                     "tags": d.get("tags", []), "notes": [], "_fields": dict(srcline["_fields"]),
                                     "_mixed": list(srcline["_mixed"]), "location": srcline.get("location", {}),
-                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0}
+                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0,
+                                    "_text_context": {**sctx, "src": sctx}}
                             out[lk] = line
                             n_lines += 1
                         line["_count"] += 1
@@ -829,7 +817,7 @@ class RuleEngine:
         return lines
 
     # ---------------------------------------------------------------- manual
-    def run_manual(self) -> list[dict]:
+    def run_manual(self, keys: dict[str, str]) -> list[dict]:
         lines = []
         for m in self.rules.get("manual", []):
             if not self.enabled(m):
@@ -841,13 +829,14 @@ class RuleEngine:
                 v, txt = self.x.explain(self.val(m["formula"]) or "", self.ctx({}))
                 q = float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
                 formula = self.formula_text(m["formula"]) + f"   ->   {txt}"
-            line = {"key": m["id"], "ruleId": m["id"], "ruleKind": "manual", "description": self.render(m["description"], {}),
+            line = {"key": keys.get(m["id"], m["id"]), "ruleId": m["id"], "ruleKind": "manual", "description": self.render(m["description"], {}),
                     "unit": m["unit"], "quantity": float(q) if q is not None else None,
                     "source": "manual" if q is not None else "flagged", "keys": {},
                     "trace": {"formula": formula, "params": self.params_used(m) if m.get("formula") else {}, "elements": []},
                     "tags": m.get("tags", []), "notes": [f"amount {fmt(amount)}"] if amount is not None else
                     ([] if q is not None else ["no model behind this line: quantity to be entered"]),
-                    "_fields": {"manual_kind": m["kind"]}, "_mixed": [], "_manual_kind": m["kind"], "location": {}}
+                    "_fields": {"manual_kind": m["kind"]}, "_mixed": [], "_manual_kind": m["kind"],
+                    "_manual_codes": m.get("codes", {}), "location": {}}
             lines.append(line)
             self.log.info("manual", f"manual item '{line['description']}' ({m['kind']}): "
                           f"{fmt(line['quantity']) + ' ' + line['unit'] if q is not None else 'quantity to be entered'}",

@@ -77,11 +77,26 @@ class RunRequest(BaseModel):
     dictionaries: list[str] = []
     classifications: list[str] = []
     decisions: list[DecisionIn] = []
+    manualItems: list[dict] = []
 
 
 @app.get("/api/health")
 def health():
     return {"ok": True, "version": __version__}
+
+
+@app.post("/api/templates/{op}")
+def workbooks(op: str, request: dict):
+    from . import rpc
+    from .paths import CACHE
+    from .storage import LocalStorage
+
+    if op not in rpc.TEMPLATE_OPERATIONS:
+        raise HTTPException(404, "Unknown template operation")
+    try:
+        return rpc.call(op, request, LocalStorage(CACHE))
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @app.get("/api/presets")

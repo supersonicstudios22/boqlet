@@ -63,11 +63,18 @@ def _qfmt(unit):
     return NUM3 if unit in ("t",) else ("0" if unit in ("nr", "item") else NUM)
 
 
+def _description(line, primary):
+    if "description" in line.get("overridden", {}).get("fields", []):
+        return line["description"]
+    return line.get("codes", {}).get(primary, {}).get("text") or line["description"]
+
+
 def export(result: dict, meta: dict) -> bytes:
     wb = Workbook()
     systems = meta.get("classifications", [])          # [{id, name}]
     primary = systems[0]["id"] if systems else None
     lines = result["lines"]
+    text_systems = {system for line in lines for system, code in line["codes"].items() if code.get("text")}
 
     # ------------------------------------------------------------------ BoQ
     ws = wb.active
@@ -80,6 +87,9 @@ def export(result: dict, meta: dict) -> bytes:
     ws["A2"].font = SMALL
     ws["A3"] = "Enter rates in the yellow column. Amounts and totals are formulas. Yellow rows are flagged: quantity to be confirmed."
     ws["A3"].font = SMALL
+    manual_count = sum(l["ruleKind"] == "manual" and not l.get("excluded") for l in lines)
+    ws["A4"] = f"Review work not in the models. This bill includes {manual_count} manual line(s)."
+    ws["A4"].font = SMALL
     _header(ws, 5, ["Ref", "Description", "Unit", "Quantity", "Rate", "Amount", "Source", "Notes"],
             [10, 70, 7, 12, 11, 14, 10, 50])
     ws.freeze_panes = "A6"
@@ -100,10 +110,15 @@ def export(result: dict, meta: dict) -> bytes:
             c = l["codes"].get(primary) if primary else None
             flagged = l["quantity"] is None
             notes = l.get("notes", [])
+            description = _description(l, primary)
+            if description != l["description"]:
+                notes = [*notes, f"Measured as: {l['description']}"]
+            if measured := l.get("overridden", {}).get("engineDescription"):
+                notes = [*notes, f"Measured as: {measured}"]
             if reason := l.get("overridden", {}).get("reason"):
                 if not any(reason in note for note in notes):
                     notes = [*notes, "Reason: " + reason]
-            _row(ws, r, [c["code"] if c else "", l["description"], l["unit"], l["quantity"], None,
+            _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
                          f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
                  NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
             ws.cell(row=r, column=4).number_format = _qfmt(l["unit"])
@@ -161,15 +176,23 @@ def export(result: dict, meta: dict) -> bytes:
     for s in systems:
         cols += [f"{s['name']} code", f"{s['name']} title"]
         widths += [12, 30]
+        if s["id"] in text_systems:
+            cols.append(f"{s['name']} item text")
+            widths.append(50)
+    cols.append("Measured as")
+    widths.append(60)
     cols += ["Formula", "Elements", "Storey", "Notes"]
     widths += [50, 9, 16, 40]
     _header(wl, 1, cols, widths)
     wl.freeze_panes = "A2"
     for i, l in enumerate(lines, 2):
-        vals = [l["key"], l["ruleId"], l["ruleKind"], l["description"], l["unit"], l["quantity"], l["source"]]
+        vals = [l["key"], l["ruleId"], l["ruleKind"], _description(l, primary), l["unit"], l["quantity"], l["source"]]
         for s in systems:
             c = l["codes"].get(s["id"])
             vals += [c["code"] if c else "", c["title"] if c else ""]
+            if s["id"] in text_systems:
+                vals.append(c.get("text", "") if c else "")
+        vals.append(l.get("overridden", {}).get("engineDescription", l["description"]))
         loc = l.get("location") or {}
         vals += [l["trace"]["formula"], len(l["trace"]["elements"]), loc.get("storey") or ", ".join(loc.get("storeys", [])),
                  "; ".join(l.get("notes", []))]

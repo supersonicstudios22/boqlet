@@ -93,6 +93,11 @@ scales the source line's derived contributions by the ratio of edited to measure
 If the original quantity is zero or missing, the calculation trace records that no ratio is
 available. A flag-to-confirm edit clears the affected quantities. The API owns line order.
 
+Inline manual items are snapshotted as rules under `boq.` IDs. Their result line keys keep the
+submitted item IDs for compatibility with existing line edits and sort hints. The namespaced ID
+is used as the line key if an existing rule-set manual line has the same key. Codes supplied on
+the item take precedence over map assignment and are reported with source `item`.
+
 ### preview
 Same input as `run` (with `runId` null), plus optional `compareWith` (a second rule-set doc,
 usually the published version). Output: `{resultKey, compareResultKey?, diffKey?}`. Outputs

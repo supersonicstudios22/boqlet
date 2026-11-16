@@ -417,6 +417,8 @@ export interface DerivedRule {
 
 export interface ManualItem {
   id: string;
+  /** Preferred code by classification system. Unspecified systems still use their maps. */
+  codes?: Record<string, string>;
   kind: "preliminary" | "provisional_sum" | "lump_sum" | "daywork" | "other";
   description: Value<Template>;
   unit: Unit;
@@ -499,7 +501,7 @@ export interface RuleSetPatch {
   extends: string;
   meta?: Partial<RuleSetMeta>;
   defaults?: RuleSetDefaults;
-  params?: Record<string, Param | { value: Param["value"] }>;
+  params?: Record<string, Param | { value: Param["value"]; setup?: string }>;
   /** Replaces the parent's setup wizard screens (F16 part 1c, EN-011). */
   setupSteps?: SetupStep[];
   /** Sections merge by id (title / intro override, new ones appended), so a patch can group its own questions. */

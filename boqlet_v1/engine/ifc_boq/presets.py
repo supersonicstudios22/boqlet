@@ -247,6 +247,30 @@ def _expr_problems(node, path: str = "") -> list[str]:
     return out
 
 
+def _setup_problems(rules: dict) -> list[str]:
+    steps = [step["id"] for step in rules.get("setupSteps", [])]
+    problems = []
+    if len(steps) != len(set(steps)):
+        problems.append("setup step ids must be unique")
+    if "skip" in steps:
+        problems.append("'skip' is reserved for item switches and cannot be a setup step")
+    used = set()
+    entries = rules["items"] + rules.get("derived", []) + rules.get("manual", [])
+    switches = {entry["enabled"]["param"] for entry in entries if isinstance(entry.get("enabled"), dict)}
+    for name, slot in rules["params"].items():
+        step = slot.get("setup")
+        if step == "skip":
+            if name not in switches or slot.get("type") != "boolean" or slot.get("dependsOn"):
+                problems.append(f"slot {name}: setup 'skip' needs a top-level item switch")
+        elif step is not None:
+            if step not in steps:
+                problems.append(f"slot {name}: setup step '{step}' is not defined")
+            elif slot.get("question"):
+                used.add(step)
+    problems += [f"setup step '{step}' has no questions" for step in dict.fromkeys(steps) if step not in used]
+    return problems
+
+
 def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
     """Problems with a draft preset, as messages. [] = the engine would accept it.
 
@@ -264,6 +288,7 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
             try:
                 flat = flatten(doc, lib)
                 problems += integrity(flat)
+                problems += _setup_problems(flat)
                 from .expr import syntax_problem
                 problems += [f"slot {k}: {sp}" for k, p in flat["params"].items()
                              if p.get("type") == "formula" and (sp := syntax_problem(p.get("value") or ""))]
@@ -301,10 +326,17 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
             problems.append(f"entry id '{dup}' is used more than once")
         return problems + _expr_problems({k: v for k, v in doc.items() if k != "id"})
     if kind == "classifications":
+        from .templates import check as check_item_text
+
         cl, m = doc.get("codeList"), doc.get("map")
         problems = _schema_problems(cl, "codelist", "code list: ") + _schema_problems(m, "map", "map: ")
         if problems:
             return problems
+        measured = _schema("measured-element")
+        fields = set(measured["definitions"]["MeasuredElement"]["properties"]) if measured else set()
+        for entry in cl["codes"]:
+            if template := entry.get("description"):
+                problems.extend(f"code '{entry['code']}': {problem}" for problem in check_item_text(template, fields))
         codes = [c["code"] for c in cl["codes"]]
         known = set(codes)
         problems += [f"code '{c}' appears more than once" for c in sorted({c for c in codes if codes.count(c) > 1})]

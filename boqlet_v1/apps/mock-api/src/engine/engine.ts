@@ -8,6 +8,7 @@ import path from "node:path";
 import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, SceneIndex, TableReadResponse } from "@ifc-boq/types";
 import { PRODUCT_ROOT } from "../paths.js";
 import { WorkerEngine } from "./worker.js";
+import type { TemplateImport, TemplateInput } from "./preset-template.js";
 
 export type PresetFolder = "rules" | "dictionaries" | "classifications" | "federation" | "resolution";
 
@@ -27,6 +28,7 @@ export interface RunInput {
   dictionaries: string[];
   classifications: string[];
   decisions: { questionId: string; answer: unknown; [key: string]: unknown }[];
+  manualItems?: Record<string, unknown>[];
 }
 
 export interface RunOutput {
@@ -57,6 +59,8 @@ export interface Engine {
   readCodeTable(file: Blob, fileName: string): Promise<TableReadResponse>;
   /** Codes from a sheet's rows and a column mapping: hierarchy, problems (duplicates…), stats (F10 §8). */
   buildCodeList(request: CodeListBuildRequest): Promise<CodeListBuildResponse>;
+  writeTemplate(input: TemplateInput): Promise<Uint8Array>;
+  readTemplate(input: TemplateInput, file: Uint8Array): Promise<TemplateImport | { error: string }>;
 }
 
 export class EngineUnavailable extends Error {}
@@ -155,6 +159,16 @@ export class PocEngine implements Engine {
 
   buildCodeList(request: CodeListBuildRequest) {
     return this.call<CodeListBuildResponse>("POST", "/api/codelists/build", JSON.stringify(request));
+  }
+
+  async writeTemplate(input: TemplateInput) {
+    const { xlsx } = await this.call<{ xlsx: string }>("POST", "/api/templates/template-export", JSON.stringify(input));
+    return Buffer.from(xlsx, "base64");
+  }
+
+  readTemplate(input: TemplateInput, file: Uint8Array) {
+    return this.call<TemplateImport | { error: string }>("POST", "/api/templates/template-import",
+      JSON.stringify({ ...input, file: Buffer.from(file).toString("base64") }));
   }
 
   /**

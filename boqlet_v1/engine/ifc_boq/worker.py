@@ -159,6 +159,9 @@ def _run(job, storage, prefix, progress):
     decisions = job.get("decisions", [])
     for doc in decisions:
         validate(doc, "decision")
+    manual_items = job.get("manualItems", [])
+    for doc in manual_items:
+        validate(doc, "manual-item")
 
     models = []
     for model in job["models"]:
@@ -175,7 +178,7 @@ def _run(job, storage, prefix, progress):
     if not models:
         raise JobError("invalid_input", "At least one model is required")
     result = get_boq(models, flat, classifications, dictionaries, job.get("resolution"), decisions,
-                     federation=job.get("federation"), progress=progress)
+                     federation=job.get("federation"), progress=progress, manual_items=manual_items)
     validate(result, "boq-result")
     progress("export", 95, "Writing BoQ artifacts")
     output = {

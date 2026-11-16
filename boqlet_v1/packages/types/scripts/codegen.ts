@@ -16,7 +16,9 @@ const root = resolve(pkg, "../..");
 
 const targets: [file: string, type: string, out: string][] = [
   ["rules.ts", "OurRuleType", "rule-set"],
+  ["rules.ts", "ManualItem", "manual-item"],
   ["parsed.ts", "ParsedModel", "parsed-model"],
+  ["measured.ts", "MeasuredElement", "measured-element"],
   ["dictionary.ts", "Dictionary", "dictionary"],
   ["dictionary.ts", "ResolutionSettings", "resolution-settings"],
   ["classification.ts", "CodeList", "codelist"],

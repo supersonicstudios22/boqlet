@@ -10,7 +10,7 @@
  */
 
 import type { BoqResult, Decision, ModelScope } from "./engine";
-import type { RuleSet } from "./rules";
+import type { ManualItem, RuleSet } from "./rules";
 import type { DictField, Dictionary, Resolution } from "./dictionary";
 import type { Code } from "./classification";
 import type { CheckCode } from "./parsed";
@@ -204,6 +204,7 @@ export interface RunRequest {
   dictionaries: string[];          // preset ids, any layer order
   classifications: string[];       // preset ids
   decisions: Decision[];
+  manualItems?: ManualItem[];
 }
 
 export interface RunResponse {

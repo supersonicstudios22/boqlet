@@ -1,27 +1,13 @@
-"""Fake "Preset Excel templates" (mock-api.md, replaced by EN-012), run with the engine's Python.
-
-  python preset_template.py write <input.json> <out.xlsx>
-  python preset_template.py read  <input.json> <in.xlsx>   -> JSON {doc, changes, problems} on stdout
-
-input.json: {kind, doc, effective?, parentParams?, items?, terms?, source}
-  kind        rule_set | classification | dictionary
-  doc         the preset document (a rule-set patch, or a whole document)
-  effective   rule sets: the flattened rule set (every slot with its current answer)
-  parentParams rule-set patches: the parent's slots (their answers are the defaults)
-  items       classifications: [{id, label}] the BoQ items of a rule set (Codes per line)
-  terms       dictionaries: [term id] offered as meanings
-  source      draft | latest | empty (empty: answers left at their defaults, no codes, no names)
-
-The workbook is read data-only (formulas are not evaluated, F10 §14 / security.md). Nothing is
-measured here (BR-01): answers, codes and names are what a person typed.
-"""
+"""Round-trip Excel templates for rule sets, classification maps, and dictionaries."""
 import copy
-import json
-import sys
+import math
+from io import BytesIO
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
+
+from .. import presets
 
 YELLOW = PatternFill("solid", fgColor="FFF2B3")
 GREY = PatternFill("solid", fgColor="EEEDE8")
@@ -76,6 +62,8 @@ def parse_answer(p, raw):
             v = float(str(raw).replace(",", ".")) if not isinstance(raw, (int, float)) else float(raw)
         except ValueError:
             return None, f"'{raw}' is not a number."
+        if not math.isfinite(v):
+            return None, "The answer must be a finite number."
         if p.get("min") is not None and v < p["min"]:
             return None, f"{v} is below the smallest allowed answer, {p['min']}."
         if p.get("max") is not None and v > p["max"]:
@@ -109,6 +97,7 @@ def write_rule_set(data, wb):
     lists.sheet_state = "hidden"
     ws = wb.active
     ws.title = "Settings"
+    ws.column_dimensions["A"].hidden = True
     header(ws, ["Setting", "Section", "Question", "Explanation", "Unit", "Your answer", "Default"], [24, 22, 52, 60, 8, 26, 18])
     names = sorted(params, key=lambda n: (order.get(params[n].get("section"), 999), list(params).index(n)))
     for n in names:
@@ -126,6 +115,20 @@ def write_rule_set(data, wb):
             values = ["yes", "no"] if p["type"] == "boolean" else [str((p.get("optionLabels") or {}).get(o, o)) for o in p.get("options", [])]
             dv = DataValidation(type="list", formula1=list_range(lists, values), allow_blank=False)
             dv.error = "Pick one of the answers in the list."
+            dv.showErrorMessage = True
+            ws.add_data_validation(dv)
+            dv.add(ws.cell(row=row, column=6))
+
+        elif p.get("type") == "number" and (p.get("min") is not None or p.get("max") is not None):
+            low, high = p.get("min"), p.get("max")
+            if low is not None and high is not None:
+                dv = DataValidation(type="decimal", operator="between", formula1=low, formula2=high)
+            elif low is not None:
+                dv = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1=low)
+            else:
+                dv = DataValidation(type="decimal", operator="lessThanOrEqual", formula1=high)
+            dv.error = "Enter a number within the allowed range."
+            dv.showErrorMessage = True
             ws.add_data_validation(dv)
             dv.add(ws.cell(row=row, column=6))
     items = wb.create_sheet("BoQ items")
@@ -223,6 +226,7 @@ def write_classification(data, wb):
     for c in codes:
         ws.append([c.get("code"), c.get("title", ""), c.get("parent", ""), c.get("description", "")])
     lines = wb.create_sheet("Codes per line")
+    lines.column_dimensions["A"].hidden = True
     header(lines, ["BoQ item", "Item name", "Code"], [28, 50, 16])
     mapped = {} if empty else simple_mappings(doc.get("map") or {})
     items = data.get("items") or []
@@ -339,6 +343,7 @@ def write_dictionary(data, wb):
     lists.sheet_state = "hidden"
     ws = wb.active
     ws.title = "Names"
+    ws.column_dimensions["A"].hidden = True
     header(ws, ["Entry", "Name or pattern", "Match", "Fields", "Meaning"], [22, 40, 12, 28, 30])
     for e in entries:
         kind, text = match_cells(e.get("match", {}))
@@ -377,11 +382,11 @@ def read_dictionary(data, wb, problems, changes):
         if not row or all(v in (None, "") for v in row[:5]):
             continue
         eid = str(row[0]).strip() if row[0] not in (None, "") else ""
-        text = str(row[1] or "").strip()
+        text = str(row[1] or "")
         kind = MATCH_BY_WORD.get(str(row[2] or "exact").strip().lower())
         fields = [f.strip() for f in str(row[3] or "material").split(",") if f.strip()]
         term = str(row[4] or "").strip()
-        if not text:
+        if not text.strip():
             problems.append({"sheet": "Names", "row": r, "column": "B", "message": "The name or pattern is missing."})
             continue
         if not kind:
@@ -396,11 +401,20 @@ def read_dictionary(data, wb, problems, changes):
             while eid in old or eid in seen:
                 n += 1
                 eid = f"name-{n}"
+        if eid in seen:
+            problems.append({"sheet": "Names", "row": r, "column": "A", "message": f"Entry {eid} is listed twice."})
+            continue
+        if not fields:
+            problems.append({"sheet": "Names", "row": r, "column": "D", "message": "At least one field is required."})
+            continue
         seen.add(eid)
-        values = [v.strip() for v in text.split("|")] if kind != "regex" else text
-        match = {kind: values if kind == "regex" or len(values) > 1 else values[0]}
-        e = dict(old.get(eid, {}), id=eid, field=fields if len(fields) > 1 else fields[0], match=match, term=term)
         before = old.get(eid)
+        if before and match_cells(before["match"]) == (MATCH_KINDS[kind], text):
+            match = before["match"]
+        else:
+            values = text.split(" | ") if kind != "regex" else text
+            match = {kind: values if kind == "regex" or len(values) > 1 else values[0]}
+        e = dict(before or {}, id=eid, field=fields if len(fields) > 1 else fields[0], match=match, term=term)
         if before is None:
             changes.append({"what": "name", "summary": f"'{text}' means {term} (new)", "after": e})
         elif before != e:
@@ -417,23 +431,62 @@ WRITE = {"rule_set": write_rule_set, "classification": write_classification, "di
 READ = {"rule_set": read_rule_set, "classification": read_classification, "dictionary": read_dictionary}
 
 
-def main():
-    mode, input_path, xlsx = sys.argv[1], sys.argv[2], sys.argv[3]
-    data = json.load(open(input_path, encoding="utf8"))
-    if mode == "write":
-        wb = Workbook()
-        WRITE[data["kind"]](data, wb)
-        wb.save(xlsx)
-        return
+
+KINDS = {"rule_set": "rules", "classification": "classifications", "dictionary": "dictionaries"}
+
+
+def _input(data):
+    result = {"source": "draft", **data}
+    doc = result["doc"]
+    if result["kind"] == "rule_set":
+        library = result.get("library") or []
+        result["effective"] = result.get("effective") or presets.flattened(doc, library) or doc
+        if "extends" in doc and "parentParams" not in result:
+            parent = next((item for item in library if item["id"] == doc["extends"]), None)
+            if parent is not None:
+                resolved = presets.flattened(parent, library)
+                if resolved is not None:
+                    result["parentParams"] = resolved["params"]
+    if result["kind"] == "classification" and "items" not in result:
+        master, library = presets.load_rule_set("as-modelled")
+        flat = presets.flattened(master, list(library.values())) or master
+        result["items"] = [
+            {"id": item["id"], "label": item.get("label", item["id"])}
+            for item in flat["items"] + flat.get("derived", [])
+        ]
+    if result["kind"] == "dictionary" and "terms" not in result:
+        result["terms"] = sorted({term["id"] for preset in presets.dictionaries().values()
+                                  for term in preset.get("terms", [])} | {term["id"] for term in doc.get("terms", [])})
+    return result
+
+
+def write(data: dict) -> bytes:
+    data = _input(data)
+    wb = Workbook()
+    WRITE[data["kind"]](data, wb)
+    for ws in wb:
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.data_type == "f":
+                    cell.data_type = "s"
+    output = BytesIO()
+    wb.save(output)
+    return output.getvalue()
+
+
+def read(data: dict, content: bytes) -> dict:
+    data = _input(data)
     try:
-        wb = load_workbook(xlsx, read_only=False, data_only=True)
-    except Exception as e:  # not a workbook
-        print(json.dumps({"error": f"The file can't be read as an Excel workbook: {e}"}))
-        return
+        wb = load_workbook(BytesIO(content), read_only=True, data_only=True)
+    except Exception as exc:
+        return {"error": f"The file can't be read as an Excel workbook: {exc}"}
     problems, changes = [], []
-    doc = READ[data["kind"]](data, wb, problems, changes)
-    sys.stdout.write(json.dumps({"doc": doc, "changes": changes, "problems": problems}, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    main()
+    try:
+        doc = READ[data["kind"]](data, wb, problems, changes)
+    finally:
+        wb.close()
+    check_doc = {**doc, "extends": data["checkParent"]} if data.get("checkParent") else doc
+    for problem in presets.check(KINDS[data["kind"]], check_doc, data.get("library")):
+        if not any(item["message"] == problem for item in problems):
+            problems.append({"message": problem})
+    return {"doc": doc, "changes": changes, "problems": problems}

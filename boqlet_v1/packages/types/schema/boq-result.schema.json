@@ -1950,6 +1950,13 @@
         "id": {
           "type": "string"
         },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Preferred code by classification system. Unspecified systems still use their maps."
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -2313,7 +2320,8 @@
             "decision",
             "map",
             "ifc",
-            "default"
+            "default",
+            "item"
           ]
         },
         "mapRuleId": {
@@ -2558,6 +2566,7 @@
       "enum": [
         "unknown_code",
         "mixed_line",
+        "item_text_blank",
         "rule_set",
         "federation_hole",
         "federation_storeys",

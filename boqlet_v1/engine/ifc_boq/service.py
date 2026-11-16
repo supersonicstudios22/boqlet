@@ -56,7 +56,7 @@ def run(models, request: dict) -> tuple[dict, dict]:
     dicts = [presets.load_dictionary(d) for d in (request.get("dictionaries") or presets.DEFAULTS["dictionaries"])]
     systems = [presets.load_classification(c) for c in (request.get("classifications") or [])]
     result = get_boq(models, rule_set, systems, dicts, presets.resolution(), request.get("decisions") or [], lib,
-                     federation=presets.federation())
+                     federation=presets.federation(), manual_items=request.get("manualItems"))
     parsed_list = [models] if isinstance(models, dict) else [m["parsed"] for m in models]
     meta = {
         "modelName": " + ".join(p["header"]["source"]["fileName"] for p in parsed_list),

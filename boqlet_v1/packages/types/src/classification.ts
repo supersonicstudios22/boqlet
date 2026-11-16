@@ -154,7 +154,7 @@ export interface LineCode {
   title: string;
   /** Full path from the top level, used for grouping and subtotals. */
   path: { code: string; title: string }[];
-  source: "decision" | "map" | "ifc" | "default";
+  source: "decision" | "map" | "ifc" | "default" | "item";
   mapRuleId?: string;
   /** The code's item text filled with this line's values (EN-010); absent when the code has none. */
   text?: string;
