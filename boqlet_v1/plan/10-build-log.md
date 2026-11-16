@@ -22,8 +22,8 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, engine worker and Java service |
 | Role | **Backend agent** |
-| Latest verified | BE-004 entitlements and usage, BE-005 project and membership routes, and the Chromium FL-3 revision flow |
-| Next task | BE-006 model storage and BE-007 job dispatch and ingestion. EN-013 and EN-006 remain on the engine track. |
+| Latest verified | BE-006 model upload and BE-007 HTTP job dispatch with the real Python worker and MinIO |
+| Next task | EN-006 workbook jobs, Library routes (BE-008), and BoQ and run workflows (BE-009 through BE-012) |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
 | In progress | BE-005 sample project, attention and live project counts depend on models and BoQs. BE-027 realtime and provider revocation and BE-020 email delivery remain. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
@@ -45,8 +45,14 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ## Entries
 
+### 2026-11-16 — BE-006 model storage and BE-007 HTTP jobs (backend agent)
+- **Built:** Java model and model-version routes, signed S3 single and multipart uploads, header and size validation, protected source copy before parse, signed GLB access, scene and names reads, and PostgreSQL job claim, cancellation, retry, progress, and usage ingestion.
+- **Verified:** Java `verify` passed six PostgreSQL tests including the opt-in native test. It starts MinIO and the Python worker, signs and uploads the real Duplex IFC, checks upload completion is idempotent, parses, reads the scene and GLB, queries names, and verifies recorded usage. The signed single upload was exercised in MinIO. Multipart has compiled coverage and still needs its own integration case.
+- **Decisions taken:** the HTTP dispatcher has configurable concurrency, timeout and upload size. Each attempt uses a distinct artifact prefix, so a late result cannot overwrite a committed result. The first successful identical parse within an organisation supplies the canonical artifact keys. Hash comparison currently occurs after parsing. Jobs recover lost HTTP leases by retrying with backoff.
+- **Follow-up:** run-reference protection for model deletion joins the BoQ and run work. Queue transport is EN-009 and BE-013. Artifact retention and cleanup are BE-024.
+
 ### 2026-11-16 — BE-004 entitlements and BE-005 project foundation (backend agent)
-- **Built:** database-backed plans, entitlement checks and overrides, audited limit denials, UTC monthly usage, manual pilot billing reads, project CRUD and archive, membership permissions, last-lead rule, project defaults and dictionary, and project audit. Flyway seeds the built-in Library from the repository presets. The organisation membership foreign key cascades project memberships when someone leaves.
+- **Built:** `ca60c41`. Database-backed plans, entitlement checks and overrides, audited limit denials, UTC monthly usage, manual pilot billing reads, project CRUD and archive, membership permissions, last-lead rule, project defaults and dictionary, and project audit. Flyway seeds the built-in Library from the repository presets. The organisation membership foreign key cascades project memberships when someone leaves.
 - **Verified:** the PostgreSQL HTTP integration test covers archive and restore, usage and double-ingestion protection, defaults, cross-tenant project visibility, project roles, last lead, and cascade on leaving. The pinned Chromium run of FL-3 passed using both real IFC revisions.
 - **Follow-up:** usage recording is connected to job completion in BE-007. Project counts, sample BoQ setup and attention need models, runs and revisions. Pilot checkout remains manual.
 

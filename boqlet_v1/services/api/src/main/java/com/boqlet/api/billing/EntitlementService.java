@@ -64,6 +64,14 @@ public class EntitlementService {
         check(org, actor, key, size, false);
     }
 
+    public void checkConsumption(UUID org, UUID actor, String key, BigDecimal units, int unitsPerLimit) {
+        JsonNode maximum = json.read(effective(org).limits(), JsonNode.class).path(key);
+        if (maximum.isNumber() && units.compareTo(maximum.decimalValue().multiply(BigDecimal.valueOf(unitsPerLimit))) >= 0) {
+            throw new LimitReached(org, actor, key,
+                    units.divide(BigDecimal.valueOf(unitsPerLimit), 2, RoundingMode.HALF_UP), maximum.decimalValue());
+        }
+    }
+
     public void requireFeature(UUID org, UUID actor, String key) {
         requireFeature(org, actor, key, effective(org).limits());
     }

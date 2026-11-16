@@ -46,3 +46,25 @@ marked default and new projects get the current published defaults plus an empty
 project dictionary. Pilot subscriptions use the manual provider. The API checks
 the stored plan and overrides, records limit denials, and counts usage by UTC
 calendar month. Only non-sample active projects use an active-project slot.
+
+## Model uploads and worker jobs
+
+Set `BOQLET_S3_BUCKET` and `BOQLET_S3_REGION` for both API and worker access to the same
+private bucket. For a local S3-compatible server set `BOQLET_S3_ENDPOINT` and optionally
+`BOQLET_S3_PUBLIC_ENDPOINT` if the browser reaches storage at a different address.
+The Java SDK uses its default credential chain. The Python worker needs
+`ENGINE_STORAGE=s3://<bucket>` and the same storage region and endpoint if applicable.
+Allow the web origin to PUT and GET signed objects and expose the ETag for part uploads.
+
+The API sends jobs to `BOQLET_ENGINE_HTTP_URL` (default `http://127.0.0.1:8788`).
+Set `BOQLET_ENGINE_HTTP_CONCURRENCY` (default 1), `BOQLET_ENGINE_JOB_TIMEOUT` (default
+`PT30M`), and `BOQLET_MAX_UPLOAD_MIB` (default 1024) to size the API side of the worker
+flow. The worker independently uses `ENGINE_HTTP_CONCURRENCY` and `ENGINE_MAX_MODEL_MB`.
+The plan can apply a lower upload limit. Uploads above 100 MiB use multipart.
+
+To include the native integration test in Maven `verify`, install the engine Python
+dependencies and set `BOQLET_NATIVE_WORKER_PYTHON` to the interpreter's absolute path,
+`AWS_ACCESS_KEY_ID=boqlet-test` and `AWS_SECRET_ACCESS_KEY=boqlet-local-test-only` in
+the test process. The suite starts temporary PostgreSQL and MinIO containers and its
+own Python HTTP worker. It uploads the bundled Duplex IFC and checks the resulting
+job, scene, geometry, names and usage.
