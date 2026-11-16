@@ -36,7 +36,8 @@ npm run dev:poc      # PoC: engine on 127.0.0.1:8787 + web on http://localhost:5
 | Command | What it does |
 |---|---|
 | `npm run dev:poc` | The proof of concept: engine and PoC web app (concurrently). Vite proxies `/api` to the engine. |
-| `npm run dev:app` | The product in development: PoC engine API (8787) + mock API (`apps/mock-api`, 4010) + app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the mock). Sign in as a seeded user (`/_dev/users` on 4010). |
+| `npm run dev:app` | The product in development: engine worker (8788) + mock API (`apps/mock-api`, 4010) + app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the mock). Sign in as a seeded user (`/_dev/users` on 4010). |
+| `npm run dev:engine-worker` | Engine worker on port 8788. Uses the mock's blob folder by default. `ENGINE_WORKER_PORT`, `ENGINE_STORAGE`, `ENGINE_HTTP_CONCURRENCY`, and `ENGINE_MAX_MODEL_MB` configure local runs. |
 | `npm run dev:mock` / `npm run mock:seed` / `npm run mock:reset` | The mock API alone / seed `apps/mock-api/.data` if empty / wipe and reseed. |
 | `npm run test` | Typecheck all workspaces, lint the app, the app's and the mock's tests, the contract and scenario suites against a fresh mock, then the engine tests (pytest). The mock's Duplex test runs only when the engine is up (`npm run dev:engine`). |
 | `npm run test:contract:mock` / `npm run test:scenarios:mock` | The shared suites (`tests/contract`, `tests/scenarios`) against a fresh mock they start themselves. Without `:mock` they run against `API_URL` (a running mock, or Java in phase 2). |

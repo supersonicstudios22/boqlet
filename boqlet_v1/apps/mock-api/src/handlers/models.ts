@@ -158,13 +158,14 @@ function startParse(version: ModelVersionRec, model: ModelRec, user: UserRec) {
       changed(project.id, "modelVersion", version.id, "updated");
       let stage = 0;
       ctx.progress(STAGES[0], 2);
-      const ticker = setInterval(() => {
+      const ticker = engine().name === "poc" ? setInterval(() => {
         stage = Math.min(stage + 1, STAGES.length - 2);
         ctx.progress(STAGES[stage]!, Math.min(10 + stage * 20, 85));
-      }, 700);
+      }, 700) : undefined;
       const started = Date.now();
       try {
-        const parsed = await engine().parseModel({ path: blobPath(version.blobKey), name: version.fileName });
+        const parsed = await engine().parseModel({ path: blobPath(version.blobKey), name: version.fileName },
+          (stage, pct) => ctx.progress(stage, Math.max(pct, 2)));
         // Usage from day one, every parse too (05-plans-and-limits.md, BR-62).
         db().usage.push({ orgId: project.orgId, projectId: project.id, kind: "parse", ms: Date.now() - started, at: nowIso() });
         ctx.progress("write", 95);

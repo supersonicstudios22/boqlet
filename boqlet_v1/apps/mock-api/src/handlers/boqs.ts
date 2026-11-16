@@ -480,10 +480,10 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
       const started = Date.now();
       let stage = 0;
       ctx.progress(RUN_STAGES[0], 2);
-      const ticker = setInterval(() => {
+      const ticker = engine().name === "poc" ? setInterval(() => {
         stage = Math.min(stage + 1, RUN_STAGES.length - 2);
         ctx.progress(RUN_STAGES[stage]!, Math.min(8 + stage * 12, 85));
-      }, 400);
+      }, 400) : undefined;
       // Presets saved through the PoC API for this run; removed afterwards, so the engine's user folder
       // (read on every run) doesn't grow with every project dictionary version (FE-012).
       const saved: [PresetFolder, string][] = [];
@@ -510,7 +510,8 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
           return { modelId: v.engineModelId!, discipline: m.discipline, ...(m.scope ? { scope: m.scope as Record<string, unknown> } : {}) };
         });
         const decisions = (run.request.decisions ?? []).map((d) => ({ questionId: d.questionId, scope: "project", answer: d.answer }));
-        const { result } = await engine().run({ models, ruleSet, dictionaries, classifications, decisions });
+        const { result } = await engine().run({ models, ruleSet, dictionaries, classifications, decisions },
+          (stage, pct) => ctx.progress(stage, Math.max(pct, 2)));
         if (ctx.cancelled()) return;
         const codeLists = codeListsOf(inputs);
         applyManualCodes(result, adjustments.manualItems, codeLists);

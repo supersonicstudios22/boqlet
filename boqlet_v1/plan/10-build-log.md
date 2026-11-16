@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, milestone ME (engine worker) |
 | Role | **Backend agent** |
-| Last task done | BE-000, owner decisions recorded in `07-backend/decisions.md` |
-| Next task | EN-001 worker and HTTP transport |
+| Last task done | EN-001 worker and HTTP transport |
+| Next task | EN-004 stable question, warning, and log message codes |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress (not committed) | EN-001 implements parse, run, RPCs, storage, and the mock's worker adapter. Verify the shared suites before closing the task. |
+| In progress (not committed) | — |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
@@ -44,6 +44,12 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-16 — EN-001 worker transport (backend agent)
+- **Built:** Python executor for parse and run, local and S3 storage adapters, HTTP progress streaming and the five RPCs; the mock now uses the worker by default.
+- **Verified locally:** the worker reproduces the hand-checked Duplex quantities and exports XLSX. 196 engine tests, 177 contract tests, 169 scenario tests (2 existing TODOs), 65 worker-backed mock tests and 208 app tests passed. Shared suites still exercise the remaining engine fakes as specified.
+- **Decisions taken:** local HTTP jobs default to one concurrent job and a configurable IFC size cap. Run inputs carry their exact rule-set parent docs. For legacy mock data, `POC_ENGINE_URL` selects the original adapter.
+- **Known limitations:** HTTP cancellation is cooperative at stage boundaries. Worker process isolation, hard job limits, and the PostgreSQL queue are still pending. A live S3 endpoint was outside the local verification.
 
 ### 2026-11-16 — BE-000 backend handoff (backend agent)
 - **Decisions taken:** The owner approved the backend defaults, invite-only pilots, configurable worker sizing, and implementation on `v_1`. Hosting and deployment move to a separate session. See P49 and `07-backend/decisions.md`.

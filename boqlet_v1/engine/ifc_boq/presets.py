@@ -322,10 +322,11 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
     raise ValueError(f"unknown preset kind '{kind}'")
 
 
-def flattened(doc: dict, library: list[dict] | None = None) -> dict | None:
+def flattened(doc: dict, library: list[dict] | None = None, *, include_local: bool = True) -> dict | None:
     """The draft rule set with its extends chain resolved, as the engine would run it; None if it cannot be."""
     from .rules import flatten
-    lib = {**rule_sets(), **{d["id"]: d for d in library or [] if isinstance(d, dict) and "id" in d}}
+    lib = rule_sets() if include_local else {}
+    lib.update({d["id"]: d for d in library or [] if isinstance(d, dict) and "id" in d})
     try:
         lib[doc["id"]] = doc
         return flatten(doc, lib)

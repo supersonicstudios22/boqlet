@@ -94,10 +94,10 @@ jobs:
         env:
           IFC_BOQ_PYTHON: python
       - run: npm run test:engine
-      - name: The mock runs the Duplex through the PoC engine (M0)
+        - name: The mock runs the Duplex through the engine worker
         run: |
-          npm run dev:engine > engine.log 2>&1 &
-          for i in $(seq 1 90); do curl -sf http://127.0.0.1:8787/api/health && break; sleep 2; done
+            npm run dev:engine-worker > engine.log 2>&1 &
+            for i in $(seq 1 90); do curl -sf http://127.0.0.1:8788/health && break; sleep 2; done
           npm run test:mock
 
   suites:

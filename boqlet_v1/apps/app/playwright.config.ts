@@ -9,6 +9,7 @@ import { defineConfig, devices } from "@playwright/test";
 const port = Number(process.env.APP_PORT ?? 3000);
 export const MOCK_URL = process.env.MOCK_URL ?? "http://localhost:4010";
 const productRoot = path.resolve(__dirname, "..", "..");
+const mockData = path.join(productRoot, "apps", "mock-api", ".data-e2e");
 
 export default defineConfig({
   testDir: "e2e",
@@ -31,10 +32,10 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // The PoC engine API (phase 1): models are parsed through it (FE-007).
-      command: "npm run dev:engine",
+      command: "npm run dev:engine-worker",
       cwd: productRoot,
-      url: "http://127.0.0.1:8787/api/health",
+      url: "http://127.0.0.1:8788/health",
+      env: { MOCK_DATA_DIR: mockData },
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
@@ -42,7 +43,7 @@ export default defineConfig({
       command: "npm run start -w @ifc-boq/mock-api -- --reseed",
       cwd: productRoot,
       url: `${MOCK_URL}/`,
-      env: { MOCK_DATA_DIR: path.join(productRoot, "apps", "mock-api", ".data-e2e") },
+      env: { MOCK_DATA_DIR: mockData },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },

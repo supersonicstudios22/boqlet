@@ -136,9 +136,10 @@ def save_meshes(meshes: dict[str, trimesh.Trimesh], path: str | Path):
 
 
 def load_meshes(path: str | Path) -> dict[str, trimesh.Trimesh]:
-    d = np.load(path, allow_pickle=False)
     out, vo, fo = {}, 0, 0
-    for i, nv, nf in zip(d["ids"], d["vcount"], d["fcount"]):
-        out[str(i)] = trimesh.Trimesh(d["verts"][vo:vo + nv], d["faces"][fo:fo + nf], process=False)
-        vo, fo = vo + nv, fo + nf
+    with np.load(path, allow_pickle=False) as data:
+        verts, faces = data["verts"], data["faces"]
+        for mesh_id, nv, nf in zip(data["ids"], data["vcount"], data["fcount"]):
+            out[str(mesh_id)] = trimesh.Trimesh(verts[vo:vo + nv], faces[fo:fo + nf], process=False)
+            vo, fo = vo + nv, fo + nf
     return out

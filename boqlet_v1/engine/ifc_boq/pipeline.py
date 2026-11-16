@@ -101,7 +101,8 @@ def names_in_model(parsed: dict, dictionaries: list[dict], resolution: dict | No
 
 def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]], dictionaries: list[dict],
             resolution: dict | None = None, decisions: list[dict] | None = None,
-            rule_library: dict[str, dict] | None = None, federation: dict | None = None) -> dict:
+            rule_library: dict[str, dict] | None = None, federation: dict | None = None,
+            progress=None) -> dict:
     t0 = time.time()
     log = CalcLog()
     resolution = resolution or {}
@@ -126,6 +127,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             log.info("parse", "verification: " + ", ".join(f"{k} x{v}" for k, v in m["parsed"]["verification"]["summary"].items()))
 
     # 2. names + measure (per model), federation ------------------------------------------
+    if progress:
+        progress("names", 20, "Resolving model names")
     flat = rules if "extends" not in rules else flatten(rules, rule_library or {})
     if "chain" not in flat:
         flat = flatten(flat, {})
@@ -135,6 +138,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
              + (f"; {len(dec_entries)} name answer(s) from decisions" if dec_entries else ""))
     resolutions = []
     measure_questions: dict[str, dict] = {}                # contradictions, merged across models
+    if progress:
+        progress("measure", 35, "Measuring elements")
     for m in models:
         qs: list[dict] = []
         m["elements"], res = measure(m["parsed"], rv, log, model_id=m["id"], discipline=m["discipline"],
@@ -147,6 +152,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
                 measure_questions[q["id"]]["occurrences"] += q["occurrences"]
             else:
                 measure_questions[q["id"]] = q
+    if progress:
+        progress("federate", 55, "Combining models")
     elements, model_reports, fed_questions, fed_warnings = combine(models, federation or {}, rv.expr, log, answers)
     distinct = {}
     for r in resolutions:
@@ -161,6 +168,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     log.info("names", f"{n_ok} of {len(distinct)} distinct names resolved")
 
     # 3. rules ----------------------------------------------------------------------------
+    if progress:
+        progress("rules", 70, "Applying measurement rules")
     log.info("match", f"rule set '{flat['name']}' ({' -> '.join(flat['chain'])}), "
                       f"{len(flat['items'])} item rules, {len(flat.get('derived', []))} derived, {len(flat.get('manual', []))} manual")
     warnings: list[dict] = [{"code": "rule_set", "message": p} for p in integrity(flat)]
@@ -231,6 +240,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
                                      ("space" if field == "space_name" else "material")}})
 
     # 5. classification -----------------------------------------------------------------
+    if progress:
+        progress("classify", 85, "Classifying lines")
     for code_list, cmap in classifications:
         classify(lines, code_list, cmap, rv.expr, log, answers, questions, warnings)
 

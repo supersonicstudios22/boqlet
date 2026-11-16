@@ -1,16 +1,13 @@
 /**
- * The one door to computation (mock-api.md "Engine"). Phase 1: `PocEngine` over the
- * proof-of-concept engine API (`engine/ifc_boq/api.py`, port 8787) plus the fakes in `./fakes`
- * (each listed in mock-api.md "Engine fakes" with the task that replaces it). Phase 2 swaps in a
- * `WorkerEngine` over the worker's HTTP transport (EN-001) behind this same interface.
- *
- * The mock never measures (BR-01): every quantity comes from the engine.
+ * The mock uses the worker's HTTP transport. The PoC adapter is available for local mock
+ * data whose models were parsed before EN-001.
  */
 import { openAsBlob } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, SceneIndex, TableReadResponse } from "@ifc-boq/types";
 import { PRODUCT_ROOT } from "../paths.js";
+import { WorkerEngine } from "./worker.js";
 
 export type PresetFolder = "rules" | "dictionaries" | "classifications" | "federation" | "resolution";
 
@@ -37,11 +34,13 @@ export interface RunOutput {
   result: BoqResult;
 }
 
+export type EngineProgress = (stage: string, pct: number) => void;
+
 export interface Engine {
   readonly name: string;
   health(): Promise<{ ok: boolean; version?: string }>;
-  parseModel(file: { path: string; name?: string }): Promise<ParsedModelSummary>;
-  run(input: RunInput): Promise<RunOutput>;
+  parseModel(file: { path: string; name?: string }, progress?: EngineProgress): Promise<ParsedModelSummary>;
+  run(input: RunInput, progress?: EngineProgress): Promise<RunOutput>;
   savePreset(kind: PresetFolder, id: string, doc: unknown): Promise<void>;
   deletePreset(kind: PresetFolder, id: string): Promise<void>;
   /** Problems in a preset document; for a rule-set patch also the flattened rule set. */
@@ -175,7 +174,7 @@ export class PocEngine implements Engine {
   }
 }
 
-let current: Engine = new PocEngine();
+let current: Engine = process.env.POC_ENGINE_URL && !process.env.ENGINE_URL ? new PocEngine() : new WorkerEngine();
 export const engine = () => current;
 /** Tests replace the engine (e.g. with a recorded one). */
 export function setEngine(next: Engine) {

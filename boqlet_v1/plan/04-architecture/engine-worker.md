@@ -142,6 +142,9 @@ The rpc service caches parsed models by key (LRU, memory-bounded) for `names`.
   cancels the job.
 - `POST {ENGINE_URL}/rpc/{op}`.
 - Storage: `ENGINE_STORAGE=file://C:/…/data` (local folder shared with the mock API) or `s3://bucket`.
+- `ENGINE_HTTP_CONCURRENCY` sets simultaneous jobs per HTTP process (default 1).
+  `ENGINE_MAX_MODEL_MB` caps input IFC bytes and expanded IFCZIP bytes (default 1024).
+  The HTTP transport checks for cancellation between engine stages.
 
 ### Queue transport (phase 2)
 - Table `jobs` (see `07-backend/db-schema.md`). The worker loop:

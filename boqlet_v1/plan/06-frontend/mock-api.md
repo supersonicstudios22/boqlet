@@ -76,7 +76,12 @@ Everything in `openapi.yaml`, with these simplifications:
 | Search, audit | Audit events appended. Filters in memory |
 | Email | Outbox files |
 
-## Interim engine path (before EN-001 lands)
+## Legacy mock data
+
+The mock starts with the worker by default. For local mock data containing models parsed
+before EN-001, start the PoC engine with `npm run dev:engine` and set `POC_ENGINE_URL` in
+the mock's environment. For a fresh worker-backed mock, use an empty `MOCK_DATA_DIR`
+and set it for both the mock and the worker.
 
 If the worker HTTP transport is not ready yet, the mock can call the PoC dev API
 (`engine/ifc_boq/api.py`, port 8787):

@@ -27,6 +27,7 @@ if (!existsSync(py)) {
 const port = process.env.IFC_BOQ_ENGINE_PORT || "8787";
 const commands = {
   serve: ["-m", "uvicorn", "ifc_boq.api:app", "--host", "127.0.0.1", "--port", port, "--reload", "--reload-dir", "ifc_boq"],
+  worker: ["-m", "uvicorn", "ifc_boq.worker_http:app", "--host", "127.0.0.1", "--port", process.env.ENGINE_WORKER_PORT || "8788"],
   test: ["-m", "pytest", "-q", ...rest],
   cli: ["-m", "ifc_boq.cli", ...rest],
   corpus: ["-m", "ifc_boq.corpus", ...rest],
@@ -40,6 +41,11 @@ if (!args) {
 }
 // CLI and corpus paths are relative to where the user ran npm; everything else runs inside engine/.
 const cwd = cmd === "cli" || cmd === "corpus" ? process.env.INIT_CWD || process.cwd() : engine;
-const child = spawn(py, args, { cwd, stdio: "inherit", env: { ...process.env, PYTHONUNBUFFERED: "1" } });
+const env = { ...process.env, PYTHONUNBUFFERED: "1" };
+if (cmd === "worker" && !env.ENGINE_STORAGE) {
+  const mockData = env.MOCK_DATA_DIR ? resolve(env.MOCK_DATA_DIR) : join(root, "apps", "mock-api", ".data");
+  env.ENGINE_STORAGE = `file://${join(mockData, "blobs")}`;
+}
+const child = spawn(py, args, { cwd, stdio: "inherit", env });
 child.on("exit", (code) => process.exit(code ?? 0));
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => child.kill(sig));

@@ -448,9 +448,11 @@ class Parser:
         return self.storey_of(c, seen) if c is not None else None
 
     # ----- main -----
-    def parse(self):
+    def parse(self, progress=None):
         t0 = time.time()
         f = self.f
+        if progress:
+            progress("geometry", 30, "Building geometry")
         with np.errstate(all="ignore"):          # degenerate meshes (furniture) produce harmless warnings
             geo = self.run_geometry()
 
@@ -793,6 +795,8 @@ class Parser:
         self.faces_and_rooms(elements, spatial)
 
         # verification ----------------------------------------------------
+        if progress:
+            progress("verify", 75, "Verifying elements")
         with np.errstate(all="ignore"):
             self.verify(elements, materials, openings)
 
@@ -998,16 +1002,21 @@ class Parser:
         self.checks = keep
 
     def export_glb(self, out_path):
+        from trimesh.exchange.gltf import export_glb
+
         scene = trimesh.Scene()
         for guid, m in self.meshes.items():
             scene.add_geometry(m, node_name=guid, geom_name=guid)
-        scene.export(out_path)
+        with open(out_path, "wb") as output:
+            output.write(export_glb(scene))
 
 
-def parse_file(path: str, overlaps: bool = True):
+def parse_file(path: str, overlaps: bool = True, progress=None):
     """Parse one IFC file. Returns (ParsedModel dict, Parser) - keep the parser to export geometry."""
+    if progress:
+        progress("read", 15, "Reading IFC")
     p = Parser(path, overlaps=overlaps)
-    return p.parse(), p
+    return p.parse(progress), p
 
 
 def main(argv=None):

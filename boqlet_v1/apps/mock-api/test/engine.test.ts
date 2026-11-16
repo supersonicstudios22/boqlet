@@ -4,8 +4,7 @@ import { engine } from "../src/engine/engine.js";
 import { FIXTURES_DIR } from "../src/paths.js";
 
 /**
- * M0: the mock runs the Duplex through the proof-of-concept engine. Needs the engine API on 8787
- * (`npm run dev:engine`); skipped with a note when it isn't running.
+ * The mock runs the Duplex through the engine worker. Needs `npm run dev:engine-worker`.
  */
 let up = false;
 beforeAll(async () => {
@@ -13,10 +12,10 @@ beforeAll(async () => {
     .health()
     .then((h) => h.ok)
     .catch(() => false);
-  if (!up) console.warn("[engine.test] PoC engine not running on 8787: start it with `npm run dev:engine`");
+  if (!up) console.warn("[engine.test] Start the engine with `npm run dev:engine-worker`");
 });
 
-describe("PocEngine", () => {
+describe("WorkerEngine", () => {
   it("parses the Duplex and generates its BoQ", async (ctx) => {
     if (!up) ctx.skip();
     const model = await engine().parseModel({ path: path.join(FIXTURES_DIR, "ifc", "Ifc2x3_Duplex_Architecture.ifc") });
