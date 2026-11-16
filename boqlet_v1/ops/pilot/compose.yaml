@@ -76,7 +76,7 @@ services:
     mem_limit: 2g
     cpus: 2
 
-  web:
+  boqlet-web:
     <<: *service
     image: boqlet-web:${PILOT_RELEASE:?}
     networks:

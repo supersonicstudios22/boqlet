@@ -45,6 +45,7 @@ case "${1:-}" in
   confirm)
     systemctl is-active --quiet "$rollback.timer"
     docker inspect "$proxy" | jq -e '.[0] | .State.Running and (.NetworkSettings.Networks | has("boqlet-pilot-ingress"))' >/dev/null
+    python3 check-public-edge.py
     systemctl stop "$rollback.timer"
     ;;
   rollback)

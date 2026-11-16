@@ -22,9 +22,10 @@ Use the pinned Narudzbe SSH host key and the existing authorized operator access
 cd /srv/boqlet/releases/e184cf6/boqlet_v1/ops/pilot
 docker compose --env-file /srv/boqlet/state/pilot.env ps
 sh check-private.sh
+python3 check-public-edge.py
 ```
 
-The first boot used [prepare-state.sh](../ops/pilot/prepare-state.sh), a Docker network created with `docker network create --internal boqlet-pilot-ingress`, and [compose.yaml](../ops/pilot/compose.yaml). Start `db storage identity web api engine` and check API readiness after Flyway. Run the following before starting the queue.
+The first boot used [prepare-state.sh](../ops/pilot/prepare-state.sh), a Docker network created with `docker network create --internal boqlet-pilot-ingress`, and [compose.yaml](../ops/pilot/compose.yaml). Start `db storage identity boqlet-web api engine` and check API readiness after Flyway. Run the following before starting the queue.
 
 ```sh
 docker exec -i boqlet-pilot-db-1 psql -v ON_ERROR_STOP=1 -U boqlet_admin -d boqlet < queue-grants.sql
@@ -56,6 +57,8 @@ Keycloak registration and password reset start disabled. Keep `PILOT_EMAILS` lim
 The live proxy reads a merged dynamic route file at `/srv/boqlet/edge/routes.json` and uses the overlay at `/srv/boqlet/edge/compose.yaml`. The original Narudzbe release Compose and route files remain the source for Narudzbe settings. A future release that recreates the proxy must include the overlay last and regenerate the merged route file from the new Narudzbe source and [Boqlet routes](../ops/pilot/traefik-routes.json). Test the merge with [check-edge-candidate.sh](../ops/pilot/check-edge-candidate.sh) before modifying the shared container. Scope proxy operations to the proxy service. The Boqlet stack stays on its own Compose project.
 
 [edge.sh](../ops/pilot/edge.sh) captures the exact baseline Compose files and arms a four-minute rollback before applying ingress. Confirm that both applications answer over public HTTPS and that the Docker DNAT destination matches the firewall's expected proxy-egress IP before confirming. An observed initial parser error caused a brief Narudzbe 404; baseline rollback restored HTTPS, and the corrected schema passed the exact-image candidate test before the successful retry.
+
+Both frontends initially registered the Compose service name `web` on separate networks that Traefik could see. Docker DNS resolved Traefik's Narudzbe upstream to the Boqlet frontend. The Boqlet service now uses `boqlet-web`, and [check-private.sh](../ops/pilot/check-private.sh) rejects aliases shared by the projects on their proxy-facing networks. [check-public-edge.py](../ops/pilot/check-public-edge.py) verifies the distinct frontend titles, canonical Narudzbe redirect, both APIs and the Boqlet OIDC issuer. Proxy confirmation runs it before disarming rollback.
 
 For a Boqlet-only app rollback, restore the last compatible image set and run the authenticated smoke check. For a full cutoff, use `bash edge.sh rollback` with the recorded baseline and verify the Narudzbe apex and API bootstrap. Apply the DNS rollback batch from the Boqlet zone if returning the apex to its former server. Keep the Boqlet volumes. Do not use `docker compose down -v` to roll back an image or routing change.
 

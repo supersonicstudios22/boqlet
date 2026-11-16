@@ -1,10 +1,25 @@
 #!/bin/sh
 set -eu
+aliases() {
+  containers=$(docker ps -q --filter "label=com.docker.compose.project=$1")
+  test -n "$containers"
+  docker inspect $containers | jq -r --arg network "$2" '
+    .[] | .NetworkSettings.Networks[$network].Aliases[]?
+  ' | sort -u
+}
+narudzbe_aliases=$(aliases narudzbe-pilot narudzbe-pilot_application)
+boqlet_aliases=$(aliases boqlet-pilot boqlet-pilot-ingress)
+shared_aliases=$(printf '%s\n%s\n' "$narudzbe_aliases" "$boqlet_aliases" | sort | uniq -d)
+if [ -n "$shared_aliases" ]; then
+  printf 'Overlapping Docker aliases on edge networks:\n%s\n' "$shared_aliases" >&2
+  exit 1
+fi
+
 service_ip() {
   docker inspect "boqlet-pilot-$1-1" | jq -er '.[0].NetworkSettings.Networks["boqlet-pilot-ingress"].IPAddress'
 }
 curl -fsS --max-time 5 "http://$(service_ip api):8080/actuator/health/readiness" | jq -e '.status == "UP"'
-curl -fsS --max-time 5 "http://$(service_ip web):3000/" -o /dev/null
+curl -fsS --max-time 5 "http://$(service_ip boqlet-web):3000/" -o /dev/null
 curl -fsS --max-time 5 "http://$(service_ip identity):8080/realms/boqlet/.well-known/openid-configuration" | jq -e '.issuer == "https://auth.booqlet.com/realms/boqlet"'
 docker exec -i boqlet-pilot-db-1 psql -v ON_ERROR_STOP=1 -U boqlet_admin -d boqlet <<'SQL'
 DO $$
