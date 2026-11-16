@@ -304,6 +304,14 @@ def export(result: dict, meta: dict) -> bytes:
             r += 1
             _row(wi, r, [d["questionId"], json.dumps(d.get("answer")), "", d.get("note", "")])
 
+    if meta.get("publicShare"):
+        del wb["Questions"]
+        del wb["Inputs"]
+        if not meta.get("publicLog"):
+            del wb["Log"]
+        if not meta.get("publicLineDetail"):
+            del wb["Calculation"]
+            del wb["Lines"]
     for sheet in wb.worksheets:
         sheet.sheet_view.showGridLines = False
     buf = io.BytesIO()

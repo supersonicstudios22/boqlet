@@ -13,19 +13,39 @@ spring:
       max-file-size: 20MB
       max-request-size: 21MB
   jackson:
+    default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: true
   main:
     keep-alive: true
+  mail:
+    host: ${BOQLET_SMTP_HOST:}
+    port: ${BOQLET_SMTP_PORT:587}
+    username: ${BOQLET_SMTP_USERNAME:}
+    password: ${BOQLET_SMTP_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${BOQLET_SMTP_AUTH:true}
+      "[mail.smtp.starttls.enable]": ${BOQLET_SMTP_STARTTLS:true}
+      "[mail.smtp.starttls.required]": ${BOQLET_SMTP_STARTTLS:true}
+      "[mail.smtp.ssl.checkserveridentity]": true
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
 server:
   port: ${BOQLET_API_PORT:8080}
   error:
     include-message: never
+logging:
+  structured:
+    format:
+      console: ${BOQLET_LOG_FORMAT:}
 management:
+  server:
+    port: ${BOQLET_MANAGEMENT_PORT:${server.port}}
   endpoints:
     web:
       exposure:
-        include: health
+        include: ${BOQLET_MANAGEMENT_ENDPOINTS:health}
   endpoint:
     health:
       probes:

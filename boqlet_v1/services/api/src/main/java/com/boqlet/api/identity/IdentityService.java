@@ -82,6 +82,12 @@ public class IdentityService {
                 """, IdentityService::mapUser, userId);
     }
 
+    public boolean platformAdmin(UUID actor) {
+        return Boolean.TRUE.equals(database.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND platform_role = 'admin' AND deleted_at IS NULL)
+                """, Boolean.class, actor));
+    }
+
     public static User mapUser(ResultSet row, int index) throws SQLException {
         var user = new User(row.getObject("id", UUID.class), row.getString("email"), row.getString("name"),
                 row.getString("locale"));

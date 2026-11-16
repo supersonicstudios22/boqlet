@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -29,6 +30,7 @@ class JobDispatcher {
     private final Duration timeout;
     private final Semaphore slots;
     private final UUID id = UUID.randomUUID();
+    private final AtomicBoolean queueWakeScheduled = new AtomicBoolean();
     private final ExecutorService running = Executors.newVirtualThreadPerTaskExecutor();
     private final java.util.concurrent.ScheduledExecutorService poller = Executors.newSingleThreadScheduledExecutor();
 
@@ -44,14 +46,44 @@ class JobDispatcher {
     @EventListener(ApplicationReadyEvent.class)
     void poll() {
         poller.scheduleWithFixedDelay(this::dispatch, 0, 500, TimeUnit.MILLISECONDS);
+        poller.scheduleWithFixedDelay(this::ingestQueue, 500, 1000, TimeUnit.MILLISECONDS);
         poller.scheduleWithFixedDelay(this::reclaim, 30, 30, TimeUnit.SECONDS);
     }
 
     private void reclaim() {
         try {
-            jobs.reclaimHttpJobs();
+            jobs.reclaimLostJobs();
         } catch (RuntimeException failure) {
             LOG.error("Could not reclaim a lost worker job.", failure);
+        }
+    }
+
+    @EventListener
+    void queueWake(QueueWakeup signal) {
+        if (!poller.isShutdown() && queueWakeScheduled.compareAndSet(false, true)) {
+            try {
+                poller.submit(() -> {
+                    queueWakeScheduled.set(false);
+                    ingestQueue();
+                });
+            } catch (java.util.concurrent.RejectedExecutionException shutdown) {
+                queueWakeScheduled.set(false);
+            }
+        }
+    }
+
+    private void ingestQueue() {
+        try {
+            for (UUID job : jobs.pendingQueueJobs()) {
+                try {
+                    jobs.ingestQueueJob(job, false);
+                } catch (RuntimeException failure) {
+                    LOG.error("Could not ingest queue job {}.", job, failure);
+                    jobs.ingestQueueJob(job, true);
+                }
+            }
+        } catch (RuntimeException failure) {
+            LOG.error("Could not process queue results.", failure);
         }
     }
 

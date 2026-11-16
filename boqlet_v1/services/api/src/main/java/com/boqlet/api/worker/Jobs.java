@@ -6,6 +6,7 @@ import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
+import com.boqlet.api.realtime.Notifications;
 import com.boqlet.api.storage.ObjectStorage;
 import com.boqlet.contract.model.Job;
 import com.boqlet.contract.model.JobError;
@@ -25,6 +26,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -39,21 +41,33 @@ public class Jobs {
     private final ProjectAccess projects;
     private final OrgAccess orgs;
     private final ObjectStorage storage;
+    private final Notifications notifications;
     private final Map<String, JobHandler> handlers;
+    private final String transport;
+    private final String modelPool;
+    private final String generalPool;
 
     Jobs(JdbcTemplate database, StoredJson json, EntitlementService limits, ProjectAccess projects, OrgAccess orgs, ObjectStorage storage,
-         List<JobHandler> handlers) {
+         List<JobHandler> handlers, Notifications notifications,
+         @Value("${BOQLET_ENGINE_TRANSPORT:http}") String transport,
+         @Value("${BOQLET_ENGINE_MODEL_POOL:default}") String modelPool,
+         @Value("${BOQLET_ENGINE_GENERAL_POOL:default}") String generalPool) {
         this.database = database;
         this.json = json;
         this.limits = limits;
         this.projects = projects;
         this.orgs = orgs;
         this.storage = storage;
+        this.notifications = notifications;
+        if (!Set.of("http", "postgres").contains(transport)) throw new IllegalArgumentException("Invalid BOQLET_ENGINE_TRANSPORT.");
+        this.transport = transport;
+        this.modelPool = modelPool;
+        this.generalPool = generalPool;
         this.handlers = handlers.stream().collect(Collectors.toUnmodifiableMap(JobHandler::type, Function.identity()));
     }
 
     public record Attempt(UUID id, String type, UUID org, UUID project, UUID subject, UUID actor, String prefix,
-                          JsonNode input, int number, int maxAttempts, String contract, OffsetDateTime startedAt) {
+                          JsonNode input, int number, int maxAttempts, String contract, OffsetDateTime startedAt, boolean metered) {
         public String attemptPrefix() {
             return prefix.replaceAll("/+$", "") + "/attempt-" + number + "/";
         }
@@ -67,16 +81,24 @@ public class Jobs {
     @Transactional(propagation = Propagation.MANDATORY)
     public UUID enqueue(String type, UUID org, UUID project, UUID actor, String subjectType, UUID subject,
                         String prefix, Map<String, ?> input, int priority) {
+        return enqueue(type, org, project, actor, subjectType, subject, prefix, input, priority, true);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID enqueue(String type, UUID org, UUID project, UUID actor, String subjectType, UUID subject,
+                        String prefix, Map<String, ?> input, int priority, boolean metered) {
         if (!handlers.containsKey(type)) throw new IllegalArgumentException("Unregistered job type " + type);
-        if (METERED.contains(type)) {
+        if (metered && METERED.contains(type)) {
             BigDecimal used = limits.processingMillis(org, YearMonth.now(ZoneOffset.UTC));
             limits.checkConsumption(org, actor, "processingMinutesPerMonth", used, 60_000);
         }
         UUID id = Ids.newId();
         database.update("""
-                INSERT INTO jobs (id, type, org_id, project_id, created_by, subject_type, subject_id, output_prefix, input, priority)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb), ?)
-                """, id, type, org, project, actor, subjectType, subject, prefix, json.object(input).toString(), priority);
+                INSERT INTO jobs (id, type, org_id, project_id, created_by, subject_type, subject_id, output_prefix,
+                                  input, priority, metered, transport, pool)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb), ?, ?, ?, ?)
+                """, id, type, org, project, actor, subjectType, subject, prefix, json.object(input).toString(), priority,
+                metered, transport, METERED.contains(type) || type.equals("diff") ? modelPool : generalPool);
         return id;
     }
 
@@ -148,9 +170,9 @@ public class Jobs {
     }
 
     @Transactional
-    public void reclaimHttpJobs() {
+    public void reclaimLostJobs() {
         var stale = database.query("""
-                SELECT * FROM jobs WHERE transport = 'http' AND status = 'running'
+                SELECT * FROM jobs WHERE status = 'running' AND worker_result IS NULL
                     AND heartbeat_at < now() - interval '30 seconds'
                 ORDER BY heartbeat_at LIMIT 20 FOR UPDATE SKIP LOCKED
                 """, (row, index) -> new Lost(attempt(row, index), row.getBoolean("cancel_requested")));
@@ -174,7 +196,44 @@ public class Jobs {
                 FOR UPDATE
                 """, Boolean.class, attempt.id(), attempt.number(), dispatcher);
         if (rows.isEmpty()) return;
-        String status = rows.getFirst() ? "cancelled" : result.path("status").asText("failed");
+        complete(attempt, rows.getFirst(), result);
+    }
+
+    List<UUID> pendingQueueJobs() {
+        return database.queryForList("""
+                SELECT id FROM jobs WHERE status = 'running' AND transport = 'postgres'
+                    AND (worker_result IS NOT NULL OR NOT worker_announced)
+                ORDER BY created_at, id LIMIT 20
+                """, UUID.class);
+    }
+
+    @Transactional
+    public void ingestQueueJob(UUID id, boolean failedIngestion) {
+        database.query("""
+                SELECT * FROM jobs WHERE id = ? AND status = 'running' AND transport = 'postgres'
+                    AND (worker_result IS NOT NULL OR NOT worker_announced) FOR NO KEY UPDATE SKIP LOCKED
+                """, (row, index) -> new Delivery(attempt(row, index), row.getBoolean("worker_announced"),
+                row.getBoolean("cancel_requested"), json.read(row.getString("worker_result"), JsonNode.class)), id)
+                .stream().findFirst().ifPresent(delivery -> {
+            var attempt = delivery.attempt();
+            if (failedIngestion) {
+                var failure = json.object(Map.of("status", "failed", "error", Map.of(
+                        "code", "ingestion_failed", "message", "The server could not ingest the worker result.", "retryable", true)));
+                complete(attempt, delivery.cancelled(), failure);
+                return;
+            }
+            if (!delivery.announced()) {
+                handlers.get(attempt.type()).running(attempt);
+                database.update("UPDATE jobs SET worker_announced = true WHERE id = ?", id);
+            }
+            if (delivery.result() != null) complete(attempt, delivery.cancelled(), delivery.result());
+        });
+    }
+
+    private record Delivery(Attempt attempt, boolean announced, boolean cancelled, JsonNode result) {}
+
+    private void complete(Attempt attempt, boolean cancelled, JsonNode result) {
+        String status = cancelled ? "cancelled" : result.path("status").asText("failed");
         if (!Set.of("succeeded", "failed", "cancelled").contains(status)) {
             throw new IllegalStateException("Invalid terminal job status.");
         }
@@ -189,7 +248,7 @@ public class Jobs {
     private void requeue(Attempt attempt) {
         database.update("""
                 UPDATE jobs SET status = 'queued', available_at = now() + (? * interval '10 seconds'),
-                                worker_id = NULL, heartbeat_at = NULL, progress = NULL
+                                worker_id = NULL, heartbeat_at = NULL, progress = NULL, worker_result = NULL, worker_announced = false
                 WHERE id = ?
                 """, attempt.number(), attempt.id());
     }
@@ -199,15 +258,49 @@ public class Jobs {
         JsonNode error = "failed".equals(status) ? result.get("error") : null;
         database.update("""
                 UPDATE jobs SET status = ?, finished_at = ?, output = CAST(? AS jsonb), error = CAST(? AS jsonb),
-                                worker_id = NULL, heartbeat_at = NULL WHERE id = ?
+                                worker_id = NULL, heartbeat_at = NULL, worker_result = NULL WHERE id = ?
                 """, status, finished, output == null ? null : json.object(output).toString(),
                 error == null ? null : error.toString(), attempt.id());
-        if (METERED.contains(attempt.type()) && attempt.startedAt() != null) {
+        if (attempt.metered() && METERED.contains(attempt.type()) && attempt.startedAt() != null) {
             var metrics = result.path("metrics");
             long duration = result.path("durationMs").asLong(java.time.Duration.between(attempt.startedAt(), finished).toMillis());
             limits.recordUsage(attempt.org(), attempt.project(), attempt.id(), attempt.type(), attempt.startedAt(),
                     Math.max(0, duration), metric(metrics, "modelBytes"), metric(metrics, "elementCount"), status);
         }
+        notifyFinished(attempt, status, result);
+    }
+
+    private void notifyFinished(Attempt attempt, String status, JsonNode result) {
+        if (attempt.project() == null || status.equals("cancelled")) return;
+        String link = notifications.projectUrl(attempt.org(), attempt.project());
+        String type = attempt.type();
+        var params = new java.util.LinkedHashMap<String, Object>(Map.of("jobId", attempt.id(), "type", type));
+        if (type.equals("run")) {
+            var bills = database.query("""
+                    SELECT b.id, b.name FROM runs n JOIN boq_revisions r ON r.id = n.revision_id
+                    JOIN boqs b ON b.id = r.boq_id WHERE n.id = ?
+                    """, (row, index) -> Map.entry(row.getString("id"), row.getString("name")), attempt.subject());
+            if (!bills.isEmpty()) {
+                params.put("boq", bills.getFirst().getValue());
+                link += "/boqs/" + bills.getFirst().getKey();
+            }
+        }
+        String kind;
+        String category = null;
+        if (status.equals("failed")) {
+            kind = "job.failed";
+            category = "jobs";
+        } else if (type.equals("parse")) {
+            kind = "model_version.ready";
+            params.put("fileName", attempt.input().path("fileName").asText());
+        } else if (type.equals("run") && result.path("output").path("counts").path("blockingQuestions").asInt() > 0) {
+            kind = "run.needs_input";
+            params.put("count", result.path("output").path("counts").path("blockingQuestions").asInt());
+            link += "?tab=questions";
+        } else {
+            kind = "job.succeeded";
+        }
+        notifications.send(attempt.actor(), attempt.org(), attempt.project(), kind, category, params, link, type, attempt.subject());
     }
 
     private static Long metric(JsonNode metrics, String key) {
@@ -239,7 +332,7 @@ public class Jobs {
                 row.getObject("project_id", UUID.class), row.getObject("subject_id", UUID.class),
                 row.getObject("created_by", UUID.class), row.getString("output_prefix"),
                 json.read(row.getString("input"), JsonNode.class), row.getInt("attempts"), row.getInt("max_attempts"),
-                row.getString("contract_version"), row.getObject("started_at", OffsetDateTime.class));
+                row.getString("contract_version"), row.getObject("started_at", OffsetDateTime.class), row.getBoolean("metered"));
     }
 
     private record JobRow(Job job, UUID org, UUID project) {}

@@ -31,6 +31,12 @@ class ProjectPresets {
                 .dictionaryVersionIds(dictionaries).federationVersionId(null);
     }
 
+    ProjectDefaults sampleDefaults() {
+        return new ProjectDefaults().ruleSetVersionId(system("rule_set", "as-modelled").getFirst())
+                .classificationVersionIds(system("classification", "acme-cost-codes"))
+                .dictionaryVersionIds(system("dictionary", "global-seed"));
+    }
+
     void validate(UUID org, UUID project, ProjectDefaults defaults) {
         if (defaults.getRuleSetVersionId().isPresent()) require(org, project, "rule_set", defaults.getRuleSetVersionId().get());
         if (defaults.getFederationVersionId().isPresent()) require(org, project, "federation", defaults.getFederationVersionId().get());

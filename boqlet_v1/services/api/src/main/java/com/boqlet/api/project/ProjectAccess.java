@@ -59,7 +59,7 @@ public class ProjectAccess {
     public Project lock(UUID project, UUID actor, String action) {
         Project visible = require(project, actor);
         orgs.lock(visible.getOrgId(), actor);
-        database.queryForObject("SELECT id FROM projects WHERE id = ? FOR UPDATE", UUID.class, project);
+        database.queryForObject("SELECT id FROM projects WHERE id = ? FOR NO KEY UPDATE", UUID.class, project);
         Project locked = require(project, actor);
         role(locked, action);
         if (locked.getStatus() == Project.StatusEnum.ARCHIVED && !ARCHIVED_ACTIONS.contains(action)) {

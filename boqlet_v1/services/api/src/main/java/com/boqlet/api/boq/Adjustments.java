@@ -6,6 +6,7 @@ import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.http.RequestContext;
 import com.boqlet.api.library.PresetCatalog;
+import com.boqlet.api.realtime.Realtime;
 import com.boqlet.contract.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,9 +25,10 @@ class Adjustments {
     private final BoqInputs inputs;
     private final PresetCatalog catalog;
     private final AuditWriter audit;
+    private final Realtime realtime;
 
     Adjustments(JdbcTemplate database, StoredJson json, BoqAccess access, Boqs boqs, BoqInputs inputs,
-                PresetCatalog catalog, AuditWriter audit) {
+                PresetCatalog catalog, AuditWriter audit, Realtime realtime) {
         this.database = database;
         this.json = json;
         this.access = access;
@@ -34,6 +36,7 @@ class Adjustments {
         this.inputs = inputs;
         this.catalog = catalog;
         this.audit = audit;
+        this.realtime = realtime;
     }
 
     List<LineOverride> overrides(UUID boq, UUID actor) {
@@ -57,7 +60,7 @@ class Adjustments {
         var scope = edit(boq, actor);
         var normalized = override(scope, input);
         UUID id = storeOverride(boq, actor, normalized);
-        change(scope, actor, "line.edited", Map.of("lineKey", input.getLineKey()));
+        change(scope, actor, "line.edited", Map.of("lineKey", input.getLineKey(), "lineKeys", List.of(input.getLineKey())));
         return findOverride(boq, id);
     }
 
@@ -82,7 +85,10 @@ class Adjustments {
         }
         var written = overrides.values().stream().map(value -> storeOverride(boq, actor, value)).toList();
         var added = manual.values().stream().map(value -> storeManual(boq, null, actor, value)).toList();
-        change(scope, actor, "line.edited", Map.of("lines", written.size(), "manualLines", added.size()));
+        var keys = new LinkedHashSet<>(overrides.keySet());
+        keys.addAll(safe(input.getRemoveOverrideLineKeys()));
+        keys.addAll(manual.keySet());
+        change(scope, actor, "line.edited", Map.of("lines", written.size(), "manualLines", added.size(), "lineKeys", keys));
         return new ApplyLineEdits200Response().overrides(written.stream().map(id -> findOverride(boq, id)).toList())
                 .manualItems(added.stream().map(id -> findManual(boq, id)).toList());
     }
@@ -91,15 +97,16 @@ class Adjustments {
     public void removeOverride(UUID id, UUID actor) {
         UUID boq = target(id, "line_overrides");
         var scope = edit(boq, actor);
-        if (database.update("DELETE FROM line_overrides WHERE id = ?", id) != 1) throw BoqAccess.missing("line edit");
-        change(scope, actor, "line.restored", Map.of("overrideId", id));
+        String key = database.query("DELETE FROM line_overrides WHERE id = ? RETURNING line_key",
+                (row, index) -> row.getString(1), id).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line edit"));
+        change(scope, actor, "line.restored", Map.of("overrideId", id, "lineKeys", List.of(key)));
     }
 
     @Transactional
     public ManualItemRecord add(UUID boq, UUID actor, ManualItemInput input) {
         var scope = edit(boq, actor);
         UUID id = storeManual(boq, null, actor, manual(scope, null, input));
-        change(scope, actor, "manual_line.added", Map.of("manualItemId", id));
+        change(scope, actor, "manual_line.added", Map.of("manualItemId", id, "lineKeys", List.of(input.getItem().get("id"))));
         return findManual(boq, id);
     }
 
@@ -108,7 +115,7 @@ class Adjustments {
         UUID boq = target(id, "manual_items");
         var scope = edit(boq, actor);
         storeManual(boq, id, actor, manual(scope, id, input));
-        change(scope, actor, "manual_line.updated", Map.of("manualItemId", id));
+        change(scope, actor, "manual_line.updated", Map.of("manualItemId", id, "lineKeys", List.of(input.getItem().get("id"))));
         return findManual(boq, id);
     }
 
@@ -116,26 +123,40 @@ class Adjustments {
     public void removeManual(UUID id, UUID actor) {
         UUID boq = target(id, "manual_items");
         var scope = edit(boq, actor);
-        if (database.update("DELETE FROM manual_items WHERE id = ?", id) != 1) throw BoqAccess.missing("manual item");
-        change(scope, actor, "manual_line.removed", Map.of("manualItemId", id));
+        String key = database.query("DELETE FROM manual_items WHERE id = ? RETURNING item->'item'->>'id'",
+                (row, index) -> row.getString(1), id).stream().findFirst().orElseThrow(() -> BoqAccess.missing("manual item"));
+        change(scope, actor, "manual_line.removed", Map.of("manualItemId", id, "lineKeys", List.of(key)));
     }
 
-    BoqPresence presence(UUID boq, UUID actor, String line) {
-        access.bill(boq, actor);
+    @Transactional
+    public BoqPresence presence(UUID boq, UUID actor, String line) {
+        var scope = access.bill(boq, actor);
         database.update("""
                 INSERT INTO boq_presence (boq_id, user_id, line_key, expires_at) VALUES (?, ?, ?, now() + interval '30 seconds')
                 ON CONFLICT (boq_id, user_id) DO UPDATE SET line_key = excluded.line_key, expires_at = excluded.expires_at
                 """, boq, actor, line);
-        return new BoqPresence(boq, database.query("""
-                SELECT p.user_id, u.name, p.line_key FROM boq_presence p JOIN users u ON u.id = p.user_id
-                WHERE p.boq_id = ? AND p.expires_at > now() AND u.deleted_at IS NULL ORDER BY u.name, u.id
-                """, (row, index) -> new BoqPresenceUsersInner(row.getObject("user_id", UUID.class), row.getString("name"))
-                .lineKey(row.getString("line_key")), boq));
+        var presence = present(scope);
+        realtime.project(scope.project().getOrgId(), scope.project().getId(), "boq.presence", presence);
+        return presence;
     }
 
-    void leave(UUID boq, UUID actor) {
-        access.bill(boq, actor);
-        database.update("DELETE FROM boq_presence WHERE boq_id = ? AND user_id = ?", boq, actor);
+    private BoqPresence present(BoqAccess.Scope scope) {
+        return new BoqPresence(scope.bill().id(), database.query("""
+                SELECT p.user_id, u.name, p.line_key FROM boq_presence p JOIN users u ON u.id = p.user_id
+                JOIN memberships m ON m.user_id = p.user_id AND m.org_id = ?
+                LEFT JOIN project_members pm ON pm.project_id = ? AND pm.user_id = p.user_id
+                WHERE p.boq_id = ? AND p.expires_at > now() AND u.deleted_at IS NULL
+                    AND (m.role IN ('owner','admin') OR pm.user_id IS NOT NULL) ORDER BY u.name, u.id
+                """, (row, index) -> new BoqPresenceUsersInner(row.getObject("user_id", UUID.class), row.getString("name"))
+                .lineKey(row.getString("line_key")), scope.project().getOrgId(), scope.project().getId(), scope.bill().id()));
+    }
+
+    @Transactional
+    public void leave(UUID boq, UUID actor) {
+        var scope = access.bill(boq, actor);
+        if (database.update("DELETE FROM boq_presence WHERE boq_id = ? AND user_id = ?", boq, actor) > 0) {
+            realtime.project(scope.project().getOrgId(), scope.project().getId(), "boq.presence", present(scope));
+        }
     }
 
     private BoqAccess.Scope edit(UUID boq, UUID actor) {

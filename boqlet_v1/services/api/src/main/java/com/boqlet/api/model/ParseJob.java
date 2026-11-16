@@ -3,6 +3,7 @@ package com.boqlet.api.model;
 import com.boqlet.api.audit.AuditWriter;
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.RequestContext;
+import com.boqlet.api.realtime.Notifications;
 import com.boqlet.api.worker.JobHandler;
 import com.boqlet.api.worker.Jobs;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,11 +17,13 @@ class ParseJob implements JobHandler {
     private final JdbcTemplate database;
     private final StoredJson json;
     private final AuditWriter audit;
+    private final Notifications notifications;
 
-    ParseJob(JdbcTemplate database, StoredJson json, AuditWriter audit) {
+    ParseJob(JdbcTemplate database, StoredJson json, AuditWriter audit, Notifications notifications) {
         this.database = database;
         this.json = json;
         this.audit = audit;
+        this.notifications = notifications;
     }
 
     @Override
@@ -81,7 +84,31 @@ class ParseJob implements JobHandler {
                 """, attempt.subject(), model, attempt.subject());
         audit.record(new RequestContext(attempt.actor(), null, attempt.org(), null), AuditWriter.ActorKind.SYSTEM,
                 attempt.project(), "model_version.ready", "modelVersion", attempt.subject(), json.object(Map.of("modelId", model)));
+        newerModel(attempt, model);
         return Map.of("modelVersionId", attempt.subject());
+    }
+
+    private void newerModel(Jobs.Attempt attempt, UUID model) {
+        String project = notifications.projectUrl(attempt.org(), attempt.project());
+        database.query("""
+                SELECT DISTINCT b.id, b.name AS boq, m.name AS model, latest.number, members.user_id
+                FROM boqs b JOIN boq_revisions r ON r.id = b.current_revision_id
+                JOIN models m ON m.id = ? AND m.project_id = b.project_id
+                JOIN model_versions latest ON latest.id = m.latest_version_id AND latest.id = ?
+                JOIN projects project ON project.id = b.project_id
+                JOIN memberships members ON members.org_id = project.org_id
+                JOIN users recipient ON recipient.id = members.user_id AND recipient.deleted_at IS NULL
+                LEFT JOIN project_members pm ON pm.project_id = b.project_id AND pm.user_id = members.user_id
+                WHERE b.project_id = ? AND NOT b.archived AND b.status = 'working' AND r.status <> 'issued'
+                  AND (members.role IN ('owner','admin') OR pm.role IN ('lead','estimator'))
+                  AND EXISTS (SELECT 1 FROM model_versions older WHERE older.model_id = m.id AND older.number < latest.number
+                              AND r.inputs->'models' @> jsonb_build_array(jsonb_build_object('modelVersionId', older.id)))
+                """, row -> {
+            UUID boq = row.getObject("id", UUID.class);
+            notifications.send(row.getObject("user_id", UUID.class), attempt.org(), attempt.project(),
+                    "boq.new_version_available", null, Map.of("boq", row.getString("boq"),
+                    "model", row.getString("model"), "version", row.getInt("number")), project + "/boqs/" + boq, "boq", boq);
+        }, model, attempt.subject(), attempt.project());
     }
 
     private static void validate(Jobs.Attempt attempt, String sha, JsonNode summary, JsonNode artifacts) {

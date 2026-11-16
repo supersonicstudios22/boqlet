@@ -23,9 +23,10 @@ class RunReads {
     private final NamedParameterJdbcTemplate named;
     private final Models models;
     private final Decisions decisions;
+    private final RunIndex index;
 
     RunReads(Runs runs, BoqAccess access, StoredJson json, BoqExports positions, JdbcTemplate database,
-             NamedParameterJdbcTemplate named, Models models, Decisions decisions) {
+             NamedParameterJdbcTemplate named, Models models, Decisions decisions, RunIndex index) {
         this.runs = runs;
         this.access = access;
         this.json = json;
@@ -34,6 +35,7 @@ class RunReads {
         this.named = named;
         this.models = models;
         this.decisions = decisions;
+        this.index = index;
     }
 
     LinesPage lines(UUID id, UUID actor, String cursor, int limit, String system, Integer level, String path,
@@ -245,6 +247,7 @@ class RunReads {
     private RunCatalog.Entry ready(UUID id, UUID actor) {
         var run = runs.visible(id, actor);
         if (run.resultKey() == null) throw BoqAccess.failure(HttpStatus.CONFLICT, "run_not_ready", "The run has no results yet.");
+        index.ensure(id);
         return run;
     }
 

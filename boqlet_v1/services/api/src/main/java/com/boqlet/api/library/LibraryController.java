@@ -1,6 +1,7 @@
 package com.boqlet.api.library;
 
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.LibraryApi;
 import com.boqlet.contract.model.*;
 import java.util.List;
@@ -16,11 +17,13 @@ class LibraryController implements LibraryApi {
     private final Library library;
     private final LibraryFiles files;
     private final LibraryPreview previews;
+    private final Idempotency idempotency;
 
-    LibraryController(Library library, LibraryFiles files, LibraryPreview previews) {
+    LibraryController(Library library, LibraryFiles files, LibraryPreview previews, Idempotency idempotency) {
         this.library = library;
         this.files = files;
         this.previews = previews;
+        this.idempotency = idempotency;
     }
 
     @Override
@@ -86,7 +89,9 @@ class LibraryController implements LibraryApi {
 
     @Override
     public ResponseEntity<Job> previewPreset(UUID preset, PreviewPresetRequest request) {
-        return ResponseEntity.accepted().body(previews.preview(preset, actor(), request));
+        UUID actor = actor();
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+                () -> library.get(preset, actor), () -> previews.preview(preset, actor, request)));
     }
 
     @Override

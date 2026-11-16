@@ -6,7 +6,9 @@ import com.boqlet.api.db.Ids;
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.RequestContext;
 import com.boqlet.api.identity.IdentityService;
+import com.boqlet.api.model.Models;
 import com.boqlet.api.org.OrgAccess;
+import com.boqlet.api.realtime.Notifications;
 import com.boqlet.contract.model.*;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +27,11 @@ public class Projects {
     private final EntitlementService limits;
     private final StoredJson json;
     private final AuditWriter audit;
+    private final Notifications notifications;
+    private final Models models;
 
     Projects(JdbcTemplate database, OrgAccess orgs, ProjectAccess access, ProjectPresets presets,
-             EntitlementService limits, StoredJson json, AuditWriter audit) {
+             EntitlementService limits, StoredJson json, AuditWriter audit, Notifications notifications, Models models) {
         this.database = database;
         this.orgs = orgs;
         this.access = access;
@@ -35,6 +39,8 @@ public class Projects {
         this.limits = limits;
         this.json = json;
         this.audit = audit;
+        this.notifications = notifications;
+        this.models = models;
     }
 
     List<ProjectListItem> list(UUID org, UUID actor, String status, String query) {
@@ -64,29 +70,33 @@ public class Projects {
     @Transactional
     public Project create(UUID org, UUID actor, ProjectCreate request) {
         OrgSettings settings = orgs.lock(org, actor).org().getSettings();
-        if (request.getSample() != null) {
-            throw ProjectAccess.error(HttpStatus.NOT_IMPLEMENTED, "sample_unavailable",
-                    "The sample project requires the model and BoQ backend.");
-        }
-        limits.checkCapacity(org, actor, "activeProjects", limits.activeProjects(org));
+        boolean sample = request.getSample() == ProjectCreate.SampleEnum.DUPLEX;
+        if (!sample) limits.checkCapacity(org, actor, "activeProjects", limits.activeProjects(org));
         UUID project = Ids.newId();
         UUID dictionary = Ids.newId();
         String name = name(request.getName());
-        ProjectDefaults defaults = request.getDefaults() == null ? presets.defaults(org) : request.getDefaults();
+        ProjectDefaults defaults = sample ? presets.sampleDefaults()
+                : request.getDefaults() == null ? presets.defaults(org) : request.getDefaults();
         presets.validate(org, project, defaults);
         database.update("""
                 INSERT INTO projects (id, org_id, name, code, client, location, currency, unit_system, locale,
-                                      defaults, project_dictionary_id)
-                VALUES (?, ?, ?, ?, ?, CAST(? AS jsonb), ?, ?, ?, CAST(? AS jsonb), ?)
+                                      defaults, project_dictionary_id, sample)
+                VALUES (?, ?, ?, ?, ?, CAST(? AS jsonb), ?, ?, ?, CAST(? AS jsonb), ?, ?)
                 """, project, org, name, request.getCode(), request.getClient(), encode(request.getLocation()),
                 first(request.getCurrency(), settings.getDefaultCurrency(), "EUR"),
                 first(request.getUnitSystem() == null ? null : request.getUnitSystem().getValue(),
                         settings.getDefaultUnitSystem() == null ? null : settings.getDefaultUnitSystem().getValue(), "metric"),
-                first(request.getLocale(), settings.getDefaultLocale(), "en"), encode(defaults), dictionary);
+                first(request.getLocale(), settings.getDefaultLocale(), "en"), encode(defaults), dictionary, sample);
         presets.createDictionary(org, project, actor, dictionary, name);
         database.update("INSERT INTO project_members (org_id, project_id, user_id, role) VALUES (?, ?, ?, 'lead')", org, project, actor);
-        record(org, project, actor, "project.created", "project", project, Map.of("name", name, "sample", false));
-        return access.require(project, actor);
+        record(org, project, actor, "project.created", "project", project, Map.of("name", name, "sample", sample));
+        var created = access.require(project, actor);
+        if (sample) {
+            var model = models.seedDuplex(created, actor);
+            database.update("INSERT INTO sample_projects (project_id, model_version_id, created_by) VALUES (?, ?, ?)",
+                    project, model, actor);
+        }
+        return created;
     }
 
     @Transactional
@@ -127,7 +137,8 @@ public class Projects {
 
     @Transactional
     public ProjectMember addMember(UUID project, UUID actor, UUID user, ProjectRole role) {
-        UUID org = access.lock(project, actor, "manageMembers").getOrgId();
+        Project visible = access.lock(project, actor, "manageMembers");
+        UUID org = visible.getOrgId();
         int joined = database.update("""
                 INSERT INTO project_members (org_id, project_id, user_id, role, added_by)
                 SELECT m.org_id, ?, m.user_id, ?, ? FROM memberships m JOIN users u ON u.id = m.user_id
@@ -141,6 +152,11 @@ public class Projects {
             throw ProjectAccess.error(HttpStatus.CONFLICT, "already_member", "Already a project member.");
         }
         record(org, project, actor, "project.member_added", "user", user, Map.of("role", role.getValue()));
+        if (!actor.equals(user)) {
+            notifications.send(user, org, project, "project_member.added", "membership",
+                    Map.of("project", visible.getName(), "role", role.getValue()),
+                    notifications.projectUrl(org, project), "project", project);
+        }
         return member(project, user);
     }
 

@@ -30,7 +30,7 @@ public class Sessions {
 
     @Transactional
     public Session open(Login login, String device, boolean takeover) {
-        database.queryForObject("SELECT id FROM users WHERE id = ? FOR UPDATE", UUID.class, login.userId());
+        database.queryForObject("SELECT id FROM users WHERE id = ? FOR NO KEY UPDATE", UUID.class, login.userId());
         database.update("""
                 UPDATE sessions SET status = 'expired', ended_at = now()
                 WHERE user_id = ? AND status = 'active' AND last_seen_at <= now() - interval '12 hours'
@@ -41,6 +41,12 @@ public class Sessions {
         var previous = active.isEmpty() ? null : active.getFirst();
         if (previous != null && previous.providerSession().equals(login.providerSession())) {
             return require(login, previous.view().getId());
+        }
+        boolean retired = Boolean.TRUE.equals(database.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM sessions WHERE user_id = ? AND provider_session = ? AND status <> 'active')
+                """, Boolean.class, login.userId(), login.providerSession()));
+        if (retired) {
+            throw IdentityService.failure(HttpStatus.UNAUTHORIZED, "session_expired", "Sign in again to start a new session.");
         }
         if (previous != null && !takeover) {
             throw new SessionConflict(previous.view());
@@ -77,12 +83,17 @@ public class Sessions {
             if (!current.isEmpty()) {
                 return current.getFirst();
             }
-            boolean replaced = Boolean.TRUE.equals(database.queryForObject("""
-                    SELECT EXISTS (SELECT 1 FROM sessions
-                        WHERE id = ? AND user_id = ? AND provider_session = ? AND status = 'replaced')
-                    """, Boolean.class, id, login.userId(), login.providerSession()));
-            if (replaced) {
+            var state = database.query("""
+                    SELECT CASE WHEN status = 'active' AND last_seen_at <= now() - interval '12 hours'
+                        THEN 'expired' ELSE status END AS effective
+                    FROM sessions WHERE id = ? AND user_id = ? AND provider_session = ?
+                    """, (row, index) -> row.getString("effective"), id, login.userId(), login.providerSession())
+                    .stream().findFirst().orElse("");
+            if ("replaced".equals(state)) {
                 throw IdentityService.failure(HttpStatus.UNAUTHORIZED, "session_replaced", "This session was replaced.");
+            }
+            if ("expired".equals(state)) {
+                throw IdentityService.failure(HttpStatus.UNAUTHORIZED, "session_expired", "This session expired.");
             }
         }
         throw IdentityService.failure(HttpStatus.UNAUTHORIZED, "unauthenticated", "Open a new session to continue.");

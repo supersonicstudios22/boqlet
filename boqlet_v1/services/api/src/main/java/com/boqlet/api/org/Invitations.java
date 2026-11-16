@@ -21,6 +21,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -99,7 +100,7 @@ public class Invitations {
         var scope = access.lock(org, actor, OWNER, ADMIN);
         Row row = get(org, id);
         if (row.invitation().getRole() == OWNER) OrgAccess.checkRole(scope.role(), OWNER);
-        if (!row.storedStatus().equals("pending")) throw invalidStatus(row.storedStatus());
+        if (!Set.of("pending", "expired").contains(row.storedStatus())) throw invalidStatus(row.storedStatus());
         if (row.invitation().getStatus() == OrgInvitation.StatusEnum.EXPIRED) {
             limits.checkCapacity(org, actor, "seats", limits.seats(org));
             if (exists("""
@@ -111,7 +112,7 @@ public class Invitations {
         }
         UUID nonce = UUID.randomUUID();
         database.update("""
-                UPDATE org_invitations SET token_hash = ?, delivery_nonce = ?, expires_at = now() + interval '14 days',
+                UPDATE org_invitations SET token_hash = ?, delivery_nonce = ?, expires_at = now() + interval '14 days', status = 'pending',
                                            updated_at = now()
                 WHERE id = ?
                 """, hash(deliveryToken(id, nonce)), nonce, id);

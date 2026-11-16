@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { API_URL } from "../support/env";
+import { API_URL, authentication } from "../support/env";
 import { user } from "../support/users";
 
 /** conventions.md "Requests and responses" and "Errors": invalid input is a 400 with a code. */
@@ -7,7 +7,7 @@ describe("request validation", () => {
   const send = async (method: string, path: string, body?: string) =>
     fetch(API_URL + path, {
       method,
-      headers: { Authorization: `Bearer ${(await user("olivia")).token}`, ...(body !== undefined ? { "Content-Type": "application/json" } : {}) },
+      headers: { ...(await authentication((await user("olivia")).token)), ...(body !== undefined ? { "Content-Type": "application/json" } : {}) },
       body,
     });
 

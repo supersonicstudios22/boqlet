@@ -4,10 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
+import java.util.Map;
 import java.util.function.Supplier;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class Idempotency {
@@ -19,6 +23,32 @@ public class Idempotency {
     public Idempotency(JdbcTemplate database, ObjectMapper json) {
         this.database = database;
         this.json = json;
+    }
+
+    public UUID key() {
+        var request = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        String value = request.getRequest().getHeader("Idempotency-Key");
+        if (value == null) return null;
+        try {
+            if (value.length() == 36) return UUID.fromString(value);
+        } catch (IllegalArgumentException ignored) {
+            // Return the contract's parameter error.
+        }
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_param", "Idempotency-Key must be a UUID.", Map.of());
+    }
+
+    @Transactional
+    public <T> T once(UUID actor, UUID key, int status, Class<T> responseType, Runnable authorize, Supplier<T> action) {
+        if (key == null) return action.get();
+        authorize.run();
+        var request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        String endpoint = request.getMethod() + " " + request.getRequestURI();
+        var stored = execute(actor, endpoint, key, () -> new Result(status, json.valueToTree(action.get())));
+        try {
+            return json.treeToValue(stored.body(), responseType);
+        } catch (JsonProcessingException failure) {
+            throw new IllegalStateException("Stored idempotent response is invalid.", failure);
+        }
     }
 
     @Transactional

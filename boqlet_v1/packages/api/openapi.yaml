@@ -1790,7 +1790,7 @@ paths:
               type: object
               required: [reason]
               properties:
-                tags: { type: array, items: { type: string } }
+                tags: { type: [array, "null"], items: { type: string } }
                 status: { type: string, enum: [active, suspended] }
                 reason: { type: string, minLength: 1 }
       responses:
@@ -2180,6 +2180,8 @@ components:
           description: Metadata and counts only (BR-57).
           properties:
             settings: { $ref: "#/components/schemas/OrgSettings" }
+            provider: { type: string }
+            currentPeriodEnd: { type: [string, "null"], format: date-time }
             entitlements: { type: object, additionalProperties: true }
             overrides: { type: object, additionalProperties: true }
             planHistory: { type: array, items: { type: object, properties: { planId: { type: string }, at: { type: string, format: date-time }, by: { type: string } } } }

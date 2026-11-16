@@ -29,6 +29,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class Models {
@@ -181,6 +183,37 @@ public class Models {
     }
 
     @Transactional
+    public UUID seedDuplex(Project project, UUID actor) {
+        if (!Boolean.TRUE.equals(project.getSample())) throw new IllegalArgumentException("Expected a sample project.");
+        String filename = "Ifc2x3_Duplex_Architecture.ifc";
+        byte[] data;
+        try (var input = new org.springframework.core.io.ClassPathResource("samples/" + filename).getInputStream()) {
+            data = input.readAllBytes();
+        } catch (IOException failure) {
+            throw new IllegalStateException("The bundled Duplex sample is unavailable.", failure);
+        }
+        UUID model = create(project.getId(), actor, new ModelCreate("Duplex architecture").discipline("architecture")).getId();
+        UUID id = Ids.newId();
+        UUID org = project.getOrgId();
+        String key = ObjectStorage.orgPrefix(org) + "uploads/" + id + "/source.ifc";
+        storage.put(key, "application/octet-stream", data);
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status == STATUS_ROLLED_BACK) storage.delete(key);
+                    }
+                });
+        database.update("""
+                INSERT INTO model_versions (id, model_id, org_id, number, file_name, size_bytes, source_key, upload_key, uploaded_by)
+                VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+                """, id, model, org, filename, data.length, key, key, actor);
+        event(project, actor, "model_version.created", "modelVersion", id);
+        enqueue(project, version(id), actor, false);
+        return id;
+    }
+
+    @Transactional
     public ModelVersion complete(UUID id, UUID actor, CompleteModelUploadRequest request) {
         Project project = projects.lock(version(id).project(), actor, "editModels");
         VersionRow row = version(id);
@@ -274,10 +307,14 @@ public class Models {
     }
 
     private ModelVersion enqueue(Project project, VersionRow row, UUID actor) {
+        return enqueue(project, row, actor, true);
+    }
+
+    private ModelVersion enqueue(Project project, VersionRow row, UUID actor, boolean metered) {
         UUID id = row.tree().getId();
         String prefix = ObjectStorage.orgPrefix(project.getOrgId()) + "models/" + id + "/" + Ids.newId() + "/";
         UUID job = jobs.enqueue("parse", project.getOrgId(), project.getId(), actor, "modelVersion", id, prefix,
-                Map.of("modelVersionId", id, "sourceKey", row.source(), "fileName", row.tree().getFileName()), 5);
+                Map.of("modelVersionId", id, "sourceKey", row.source(), "fileName", row.tree().getFileName()), 5, metered);
         database.update("UPDATE model_versions SET status = 'queued', parse_job_id = ?, error = NULL WHERE id = ?", job, id);
         event(project, actor, "model_version.queued", "modelVersion", id);
         return version(id).tree();

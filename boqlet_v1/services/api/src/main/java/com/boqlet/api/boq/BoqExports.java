@@ -31,9 +31,10 @@ public class BoqExports {
     private final EntitlementService limits;
     private final ObjectStorage storage;
     private final AuditWriter audit;
+    private final RunIndex index;
 
     BoqExports(JdbcTemplate database, StoredJson json, Jobs jobs, Runs runs, BoqAccess boqs, ProjectAccess projects,
-               OrgAccess orgs, EntitlementService limits, ObjectStorage storage, AuditWriter audit) {
+               OrgAccess orgs, EntitlementService limits, ObjectStorage storage, AuditWriter audit, RunIndex index) {
         this.database = database;
         this.json = json;
         this.jobs = jobs;
@@ -44,6 +45,7 @@ public class BoqExports {
         this.limits = limits;
         this.storage = storage;
         this.audit = audit;
+        this.index = index;
     }
 
     @Transactional
@@ -124,6 +126,7 @@ public class BoqExports {
     }
 
     Map<String, String> positions(UUID run, String group) {
+        index.ensure(run);
         var rows = database.query("""
                 SELECT line_key, line->'codes'->CAST(? AS text)->>'code' AS code FROM run_lines
                 WHERE run_id = ? AND NOT coalesce((line->>'excluded')::boolean, false) ORDER BY sort_index

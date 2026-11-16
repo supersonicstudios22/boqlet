@@ -2496,6 +2496,9 @@ export interface components {
         };
         AdminOrgDetail: components["schemas"]["AdminOrgRow"] & {
             settings?: components["schemas"]["OrgSettings"];
+            provider?: string;
+            /** Format: date-time */
+            currentPeriodEnd?: string | null;
             entitlements?: {
                 [key: string]: unknown;
             };
@@ -8032,7 +8035,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    tags?: string[];
+                    tags?: string[] | null;
                     /** @enum {string} */
                     status?: "active" | "suspended";
                     reason: string;

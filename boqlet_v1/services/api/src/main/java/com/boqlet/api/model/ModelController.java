@@ -1,6 +1,7 @@
 package com.boqlet.api.model;
 
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.ModelsApi;
 import com.boqlet.contract.model.*;
 import java.util.List;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class ModelController implements ModelsApi {
     private final Models models;
+    private final Idempotency idempotency;
 
-    ModelController(Models models) {
+    ModelController(Models models, Idempotency idempotency) {
         this.models = models;
+        this.idempotency = idempotency;
     }
 
     @Override
@@ -61,12 +64,16 @@ class ModelController implements ModelsApi {
 
     @Override
     public ResponseEntity<ModelVersion> completeModelUpload(UUID id, CompleteModelUploadRequest request) {
-        return ResponseEntity.ok(models.complete(id, actor(), request));
+        UUID actor = actor();
+        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, ModelVersion.class,
+                () -> models.getVersion(id, actor), () -> models.complete(id, actor, request)));
     }
 
     @Override
     public ResponseEntity<ModelVersion> retryModelVersion(UUID id) {
-        return ResponseEntity.ok(models.retry(id, actor()));
+        UUID actor = actor();
+        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, ModelVersion.class,
+                () -> models.getVersion(id, actor), () -> models.retry(id, actor)));
     }
 
     @Override

@@ -38,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -48,7 +49,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.threads.virtual.enabled=false")
+@DirtiesContext
 @AutoConfigureMockMvc
 @Testcontainers
 @Import(ApiFoundationTest.Tokens.class)
@@ -61,7 +63,7 @@ class ApiFoundationTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
-        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test");
+        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test,platform@example.test");
         properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
     }
 
@@ -247,6 +249,56 @@ class ApiFoundationTest {
         http.perform(auth(get(org), "guest", guest)).andExpect(status().isNotFound());
     }
 
+    @Test
+    void platformAdminSeesAccountMetadataAndCannotAccessTenantContent() throws Exception {
+        var owner = session("owner");
+        var orgResponse = http.perform(auth(post("/api/v1/orgs"), "owner", owner)
+                .content("{\"name\":\"Admin Test Firm\",\"slug\":\"admin-test-firm\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse();
+        String org = json.readTree(orgResponse.getContentAsString()).path("id").asText();
+        String path = "/api/v1/orgs/" + org;
+        String project = json.readTree(http.perform(auth(post(path + "/projects"), "owner", owner)
+                .content("{\"name\":\"Private project title sentinel\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        http.perform(auth(post(path + "/projects"), "owner", owner).content("{\"name\":\"Over limit\"}"))
+                .andExpect(status().isPaymentRequired());
+        http.perform(get("/api/v1/admin/overview")).andExpect(status().isUnauthorized());
+        http.perform(auth(get("/api/v1/admin/orgs"), "owner", owner)).andExpect(status().isNotFound());
+        http.perform(auth(patch("/api/v1/admin/orgs/" + org), "owner", owner).content("{}"))
+                .andExpect(status().isNotFound());
+
+        var platform = session("platform");
+        database.update("UPDATE users SET platform_role = 'admin' WHERE auth_subject = 'platform'");
+        String admin = "/api/v1/admin";
+        var details = http.perform(auth(get(admin + "/orgs/" + org), "platform", platform)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.activeProjects.used").value(1)).andExpect(jsonPath("$.limitEvents[0].limit").value("activeProjects"))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(details).doesNotContain("Private project title sentinel");
+        http.perform(auth(get("/api/v1/projects/" + project), "platform", platform)).andExpect(status().isNotFound());
+        http.perform(auth(get(admin + "/orgs").param("signal", "hit_limit").param("q", "Admin Test"), "platform", platform))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].id").value(org));
+        http.perform(auth(get(admin + "/overview"), "platform", platform)).andExpect(status().isOk());
+        http.perform(auth(get(admin + "/funnel"), "platform", platform)).andExpect(status().isOk());
+        http.perform(auth(get(admin + "/health"), "platform", platform)).andExpect(status().isOk());
+        http.perform(auth(get(admin + "/users"), "platform", platform)).andExpect(status().isOk());
+        http.perform(auth(get(admin + "/orgs.csv"), "platform", platform)).andExpect(status().isOk());
+        http.perform(auth(put(admin + "/orgs/" + org + "/subscription"), "platform", platform)
+                .content("{\"planId\":\"team\",\"reason\":\"Pilot upgrade\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.planId").value("team"));
+        http.perform(auth(get(path + "/entitlements"), "owner", owner)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.planId").value("team"));
+        http.perform(auth(put(admin + "/orgs/" + org + "/entitlement-overrides"), "platform", platform)
+                .content("{\"overrides\":{\"activeProjects\":75},\"reason\":\"Pilot capacity\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.activeProjects.max").value(75));
+        http.perform(auth(post(admin + "/orgs/" + org + "/notes"), "platform", platform).content("{\"text\":\"Pilot note\"}"))
+                .andExpect(status().isCreated());
+        http.perform(auth(get(admin + "/orgs/" + org + "/notes"), "platform", platform)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].text").value("Pilot note"));
+        assertThat(database.queryForObject("""
+                SELECT count(*) FROM audit_events WHERE org_id = ? AND actor_kind = 'platform_admin' AND action = 'org.plan_changed'
+                """, Long.class, UUID.fromString(org))).isEqualTo(1L);
+    }
+
     private Cookie session(String token) throws Exception {
         return http.perform(openSession(token, false)).andExpect(status().isCreated())
                 .andReturn().getResponse().getCookie("boqlet_session");
@@ -270,12 +322,15 @@ class ApiFoundationTest {
             return token -> {
                 String subject = switch (token) {
                     case "pilot-a", "pilot-b" -> "pilot";
-                    case "uninvited", "unverified", "owner", "guest" -> token;
+                    case "owner", "owner-b" -> "owner";
+                    case "uninvited", "unverified", "guest", "platform" -> token;
+                    case "suite-olivia", "suite-ivana", "suite-marko", "suite-ana", "suite-victor", "suite-pat" -> token;
                     default -> throw new JwtException("Invalid test token.");
                 };
                 Instant now = Instant.now();
+                String email = subject.startsWith("suite-") ? subject.substring(6) + "@example.com" : subject + "@example.test";
                 return Jwt.withTokenValue(token).header("alg", "RS256").subject(subject)
-                        .claim("sid", token).claim("email", subject + "@example.test")
+                        .claim("sid", token).claim("email", email)
                         .claim("email_verified", !token.equals("unverified"))
                         .issuedAt(now).expiresAt(now.plusSeconds(600)).build();
             };

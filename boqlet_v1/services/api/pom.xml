@@ -48,6 +48,14 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
@@ -75,6 +83,12 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.5.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <finalName>boqlet-api</finalName>
@@ -84,6 +98,11 @@
                 <directory>../../presets</directory>
                 <targetPath>system-presets</targetPath>
                 <includes><include>**/*.json</include></includes>
+            </resource>
+            <resource>
+                <directory>../../fixtures/ifc</directory>
+                <targetPath>samples</targetPath>
+                <includes><include>Ifc2x3_Duplex_Architecture.ifc</include></includes>
             </resource>
         </resources>
         <plugins>
@@ -131,6 +150,14 @@
                                     <!-- Preserve omitted settings so PATCH merges only provided fields. -->
                                     <replacefilter token="publicLinksAllowed: { type: boolean, default: true }"
                                                    value="publicLinksAllowed: { type: boolean }"/>
+                                    <replacefilter token="lineDetail: { type: boolean, default: true }"
+                                                   value="lineDetail: { type: boolean }"/>
+                                    <replacefilter token="viewer: { type: boolean, default: true }"
+                                                   value="viewer: { type: boolean }"/>
+                                    <replacefilter token="log: { type: boolean, default: false }"
+                                                   value="log: { type: boolean }"/>
+                                    <replacefilter token="excel: { type: boolean, default: false }"
+                                                   value="excel: { type: boolean }"/>
                                     <replacefilter token="approvalRequired: { type: boolean, default: false,"
                                                    value="approvalRequired: { type: boolean,"/>
                                     <replacefilter token="defaultLanguage: { type: string, default: en }"
@@ -146,6 +173,21 @@
                                         replace="&quot;Unit&quot;: {&quot;type&quot;: &quot;string&quot;}"
                                         flags="g">
                                     <fileset dir="${project.build.directory}/contract/types/schema" includes="*.schema.json"/>
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>preserve-omitted-revision-inputs</id>
+                        <phase>process-sources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <!-- An omitted array in a partial request must not clear a saved selection. -->
+                                <replaceregexp match="(private List&lt;[^;]+&gt; (models|classificationVersionIds|dictionaryVersionIds)) = new ArrayList&lt;&gt;\(\);"
+                                               replace="\1;" flags="g" byline="true">
+                                    <fileset dir="${project.build.directory}/generated-sources/openapi/src/main/java/com/boqlet/contract/model"
+                                             includes="RevisionInputsPartial.java"/>
                                 </replaceregexp>
                             </target>
                         </configuration>

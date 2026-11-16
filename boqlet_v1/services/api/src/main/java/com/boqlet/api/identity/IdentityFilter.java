@@ -29,6 +29,7 @@ public final class IdentityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String path = request.getRequestURI().substring(request.getContextPath().length());
+        boolean admin = path.startsWith("/api/v1/admin/");
         boolean publicRead = request.getMethod().equals("GET") &&
                 (path.equals("/api/v1/plans") || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/"));
         if (SecurityContextHolder.getContext().getAuthentication() instanceof JwtAuthenticationToken auth
@@ -39,8 +40,13 @@ public final class IdentityFilter extends OncePerRequestFilter {
                 if (!opening) {
                     login = new Login(login.userId(), login.providerSession(), sessions.require(login, cookieId(request)));
                 }
+                if (admin && !identities.platformAdmin(login.userId())) {
+                    throw IdentityService.failure(org.springframework.http.HttpStatus.NOT_FOUND, "not_found", "The resource was not found.");
+                }
                 request.setAttribute(Login.ATTRIBUTE, login);
             } catch (ApiException failure) {
+                if (admin) failure = IdentityService.failure(org.springframework.http.HttpStatus.NOT_FOUND,
+                        "not_found", "The resource was not found.");
                 response.setStatus(failure.status().value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 json.writeValue(response.getOutputStream(), failure.body());

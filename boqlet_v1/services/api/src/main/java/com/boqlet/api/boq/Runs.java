@@ -50,6 +50,15 @@ public class Runs {
 
     @Transactional
     public GenerateRun202Response generate(UUID revision, UUID actor) {
+        return generate(revision, actor, true);
+    }
+
+    @Transactional
+    public GenerateRun202Response generateSample(UUID revision, UUID actor) {
+        return generate(revision, actor, false);
+    }
+
+    private GenerateRun202Response generate(UUID revision, UUID actor, boolean metered) {
         var scope = access.lockRevision(revision, actor, "editBoqs");
         access.checkOpen(scope, false);
         var revisionInputs = scope.revision().inputs();
@@ -63,6 +72,7 @@ public class Runs {
             return new GenerateRun202Response(run, jobs.get(run.getJobId(), actor));
         }
         Project project = scope.project();
+        if (!metered && !Boolean.TRUE.equals(project.getSample())) throw new IllegalArgumentException("Expected a sample project.");
         inputs.validate(project, actor, revisionInputs);
         var snapshot = inputs.snapshot(project, scope.bill().id(), revisionInputs);
         var versions = new ArrayList<Map<String, Object>>();
@@ -104,7 +114,7 @@ public class Runs {
         UUID run = Ids.newId();
         jobInput.put("runId", run);
         UUID job = jobs.enqueue("run", org, projectId, actor, "run", run,
-                ObjectStorage.orgPrefix(org) + "runs/" + run + "/", jobInput, 0);
+                ObjectStorage.orgPrefix(org) + "runs/" + run + "/", jobInput, 0, metered);
         database.update("""
                 INSERT INTO runs (id, revision_id, org_id, job_id, snapshot_versions, input_snapshot, classifications, created_by)
                 VALUES (?, ?, ?, ?, CAST(? AS jsonb), CAST(? AS jsonb), CAST(? AS jsonb), ?)

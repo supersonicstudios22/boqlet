@@ -72,6 +72,6 @@ class BillingController implements BillingApi {
 
     @Override
     public ResponseEntity<Void> billingWebhook(String provider, Object body) {
-        throw new ApiException(HttpStatus.NOT_FOUND, "not_found", "The billing provider was not found.", Map.of());
+        throw new ApiException(HttpStatus.BAD_REQUEST, "unsupported_provider", "The billing provider does not accept webhooks.", Map.of());
     }
 }

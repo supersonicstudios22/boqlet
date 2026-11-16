@@ -1,6 +1,7 @@
 package com.boqlet.api.boq;
 
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.RunsApi;
 import com.boqlet.contract.model.*;
 import java.util.List;
@@ -14,15 +15,21 @@ import org.springframework.web.bind.annotation.RestController;
 class RunController implements RunsApi {
     private final Runs runs;
     private final RunReads reads;
+    private final BoqAccess access;
+    private final Idempotency idempotency;
 
-    RunController(Runs runs, RunReads reads) {
+    RunController(Runs runs, RunReads reads, BoqAccess access, Idempotency idempotency) {
         this.runs = runs;
         this.reads = reads;
+        this.access = access;
+        this.idempotency = idempotency;
     }
 
     @Override
     public ResponseEntity<GenerateRun202Response> generateRun(UUID revision) {
-        return ResponseEntity.accepted().body(runs.generate(revision, actor()));
+        UUID actor = actor();
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, GenerateRun202Response.class,
+                () -> access.lockRevision(revision, actor, "editBoqs"), () -> runs.generate(revision, actor)));
     }
 
     @Override

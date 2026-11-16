@@ -2,6 +2,7 @@ package com.boqlet.api.boq;
 
 import com.boqlet.api.audit.AuditReader;
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
 import com.boqlet.contract.api.ExportsApi;
@@ -26,9 +27,12 @@ class ExportController implements ExportsApi {
     private final AuditReader audit;
     private final OrgAccess orgs;
     private final ProjectAccess projects;
+    private final BoqAccess boqs;
+    private final Runs runs;
+    private final Idempotency idempotency;
 
     ExportController(BoqExports exports, Diffs diffs, ImportEdits imports, Decisions decisions, AuditReader audit,
-                     OrgAccess orgs, ProjectAccess projects) {
+                     OrgAccess orgs, ProjectAccess projects, BoqAccess boqs, Runs runs, Idempotency idempotency) {
         this.exports = exports;
         this.diffs = diffs;
         this.imports = imports;
@@ -36,15 +40,24 @@ class ExportController implements ExportsApi {
         this.audit = audit;
         this.orgs = orgs;
         this.projects = projects;
+        this.boqs = boqs;
+        this.runs = runs;
+        this.idempotency = idempotency;
     }
 
     @Override
     public ResponseEntity<Job> exportRun(UUID run, ExportRunRequest request) {
-        return ResponseEntity.accepted().body(exports.startRun(run, actor(), request == null ? null : request.getGroupBy()));
+        UUID actor = actor();
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+                () -> runs.visible(run, actor), () -> exports.startRun(run, actor, request == null ? null : request.getGroupBy())));
     }
 
     @Override
-    public ResponseEntity<Job> exportDiff(UUID diff) { return ResponseEntity.accepted().body(diffs.export(diff, actor())); }
+    public ResponseEntity<Job> exportDiff(UUID diff) {
+        UUID actor = actor();
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+                () -> diffs.get(diff, actor), () -> diffs.export(diff, actor)));
+    }
 
     @Override
     public ResponseEntity<List<Export>> listRevisionExports(UUID revision) { return ResponseEntity.ok(exports.list(revision, actor())); }
@@ -59,7 +72,9 @@ class ExportController implements ExportsApi {
 
     @Override
     public ResponseEntity<Job> importBoqEdits(UUID id, MultipartFile file) {
-        return ResponseEntity.accepted().body(imports.upload(id, actor(), file));
+        UUID actor = actor();
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+                () -> boqs.revision(id, actor), () -> imports.upload(id, actor, file)));
     }
 
     @Override

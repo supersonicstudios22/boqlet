@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -18,7 +20,7 @@ class ApiErrors {
         return ResponseEntity.status(failure.status()).body(failure.body());
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, HttpMediaTypeNotSupportedException.class})
     ResponseEntity<ApiError> invalidBody() {
         return ResponseEntity.badRequest().body(new ApiError("invalid_body", "Invalid request body."));
     }
@@ -32,7 +34,7 @@ class ApiErrors {
         return invalidBody();
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
     ResponseEntity<ApiError> invalidParameter() {
         return ResponseEntity.badRequest().body(new ApiError("invalid_parameter", "Invalid request parameter."));
     }

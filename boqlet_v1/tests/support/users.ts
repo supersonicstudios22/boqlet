@@ -16,6 +16,18 @@ export interface TestUser {
 
 let cache: Promise<TestUser[]> | null = null;
 
+interface JavaUser extends TestUser {
+  cookie: string;
+}
+
+const javaUsers: JavaUser[] = TARGET === "java" && process.env.BOQLET_JAVA_SUITE_USERS
+  ? JSON.parse(process.env.BOQLET_JAVA_SUITE_USERS)
+  : [];
+
+export function testSessionCookie(token?: string | null) {
+  return javaUsers.find((user) => user.token === token)?.cookie;
+}
+
 async function mockUsers(): Promise<TestUser[]> {
   const res = await fetch(`${ROOT_URL}/_dev/users`);
   if (!res.ok) throw new Error(`/_dev/users answered ${res.status}`);
@@ -23,8 +35,9 @@ async function mockUsers(): Promise<TestUser[]> {
 }
 
 export async function user(key: SeedUser): Promise<TestUser> {
-  if (TARGET !== "mock") throw new Error(`no token strategy for target ${TARGET} yet (BE-000)`);
-  cache ??= mockUsers();
+  if (TARGET === "mock") cache ??= mockUsers();
+  else if (TARGET === "java") cache ??= Promise.resolve(javaUsers);
+  else throw new Error(`Unknown test target ${TARGET}`);
   const found = (await cache).find((u) => u.email.startsWith(`${key}@`));
   if (!found) throw new Error(`seeded user ${key} not found`);
   return found;

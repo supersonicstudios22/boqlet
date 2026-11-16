@@ -145,6 +145,11 @@ public class ObjectStorage {
         return client.getObject(request -> request.bucket(bucket).key(key));
     }
 
+    public boolean exists(String key) {
+        configured();
+        return head(key) != null;
+    }
+
     public void put(String key, String contentType, byte[] data) {
         configured();
         client.putObject(request -> request.bucket(bucket).key(key).contentType(contentType), RequestBody.fromBytes(data));
@@ -153,6 +158,41 @@ public class ObjectStorage {
     public void delete(String key) {
         configured();
         client.deleteObject(request -> request.bucket(bucket).key(key));
+    }
+
+    public void deletePrefix(String prefix) {
+        configured();
+        if (!prefix.startsWith("orgs/") || !prefix.endsWith("/") || prefix.length() <= "orgs/".length()) {
+            throw new IllegalArgumentException("Expected an organisation artifact prefix.");
+        }
+        for (var page : client.listMultipartUploadsPaginator(request -> request.bucket(bucket).prefix(prefix))) {
+            for (var upload : page.uploads()) abort(upload.key(), upload.uploadId());
+        }
+        BucketVersioningStatus versioning;
+        try {
+            versioning = client.getBucketVersioning(request -> request.bucket(bucket)).status();
+        } catch (S3Exception failure) {
+            if (failure.statusCode() != 501) throw failure;
+            versioning = null;
+        }
+        if (versioning == BucketVersioningStatus.ENABLED || versioning == BucketVersioningStatus.SUSPENDED) {
+            for (var page : client.listObjectVersionsPaginator(request -> request.bucket(bucket).prefix(prefix))) {
+                var batch = new ArrayList<ObjectIdentifier>();
+                page.versions().forEach(version -> batch.add(ObjectIdentifier.builder().key(version.key()).versionId(version.versionId()).build()));
+                page.deleteMarkers().forEach(marker -> batch.add(ObjectIdentifier.builder().key(marker.key()).versionId(marker.versionId()).build()));
+                deleteBatch(batch);
+            }
+        } else {
+            for (var page : client.listObjectsV2Paginator(request -> request.bucket(bucket).prefix(prefix))) {
+                deleteBatch(page.contents().stream().map(object -> ObjectIdentifier.builder().key(object.key()).build()).toList());
+            }
+        }
+    }
+
+    private void deleteBatch(List<ObjectIdentifier> objects) {
+        if (objects.isEmpty()) return;
+        var result = client.deleteObjects(request -> request.bucket(bucket).delete(delete -> delete.objects(objects).quiet(true)));
+        if (result.hasErrors() && !result.errors().isEmpty()) throw new IllegalStateException("Could not remove every storage object.");
     }
 
     public void abort(String key, String upload) {

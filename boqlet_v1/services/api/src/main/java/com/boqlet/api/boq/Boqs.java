@@ -6,6 +6,7 @@ import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.http.RequestContext;
 import com.boqlet.api.project.ProjectAccess;
+import com.boqlet.api.realtime.Notifications;
 import com.boqlet.contract.model.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -25,9 +26,10 @@ public class Boqs {
     private final RunCatalog runs;
     private final BoqExports exports;
     private final AuditWriter audit;
+    private final Notifications notifications;
 
     Boqs(JdbcTemplate database, StoredJson json, BoqAccess access, ProjectAccess projects, BoqInputs inputs,
-         RunCatalog runs, BoqExports exports, AuditWriter audit) {
+         RunCatalog runs, BoqExports exports, AuditWriter audit, Notifications notifications) {
         this.database = database;
         this.json = json;
         this.access = access;
@@ -36,6 +38,7 @@ public class Boqs {
         this.runs = runs;
         this.exports = exports;
         this.audit = audit;
+        this.notifications = notifications;
     }
 
     @Transactional
@@ -137,6 +140,7 @@ public class Boqs {
             addComment(id, actor, request.getMessage().strip(), null, null);
         }
         event(scope, actor, "revision.submitted", "revision", id, Map.of("reviewers", reviewers.size()));
+        for (UUID reviewer : reviewers) if (!reviewer.equals(actor)) notify(scope, reviewer, "revision.review_requested", "reviews", "review");
         return revision(id, actor);
     }
 
@@ -159,6 +163,9 @@ public class Boqs {
                     """, id);
         }
         event(scope, actor, approve ? "revision.approved" : "revision.changes_requested", "revision", id, Map.of());
+        if (scope.revision().submitter() != null && !scope.revision().submitter().equals(actor)) {
+            notify(scope, scope.revision().submitter(), approve ? "revision.approved" : "revision.changes_requested", "reviews", "review");
+        }
         return revision(id, actor);
     }
 
@@ -209,6 +216,7 @@ public class Boqs {
                     updated_at = now() WHERE id = ?
                 """, saved, actor, id);
         event(scope, actor, "boq.confirmed", "boq", id, Map.of("revisionId", saved));
+        notifyMembers(scope, actor, "boq.confirmed", "versions", null);
         return access.view(access.bill(id, actor), actor);
     }
 
@@ -230,6 +238,7 @@ public class Boqs {
                     updated_at = now() WHERE id = ?
                 """, working, id);
         event(scope, actor, "boq.reopened", "boq", id, Map.of("reason", why));
+        notifyMembers(scope, actor, "boq.reopened", "versions", null);
         return access.view(access.bill(id, actor), actor);
     }
 
@@ -239,7 +248,12 @@ public class Boqs {
                     submitted_by = NULL, submitted_at = NULL, reviewers = '{}', updated_at = now()
                 WHERE id = ? AND status IN ('in_review', 'approved')
                 """, scope.revision().id());
-        if (update > 0) event(scope, actor, "revision.review_withdrawn", "revision", scope.revision().id(), Map.of("reason", reason));
+        if (update > 0) {
+            event(scope, actor, "revision.review_withdrawn", "revision", scope.revision().id(), Map.of("reason", reason));
+            for (UUID reviewer : scope.revision().reviewers()) {
+                if (!actor.equals(reviewer)) notify(scope, reviewer, "revision.review_withdrawn", null, "review");
+            }
+        }
     }
 
     private BoqRevision revision(UUID id, UUID actor) {
@@ -285,7 +299,9 @@ public class Boqs {
         }
         database.update("UPDATE boqs SET latest_issued_revision_id = ?, current_revision_id = ?, updated_at = now() WHERE id = ?",
                 rev.id(), current, id);
-        event(scope, actor, "version.saved", "revision", rev.id(), Map.of("label", label, "runId", run.run().getId()));
+        event(scope, actor, "version.saved", "revision", rev.id(),
+                Map.of("label", label, "runId", run.run().getId(), "boqId", scope.bill().id(), "revisionId", rev.id()));
+        notifyMembers(scope, actor, "version.saved", null, "versions");
     }
 
     private void insertRevision(UUID boq, UUID id, int number, RevisionInputs input, UUID run, UUID parent) {
@@ -319,6 +335,23 @@ public class Boqs {
     private void event(BoqAccess.Scope scope, UUID actor, String action, String type, UUID entity, Map<String, ?> details) {
         audit.record(new RequestContext(actor, null, scope.project().getOrgId(), null), AuditWriter.ActorKind.USER,
                 scope.project().getId(), action, type, entity, json.object(details));
+    }
+
+    private void notifyMembers(BoqAccess.Scope scope, UUID actor, String kind, String category, String tab) {
+        for (UUID member : notifications.projectAudience(scope.project().getOrgId(), scope.project().getId(), actor)) {
+            notify(scope, member, kind, category, tab);
+        }
+    }
+
+    private void notify(BoqAccess.Scope scope, UUID recipient, String kind, String category, String tab) {
+        UUID org = scope.project().getOrgId();
+        UUID project = scope.project().getId();
+        UUID boq = scope.bill().id();
+        String url = notifications.projectUrl(org, project) + "/boqs/" + boq + (tab == null ? "" : "?tab=" + tab);
+        notifications.send(recipient, org, project, kind, category,
+                Map.of("boq", scope.bill().name(), "revision", scope.revision().label(), "label", scope.revision().label()),
+                url, kind.startsWith("revision.") ? "revision" : "boq",
+                kind.startsWith("revision.") ? scope.revision().id() : boq);
     }
 
     private static ApiException conflict(String code, String message) {

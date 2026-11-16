@@ -1,6 +1,7 @@
 package com.boqlet.api.boq;
 
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.BoqsApi;
 import com.boqlet.contract.model.*;
 import java.util.List;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 class BoqController implements BoqsApi {
     private final Boqs boqs;
     private final BoqAccess access;
+    private final Idempotency idempotency;
 
-    BoqController(Boqs boqs, BoqAccess access) {
+    BoqController(Boqs boqs, BoqAccess access, Idempotency idempotency) {
         this.boqs = boqs;
         this.access = access;
+        this.idempotency = idempotency;
     }
 
     @Override
@@ -80,12 +83,16 @@ class BoqController implements BoqsApi {
 
     @Override
     public ResponseEntity<BoqRevision> issueRevision(UUID id, IssueRevisionRequest request) {
-        return ResponseEntity.ok(boqs.issue(id, actor(), request));
+        UUID actor = actor();
+        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, BoqRevision.class,
+                () -> access.revision(id, actor), () -> boqs.issue(id, actor, request)));
     }
 
     @Override
     public ResponseEntity<Boq> confirmBoq(UUID id, ConfirmBoqRequest request) {
-        return ResponseEntity.ok(boqs.confirm(id, actor(), request));
+        UUID actor = actor();
+        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, Boq.class,
+                () -> access.bill(id, actor), () -> boqs.confirm(id, actor, request)));
     }
 
     @Override

@@ -56,7 +56,7 @@ public class OrgAccess {
     }
 
     void lockOrg(UUID org) {
-        if (database.queryForList("SELECT id FROM orgs WHERE id = ? AND status <> 'deleting' FOR UPDATE",
+        if (database.queryForList("SELECT id FROM orgs WHERE id = ? AND status <> 'deleting' FOR NO KEY UPDATE",
                 UUID.class, org).isEmpty()) throw missing("organisation");
     }
 

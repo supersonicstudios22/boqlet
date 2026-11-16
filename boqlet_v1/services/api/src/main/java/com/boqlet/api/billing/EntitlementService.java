@@ -36,7 +36,10 @@ public class EntitlementService {
     }
 
     public List<Plan> plans() {
-        return database.query("SELECT id, name, entitlements::text FROM plans WHERE public ORDER BY default_plan DESC, created_at, id",
+        return database.query("""
+                SELECT id, name, entitlements::text FROM plans WHERE public ORDER BY default_plan DESC,
+                    array_position(ARRAY['free','professional','team','enterprise'], id) NULLS LAST, created_at, id
+                """,
                 (row, index) -> new Plan(row.getString("id"), row.getString("name"),
                         json.read(row.getString("entitlements"), Entitlements.class)));
     }

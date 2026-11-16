@@ -1,6 +1,7 @@
 package com.boqlet.api.boq;
 
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.DiffsApi;
 import com.boqlet.contract.model.*;
 import jakarta.validation.Valid;
@@ -13,13 +14,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 class DiffController {
     private final Diffs diffs;
+    private final Runs runs;
+    private final Idempotency idempotency;
 
-    DiffController(Diffs diffs) { this.diffs = diffs; }
+    DiffController(Diffs diffs, Runs runs, Idempotency idempotency) {
+        this.diffs = diffs;
+        this.runs = runs;
+        this.idempotency = idempotency;
+    }
 
     // OpenAPI describes both a cached RunDiff and an accepted Job for this route.
     @PostMapping(DiffsApi.PATH_COMPARE_RUNS)
     ResponseEntity<?> compare(@PathVariable("runId") UUID run, @Valid @RequestBody CompareRunsRequest request) {
-        var outcome = diffs.compare(run, request.getAgainstRunId(), actor());
+        UUID actor = actor();
+        var outcome = idempotency.once(actor, idempotency.key(), 202, Diffs.Compare.class, () -> {
+            runs.visible(run, actor);
+            runs.visible(request.getAgainstRunId(), actor);
+        }, () -> diffs.compare(run, request.getAgainstRunId(), actor));
         return outcome.diff() == null ? ResponseEntity.accepted().body(outcome.job()) : ResponseEntity.ok(outcome.diff());
     }
 

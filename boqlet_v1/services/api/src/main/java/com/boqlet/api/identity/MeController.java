@@ -1,6 +1,7 @@
 package com.boqlet.api.identity;
 
 import com.boqlet.api.org.OrgAccess;
+import com.boqlet.api.extension.CoreModules;
 import com.boqlet.contract.api.MeApi;
 import com.boqlet.contract.model.Me;
 import com.boqlet.contract.model.MeMembershipsInner;
@@ -26,12 +27,14 @@ class MeController implements MeApi {
     private final JdbcTemplate database;
     private final ObjectMapper json;
     private final OrgAccess orgs;
+    private final CoreModules modules;
 
-    MeController(IdentityService identities, JdbcTemplate database, ObjectMapper json, OrgAccess orgs) {
+    MeController(IdentityService identities, JdbcTemplate database, ObjectMapper json, OrgAccess orgs, CoreModules modules) {
         this.identities = identities;
         this.database = database;
         this.json = json;
         this.orgs = orgs;
+        this.modules = modules;
     }
 
     @Override
@@ -39,7 +42,8 @@ class MeController implements MeApi {
         var login = Login.current();
         var memberships = orgs.list(login.userId()).stream()
                 .map(membership -> new MeMembershipsInner(membership.org(), membership.role())).toList();
-        return ResponseEntity.ok(new Me(identities.user(login.userId()), memberships).session(login.session()));
+        return ResponseEntity.ok(new Me(identities.user(login.userId()), memberships)
+                .session(login.session()).modules(modules.profile(login.userId())));
     }
 
     @Override
@@ -65,7 +69,7 @@ class MeController implements MeApi {
     public ResponseEntity<NotificationPreferences> setNotificationPreferences(NotificationPreferences request) {
         Map<String, Boolean> provided = request.getEmail();
         if (provided != null) {
-            if (provided.keySet().stream().anyMatch(key -> !CATEGORIES.contains(key))
+            if (provided.keySet().stream().anyMatch(key -> !categories().contains(key))
                     || provided.containsValue(null)) {
                 throw IdentityService.failure(HttpStatus.BAD_REQUEST, "invalid_body", "Invalid notification category.");
             }
@@ -83,8 +87,14 @@ class MeController implements MeApi {
                 """, String.class, user);
         var saved = read(encoded, com.fasterxml.jackson.databind.JsonNode.class);
         var email = new LinkedHashMap<String, Boolean>();
-        CATEGORIES.stream().sorted().forEach(category -> email.put(category, saved.path(category).asBoolean(true)));
+        categories().stream().sorted().forEach(category -> email.put(category, saved.path(category).asBoolean(true)));
         return new NotificationPreferences().email(email);
+    }
+
+    private Set<String> categories() {
+        var categories = new java.util.HashSet<>(CATEGORIES);
+        modules.emailTemplates().values().forEach(template -> categories.add(template.category()));
+        return categories;
     }
 
     private <T> T read(String encoded, Class<T> type) {

@@ -3,6 +3,7 @@ WORKDIR /workspace
 COPY packages/api/openapi.yaml packages/api/openapi.yaml
 COPY packages/types/schema packages/types/schema
 COPY presets presets
+COPY fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc
 COPY services/api services/api
 RUN mvn -B -ntp -f services/api/pom.xml -DskipTests package
 

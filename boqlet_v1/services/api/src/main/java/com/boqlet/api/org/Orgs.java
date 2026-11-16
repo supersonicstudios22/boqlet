@@ -99,6 +99,11 @@ public class Orgs {
         }
         database.update("UPDATE orgs SET status = 'deleting', deleting_at = now(), updated_at = now() WHERE id = ?", org);
         database.update("""
+                UPDATE jobs SET cancel_requested = true, status = CASE WHEN status = 'queued' THEN 'cancelled' ELSE status END,
+                    finished_at = CASE WHEN status = 'queued' THEN now() ELSE finished_at END
+                WHERE org_id = ? AND status IN ('queued','running')
+                """, org);
+        database.update("""
                 UPDATE email_outbox SET canceled_at = now()
                 WHERE org_id = ? AND sent_at IS NULL AND canceled_at IS NULL AND kind = 'invitation'
                 """, org);

@@ -14,7 +14,7 @@ defaults:
 
 jobs:
   api:
-    name: Java API and PostgreSQL integration
+    name: Core API, PostgreSQL workers and HTTP contract
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,27 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - run: mvn -B -ntp -f services/api/pom.xml verify
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: boqlet_v1/package-lock.json
+      - run: npm ci
+        env:
+          IFC_BOQ_SKIP_ENGINE_SETUP: "1"
+      - run: python -m pip install -e ./engine
+      - name: Verify the core and the native workflow
+        run: |
+          export BOQLET_NATIVE_WORKER_PYTHON="$(command -v python)"
+          export BOQLET_NATIVE_NODE="$(command -v node)"
+          mvn -B -ntp -f services/api/pom.xml verify
+        env:
+          BOQLET_NATIVE_QUEUE_TEST: "1"
+          AWS_ACCESS_KEY_ID: boqlet-test
+          AWS_SECRET_ACCESS_KEY: boqlet-local-test-only
 
   contract:
     name: Contract (lint, codegen drift)
@@ -106,14 +126,14 @@ jobs:
         env:
           IFC_BOQ_PYTHON: python
       - run: npm run test:engine
-        - name: The mock runs the Duplex through the engine worker
+      - name: The mock runs the Duplex through the engine worker
         run: |
-            npm run dev:engine-worker > engine.log 2>&1 &
-            for i in $(seq 1 90); do curl -sf http://127.0.0.1:8788/health && break; sleep 2; done
+          npm run dev:engine-worker > engine.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:8788/health && break; sleep 2; done
           npm run test:mock
 
   suites:
-    name: Contract and scenario suites (against the mock and the PoC engine)
+    name: Contract and scenario suites (mock API and native engine)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

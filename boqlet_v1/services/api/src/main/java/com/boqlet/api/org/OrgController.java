@@ -2,6 +2,7 @@ package com.boqlet.api.org;
 
 import com.boqlet.api.audit.AuditReader;
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Idempotency;
 import com.boqlet.contract.api.OrgsApi;
 import com.boqlet.contract.model.*;
 import java.time.OffsetDateTime;
@@ -17,12 +18,17 @@ class OrgController implements OrgsApi {
     private final Orgs orgs;
     private final Invitations invitations;
     private final AuditReader audit;
+    private final Attention attention;
+    private final Idempotency idempotency;
 
-    OrgController(OrgAccess access, Orgs orgs, Invitations invitations, AuditReader audit) {
+    OrgController(OrgAccess access, Orgs orgs, Invitations invitations, AuditReader audit, Attention attention,
+                  Idempotency idempotency) {
         this.access = access;
         this.orgs = orgs;
         this.invitations = invitations;
         this.audit = audit;
+        this.attention = attention;
+        this.idempotency = idempotency;
     }
 
     @Override
@@ -85,12 +91,16 @@ class OrgController implements OrgsApi {
 
     @Override
     public ResponseEntity<OrgInvitation> inviteMember(UUID org, InviteMemberRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(invitations.invite(org, actor(), request));
+        UUID actor = actor();
+        return ResponseEntity.status(HttpStatus.CREATED).body(idempotency.once(actor, idempotency.key(), 201, OrgInvitation.class,
+                () -> access.lock(org, actor, OrgRole.OWNER, OrgRole.ADMIN), () -> invitations.invite(org, actor, request)));
     }
 
     @Override
     public ResponseEntity<OrgInvitation> resendOrgInvitation(UUID org, UUID id) {
-        return ResponseEntity.ok(invitations.resend(org, actor(), id));
+        UUID actor = actor();
+        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, OrgInvitation.class,
+                () -> access.lock(org, actor, OrgRole.OWNER, OrgRole.ADMIN), () -> invitations.resend(org, actor, id)));
     }
 
     @Override
@@ -118,8 +128,7 @@ class OrgController implements OrgsApi {
 
     @Override
     public ResponseEntity<List<AttentionItem>> getAttention(UUID org) {
-        access.require(org, actor());
-        throw Orgs.failure(HttpStatus.NOT_IMPLEMENTED, "not_implemented", "Project attention is not available yet.");
+        return ResponseEntity.ok(attention.list(org, actor()));
     }
 
     private static UUID actor() {

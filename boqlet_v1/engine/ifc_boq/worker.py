@@ -282,10 +282,29 @@ def _export_xlsx(job, storage, prefix, progress):
         contents = diff_export.render(data, meta)
     else:
         data = read_json_gzip(storage, job["resultKey"])
+        if meta.get("publicShare"):
+            data = _public_workbook_result(data, meta.get("publicLog", False))
         contents = export(data, meta)
     key = prefix + "export.xlsx"
     storage.put_bytes(key, contents)
     return {"xlsxKey": key, "sizeBytes": len(contents)}, {}
+
+
+def _public_workbook_result(result, include_log):
+    lines = [line for line in result["lines"] if not line.get("excluded")]
+    for line in lines:
+        line.pop("notes", None)
+        line.pop("overridden", None)
+        for step in line["trace"].get("steps", []):
+            for name in ("by", "reason", "note"):
+                step.get("params", {}).pop(name, None)
+        for element in line["trace"]["elements"]:
+            element.pop("note", None)
+    result.update(lines=lines, checks=[], warnings=[], questions=[], log=[
+        entry for entry in result["log"]
+        if include_log and entry["stage"] in {"rule", "quantity", "deduction"}
+    ])
+    return result
 
 
 def _import_boq_edits(job, storage, prefix, progress):
