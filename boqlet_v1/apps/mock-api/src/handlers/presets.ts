@@ -9,7 +9,7 @@ import { putBlob, signedUrl } from "../blobs.js";
 import { nowIso } from "../clock.js";
 import { engine, EngineUnavailable } from "../engine/engine.js";
 import type { TemplateInput } from "../engine/preset-template.js";
-import { previewResult, previewRun, type PreviewInputs } from "../engine/fakes/preview.js";
+import { previewResult, runPreview, type PreviewInputs } from "../engine/preset-preview.js";
 import { createJob, jobView, runJob } from "../jobs.js";
 import { emit } from "../events.js";
 import { conflict, forbidden, HttpError, notFound } from "../http.js";
@@ -500,12 +500,13 @@ export const presetHandlers: Handlers = {
         // A run's presets may still be on their way out of the engine's folder (FE-012).
         await presetsSettled();
         ctx.progress("rules", 10);
-        const after = await previewRun(job.id, "draft", inputs, { preset, doc: shown.doc, extendsVersionId: shown.extendsVersionId });
+        const { result: after, before, changes } = await runPreview(job.id, inputs,
+          { preset, doc: shown.doc, extendsVersionId: shown.extendsVersionId },
+          compareWith ? { preset, doc: compareWith.doc, extendsVersionId: compareWith.extendsVersionId } : null,
+          (stage, pct) => ctx.progress(stage, Math.max(pct, 10)));
         if (ctx.cancelled()) return;
-        ctx.progress("compare", 60);
-        const before = compareWith ? await previewRun(job.id, "published", inputs, { preset, doc: compareWith.doc, extendsVersionId: compareWith.extendsVersionId }) : null;
         const compareName = compareWith && compareWith.presetId !== preset.id ? db().presets.find((p) => p.id === compareWith.presetId)?.name : undefined;
-        const result = previewResult(after, before, compareWith, compareName);
+        const result = previewResult(after, before, compareWith, compareName, changes);
         const key = `orgs/${org.id}/previews/${job.id}/preview.json`;
         await putBlob(key, new TextEncoder().encode(JSON.stringify(result)));
         ctx.progress("done", 100);

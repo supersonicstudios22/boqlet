@@ -99,15 +99,19 @@ is used as the line key if an existing rule-set manual line has the same key. Co
 the item take precedence over map assignment and are reported with source `item`.
 
 ### preview
-Same input as `run` (with `runId` null), plus optional `compareWith` (a second rule-set doc,
-usually the published version). Output: `{resultKey, compareResultKey?, diffKey?}`. Outputs
-under `previews/` with a 7-day lifecycle.
+Same input as `run` with no workbook export. Optional `compareWith` can supply either a second
+rule-set document or alternate preset IDs and documents for one or more input roles.
+The worker stores the results and a line comparison under `previews/` for the configured
+7-day storage lifecycle. Output is `{resultKey, compareResultKey?, diffKey?}`.
 
 ### diff (EN-002)
 Input: `{ "fromResultKey": "…", "toResultKey": "…", "fromLabel": "A", "toLabel": "Working" }`.
 Output: `{ "diffKey": "…/diff.json.gz", "summary": { "linesAdded": 2, "linesRemoved": 1, "linesChanged": 7, "elementsAdded": 3, "elementsRemoved": 1, "elementsChanged": 4, "questionsNew": 2, "questionsResolved": 0 } }`.
-`diff.json.gz` follows `RunDiff` (data model). It will be added to `packages/types` as
-`diff.ts` with a generated schema.
+`diff.json.gz` follows `packages/types/src/diff.ts` and is validated against the generated
+schema. Run inputs include a model manifest with logical model ID, version ID, trace ID, and
+parsed artifact key. The worker compares parsed fields and material references only for changed
+model versions. Line causes use version snapshots, element links, rule and parameter changes,
+edits, and decision snapshots with question GlobalIds when available.
 
 ### export_xlsx
 Input: `{ "resultKey": "…", "diffKey": null, "meta": { …as run.export.meta…, "issuedBy": "…", "issuedAt": "…", "issueNote": "…" }, "fileName": "…" }`.

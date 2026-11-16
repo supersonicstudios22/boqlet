@@ -782,8 +782,11 @@ class RuleEngine:
                             out[lk] = line
                             n_lines += 1
                         line["_count"] += 1
-                        line["trace"]["elements"].append({"guid": guid or "", "name": (sctx.get("name") or "") if guid else f"line {srcline['description']}",
-                                                          "quantity": None if v is None else round(v, 6), "note": txt})
+                        trace = {"guid": guid or "", "name": (sctx.get("name") or "") if guid else f"line {srcline['description']}",
+                                 "quantity": None if v is None else round(v, 6), "note": txt}
+                        if model_id := sctx.get("model_id"):
+                            trace["model"] = model_id
+                        line["trace"]["elements"].append(trace)
                         if v is None:
                             line["_missing"] += 1
                         else:

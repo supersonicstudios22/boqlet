@@ -1,13 +1,6 @@
-/**
- * Fake: "Preview" (mock-api.md "Engine fakes", replaced by EN-005). A preset's draft (or a version)
- * is run on model versions through the PoC engine and, optionally, compared with the preset's latest
- * published version: two runs, diffed by line key. Every document goes to the engine under ids unique
- * to the job (`mock-preview-<jobId>-…`, a rule set flattened by the engine's check, so no parent has
- * to be saved) and is deleted afterwards; runs' own presets are never touched.
- */
-import { db, type PresetRec, type PresetVersionRec } from "../../store.js";
-import { checkDoc, FOLDER, shippedId } from "../../preset-docs.js";
-import { engine, type PresetFolder } from "../engine.js";
+import { db, type PresetRec, type PresetVersionRec } from "../store.js";
+import { checkDoc, FOLDER, shippedId } from "../preset-docs.js";
+import { engine, type EngineProgress, type PresetFolder, type RunInput } from "./engine.js";
 import type { BoqResult } from "@ifc-boq/types";
 
 type Doc = Record<string, unknown>;
@@ -53,7 +46,10 @@ const presetOf = (v: PresetVersionRec) => db().presets.find((p) => p.id === v.pr
  * Runs the inputs with `override` standing in for its preset's version: the draft's or a chosen
  * version's document. Returns the engine's result.
  */
-export async function previewRun(jobId: string, tag: string, inputs: PreviewInputs, override: { preset: PresetRec; doc: unknown; extendsVersionId: string | null } | null): Promise<BoqResult> {
+type Override = { preset: PresetRec; doc: unknown; extendsVersionId: string | null };
+
+async function withInputs<T>(jobId: string, tag: string, inputs: PreviewInputs, override: Override,
+  use: (run: RunInput) => Promise<T>): Promise<T> {
   const saved: [PresetFolder, string][] = [];
   let n = 0;
   const save = async (kind: PresetRec["kind"], doc: unknown, extendsVersionId: string | null) => {
@@ -90,11 +86,22 @@ export async function previewRun(jobId: string, tag: string, inputs: PreviewInpu
     // A previewed classification or dictionary that the inputs don't list yet goes in as well.
     if (override && override.preset.kind === "classification" && !inputs.classifications.some((v) => v.presetId === override.preset.id)) classifications.unshift(await save("classification", override.doc, null));
     if (override && override.preset.kind === "dictionary" && !inputs.dictionaries.some((v) => v.presetId === override.preset.id)) dictionaries.push(await save("dictionary", override.doc, null));
-    const { result } = await engine().run({ models: inputs.models, ruleSet, dictionaries, classifications, decisions: [] });
-    return result;
+    return await use({ models: inputs.models, ruleSet, dictionaries, classifications, decisions: [] });
   } finally {
     for (const [folder, id] of saved.reverse()) await engine().deletePreset(folder, id).catch(() => {});
   }
+}
+
+export async function runPreview(jobId: string, input: PreviewInputs, draft: Override, published: Override | null,
+  progress: EngineProgress): Promise<{ result: BoqResult; before?: BoqResult; changes?: PreviewChange[] }> {
+  const run = async (after: RunInput, before?: RunInput) => {
+    const backend = engine();
+    if (backend.preview) return backend.preview(after, before, progress);
+    const result = (await backend.run(after, progress)).result;
+    return { result, ...(before ? { before: (await backend.run(before)).result } : {}) };
+  };
+  return withInputs(jobId, "draft", input, draft, (after) =>
+    published ? withInputs(jobId, "published", input, published, (before) => run(after, before)) : run(after));
 }
 
 const lineOf = (l: BoqResult["lines"][number]): PreviewLine => ({
@@ -110,10 +117,10 @@ const lineOf = (l: BoqResult["lines"][number]): PreviewLine => ({
 const sameLine = (a: PreviewLine, b: PreviewLine) => a.quantity === b.quantity && a.unit === b.unit && a.description === b.description;
 
 /** The preview's result: the lines of `after`, and what changed against `before` (by line key). */
-export function previewResult(after: BoqResult, before: BoqResult | null, compareWith: PresetVersionRec | null, presetName?: string): PreviewResult {
+export function previewResult(after: BoqResult, before: BoqResult | undefined, compareWith: PresetVersionRec | null, presetName?: string, nativeChanges?: PreviewChange[]): PreviewResult {
   const lines = after.lines.map(lineOf);
-  const changes: PreviewChange[] = [];
-  if (before) {
+  const changes: PreviewChange[] = nativeChanges ?? [];
+  if (before && !nativeChanges) {
     const old = new Map(before.lines.map((l) => [l.key, lineOf(l)]));
     const now = new Map(lines.map((l) => [l.key, l]));
     for (const l of lines) {
@@ -129,7 +136,7 @@ export function previewResult(after: BoqResult, before: BoqResult | null, compar
     questions: after.questions.length,
     blockingQuestions: after.questions.filter((q) => q.blocking).length,
     warnings: after.warnings.length,
-    compare: before && compareWith ? { versionId: compareWith.id, versionNumber: compareWith.number ?? 0, ...(presetName ? { presetName } : {}), added: count("added"), removed: count("removed"), changed: count("changed") } : null,
+    compare: (before || nativeChanges) && compareWith ? { versionId: compareWith.id, versionNumber: compareWith.number ?? 0, ...(presetName ? { presetName } : {}), added: count("added"), removed: count("removed"), changed: count("changed") } : null,
     changes,
   };
 }

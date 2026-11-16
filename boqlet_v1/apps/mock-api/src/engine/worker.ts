@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
-import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, SceneIndex, TableReadResponse } from "@ifc-boq/types";
+import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, RunDiff, SceneIndex, TableReadResponse } from "@ifc-boq/types";
 import { blobPath, getBlob } from "../blobs.js";
 import { PRESETS_DIR } from "../paths.js";
 import type { TemplateImport, TemplateInput } from "./preset-template.js";
-import { EngineRefused, EngineUnavailable, type Engine, type EngineProgress, type ParsedModelSummary, type PresetFolder, type RunInput } from "./engine.js";
+import type { PreviewChange } from "./preset-preview.js";
+import { EngineRefused, EngineUnavailable, type DiffInputSide, type Engine, type EngineProgress, type ParsedModelSummary, type PresetFolder, type RunInput } from "./engine.js";
 
 type Preset = { id: string; extends?: string };
 type JobOutput = { status: string; output?: unknown; error?: { message: string; code: string } };
@@ -37,7 +38,7 @@ export class WorkerEngine implements Engine {
     return (await this.send(route, input)).json() as Promise<T>;
   }
 
-  private async job<T>(type: "parse" | "run", input: unknown, outputPrefix: string, progress?: EngineProgress): Promise<T> {
+  private async job<T>(type: "parse" | "run" | "preview" | "diff", input: unknown, outputPrefix: string, progress?: EngineProgress): Promise<T> {
     const response = await this.send(`/jobs/${type}`, {
       jobId: randomUUID(), contract: "1", type, input, outputPrefix, orgId: "mock", attempt: 1,
     });
@@ -106,7 +107,7 @@ export class WorkerEngine implements Engine {
     return read(`${folder}/${id}.json`) as Promise<T>;
   }
 
-  async run(input: RunInput, progress?: EngineProgress) {
+  private async runInput(input: RunInput) {
     const doc = await this.preset<Preset>("rules", input.ruleSet);
     const parents = new Map<string, Preset>([[doc.id, doc]]);
     for (let id = doc.extends; id; ) {
@@ -116,8 +117,7 @@ export class WorkerEngine implements Engine {
       id = parent.extends;
     }
     parents.delete(doc.id);
-    const runId = randomUUID();
-    const { resultKey } = await this.job<{ resultKey: string }>("run", {
+    return {
       models: input.models.map(({ modelId, ...model }) => ({
         ...model, id: modelId, parsedKey: this.modelKey(modelId, "parsed.json.gz"),
         meshesKey: this.modelKey(modelId, "meshes.npz"),
@@ -131,12 +131,40 @@ export class WorkerEngine implements Engine {
       federation: await this.preset("federation", "federation"),
       decisions: input.decisions,
       manualItems: input.manualItems ?? [],
-    }, `_engine/runs/${runId}/`, progress);
+    };
+  }
+
+  private async result<T>(key: string) {
+    return JSON.parse(gunzipSync(await getBlob(key)).toString("utf8")) as T;
+  }
+
+  async run(input: RunInput, progress?: EngineProgress) {
+    const runId = randomUUID();
+    const { resultKey } = await this.job<{ resultKey: string }>("run",
+      await this.runInput(input), `_engine/runs/${runId}/`, progress);
     try {
-      const result = JSON.parse(gunzipSync(await getBlob(resultKey)).toString("utf8")) as BoqResult;
+      const result = await this.result<BoqResult>(resultKey);
       return { runId, result };
     } finally {
       await rm(blobPath(resultKey), { force: true });
+    }
+  }
+
+  async preview(input: RunInput, compare?: RunInput, progress?: EngineProgress) {
+    const prefix = `_engine/previews/${randomUUID()}/`;
+    const request = await this.runInput(input);
+    const comparison = compare ? await this.runInput(compare) : undefined;
+    try {
+      const output = await this.job<{ resultKey: string; diffKey?: string }>("preview", {
+        ...request,
+        ...(comparison ? { compareWith: {
+          ruleSet: comparison.ruleSet, classifications: comparison.classifications, dictionaries: comparison.dictionaries,
+        } } : {}),
+      }, prefix, progress);
+      const result = await this.result<BoqResult>(output.resultKey);
+      return { result, ...(output.diffKey ? await this.result<{ changes: PreviewChange[] }>(output.diffKey) : {}) };
+    } finally {
+      await rm(blobPath(prefix.slice(0, -1)), { recursive: true, force: true });
     }
   }
 
@@ -145,6 +173,18 @@ export class WorkerEngine implements Engine {
       .filter(([key]) => key.startsWith(`${kind}/`)).map(([, preset]) => preset));
     if (!checked.ok) throw new EngineRefused(400, checked.problems.join("; "));
     this.drafts.set(`${kind}/${id}`, doc);
+  }
+
+  async diff(from: DiffInputSide, to: DiffInputSide, inputsChanged: string[], prefix: string, progress?: EngineProgress) {
+    const models = (side: DiffInputSide) => side.models.map((model) => ({
+      ...model, parsedKey: this.modelKey(model.traceId, "parsed.json.gz"),
+    }));
+    const { diffKey } = await this.job<{ diffKey: string }>("diff", {
+      fromResultKey: from.resultKey, toResultKey: to.resultKey,
+      fromModels: models(from), toModels: models(to),
+      fromDecisions: from.decisions, toDecisions: to.decisions, inputsChanged,
+    }, prefix, progress);
+    return this.result<RunDiff>(diffKey);
   }
 
   async deletePreset(kind: PresetFolder, id: string) {

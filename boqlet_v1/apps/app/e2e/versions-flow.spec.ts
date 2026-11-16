@@ -5,13 +5,12 @@ import { apiAs, generatedDuplexBoq, MOCK_URL, signInAs, type DevUser } from "./h
 
 /**
  * FE-035: FL-3 "New model version → next saved version" end to end, v1 criteria 3, 4 and 5 on the mock.
- * Until EN-008 brings the Duplex v1/v2 pair, v2 is made here from v1 by renaming one wall (a valid IFC
- * that parses to the same geometry): the change report must list exactly that element, and the lines it
- * feeds only if their numbers moved.
+ * Both revisions use the engine's Duplex fixtures so the browser exercises real element and quantity changes.
  */
 
 const DUPLEX = path.resolve(__dirname, "..", "..", "..", "fixtures", "ifc", "Ifc2x3_Duplex_Architecture.ifc");
-const WALL = "2O2Fr$t4X7Zf8NOew3FNld";
+const DUPLEX_V2 = path.join(path.dirname(DUPLEX), "Ifc2x3_Duplex_Architecture_v2.ifc");
+const EDITED_ELEMENTS = ["2O2Fr$t4X7Zf8NOew3FNld", "1hOSvn6df7F8_7GcBWlS8Z", "1FM6kRbt1Q98O7nMvcxWi0"];
 test.describe.configure({ timeout: 360_000 });
 
 async function waitFor<T>(fn: () => Promise<T | undefined>, what: string, ms = 180_000): Promise<T> {
@@ -24,18 +23,9 @@ async function waitFor<T>(fn: () => Promise<T | undefined>, what: string, ms = 1
   }
 }
 
-/** Duplex v2: the same file with one wall renamed. */
-async function duplexV2(): Promise<Uint8Array> {
-  const text = await readFile(DUPLEX, "latin1");
-  const at = text.indexOf(`IFCWALLSTANDARDCASE('${WALL}'`);
-  const name = text.indexOf(":138584',", at);
-  if (at < 0 || name < 0) throw new Error("the wall to rename isn't in the fixture");
-  return new Uint8Array(Buffer.from(text.slice(0, name) + ":138584 moved'," + text.slice(name + ":138584',".length), "latin1"));
-}
-
 async function uploadV2(user: DevUser, modelId: string) {
-  const bytes = await duplexV2();
-  const { version, upload } = await apiAs<{ version: { id: string }; upload: { method: string; url: string; headers: Record<string, string> } }>(user, "POST", `/models/${modelId}/versions`, { fileName: "Duplex_A_v2.ifc", sizeBytes: bytes.byteLength, note: "Wall renamed" });
+  const bytes = await readFile(DUPLEX_V2);
+  const { version, upload } = await apiAs<{ version: { id: string }; upload: { method: string; url: string; headers: Record<string, string> } }>(user, "POST", `/models/${modelId}/versions`, { fileName: "Duplex_A_v2.ifc", sizeBytes: bytes.byteLength, note: "Revised wall, door and window" });
   await fetch(upload.url, { method: upload.method, headers: upload.headers, body: new Blob([bytes as BlobPart]) });
   await apiAs(user, "POST", `/model-versions/${version.id}/complete`, {});
   await waitFor(async () => ((await apiAs<{ status: string }>(user, "GET", `/model-versions/${version.id}`)).status === "ready" ? true : undefined), "v2 parse");
@@ -96,17 +86,17 @@ test("FL-3 / v1 criteria 3–5: answer, save A, take v2, no question asked again
   await expect(page.getByTestId("changes-report")).toBeVisible({ timeout: 10_000 });
   const diffId = await page.getByTestId("changes-report").getAttribute("data-diff");
   const diff = await apiAs<{ summary: Record<string, number> }>(olivia, "GET", `/diffs/${diffId}`);
-  expect(diff.summary).toMatchObject({ elementsAdded: 0, elementsRemoved: 0, elementsChanged: 1, questionsNew: 0 });
+  expect(diff.summary).toMatchObject({ elementsAdded: 1, elementsRemoved: 1, elementsChanged: 1 });
   await expect(page.getByTestId("summary-elementsChanged")).toHaveAttribute("data-value", "1");
   await expect(page.getByTestId("changes-inputs")).toContainText("model versions");
-  const element = page.getByTestId("change-element");
-  await expect(element).toHaveCount(1);
-  await expect(element).toContainText(WALL);
-  await expect(element).toContainText("name");
+  const elements = page.getByTestId("change-element");
+  await expect(elements).toHaveCount(EDITED_ELEMENTS.length);
+  for (const guid of EDITED_ELEMENTS) await expect(elements.filter({ hasText: guid })).toHaveCount(1);
   const { items: lineChanges } = await apiAs<{ items: { lineKey: string; causes: string[] }[] }>(olivia, "GET", `/diffs/${diffId}/lines?limit=1000`);
   await page.getByTestId("changes-filter-threshold").fill("0");
   await expect(page.getByTestId("change-line")).toHaveCount(lineChanges.length);
-  for (const l of lineChanges) expect(l.causes).toContain("elements_changed");
+  expect(lineChanges.length).toBeGreaterThan(0);
+  expect(lineChanges.some((line) => line.causes.some((cause) => cause.startsWith("elements_")))).toBe(true);
 
   // v1 criterion 4 (automated part): a line's elements in 3D and its formula, parameters and shares, one click each.
   await page.getByTestId("tab-sheet").click();

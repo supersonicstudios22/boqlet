@@ -8,7 +8,8 @@ import type { SceneIndex } from "@ifc-boq/types";
 import { audit } from "../audit.js";
 import { getBlob, putBlob } from "../blobs.js";
 import { nowIso } from "../clock.js";
-import { changeReportXlsx, diffRuns, type DiffResult, type DiffSide } from "../engine/fakes/diff.js";
+import { engine, type DiffInputSide } from "../engine/engine.js";
+import { changeReportXlsx, diffRuns, inputsChanged, type DiffResult, type DiffSide } from "../engine/fakes/diff.js";
 import { HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
 import { createJob, jobView, runJob } from "../jobs.js";
@@ -62,6 +63,19 @@ async function sideOf(run: RunRec, other: RunRec): Promise<DiffSide> {
   return { result: await runResult(run), request: run.request as DiffSide["request"], askedQuestionIds: run.askedQuestionIds ?? [], models };
 }
 
+function workerSide(run: RunRec): DiffInputSide {
+  return {
+    resultKey: run.resultKey!,
+    decisions: run.request.decisions ?? [],
+    models: run.request.inputs.models.map((input) => ({
+      modelId: input.modelId,
+      versionId: input.modelVersionId,
+      traceId: db().modelVersions.find((version) => version.id === input.modelVersionId)!.engineModelId!,
+      name: db().models.find((model) => model.id === input.modelId)?.name ?? input.modelId,
+    })),
+  };
+}
+
 export const diffHandlers: Handlers = {
   compareRuns({ user, params, body }) {
     const to = runFor(user!, params.runId!);
@@ -80,12 +94,19 @@ export const diffHandlers: Handlers = {
       const done = db().diffs.find((d) => d.fromRunId === from.id && d.toRunId === to.id);
       if (done) return { diffId: done.id };
       ctx.progress("load", 10);
-      const [a, b] = await Promise.all([sideOf(from, to), sideOf(to, from)]);
-      ctx.progress("diff", 60);
-      const result = diffRuns(a, b);
       const id = newId();
-      const key = `orgs/${project.orgId}/diffs/${id}/diff.json.gz`;
-      await putBlob(key, gzipSync(JSON.stringify({ lines: result.lines, elements: result.elements })));
+      const prefix = `orgs/${project.orgId}/diffs/${id}/`;
+      const key = prefix + "diff.json.gz";
+      const backend = engine();
+      let result: DiffResult;
+      if (backend.diff) {
+        result = await backend.diff(workerSide(from), workerSide(to),
+          inputsChanged(from.request, to.request), prefix, (stage, pct) => ctx.progress(stage, pct));
+      } else {
+        const [a, b] = await Promise.all([sideOf(from, to), sideOf(to, from)]);
+        result = diffRuns(a, b);
+        await putBlob(key, gzipSync(JSON.stringify(result)));
+      }
       const rec: DiffRec = { id, fromRunId: from.id, toRunId: to.id, projectId: project.id, orgId: project.orgId, summary: result.summary, questions: result.questions, key, jobId: job.id, createdAt: nowIso() };
       db().diffs.push(rec);
       bodies.set(id, { lines: result.lines, elements: result.elements });

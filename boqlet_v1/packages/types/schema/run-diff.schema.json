@@ -1,0 +1,378 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RunDiff",
+  "definitions": {
+    "RunDiff": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "$ref": "#/definitions/DiffSummary"
+        },
+        "questions": {
+          "type": "object",
+          "properties": {
+            "new": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "resolved": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "new",
+            "resolved"
+          ],
+          "additionalProperties": false
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LineChange"
+          }
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ElementChange"
+          }
+        }
+      },
+      "required": [
+        "summary",
+        "questions",
+        "lines",
+        "elements"
+      ],
+      "additionalProperties": false,
+      "description": "Full worker artifact. The API stores relation IDs and pages these arrays."
+    },
+    "DiffSummary": {
+      "type": "object",
+      "properties": {
+        "linesAdded": {
+          "type": "number"
+        },
+        "linesRemoved": {
+          "type": "number"
+        },
+        "linesChanged": {
+          "type": "number"
+        },
+        "linesUnchanged": {
+          "type": "number"
+        },
+        "elementsAdded": {
+          "type": "number"
+        },
+        "elementsRemoved": {
+          "type": "number"
+        },
+        "elementsChanged": {
+          "type": "number"
+        },
+        "questionsNew": {
+          "type": "number"
+        },
+        "questionsResolved": {
+          "type": "number"
+        },
+        "guidChurnWarning": {
+          "type": "boolean"
+        },
+        "inputsChanged": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "byModel": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string"
+              },
+              "added": {
+                "type": "number"
+              },
+              "removed": {
+                "type": "number"
+              },
+              "changed": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "model",
+              "added",
+              "removed",
+              "changed"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "linesAdded",
+        "linesRemoved",
+        "linesChanged",
+        "linesUnchanged",
+        "elementsAdded",
+        "elementsRemoved",
+        "elementsChanged",
+        "questionsNew",
+        "questionsResolved",
+        "guidChurnWarning",
+        "inputsChanged",
+        "byModel"
+      ],
+      "additionalProperties": false
+    },
+    "LineChange": {
+      "type": "object",
+      "properties": {
+        "lineKey": {
+          "type": "string"
+        },
+        "change": {
+          "$ref": "#/definitions/Change"
+        },
+        "before": {
+          "type": "object",
+          "properties": {
+            "quantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "$ref": "#/definitions/Unit"
+            },
+            "description": {
+              "type": "string"
+            },
+            "codes": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/LineCode"
+              }
+            }
+          },
+          "required": [
+            "quantity",
+            "unit",
+            "description",
+            "codes"
+          ],
+          "additionalProperties": false
+        },
+        "after": {
+          "type": "object",
+          "properties": {
+            "quantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "$ref": "#/definitions/Unit"
+            },
+            "description": {
+              "type": "string"
+            },
+            "codes": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/LineCode"
+              }
+            }
+          },
+          "required": [
+            "quantity",
+            "unit",
+            "description",
+            "codes"
+          ],
+          "additionalProperties": false
+        },
+        "delta": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "deltaPct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "causes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChangeCause"
+          }
+        }
+      },
+      "required": [
+        "lineKey",
+        "change",
+        "delta",
+        "deltaPct",
+        "causes"
+      ],
+      "additionalProperties": false
+    },
+    "Change": {
+      "type": "string",
+      "enum": [
+        "added",
+        "removed",
+        "changed"
+      ]
+    },
+    "Unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "nr",
+            "item",
+            "sum",
+            "mm",
+            "m",
+            "km",
+            "m2",
+            "m3",
+            "kg",
+            "t",
+            "ft",
+            "ft2",
+            "ft3",
+            "yd2",
+            "yd3",
+            "lb",
+            "h"
+          ]
+        }
+      ]
+    },
+    "LineCode": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Full path from the top level, used for grouping and subtotals."
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "decision",
+            "map",
+            "ifc",
+            "default",
+            "item"
+          ]
+        },
+        "mapRuleId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "description": "The code's item text filled with this line's values (EN-010); absent when the code has none."
+        }
+      },
+      "required": [
+        "system",
+        "code",
+        "title",
+        "path",
+        "source"
+      ],
+      "additionalProperties": false,
+      "description": "What each BoQ line carries per system (see engine.ts BoqLine.codes)."
+    },
+    "ChangeCause": {
+      "type": "string",
+      "enum": [
+        "elements_added",
+        "elements_removed",
+        "elements_changed",
+        "rules_changed",
+        "decision_changed",
+        "override_changed"
+      ]
+    },
+    "ElementChange": {
+      "type": "object",
+      "properties": {
+        "guid": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "change": {
+          "$ref": "#/definitions/Change"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lineKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "guid",
+        "model",
+        "change",
+        "fields",
+        "lineKeys"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

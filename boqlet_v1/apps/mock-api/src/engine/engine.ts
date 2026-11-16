@@ -5,10 +5,11 @@
 import { openAsBlob } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, SceneIndex, TableReadResponse } from "@ifc-boq/types";
+import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, RunDiff, SceneIndex, TableReadResponse } from "@ifc-boq/types";
 import { PRODUCT_ROOT } from "../paths.js";
 import { WorkerEngine } from "./worker.js";
 import type { TemplateImport, TemplateInput } from "./preset-template.js";
+import type { PreviewChange } from "./preset-preview.js";
 
 export type PresetFolder = "rules" | "dictionaries" | "classifications" | "federation" | "resolution";
 
@@ -38,11 +39,19 @@ export interface RunOutput {
 
 export type EngineProgress = (stage: string, pct: number) => void;
 
+export interface DiffInputSide {
+  resultKey: string;
+  models: { modelId: string; versionId: string; name: string; traceId: string }[];
+  decisions: unknown[];
+}
+
 export interface Engine {
   readonly name: string;
   health(): Promise<{ ok: boolean; version?: string }>;
   parseModel(file: { path: string; name?: string }, progress?: EngineProgress): Promise<ParsedModelSummary>;
   run(input: RunInput, progress?: EngineProgress): Promise<RunOutput>;
+  preview?(input: RunInput, compare?: RunInput, progress?: EngineProgress): Promise<{ result: BoqResult; changes?: PreviewChange[] }>;
+  diff?(from: DiffInputSide, to: DiffInputSide, inputsChanged: string[], prefix: string, progress?: EngineProgress): Promise<RunDiff>;
   savePreset(kind: PresetFolder, id: string, doc: unknown): Promise<void>;
   deletePreset(kind: PresetFolder, id: string): Promise<void>;
   /** Problems in a preset document; for a rule-set patch also the flattened rule set. */

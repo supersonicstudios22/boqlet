@@ -14,14 +14,16 @@ from tempfile import TemporaryDirectory
 import jsonschema
 
 from . import __version__, presets, service
+from .diff import compare
 from .export_xlsx import export
 from .geometry import load_meshes, save_meshes
 from .parse import PARSE_FORMAT, parse_file, sha256
 from .pipeline import get_boq
+from .preview import compare_lines
 from .storage import Storage, read_json_gzip, validate_key, write_json_gzip
 
 CONTRACT = "1"
-JOB_TYPES = {"parse", "run"}
+JOB_TYPES = {"parse", "run", "preview", "diff"}
 logger = logging.getLogger(__name__)
 
 
@@ -202,6 +204,58 @@ def _run(job, storage, prefix, progress):
     return output, {}
 
 
+def _preview(job, storage, prefix, progress):
+    compare = job.get("compareWith")
+    request = {**job, "export": {}}
+    if compare is None:
+        output, metrics = _run(request, storage, prefix, progress)
+        return {"resultKey": output["resultKey"]}, metrics
+    if not isinstance(compare, dict):
+        raise JobError("invalid_input", "Invalid comparison preset")
+    if "schemaVersion" in compare:
+        compare = {"ruleSet": {"doc": compare, "library": request["ruleSet"].get("library", [])}}
+    elif "doc" in compare:
+        compare = {"ruleSet": compare}
+    if not compare.keys() <= {"ruleSet", "classifications", "dictionaries"}:
+        raise JobError("invalid_input", "Only presets can change in a preview comparison")
+
+    output, _ = _run(request, storage, prefix, lambda stage, pct, message: progress(stage, pct // 2, message))
+    other, _ = _run({**request, **compare}, storage, prefix + "compare/",
+                    lambda stage, pct, message: progress(stage, 50 + pct // 2, message))
+    progress("compare", 99, "Comparing preview lines")
+    after = read_json_gzip(storage, output["resultKey"])
+    before = read_json_gzip(storage, other["resultKey"])
+    key = prefix + "diff.json.gz"
+    write_json_gzip(storage, key, {"changes": compare_lines(before, after)})
+    return {"resultKey": output["resultKey"], "compareResultKey": other["resultKey"], "diffKey": key}, {}
+
+
+def _diff(job, storage, prefix, progress):
+    progress("load", 10, "Loading runs")
+    before = read_json_gzip(storage, job["fromResultKey"])
+    after = read_json_gzip(storage, job["toResultKey"])
+    first, second = job.get("fromModels", []), job.get("toModels", [])
+
+    def models(side, other):
+        versions = {model["modelId"]: model["versionId"] for model in other}
+        return [{**model, "parsed": read_json_gzip(storage, model["parsedKey"])
+                 if model["versionId"] != versions.get(model["modelId"]) else None}
+                for model in side]
+
+    progress("diff", 55, "Comparing lines and elements")
+    result = compare(before, after, models(first, second), models(second, first),
+                     inputs_changed=job.get("inputsChanged", []),
+                     from_decisions=job.get("fromDecisions", []), to_decisions=job.get("toDecisions", []))
+    validate(result, "run-diff")
+    key = prefix + "diff.json.gz"
+    progress("write", 90, "Writing change report")
+    write_json_gzip(storage, key, result)
+    return {"diffKey": key, "summary": result["summary"]}, {}
+
+
+OPERATIONS = {"parse": _parse, "run": _run, "preview": _preview, "diff": _diff}
+
+
 def execute(envelope: dict, storage: Storage, progress=None) -> dict:
     """Run a validated job and return its terminal event."""
     started = time.monotonic()
@@ -216,7 +270,7 @@ def execute(envelope: dict, storage: Storage, progress=None) -> dict:
         validate_key(prefix)
         job = envelope["input"]
         callback = progress or (lambda stage, pct, message: None)
-        operation = _parse if kind == "parse" else _run
+        operation = OPERATIONS[kind]
         output, metrics = operation(job, storage, prefix + "/", callback)
         result.update(status="succeeded", output=output, metrics=metrics)
     except JobCancelled:

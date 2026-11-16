@@ -24,6 +24,7 @@ const targets: [file: string, type: string, out: string][] = [
   ["classification.ts", "CodeList", "codelist"],
   ["classification.ts", "ClassificationMap", "classification-map"],
   ["engine.ts", "BoqResult", "boq-result"],
+  ["diff.ts", "RunDiff", "run-diff"],
   ["engine.ts", "Decision", "decision"],
   ["engine.ts", "FederationSettings", "federation-settings"],
   ["api.ts", "RunRequest", "run-request"],

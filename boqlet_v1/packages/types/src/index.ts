@@ -6,4 +6,5 @@ export * from "./classification";
 export * from "./dictionary";
 export * from "./engine";
 export * from "./messages";
+export * from "./diff";
 export * from "./api";

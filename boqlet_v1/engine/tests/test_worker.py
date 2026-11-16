@@ -56,6 +56,16 @@ def test_worker_duplex_http(tmp_path, monkeypatch):
         assert manual["codes"][trades["id"]]["source"] == "map"
         assert storage.get_bytes(result["output"]["xlsxKey"]).startswith(b"PK")
 
+        draft, _ = presets.load_rule_set("demo-tweaked")
+        preview = execute(envelope("preview", {**job["input"],
+            "ruleSet": {"doc": draft, "library": [rules]}, "compareWith": {"doc": rules},
+        }, "previews/duplex/"), storage)
+        assert preview["status"] == "succeeded", preview
+        changes = read_json_gzip(storage, preview["output"]["diffKey"])["changes"]
+        assert any(change["change"] == "changed" and change["after"]["ruleId"] == "walls" for change in changes)
+        assert all(change.get("before") != change.get("after") for change in changes)
+        assert not storage.exists("previews/duplex/boq.xlsx")
+
         check = client.post("/rpc/check", json={"kind": "rules", "doc": rules})
         assert check.json()["problems"] == presets.check("rules", rules)
         assert client.get("/health").json()["contract"] == "1"
