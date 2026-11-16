@@ -40,8 +40,25 @@ public class Projects {
     List<ProjectListItem> list(UUID org, UUID actor, String status, String query) {
         return access.list(org, actor, status, query).stream().map(row -> {
             var item = json.read(json.object(row.project()).toString(), ProjectListItem.class);
-            return item.lastActivityAt(row.activity());
+            return item.lastActivityAt(row.activity()).counts(counts(row.project().getId()));
         }).toList();
+    }
+
+    private ProjectListItemAllOfCounts counts(UUID project) {
+        return database.queryForObject("""
+                SELECT (SELECT count(*) FROM models WHERE project_id = ? AND NOT archived) AS models,
+                    count(*) AS boqs, count(*) FILTER (WHERE b.status = 'confirmed') AS confirmed,
+                    count(*) FILTER (WHERE r.status = 'in_review') AS reviews,
+                    coalesce(sum((
+                        SELECT count(*) FROM run_questions q WHERE q.run_id = r.current_run_id
+                            AND (q.question->>'blocking')::boolean
+                            AND NOT EXISTS(SELECT 1 FROM decisions d WHERE d.project_id = b.project_id
+                                AND d.question_id = q.question_id AND d.superseded_at IS NULL)
+                    )),0) AS open
+                FROM boqs b JOIN boq_revisions r ON r.id = b.current_revision_id WHERE b.project_id = ? AND NOT b.archived
+                """, (row, index) -> new ProjectListItemAllOfCounts().models(row.getInt("models")).boqs(row.getInt("boqs"))
+                .confirmedBoqs(row.getInt("confirmed")).revisionsInReview(row.getInt("reviews"))
+                .blockingQuestions(row.getInt("open")), project, project);
     }
 
     @Transactional

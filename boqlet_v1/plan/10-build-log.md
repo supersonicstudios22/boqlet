@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, engine worker and Java service |
 | Role | **Backend agent** |
-| Latest verified | BE-008 Library publish, preview and template workflows on Java and the native worker |
-| Next task | Complete BoQ and run workflows (BE-009 through BE-012). EN-013 structured traces and EN-009 queue transport remain. |
+| Latest verified | BE-009 through BE-012 Java BoQ generation, saved versions, line overrides, native comparisons and Excel dispatch |
+| Next task | EN-013 structured trace verification, realtime events, pilot notifications and access, then the remaining v1 acceptance checks. |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress | BE-005 sample project, attention and live project counts depend on models and BoQs. BE-027 realtime and provider revocation and BE-020 email delivery remain. |
+| In progress | Sample project provisioning, project attention, realtime delivery, notifications, sharing, platform administration, queue and retention. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
@@ -45,8 +45,14 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ## Entries
 
+### 2026-11-16 — BE-009 through BE-012 BoQ workflows (backend agent)
+- **Built:** Java BoQ and revision lifecycle, review transitions, decision and adjustment endpoints, model and preset input snapshots, native run ingestion with PostgreSQL COPY, server-side line and diff paging, coverage, Excel job and report endpoints, and CSV exports. Saved versions retain their run, adjustments and export ID in the same transaction that opens the next draft.
+- **Verified:** six PostgreSQL integration tests with the real Python worker and MinIO. The native workflow generates a Duplex BoQ, reads lines, details, questions, warnings, log and coverage, freezes revision A, verifies it rejects edits, confirms and reopens, edits a line, regenerates, compares runs and gets a signed change report download.
+- **Decisions taken:** concurrent generation on the same revision joins the current active job. Run output and snapshots remain immutable. The Java DTO projection treats engine line key values and scalar decision answers as generic JSON and uses the public OpenAPI schema as the wire contract.
+- **Follow-up:** native coverage of approval, all decision types, batching, edge cases in grouping and the full contract scenarios against Java remain. The project sample, attention and realtime updates are separate work.
+
 ### 2026-11-16 — BE-008 Library (backend agent)
-- **Built:** PostgreSQL system, organisation and project presets with draft ETags and immutable published parent references, role checks, terms, native worker preview, format and template upload and export, and publication checks. Models in a preview must belong to one project. Signed preview URLs are refreshed when the permitted caller reads the job.
+- **Built:** `419400d`. PostgreSQL system, organisation and project presets with draft ETags and immutable published parent references, role checks, terms, native worker preview, format and template upload and export, and publication checks. Models in a preview must belong to one project. Signed preview URLs are refreshed when the permitted caller reads the job.
 - **Verified:** Maven `verify` passed six PostgreSQL tests with the native integration enabled. The native workflow makes an organisation rule-set patch, checks a stale ETag, compares a draft with its built-in parent through the worker, downloads and reimports its workbook, and publishes it.
 - **Follow-up:** preset usage depends on BoQ revision inputs. Federation and resolution drafts can run a preview. Their comparison output and full schema validation still need coverage.
 

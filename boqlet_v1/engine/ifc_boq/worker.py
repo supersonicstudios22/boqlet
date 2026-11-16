@@ -186,6 +186,7 @@ def _run(job, storage, prefix, progress):
     progress("export", 95, "Writing BoQ artifacts")
     output = {
         "resultKey": prefix + "result.json.gz", "status": result["status"], "stats": result["stats"],
+        "engineVersion": __version__,
         "counts": {"lines": len(result["lines"]), "questions": len(result["questions"]),
                    "blockingQuestions": sum(q["blocking"] for q in result["questions"]),
                    "warnings": len(result["warnings"])},

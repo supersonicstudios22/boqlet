@@ -76,6 +76,10 @@ public class EntitlementService {
         requireFeature(org, actor, key, effective(org).limits());
     }
 
+    public boolean enabled(UUID org, String key) {
+        return json.read(effective(org).limits(), JsonNode.class).path(key).asBoolean(false);
+    }
+
     public void requirePlanFeature(String plan, String key) {
         requireFeature(null, null, key, database.queryForObject(
                 "SELECT entitlements::text FROM plans WHERE id = ?", String.class, plan));

@@ -56,16 +56,36 @@ public class Library {
                             case SYSTEM -> false;
                             case ORG -> canEdit(role);
                             case PROJECT -> Boolean.TRUE.equals(projectDetails.getPermissions().get("editPresets"));
-                        })).toList();
+                        }, actor)).toList();
     }
 
     Preset get(UUID id, UUID actor) {
         var access = access(id, actor);
-        return view(access.head(), access.edit());
+        return view(access.head(), access.edit(), actor);
     }
 
     PresetCatalog.Head visible(UUID id, UUID actor) {
         return access(id, actor).head();
+    }
+
+    List<PresetUsage> usage(UUID preset, UUID actor) {
+        visible(preset, actor);
+        return database.query("""
+                SELECT pr.id AS project_id, pr.name AS project_name, b.id AS boq_id, b.name AS boq_name,
+                    r.id AS revision_id, r.label, r.status, v.number
+                FROM boq_revisions r JOIN boqs b ON b.id = r.boq_id JOIN projects pr ON pr.id = b.project_id
+                JOIN orgs o ON o.id = pr.org_id AND o.status <> 'deleting'
+                JOIN memberships m ON m.org_id = pr.org_id AND m.user_id = ?
+                LEFT JOIN project_members pm ON pm.project_id = pr.id AND pm.user_id = m.user_id
+                JOIN preset_versions v ON v.preset_id = ? AND v.number IS NOT NULL AND (
+                    v.id::text IN (r.inputs->>'ruleSetVersionId', r.inputs->>'federationVersionId', r.inputs->>'resolutionVersionId')
+                    OR r.inputs->'classificationVersionIds' @> jsonb_build_array(v.id::text)
+                    OR r.inputs->'dictionaryVersionIds' @> jsonb_build_array(v.id::text))
+                WHERE m.role IN ('owner','admin') OR pm.role IS NOT NULL
+                ORDER BY lower(pr.name), lower(b.name), r.number
+                """, (row, index) -> new PresetUsage(row.getObject("project_id", UUID.class), row.getString("project_name"),
+                    row.getObject("boq_id", UUID.class), row.getString("boq_name"), row.getObject("revision_id", UUID.class),
+                    row.getString("label"), RevisionStatus.fromValue(row.getString("status")), row.getInt("number")), actor, preset);
     }
 
     PresetCatalog.Head requireEditor(UUID id, UUID actor) {
@@ -166,7 +186,7 @@ public class Library {
                 request.getDescription(), request.getBasedOn(), draft, actor);
         insertDraft(draft, id, doc, parent, checked.getProblems(), actor);
         event(catalog.head(id), actor, "preset.created");
-        return view(catalog.head(id), true);
+        return view(catalog.head(id), true, actor);
     }
 
     CheckResponse check(PresetKind kind, ObjectNode doc, UUID parent) {
@@ -241,6 +261,35 @@ public class Library {
     }
 
     @Transactional
+    public PresetVersion publishDictionaryEntries(UUID preset, UUID actor, List<ObjectNode> entries, String note) {
+        var head = editable(preset, actor);
+        if (head.kind() != PresetKind.DICTIONARY || head.published() == null) {
+            throw invalid("Choose a published dictionary.");
+        }
+        var current = catalog.version(head.published());
+        var doc = current.doc().deepCopy();
+        var replacement = new LinkedHashMap<String, JsonNode>();
+        for (JsonNode entry : doc.path("entries")) replacement.put(entry.path("id").asText(), entry);
+        entries.forEach(entry -> replacement.put(entry.path("id").asText(), entry));
+        var values = doc.putArray("entries");
+        replacement.values().forEach(values::add);
+        int number = current.number() + 1;
+        doc.put("version", Integer.toString(number));
+        var checked = check(head.kind(), doc, null);
+        if (!checked.getOk()) throw new ApiException(HttpStatus.CONFLICT, "draft_has_problems",
+                "The decision would make the dictionary invalid.", Map.of("problems", checked.getProblems()));
+        UUID version = Ids.newId();
+        database.update("""
+                INSERT INTO preset_versions (id, preset_id, number, status, doc, change_note, published_by, published_at, updated_by)
+                VALUES (?, ?, ?, 'published', CAST(? AS jsonb), ?, ?, now(), ?)
+                """, version, preset, number, doc.toString(), note, actor, actor);
+        database.update("UPDATE presets SET latest_published_version_id = ?, updated_at = now(), updated_by = ? WHERE id = ?",
+                version, actor, preset);
+        event(head, actor, "preset.published");
+        return catalog.version(version).response(null);
+    }
+
+    @Transactional
     public void discard(UUID id, UUID actor) {
         var head = editable(id, actor);
         if (head.draft() == null) return;
@@ -258,7 +307,7 @@ public class Library {
                 """, request.getName() == null ? null : label(request.getName()), request.getDescription(),
                 request.getStarred(), actor, id);
         event(head, actor, "preset.updated");
-        return view(catalog.head(id), true);
+        return view(catalog.head(id), true, actor);
     }
 
     @Transactional
@@ -269,7 +318,7 @@ public class Library {
                     actor, id);
             event(head, actor, "preset.archived");
         }
-        return view(catalog.head(id), false);
+        return view(catalog.head(id), false, actor);
     }
 
     private PresetCatalog.Head editable(UUID id, UUID actor) {
@@ -299,10 +348,10 @@ public class Library {
         return new Access(head, edit && !head.archived());
     }
 
-    private Preset view(PresetCatalog.Head head, boolean edit) {
+    private Preset view(PresetCatalog.Head head, boolean edit, UUID actor) {
         var view = new Preset(head.id(), head.kind(), head.layer(), head.slug(), head.name(), head.archived())
                 .orgId(head.org()).projectId(head.project()).description(head.description()).basedOn(head.basedOn())
-                .starred(head.starred()).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(0)
+                .starred(head.starred()).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(usage(head.id(), actor).size())
                 .permissions(Map.of("edit", edit, "archive", edit, "publish", edit, "preview", head.unavailable() == null));
         if (head.published() != null) view.setLatestPublishedVersion(catalog.version(head.published()).info());
         if (head.draft() != null) view.setDraft(catalog.version(head.draft()).info());

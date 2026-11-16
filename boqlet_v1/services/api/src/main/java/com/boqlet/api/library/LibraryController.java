@@ -50,8 +50,7 @@ class LibraryController implements LibraryApi {
 
     @Override
     public ResponseEntity<List<PresetUsage>> getPresetUsage(UUID preset) {
-        library.visible(preset, actor());
-        return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(library.usage(preset, actor()));
     }
 
     @Override

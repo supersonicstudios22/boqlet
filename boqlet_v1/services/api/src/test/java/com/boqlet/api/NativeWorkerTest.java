@@ -2,6 +2,7 @@ package com.boqlet.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -143,6 +144,56 @@ class NativeWorkerTest {
         assertThat(perform(post(base + "/names").content("{}"), cookie, 200).path("names").size()).isGreaterThan(0);
         assertThat(perform(get("/api/v1/orgs/" + org + "/usage"), cookie, 200).path("byKind").has("parse")).isTrue();
         verifyLibrary(org, version, cookie);
+        verifyBoq(project, cookie);
+    }
+
+    private void verifyBoq(String project, Cookie cookie) throws Exception {
+        var bill = perform(post("/api/v1/projects/" + project + "/boqs").content("{\"name\":\"Tender\"}"), cookie, 201);
+        String billId = id(bill);
+        String first = id(bill.path("currentRevision"));
+        assertThat(bill.path("currentRevision").path("inputs").path("models").size()).isEqualTo(1);
+        String revisionPath = "/api/v1/revisions/" + first;
+        var started = perform(post(revisionPath + "/runs"), cookie, 202);
+        String job = id(started.path("job"));
+        String run = id(started.path("run"));
+        awaitJob(job, cookie);
+        String runPath = "/api/v1/runs/" + run;
+        var lines = perform(get(runPath + "/lines?limit=3"), cookie, 200);
+        assertThat(lines.path("total").asInt()).isGreaterThan(30);
+        assertThat(lines.path("items").get(0).has("positionNo")).isTrue();
+        String key = lines.path("items").get(0).path("key").asText();
+        var details = perform(get(runPath + "/lines/by-key").param("key", key), cookie, 200);
+        assertThat(details.path("trace").path("formula").asText()).isNotBlank();
+        assertThat(perform(get(runPath + "/coverage"), cookie, 200).path("measured").size()).isPositive();
+        perform(get(runPath + "/questions"), cookie, 200);
+        perform(get(runPath + "/warnings"), cookie, 200);
+        assertThat(perform(get(runPath + "/log?limit=2"), cookie, 200).path("items").size()).isEqualTo(2);
+        var saved = perform(post(revisionPath + "/issue").content("{\"notModelledConfirmed\":true,\"note\":\"Pilot freeze\"}"), cookie, 200);
+        assertThat(saved.path("frozen").path("runId").asText()).isEqualTo(run);
+        assertThat(saved.path("frozen").path("exportIds").size()).isEqualTo(1);
+        http.perform(auth(patch(revisionPath).content("{\"inputs\":{\"dictionaryVersionIds\":[]}}"), cookie))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("revision_locked"));
+        String billPath = "/api/v1/boqs/" + billId;
+        var confirmed = perform(post(billPath + "/confirm"), cookie, 200);
+        assertThat(confirmed.path("currentRevision").path("label").asText()).isEqualTo("A");
+        var reopened = perform(post(billPath + "/reopen").content("{\"reason\":\"Next design revision\"}"), cookie, 200);
+        assertThat(reopened.path("currentRevision").path("label").asText()).isEqualTo("B");
+        String next = id(reopened.path("currentRevision"));
+        var changes = json.createObjectNode().put("lineKey", key).put("description", "Estimator's description");
+        perform(post(billPath + "/overrides").content(changes.toString()), cookie, 200);
+        assertThat(perform(get(billPath), cookie, 200).path("currentRevision").path("pendingChanges").toString())
+                .contains("adjustments");
+        var updated = perform(post("/api/v1/revisions/" + next + "/runs"), cookie, 202);
+        awaitJob(id(updated.path("job")), cookie);
+        String after = id(updated.path("run"));
+        String diff = id(perform(post("/api/v1/runs/" + after + "/compare")
+                .content("{\"againstRunId\":\"" + run + "\"}"), cookie, 202));
+        String reportId = awaitJob(diff, cookie).path("output").path("diffId").asText();
+        var report = perform(get("/api/v1/diffs/" + reportId), cookie, 200);
+        assertThat(report.path("summary").path("linesChanged").asInt()).isPositive();
+        var excel = perform(post("/api/v1/diffs/" + reportId + "/export"), cookie, 202);
+        var exported = awaitJob(id(excel), cookie).path("output").path("exportId").asText();
+        http.perform(auth(get("/api/v1/exports/" + exported + "/download"), cookie)).andExpect(status().isFound());
     }
 
     private void verifyLibrary(String org, String modelVersion, Cookie cookie) throws Exception {

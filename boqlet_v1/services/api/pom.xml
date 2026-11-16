@@ -54,7 +54,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.openapitools</groupId>
@@ -136,6 +135,10 @@
                                                    value="approvalRequired: { type: boolean,"/>
                                     <replacefilter token="defaultLanguage: { type: string, default: en }"
                                                    value="defaultLanguage: { type: string }"/>
+                                    <replacefilter token="type: [string, number, boolean, &quot;null&quot;]"
+                                                   value="description: Scalar decision answer"/>
+                                    <replacefilter token="$ref: &quot;../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/keys&quot;"
+                                                   value="type: object, additionalProperties: true"/>
                                 </replace>
                                 <!-- The unit union contains an unrestricted string, which subsumes its enum. -->
                                 <replaceregexp

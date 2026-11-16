@@ -119,11 +119,11 @@ public class Models {
     public List<ModelVersion> versions(UUID model, UUID actor) {
         projects.require(model(model).tree().getProjectId(), actor);
         return database.query(VERSION_QUERY + " AND v.model_id = ? ORDER BY v.number DESC", this::versionRow, model)
-                .stream().map(VersionRow::tree).toList();
+                .stream().map(this::withUsage).toList();
     }
 
     public ModelVersion getVersion(UUID id, UUID actor) {
-        return visible(id, actor).tree();
+        return withUsage(visible(id, actor));
     }
 
     public record WorkerModel(UUID project, UUID version, UUID model, String name, String fileName, String discipline,
@@ -186,8 +186,17 @@ public class Models {
         VersionRow row = version(id);
         checkModelActive(model(row.tree().getModelId()));
         if (row.tree().getStatus() != ModelVersionStatus.AWAITING_UPLOAD) return row.tree();
-        storage.seal(row.upload(), row.source(), row.multipart(), request == null ? null : request.getParts(),
-                row.tree().getSizeBytes(), row.source().endsWith(".ifczip"));
+        try {
+            storage.seal(row.upload(), row.source(), row.multipart(), request == null ? null : request.getParts(),
+                    row.tree().getSizeBytes(), row.source().endsWith(".ifczip"));
+        } catch (ApiException failure) {
+            if (!failure.body().code().equals("not_ifc")) throw failure;
+            database.update("""
+                    UPDATE model_versions SET status = 'failed', error = CAST(? AS jsonb) WHERE id = ?
+                    """, json.object(Map.of("code", "not_ifc", "message", failure.getMessage(), "retryable", false)).toString(), id);
+            event(project, actor, "model_version.failed", "modelVersion", id);
+            return version(id).tree();
+        }
         return enqueue(project, row, actor);
     }
 
@@ -222,12 +231,16 @@ public class Models {
     }
 
     public URI geometry(UUID version, UUID actor) {
-        return storage.download(ready(visible(version, actor), "geometryKey"), "private, max-age=31536000, immutable",
+        return storage.download(ready(visibleArtifactVersion(version, actor), "geometryKey"), "private, max-age=31536000, immutable",
                 "model/gltf-binary");
     }
 
     public SceneIndex scene(UUID version, UUID actor) {
-        try (var stream = storage.open(ready(visible(version, actor), "sceneKey"))) {
+        return readScene(visibleArtifactVersion(version, actor));
+    }
+
+    private SceneIndex readScene(VersionRow row) {
+        try (var stream = storage.open(ready(row, "sceneKey"))) {
             return mapper.readValue(stream, SceneIndex.class);
         } catch (IOException error) {
             throw failure(HttpStatus.SERVICE_UNAVAILABLE, "artifact_unavailable", "Could not read the scene index.");
@@ -293,6 +306,38 @@ public class Models {
                 .orElseThrow(() -> failure(HttpStatus.NOT_FOUND, "not_found", "The model version was not found."));
     }
 
+    private VersionRow historicalVersion(UUID id) {
+        return database.query(VERSION_QUERY.replace("WHERE v.deleted_at IS NULL", "WHERE true") + " AND v.id = ?",
+                this::versionRow, id).stream().findFirst()
+                .orElseThrow(() -> failure(HttpStatus.NOT_FOUND, "not_found", "The model version was not found."));
+    }
+
+    private VersionRow visibleArtifactVersion(UUID version, UUID actor) {
+        var row = historicalVersion(version);
+        projects.require(row.project(), actor);
+        if (row.deleted() && withUsage(row).getUsedBy().isEmpty()) {
+            throw failure(HttpStatus.NOT_FOUND, "not_found", "The model version was not found.");
+        }
+        return row;
+    }
+
+    private ModelVersion withUsage(VersionRow row) {
+        UUID id = row.tree().getId();
+        var revisions = database.query("""
+                SELECT b.id, b.name, r.id AS revision, r.label, r.status FROM boqs b
+                JOIN boq_revisions r ON r.boq_id = b.id
+                WHERE b.project_id = ? AND (
+                    r.inputs->'models' @> jsonb_build_array(jsonb_build_object('modelVersionId', CAST(? AS text)))
+                    OR EXISTS (SELECT 1 FROM runs n WHERE n.revision_id = r.id
+                       AND n.snapshot_versions->'models' @> jsonb_build_array(jsonb_build_object('modelVersionId', CAST(? AS text)))))
+                ORDER BY b.name, r.number
+                """, (data, index) -> new RevisionRef(data.getObject("id", UUID.class), data.getString("name"),
+                    data.getObject("revision", UUID.class), data.getString("label"), RevisionStatus.fromValue(data.getString("status"))),
+                row.project(), id, id);
+        row.tree().setUsedBy(revisions);
+        return row.tree();
+    }
+
     private Model withLatest(ModelRow row) {
         if (row.latest() != null) row.tree().setLatestVersion(version(row.latest()).tree());
         return row.tree();
@@ -321,7 +366,8 @@ public class Models {
         if (error != null) version.setError(new com.boqlet.contract.model.Error(error.path("code").asText(), error.path("message").asText()));
         return new VersionRow(version, result.getObject("project_id", UUID.class), result.getString("source_key"),
                 result.getString("upload_key"), result.getString("multipart_id"),
-                json.read(result.getString("artifacts"), JsonNode.class), error != null && error.path("retryable").asBoolean());
+                json.read(result.getString("artifacts"), JsonNode.class), error != null && error.path("retryable").asBoolean(),
+                result.getObject("deleted_at") != null);
     }
 
     private void event(Project project, UUID actor, String action, String type, UUID subject) {
@@ -346,5 +392,5 @@ public class Models {
 
     private record ModelRow(Model tree, UUID latest) {}
     private record VersionRow(ModelVersion tree, UUID project, String source, String upload, String multipart,
-                              JsonNode artifacts, boolean retryable) {}
+                              JsonNode artifacts, boolean retryable, boolean deleted) {}
 }
