@@ -17,7 +17,7 @@ product to build. When they disagree about the *product*, `plan/` wins. When the
 that file: it says how to start, what to decide yourself and what to ask, when to stop and how
 to hand over.
 
-1. Read this README (decisions P01–P48 are settled; don't reopen them),
+1. Read this README (decisions P01–P49 are settled; don't reopen them),
    `08-delivery/sessions.md`, and `10-build-log.md` "Current position" (where the build
    stands, the next task, and your role).
 2. `08-delivery/milestones.md`: phases, milestones, exit criteria.
@@ -95,7 +95,7 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P05 | **Full Library in v1**: org rule sets, classifications and dictionaries, versioned, with preview against a project model. |
 | P06 | *(Workflow refined by P29.)* **v1 includes** the 3D viewer, review → approve → issue with an audit log, and an i18n-ready UI. **BCF is out.** |
 | P07 | *(Refined by P35.)* **English only at launch**; every UI string goes through i18n from day one; engine messages get codes and parameters. |
-| P08 | **Public sign-up with a limited free plan.** Billing is provider-agnostic (Paddle likely): entitlements and usage events in the backend, the payment provider behind an adapter. |
+| P08 | **Invite-only pilots first, then public sign-up with a limited free plan.** Billing is provider-agnostic. Pilots use manual billing; Paddle is deferred until paid self-service. |
 | P09 | **Cloud-neutral deployment**: containers, Postgres, S3-compatible storage. The provider is chosen at deploy time. |
 | P10 | **Authentication is not decided.** The agent that starts the backend asks the owner (options in `07-backend/decisions-to-make.md`). The frontend codes against an auth adapter. |
 | P11 | *(Refined by P38, P39: phases; in phase 1 the mock uses the PoC engine API plus fakes.)* **Frontend first, against a mock API** that implements `openapi.yaml`, keeps CRUD state itself and uses the **real Python engine** for computation. The Java backend replaces the mock by changing a base URL. |
@@ -136,6 +136,7 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P46 | **The build happens on the branch `v_1`**, made from `main`. `main` keeps the proof of concept and its live demo untouched until the release: FE-047 tags `main` as `poc-final` and merges `v_1` into it. CI runs on both branches; staging deploys from `v_1` until the release, production from `main` after it. |
 | P47 | **The backend belongs to its backend owner**: the person who runs phase 2 (the product owner or a backend developer they choose). BE-000 is their entry point: the agent analyses the backend plan and asks them about every backend decision, the open ones and the ones the plan already made (`07-backend/decisions-to-make.md`). The plan's backend choices are defaults. Their answers win over the backend plan, which BE-000 rewrites to match. They may change the HTTP contracts when the backend needs it, by `05-api/contract-changes.md`: contract, suites, mock and the smallest app fix in one commit, every change listed, and the frontend adapted in phase 3 (FE-041). Not theirs alone: product behaviour (the product decisions and business rules, what users can do or see) and the engine rules; changes there go to the product owner. |
 | P48 | **The pricing module is for a later phase** (2026-11-14). MP1 (pricing on the mock, FE-P1…FE-P7) and MP2 (EN-P1, BE-P1…BE-P4) are not built in phases 1 and 2; the owner schedules them later. Phase 1 ends after M4, phase 2 after M7. The module boundary (P36) stays: the extension points (FE-039), `openapi-pricing.yaml`, the core-only build and the module-removed checks are still built and kept green. v1 criterion 6 ("only if the module ships in v1") is not part of release 1 unless the owner brings the module forward. |
+| P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](07-backend/decisions.md). |
 
 ## Where the code lives (P44)
 

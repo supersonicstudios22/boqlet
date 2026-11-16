@@ -20,13 +20,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **2 (backend)**, starting with BE-000 (backend review and decisions, P47). Phase 1 is done (2026-11-14) |
+| Phase | **2 (backend)**, milestone ME (engine worker) |
 | Role | **Backend agent** |
-| Last task done | Phase 1 close (89bdaa9): M4 done, phase 1 summary below |
-| Next task | **BE-000** Backend review and decisions (`07-backend/review.md`, `07-backend/decisions-to-make.md`): analyse the backend plan and put every backend decision (D1–D18 open, B1–B20 already made) to the backend owner, the person who runs the session. No backend code before their answers (P47) |
-| Waiting for the owner | BE-000 always waits for the backend owner's answers. The phase-1 session stopped here, at the end of the phase (sessions.md "When to stop" 2) |
-| In progress (not committed) | — |
-| Notes for the next session | **MP1 and MP2 (the pricing module) are for a later phase (P48): BE-P1…BE-P4 and EN-P1 are not built in phase 2; phase 2 ends after M7.** Read the "Phase 1 summary" entry first, then the M4 entry and the FE-038…FE-040 entries, then `08-delivery/milestones.md` "Phase 2" and `tasks-backend.md`. The shared suites in `tests/contract` and `tests/scenarios` are the backend's specification: they run against `API_URL` (`npm run test:contract`, `npm run test:scenarios`) and must pass against Java unchanged; contract changes go by `05-api/contract-changes.md`. |
+| Last task done | BE-000, owner decisions recorded in `07-backend/decisions.md` |
+| Next task | EN-001 worker and HTTP transport |
+| Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
+| In progress (not committed) | EN-001 implements parse, run, RPCs, storage, and the mock's worker adapter. Verify the shared suites before closing the task. |
+| Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
 
@@ -44,6 +44,9 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-16 — BE-000 backend handoff (backend agent)
+- **Decisions taken:** The owner approved the backend defaults, invite-only pilots, configurable worker sizing, and implementation on `v_1`. Hosting and deployment move to a separate session. See P49 and `07-backend/decisions.md`.
 
 ### 2026-11-14 — Phase 1 summary: frontend on the mock (frontend agent)
 - **Built:** M0 (FE-000…FE-004, TS-001), M1 (FE-005…FE-020), M2 (FE-021…FE-028), M3 (FE-029…FE-037), M4 (FE-038…FE-040) and the phase close, 2026-11-12…2026-11-14. MP1 (pricing on the mock) is for a later phase (P48, the owner, 2026-11-14).
