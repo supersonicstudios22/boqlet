@@ -26,6 +26,7 @@ import type { OurRuleType, RuleSet, Selector } from "./rules";
 import type { ClassificationInput, LineCode } from "./classification";
 import type { DictionaryInput } from "./dictionary";
 import type { Check } from "./parsed";
+import type { LogCode, MessageParams, QuestionCode, WarningCode } from "./messages";
 
 /* ============================================================================
  * Inputs
@@ -191,6 +192,9 @@ export interface Question {
   /** Blocking questions stop the BoQ from being "complete"; others are informative. */
   blocking: boolean;
   message: string;
+  /** Structured message fields may be absent on saved runs from older engines. */
+  code?: QuestionCode;
+  params?: MessageParams;
   answer: AnswerType;
   guids?: string[];
   /** For unknown_name: the field and raw text. */
@@ -202,8 +206,9 @@ export interface Question {
 }
 
 export interface Warning {
-  code: string;
+  code: WarningCode;
   message: string;
+  params?: MessageParams;
   guids?: string[];
   ruleId?: string;
 }
@@ -229,6 +234,8 @@ export interface LogEntry {
   stage: LogStage;
   level: "info" | "detail" | "warning";
   message: string;
+  code?: LogCode;
+  params?: MessageParams;
   ruleId?: string;
   lineKey?: string;
   guid?: string;

@@ -477,7 +477,8 @@ class RuleEngine:
             self.out_of_scope |= {e["guid"] for e in self.el if self.select(sel, e)}
         if self.out_of_scope:
             self.log.info("match", f"{len(self.out_of_scope)} element(s) left out of this BoQ by the rule set's scope",
-                          data={"guids": sorted(self.out_of_scope)})
+                          data={"guids": sorted(self.out_of_scope)},
+                code="log.match.out_of_scope", params=dict(count=len(self.out_of_scope)))
         # pass 1: plain matches
         matches = {}
         for i in items:
@@ -505,7 +506,10 @@ class RuleEngine:
         for g in sorted(self.through_parts):
             p = self.by_guid[g]
             self.log.info("match", f"{p.get('name') or g} ({p['ifc_class']}): no rule gets a quantity for the whole; "
-                                   f"measured through its {len(p.get('child_guids', []))} part(s)", guid=g)
+                                   f"measured through its {len(p.get('child_guids', []))} part(s)", guid=g,
+                code="log.match.measured_by_parts", params=dict(
+                    name=p.get('name') or g, ifcClass=p['ifc_class'], parts=len(p.get('child_guids', [])),
+                ))
         # pass 2: per enabled rule, skip aggregate parts whose parent is measured
         takes = {}
         for i in enabled:
@@ -533,7 +537,8 @@ class RuleEngine:
             self.log.info("match", f"rule '{i['id']}' ({i.get('label', '')}) takes {len(take)} element(s)"
                           + (f"; {len([e for e in matches[i['id']] if e['guid'] in self.skipped_parts])} aggregate part(s) skipped (parent measured)"
                              if any(e['guid'] in self.skipped_parts for e in matches[i['id']]) else ""),
-                          ruleId=i["id"], data={"guids": [e["guid"] for e in take]})
+                          ruleId=i["id"], data={"guids": [e["guid"] for e in take]},
+                code="log.match.rule_selected", params=dict(ruleId=i['id'], label=i.get('label', ''), count=len(take)))
             for e in take:
                 self.matched.add(e["guid"])
                 for part in self.parts_of(i, e):
@@ -548,11 +553,13 @@ class RuleEngine:
                         self.excluded.add(e["guid"])
                 if matches[i["id"]]:
                     self.log.info("match", f"rule '{i['id']}' is disabled: {len(matches[i['id']])} element(s) excluded",
-                                  ruleId=i["id"])
+                                  ruleId=i["id"],
+                        code="log.match.rule_disabled", params=dict(ruleId=i['id'], count=len(matches[i['id']])))
         self.excluded |= self.out_of_scope
         self.excluded -= self.matched
         if decided_out:
-            self.log.info("decision", f"{len(decided_out)} element(s) excluded by user answers")
+            self.log.info("decision", f"{len(decided_out)} element(s) excluded by user answers",
+                code="log.decision.excluded", params=dict(count=len(decided_out)))
 
     def double_claims(self) -> set[tuple[str, str]]:
         """Elements two or more rules claim for the same purpose ("body", "finish"...): one
@@ -570,10 +577,14 @@ class RuleEngine:
             if ans in rids:
                 dropped |= {(r, g) for r in rids if r != ans for g in guids}
                 self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: "
-                                          f"measured by '{ans}' only (answer)")
+                                          f"measured by '{ans}' only (answer)",
+                    code="log.decision.claim_selected", params=dict(
+                        count=len(guids), claim=claim, rules=list(rids), selected=ans,
+                    ))
                 continue
             if ans == "both":
-                self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: all kept (answer)")
+                self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: all kept (answer)",
+                    code="log.decision.claim_all", params=dict(count=len(guids), claim=claim, rules=list(rids)))
                 continue
             e0 = self.by_guid[guids[0]]
             msg = (f"{len(guids)} element(s) (e.g. {e0['ifc_class']} '{e0.get('type_name') or e0.get('name') or ''}') are "
@@ -581,10 +592,14 @@ class RuleEngine:
                    f"{len(rids)} times. Which rule should measure them?")
             self.questions.append({
                 "id": qid, "kind": "double_claim", "blocking": False, "guids": guids, "occurrences": len(guids),
+                "code": "question.double_claim",
+                "params": {"count": len(guids), "ifcClass": e0["ifc_class"], "name": e0.get("type_name") or e0.get("name"),
+                           "claim": claim, "rules": [labels[r] for r in rids]},
                 "message": msg, "suggestion": "both",
                 "answer": {"kind": "choice", "options": [{"value": r, "label": f"Only '{labels[r]}'"} for r in rids]
                            + [{"value": "both", "label": "All of them (they measure different things)"}]}})
             self.warnings.append({"code": "double_claim", "guids": guids,
+                                  "params": {"count": len(guids), "claim": claim, "rules": list(rids)},
                                   "message": f"{len(guids)} element(s): rules {', '.join(rids)} all claim '{claim}' (possible double count)"})
         return dropped
 
@@ -604,11 +619,14 @@ class RuleEngine:
                 v = float(self.val(on["default"]))
                 note = f"default {fmt(v)} used ({expl})"
             elif on == "skip":
-                self.log.warn("quantity", f"{el.get('name')}: {expl}; skipped (onMissing skip)", ruleId=rid, guid=el["guid"])
+                self.log.warn("quantity", f"{el.get('name')}: {expl}; skipped (onMissing skip)", ruleId=rid, guid=el["guid"],
+                    code="log.quantity.skipped", params=dict(name=el.get('name'), reason=expl))
                 return
             elif on == "ask":
                 self.questions.append({
                     "id": qid, "kind": "missing_data", "blocking": True, "guids": [el["guid"]],
+                    "code": "question.missing_data",
+                    "params": {"rule": item.get("label", rid), "name": el.get("name"), "reason": expl, "unit": unit},
                     "message": f"Rule '{item.get('label', rid)}' needs a quantity for {el.get('name')}: {expl}. Enter it in {unit}.",
                     "answer": {"kind": "number", "unit": unit}})
                 note = "waiting for user input"
@@ -666,7 +684,11 @@ class RuleEngine:
             line["notes"].append(f"{el.get('name')}: user-supplied value")
         self.log.detail("quantity", f"{el.get('name') or el['guid']}{' [' + part['_part'] + ']' if part.get('_part') else ''}: "
                         f"{expl} -> {fmt(round(v, 4)) if v is not None else 'MISSING'} {unit}",
-                        ruleId=rid, lineKey=key, guid=el["guid"])
+                        ruleId=rid, lineKey=key, guid=el["guid"],
+            code="log.quantity.element", params=dict(
+                name=el.get('name') or el['guid'], part=part.get('_part'), calculation=expl, quantity=v,
+                unit=unit,
+            ))
 
     def params_used(self, item) -> dict:
         blob = json.dumps(item)
@@ -706,14 +728,18 @@ class RuleEngine:
             line["location"] = {"storey": storeys[0]} if len(storeys) == 1 else ({"storeys": storeys} if storeys else {})
             line["_parts"] = parts
             self.log.info("quantity", f"line '{line['description']}' = {fmt(line['quantity']) if line['quantity'] is not None else 'FLAGGED'} "
-                          f"{line['unit']} from {n} element(s)", ruleId=line["ruleId"], lineKey=line["key"])
+                          f"{line['unit']} from {n} element(s)", ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.quantity.line", params=dict(
+                    description=line['description'], quantity=line['quantity'], unit=line['unit'], elements=n,
+                ))
 
     # ---------------------------------------------------------------- derived
     def run_derived(self) -> list[dict]:
         out: dict[tuple, dict] = {}
         for d in self.rules.get("derived", []):
             if not self.enabled(d):
-                self.log.info("derived", f"derived rule '{d['id']}' disabled", ruleId=d["id"])
+                self.log.info("derived", f"derived rule '{d['id']}' disabled", ruleId=d["id"],
+                    code="log.derived.disabled", params=dict(ruleId=d['id']))
                 continue
             unit = d["unit"]
             n_lines = 0
@@ -765,9 +791,14 @@ class RuleEngine:
                         else:
                             line["quantity"] += v
                         self.log.detail("derived", f"{d['id']} from {'element ' + str(sctx.get('name')) if guid else 'line ' + srcline['description']}: {txt}",
-                                        ruleId=d["id"], lineKey=line["key"], guid=guid)
+                                        ruleId=d["id"], lineKey=line["key"], guid=guid,
+                            code="log.derived.source", params=dict(
+                                ruleId=d['id'], source=sctx.get('name') if guid else srcline['description'],
+                                calculation=txt,
+                            ))
             if n_lines == 0:
-                self.log.info("derived", f"derived rule '{d['id']}' produced no lines (no matching sources)", ruleId=d["id"])
+                self.log.info("derived", f"derived rule '{d['id']}' produced no lines (no matching sources)", ruleId=d["id"],
+                    code="log.derived.no_sources", params=dict(ruleId=d['id']))
         lines = []
         for line in out.values():
             if line["_missing"] == line["_count"]:
@@ -780,7 +811,10 @@ class RuleEngine:
             for k in ("_missing", "_count"):
                 line.pop(k)
             self.log.info("derived", f"line '{line['description']}' = {fmt(line['quantity']) if line['quantity'] is not None else 'FLAGGED'} {line['unit']}",
-                          ruleId=line["ruleId"], lineKey=line["key"])
+                          ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.derived.line", params=dict(
+                    description=line['description'], quantity=line['quantity'], unit=line['unit'],
+                ))
             lines.append(line)
         return lines
 
@@ -807,7 +841,11 @@ class RuleEngine:
             lines.append(line)
             self.log.info("manual", f"manual item '{line['description']}' ({m['kind']}): "
                           f"{fmt(line['quantity']) + ' ' + line['unit'] if q is not None else 'quantity to be entered'}",
-                          ruleId=m["id"], lineKey=line["key"])
+                          ruleId=m["id"], lineKey=line["key"],
+                code="log.manual.line", params=dict(
+                    description=line['description'], kind=m['kind'], quantity=line['quantity'],
+                    unit=line['unit'],
+                ))
         return lines
 
 

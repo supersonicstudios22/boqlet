@@ -66,6 +66,9 @@ def test_complete_and_covered(result):
     assert s["unmatchedElements"] == 0
     assert s["excludedElements"] == 61 + 21     # loose furniture (61) and the 21 rooms: room finishes are off by default
     assert not [w for w in result["warnings"] if w["code"] == "rule_set"]
+    for entry in result["questions"] + result["warnings"] + result["log"]:
+        assert entry["code"]
+        assert isinstance(entry["params"], dict)
 
 
 @pytest.mark.parametrize("rule_id,contains,expected,unit", HAND_BOQ)

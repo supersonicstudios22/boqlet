@@ -6,8 +6,9 @@ class CalcLog:
     def __init__(self):
         self.entries: list[dict] = []
 
-    def add(self, stage: str, message: str, level: str = "info", **kw) -> None:
-        e = {"seq": len(self.entries) + 1, "stage": stage, "level": level, "message": message}
+    def add(self, stage: str, message: str, level: str = "info", *, code: str, params: dict, **kw) -> None:
+        e = {"seq": len(self.entries) + 1, "stage": stage, "level": level, "message": message,
+             "code": code, "params": params}
         for k in ("ruleId", "lineKey", "guid", "data"):
             if kw.get(k) is not None:
                 e[k] = kw[k]

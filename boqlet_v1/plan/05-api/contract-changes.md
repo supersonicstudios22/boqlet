@@ -34,4 +34,4 @@ require every row to be adapted, or marked "nothing to adapt".
 
 | Id | Date | Operation(s) | Change | Why | Breaking for the app? | Product owner needed? | Adapted (phase 3) |
 |---|---|---|---|---|---|---|---|
-| — | | | None yet | | | | |
+| C01 | 2026-11-16 | `listQuestions`, `listWarnings`, run log and line detail | Optional engine message codes and params. Existing warning codes and fallback messages keep their values. | EN-004, structured localization | No | No | Localized rendering in FE-041 |

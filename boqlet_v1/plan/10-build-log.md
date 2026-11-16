@@ -25,7 +25,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 | Last task done | EN-001 worker and HTTP transport |
 | Next task | EN-004 stable question, warning, and log message codes |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress (not committed) | — |
+| In progress (not committed) | EN-004 structured messages and the EN-003 override engine work. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template

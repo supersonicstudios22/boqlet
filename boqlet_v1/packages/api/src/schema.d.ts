@@ -3484,6 +3484,8 @@ export interface components {
             kind: components["schemas"]["QuestionKind"];
             blocking: components["schemas"]["blocking"];
             message: components["schemas"]["message"];
+            code?: components["schemas"]["QuestionCode"];
+            params?: components["schemas"]["MessageParams"];
             answer: components["schemas"]["AnswerType"];
             guids?: components["schemas"]["guids"];
             field?: components["schemas"]["field"];
@@ -4034,12 +4036,19 @@ export interface components {
          * @enum {string}
          */
         LogStage: "parse" | "names" | "measure" | "match" | "quantity" | "derived" | "manual" | "classify" | "decision" | "summary";
+        /** @enum {string} */
+        LogCode: "log.parse.model" | "log.parse.verification" | "log.names.dictionaries" | "log.names.resolved" | "log.names.unresolved" | "log.names.summary" | "log.match.rule_set" | "log.match.rule_set_problem" | "log.match.coverage" | "log.decision.answer_applied" | "log.summary.question" | "log.summary.result" | "log.classify.assigned" | "log.classify.unassigned" | "log.classify.summary" | "log.federation.models" | "log.federation.duplicate" | "log.federation.scope" | "log.federation.owner" | "log.federation.aggregate_part" | "log.federation.missing_owner" | "log.federation.detached_part" | "log.federation.overlap_method" | "log.federation.model_report" | "log.federation.aligned_storey" | "log.federation.storey_warning" | "log.federation.coordinate_warning" | "log.decision.overlap_owner" | "log.decision.overlap_both" | "log.federation.overlap" | "log.federation.aggregate_excluded" | "log.federation.aggregate_resummed" | "log.federation.aggregate_summary" | "log.federation.missing_meshes" | "log.federation.linked_opening" | "log.federation.opening_summary" | "log.federation.unhosted" | "log.federation.room_contact" | "log.federation.room_summary" | "log.federation.embedded" | "log.federation.embedded_summary" | "log.match.out_of_scope" | "log.match.measured_by_parts" | "log.match.rule_selected" | "log.match.rule_disabled" | "log.decision.excluded" | "log.decision.claim_selected" | "log.decision.claim_all" | "log.quantity.skipped" | "log.quantity.element" | "log.quantity.line" | "log.derived.disabled" | "log.derived.source" | "log.derived.no_sources" | "log.derived.line" | "log.manual.line" | "log.measure.volume_conflict" | "log.measure.adopted" | "log.measure.embedded" | "log.measure.room" | "log.measure.aggregate" | "log.measure.building" | "log.measure.building_note";
+        MessageParams: {
+            [key: string]: unknown;
+        };
         LogEntry: {
             seq: number;
             stage: components["schemas"]["LogStage"];
             /** @enum {string} */
             level: "info" | "detail" | "warning";
             message: string;
+            code?: components["schemas"]["LogCode"];
+            params?: components["schemas"]["MessageParams"];
             ruleId?: string;
             lineKey?: string;
             guid?: string;
@@ -4053,6 +4062,11 @@ export interface components {
         /** @description Blocking questions stop the BoQ from being "complete"; others are informative. */
         blocking: boolean;
         message: string;
+        /**
+         * @description Stable IDs for engine messages. The English fallback remains in each result.
+         * @enum {string}
+         */
+        QuestionCode: "question.unknown_name" | "question.unmatched" | "question.contradiction" | "question.unclassified" | "question.classification_conflict" | "question.missing_data" | "question.overlap" | "question.double_claim";
         guids: string[];
         /** @description For unknown_name: the field and raw text. */
         field: string;
@@ -4060,9 +4074,15 @@ export interface components {
         occurrences: number;
         /** @description What the engine would use if nobody answers. */
         suggestion: string | number;
+        /**
+         * @description Existing warning codes are also used by consumers to filter warnings.
+         * @enum {string}
+         */
+        WarningCode: "unknown_code" | "mixed_line" | "rule_set" | "federation_hole" | "federation_storeys" | "federation_coordinates" | "federation_overlap" | "federation_unhosted" | "double_claim";
         Warning: {
-            code: string;
+            code: components["schemas"]["WarningCode"];
             message: string;
+            params?: components["schemas"]["MessageParams"];
             guids?: string[];
             ruleId?: string;
         };

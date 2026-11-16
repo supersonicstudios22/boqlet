@@ -5,4 +5,5 @@ export * from "./parsed";
 export * from "./classification";
 export * from "./dictionary";
 export * from "./engine";
+export * from "./messages";
 export * from "./api";

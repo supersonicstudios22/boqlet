@@ -3142,6 +3142,8 @@ components:
         kind: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/kind" }
         blocking: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/blocking" }
         message: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/message" }
+        code: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/code" }
+        params: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/params" }
         answer: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/answer" }
         guids: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/guids" }
         field: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/field" }

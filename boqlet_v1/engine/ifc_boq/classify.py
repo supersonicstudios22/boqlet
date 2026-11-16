@@ -74,7 +74,8 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
     for r in cmap["rules"]:
         for c in code_targets(r["code"]):
             if c not in codes:
-                warnings.append({"code": "unknown_code", "message": f"[{system}] map rule '{r['id']}' emits code '{c}', not in the code list"})
+                warnings.append({"code": "unknown_code", "message": f"[{system}] map rule '{r['id']}' emits code '{c}', not in the code list",
+                                 "params": {"system": system, "mapRuleId": r["id"], "code": c}})
     sources = cmap.get("sources") or ["decision", "map"]
     by_key = {}
     ordered = sorted(lines, key=lambda l: l["ruleKind"] == "derived")       # sources before derived
@@ -102,6 +103,9 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                 rule = best[0]
                 if len(best) > 1 and cmap.get("onConflict") == "ask":
                     questions.append({"id": f"classconflict:{system}:{line['key']}", "kind": "classification_conflict",
+                                      "code": "question.classification_conflict",
+                                      "params": {"system": code_list["name"], "description": line["description"],
+                                                 "rules": [r["id"] for r in best], "priority": top},
                                       "blocking": False, "message": f"[{code_list['name']}] '{line['description']}': map rules "
                                       f"{', '.join(r['id'] for r in best)} all match with priority {top}.",
                                       "answer": {"kind": "code", "system": system}})
@@ -119,6 +123,8 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                     & set(line.get("_mixed", []))
                 if risky:
                     warnings.append({"code": "mixed_line", "ruleId": line["ruleId"],
+                                     "params": {"system": system, "description": line["description"],
+                                                "fields": sorted(risky), "mapRuleId": rule["id"]},
                                      "message": f"[{system}] '{line['description']}' mixes elements with different "
                                                 f"{', '.join(sorted(risky))}; map rule '{rule['id']}' depends on it. "
                                                 f"Add the field to the rule's lineKey so the line splits."})
@@ -130,10 +136,13 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                 code, src, why = unm["code"], "default", "onUnmapped default"
             elif unm == "ask":
                 questions.append({"id": f"unclassified:{system}:{line['key']}", "kind": "unclassified", "blocking": False,
+                                  "code": "question.unclassified",
+                                  "params": {"system": code_list["name"], "description": line["description"]},
                                   "message": f"[{code_list['name']}] no code for '{line['description']}'.",
                                   "answer": {"kind": "code", "system": system}})
         if code and code not in codes:
-            warnings.append({"code": "unknown_code", "message": f"[{system}] line '{line['description']}' got code '{code}', not in the code list"})
+            warnings.append({"code": "unknown_code", "message": f"[{system}] line '{line['description']}' got code '{code}', not in the code list",
+                             "params": {"system": system, "description": line["description"], "code": code}})
             code = None
         if code:
             path, cur, guard = [], codes[code], 0
@@ -147,9 +156,15 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
             line.setdefault("codes", {})[system] = lc
             by_key[line["key"]] = lc
             log.detail("classify", f"[{system}] '{line['description']}' -> {code} {codes[code]['title']} ({why})",
-                       ruleId=line["ruleId"], lineKey=line["key"])
+                       ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.classify.assigned", params=dict(
+                    system=system, description=line['description'], code=code, title=codes[code]['title'],
+                    source=src, mapRuleId=rule_id,
+                ))
         else:
             line.setdefault("codes", {})
-            log.detail("classify", f"[{system}] '{line['description']}' -> no code", ruleId=line["ruleId"], lineKey=line["key"])
+            log.detail("classify", f"[{system}] '{line['description']}' -> no code", ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.classify.unassigned", params=dict(system=system, description=line['description']))
     n = sum(1 for l in lines if system in l.get("codes", {}))
-    log.info("classify", f"[{code_list['name']}] {n} of {len(lines)} lines coded")
+    log.info("classify", f"[{code_list['name']}] {n} of {len(lines)} lines coded",
+        code="log.classify.summary", params=dict(system=code_list['name'], coded=n, total=len(lines)))
