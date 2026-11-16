@@ -15,6 +15,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -138,6 +140,7 @@ public class Realtime {
     }
 
     @PreDestroy
+    @EventListener(ContextClosedEvent.class)
     void stop() { streams.shutdownNow(); }
 
     private record Event(long id, String name, JsonNode data) {}

@@ -11,8 +11,9 @@ product to build. When they disagree about the *product*, `plan/` wins. When the
 
 ## Start here (a new session)
 
-**Build status: in progress** (phase 1 done 2026-11-14, phase 2 next with BE-000; the owner said go on 2026-11-12; live position in
-`10-build-log.md`). Every session, in every phase, starts with the prompt in
+**Build status.** The core frontend and backend run locally on `v_1` for the invited pilot.
+The build log records verification and outstanding release checks. Server deployment is a
+separate task (P49). Every session starts with the prompt in
 `08-delivery/sessions.md` and works by
 that file: it says how to start, what to decide yourself and what to ask, when to stop and how
 to hand over.

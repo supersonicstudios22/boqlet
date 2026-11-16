@@ -64,8 +64,8 @@ Run ingestion target: 50k lines + 500k line-element rows in under 10 s (COPY/bat
 
 ## Realtime: Server-Sent Events
 
-`GET /api/v1/events` (`text/event-stream`), authenticated like any request (cookie or bearer:
-the frontend uses `fetch`-based SSE so it can send the header). One stream per browser tab.
+`GET /api/v1/events` (`text/event-stream`) uses the app session cookie and access token.
+The frontend uses fetch-based SSE to send the header. Each browser tab has its own stream.
 
 Events (`event:` name, `data:` JSON):
 
@@ -80,9 +80,9 @@ Events (`event:` name, `data:` JSON):
 | `session.revoked` | `{sessionId}` | the replaced session only (BR-54) |
 | `module.*` | defined by modules (pricing: `pricing.offer_submitted`, …) | per module |
 
-- `id:` on every event; on reconnect the client sends `Last-Event-ID`, and the server replays
-  the last 5 minutes from a ring buffer (per instance; with several API instances, events go
-  through Postgres `NOTIFY` or Redis pub/sub so every instance can deliver them).
+- Each event has an `id:`. On reconnect the client sends `Last-Event-ID` and the instance
+  replays the last five minutes from the PostgreSQL journal. Every instance wakes via
+  `NOTIFY` and checks the receiver's current access before sending.
 - Heartbeat comment every 25 s.
 - The frontend maps `entity.changed` and `job.finished` to TanStack Query invalidations (see
   `06-frontend/architecture.md`). SSE is a hint to refetch. Correctness never depends on

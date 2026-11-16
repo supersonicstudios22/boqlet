@@ -20,13 +20,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **2 (backend)**, engine worker and Java service |
+| Phase | **Local invited pilot**, Java API, Python workers and Next.js frontend |
 | Role | **Backend agent** |
-| Latest verified | BE-009 through BE-012 Java BoQ generation, saved versions, line overrides, native comparisons and Excel dispatch |
-| Next task | EN-013 structured trace verification, realtime events, pilot notifications and access, then the remaining v1 acceptance checks. |
-| Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress | Sample project provisioning, project attention, realtime delivery, notifications, sharing, platform administration, queue and retention. |
-| Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
+| Latest verified | Native PostgreSQL queue, both Duplex IFC revisions and their change report, 177 Java HTTP contract checks, isolated public sharing, SMTP invitations, retention and platform administration. |
+| Next task | Run staging and production acceptance in the separate deployment session. |
+| Waiting for the owner | Hosting and deployment configuration in the deployment session (P49) |
+| In progress | — |
+| Notes for the next session | Pilot access is invite-only and worker sizing is configurable (P49). Pricing and paid self-service billing remain deferred (P48–P49). Shared contracts run against Java and the mock. Shared scenarios still use the mock fixtures. |
 
 ## Entry template
 
@@ -44,6 +44,53 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-16 — Local pilot integration (backend agent)
+
+- **Built:** FE-043 (`6c90008`), BE-013, BE-020, BE-022 through BE-024 and
+  BE-027 through BE-031 (`02bd5c1`).
+  The frontend uses hosted Keycloak and a same-origin API cookie. SMTP dispatches
+  invitations and opted-in events. Worker pools and limits are configurable and
+  PostgreSQL workers claim isolated attempts with their own restricted role.
+- **Built:** The sample flow provisions a real Duplex model and a generated BoQ.
+  Public share links support pinning a run or following the latest saved
+  version. Platform admin exposes account data and aggregate usage. Maintenance
+  prunes old indexes, recreates them on demand, and purges deleted organisations.
+- **Verified:** Chromium exercised real Keycloak PKCE sign-in, reload and
+  session takeover. A native Java workflow used PostgreSQL, MinIO, MailHog
+  and Python workers. It uploaded both real IFC revisions and found the expected three
+  element changes, exercised cross-tenant denial and restored a pruned BoQ from
+  storage. Maven passed all eight tests and packaged the API. The shared Java HTTP
+  contract suite passed all 177 tests. Five Chromium authentication and revision tests passed, including
+  the full revised-model workflow against the mock API and native engine.
+  The full npm run passed 208 frontend, 60 mock, 177 mock contract,
+  169 shared scenario and 206 engine tests. Those mock suites reported one
+  optional skip and two existing TODOs. The Next.js production build completed
+  with the Keycloak adapter selected. The final Maven run verified that open SSE
+  streams close before the API's graceful shutdown window expires.
+- **Decisions:** A shared link caches a separately rendered public Excel file.
+  Cached signed URLs expire in five minutes. Old-run indexes and tenant purges
+  run under PostgreSQL advisory locks. The bundled sample's initial parse and
+  run are unmetered. A distinct API configuration controls each worker pool.
+- **Release checks:** The deployment session owns staging, load and backup
+  restore checks, external notification and identity credentials, and production
+  acceptance. Manual billing covers pilots. Billing provider metrics, exported
+  traces and alert routing require the deployed environment.
+
+### 2026-11-16 — EN-013, BE-014 and BE-015 calculation traces and realtime (backend agent)
+
+- **Built:** Python records gross quantities, deductions with their settings, reveals, factors,
+  rounding, derived sources, manual quantities and overrides at the calculation site. Excel
+  renders these steps in Calculation. The mock adapter preserves the engine data.
+- **Built:** The PostgreSQL event journal supports five minutes of replay. Consumers wake
+  through LISTEN/NOTIFY and recheck memberships and sessions before delivery. The notification
+  inbox supports read state, access filtering, and transactional email enqueue. Organisation
+  attention reports open work only for projects the actor can see.
+- **Verified:** 59 Duplex tests including structured trace reconciliation. Maven verified six
+  integration tests against PostgreSQL, with one native workflow also using MinIO, a Python
+  worker, and HTTP SSE. That workflow observed job replay and session replacement.
+- **Remaining:** Realtime browser acceptance with the pilot identity provider, near-limit and
+  newer-model notification kinds, SMTP delivery, and journal retention.
 
 ### 2026-11-16 — BE-009 through BE-012 BoQ workflows (backend agent)
 - **Built:** Java BoQ and revision lifecycle, review transitions, decision and adjustment endpoints, model and preset input snapshots, native run ingestion with PostgreSQL COPY, server-side line and diff paging, coverage, Excel job and report endpoints, and CSV exports. Saved versions retain their run, adjustments and export ID in the same transaction that opens the next draft.
