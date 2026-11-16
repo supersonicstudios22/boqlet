@@ -13,6 +13,18 @@ defaults:
     working-directory: boqlet_v1
 
 jobs:
+  api:
+    name: Java API and PostgreSQL integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - run: mvn -B -ntp -f services/api/pom.xml verify
+
   contract:
     name: Contract (lint, codegen drift)
     runs-on: ubuntu-latest

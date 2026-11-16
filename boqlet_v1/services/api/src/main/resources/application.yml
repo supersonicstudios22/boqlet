@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: boqlet-api
+  datasource:
+    url: ${BOQLET_JDBC_URL}
+    username: ${BOQLET_DB_USER}
+    password: ${BOQLET_DB_PASSWORD}
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  main:
+    keep-alive: true
+server:
+  port: ${BOQLET_API_PORT:8080}
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
