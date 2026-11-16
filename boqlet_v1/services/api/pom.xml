@@ -115,6 +115,13 @@
                                     <!-- Spring generator emits an invalid string enum for a boolean const. -->
                                     <replacefilter token="const: true"
                                                    value="x-field-extra-annotation: '@jakarta.validation.constraints.AssertTrue'"/>
+                                    <!-- Preserve omitted settings so PATCH merges only provided fields. -->
+                                    <replacefilter token="publicLinksAllowed: { type: boolean, default: true }"
+                                                   value="publicLinksAllowed: { type: boolean }"/>
+                                    <replacefilter token="approvalRequired: { type: boolean, default: false,"
+                                                   value="approvalRequired: { type: boolean,"/>
+                                    <replacefilter token="defaultLanguage: { type: string, default: en }"
+                                                   value="defaultLanguage: { type: string }"/>
                                 </replace>
                                 <!-- The unit union contains an unrestricted string, which subsumes its enum. -->
                                 <replaceregexp

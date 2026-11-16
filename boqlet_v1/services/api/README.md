@@ -30,3 +30,11 @@ Use `BOQLET_SECURE_COOKIE=false` for local development over HTTP. The default is
 
 The integration tests use a test-only JWT decoder with PostgreSQL in Docker. Real OIDC
 provider configuration and browser sign-in are verified separately.
+
+## Invitations
+
+Set `BOQLET_INVITATION_SECRET` to a randomly generated secret of at least 32 bytes.
+Use the same value across API processes and the mail sender. Invitation creation,
+resend, and revocation commit with their audit and outbox changes. The link is valid
+for fourteen days. Resending rotates the token and cancels undelivered messages for
+the old link. SMTP delivery is tracked in BE-020.

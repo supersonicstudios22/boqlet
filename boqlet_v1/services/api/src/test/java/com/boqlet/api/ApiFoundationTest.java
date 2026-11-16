@@ -2,8 +2,11 @@ package com.boqlet.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,6 +16,7 @@ import com.boqlet.api.audit.AuditWriter.ActorKind;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.http.Idempotency;
 import com.boqlet.api.http.RequestContext;
+import com.boqlet.api.org.Invitations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.time.Instant;
@@ -34,6 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -54,7 +59,8 @@ class ApiFoundationTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
-        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test");
+        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test");
+        properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
     }
 
     @Autowired MockMvc http;
@@ -62,6 +68,7 @@ class ApiFoundationTest {
     @Autowired Idempotency idempotency;
     @Autowired AuditWriter audit;
     @Autowired JdbcTemplate database;
+    @Autowired Invitations invitations;
 
     @Test
     void healthUsesPostgresqlAndPreservesTheRequestId() throws Exception {
@@ -142,8 +149,68 @@ class ApiFoundationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.session.id").value(second.getValue()));
     }
 
-    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder openSession(String token,
-            boolean takeover) {
+    @Test
+    void organisationRolesAndInviteSeatReservation() throws Exception {
+        var owner = session("owner");
+        var created = http.perform(auth(post("/api/v1/orgs"), "owner", owner).content("""
+                {"name":"Pilot Studio","slug":"pilot-studio","settings":{"publicLinksAllowed":false}}
+                """)).andExpect(status().isCreated()).andExpect(jsonPath("$.planId").value("free"))
+                .andReturn().getResponse().getContentAsString();
+        String org = "/api/v1/orgs/" + json.readTree(created).path("id").asText();
+        http.perform(auth(patch(org), "owner", owner).content("{\"settings\":{\"defaultCurrency\":\"GBP\"}}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.settings.publicLinksAllowed").value(false))
+                .andExpect(jsonPath("$.settings.defaultCurrency").value("GBP"));
+        http.perform(auth(get(org + "/setup"), "owner", owner)).andExpect(status().isNoContent());
+
+        var invite = http.perform(auth(post(org + "/invitations"), "owner", owner).content("""
+                {"email":"guest@example.test","role":"library_editor"}
+                """)).andExpect(status().isCreated()).andExpect(jsonPath("$.token").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        UUID inviteId = UUID.fromString(json.readTree(invite).path("id").asText());
+        UUID nonce = database.queryForObject("SELECT delivery_nonce FROM org_invitations WHERE id = ?", UUID.class, inviteId);
+        String oldToken = invitations.deliveryToken(inviteId, nonce);
+        http.perform(get("/api/v1/invitations/" + oldToken)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("pending"));
+        http.perform(auth(post(org + "/invitations"), "owner", owner).content("""
+                {"email":"other@example.test","role":"member"}
+                """)).andExpect(status().isPaymentRequired()).andExpect(jsonPath("$.details.limit").value("seats"));
+        http.perform(auth(post(org + "/invitations/" + inviteId + "/resend"), "owner", owner))
+                .andExpect(status().isOk());
+        http.perform(get("/api/v1/invitations/" + oldToken)).andExpect(status().isNotFound());
+        nonce = database.queryForObject("SELECT delivery_nonce FROM org_invitations WHERE id = ?", UUID.class, inviteId);
+        String accept = "/api/v1/invitations/" + invitations.deliveryToken(inviteId, nonce) + "/accept";
+        var guest = session("guest");
+        http.perform(auth(get(org), "guest", guest)).andExpect(status().isNotFound());
+        http.perform(auth(post(accept), "owner", owner)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("email_mismatch"));
+        http.perform(auth(post(accept), "guest", guest)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("library_editor"));
+        http.perform(auth(patch(org), "guest", guest).content("{\"name\":\"Forbidden rename\"}"))
+                .andExpect(status().isForbidden());
+        http.perform(auth(put(org + "/setup"), "guest", guest).content("{\"status\":\"done\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.completedAt").exists());
+        http.perform(auth(get(org + "/audit?limit=1&action=org.setup_done"), "owner", owner))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].action").value("org.setup_done"));
+
+        UUID ownerId = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        http.perform(auth(delete(org + "/members/" + ownerId), "owner", owner)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("last_owner"));
+        http.perform(auth(delete(org), "owner", owner).content("{\"confirmName\":\"Pilot Studio\"}"))
+                .andExpect(status().isAccepted());
+        http.perform(auth(get(org), "guest", guest)).andExpect(status().isNotFound());
+    }
+
+    private Cookie session(String token) throws Exception {
+        return http.perform(openSession(token, false)).andExpect(status().isCreated())
+                .andReturn().getResponse().getCookie("boqlet_session");
+    }
+
+    private static MockHttpServletRequestBuilder auth(MockHttpServletRequestBuilder request, String token, Cookie cookie) {
+        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).cookie(cookie)
+                .contentType(MediaType.APPLICATION_JSON);
+    }
+
+    private MockHttpServletRequestBuilder openSession(String token, boolean takeover) {
         return post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"deviceLabel\":\"Test browser\",\"takeover\":" + takeover + "}");
@@ -156,7 +223,7 @@ class ApiFoundationTest {
             return token -> {
                 String subject = switch (token) {
                     case "pilot-a", "pilot-b" -> "pilot";
-                    case "uninvited", "unverified" -> token;
+                    case "uninvited", "unverified", "owner", "guest" -> token;
                     default -> throw new JwtException("Invalid test token.");
                 };
                 Instant now = Instant.now();
