@@ -35,6 +35,7 @@ from .log import CalcLog
 from .measure import build as measure, building_measures
 from .names import Resolver, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
+from .trace_steps import finish as finish_trace
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
 
 INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind", "_manual_codes", "_text_context")
@@ -329,10 +330,11 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
 
     out_lines = []
     for l in sorted(lines, key=sort_key):
+        if l.get("quantity") is not None:
+            l["quantity"] = round(l["quantity"], 6)
+        finish_trace(l)
         bl = {k: v for k, v in l.items() if k not in INTERNAL}
         bl.setdefault("codes", {})
-        if bl.get("quantity") is not None:
-            bl["quantity"] = round(bl["quantity"], 6)
         out_lines.append(bl)
     blocking = [q for q in questions if q["blocking"]]
     status = "needs_input" if blocking else "complete"

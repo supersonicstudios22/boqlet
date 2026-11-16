@@ -20,6 +20,7 @@ from collections import Counter, defaultdict
 from .expr import Expr, fmt
 from .log import CalcLog
 from .templates import render as render_template
+from .trace_steps import collect, quantity_delta, slot, step
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
 UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
@@ -212,7 +213,7 @@ class RuleEngine:
         return select(sel, el, self.x, self.val, self.ctx(el))
 
     # ---------------------------------------------------------------- quantities
-    def deductions(self, gross: float, rules: list[dict], part: dict, per: str) -> tuple[float, list[str]]:
+    def deductions(self, gross: float, rules: list[dict], part: dict, per: str, trace=None, faces=1) -> tuple[float, list[str]]:
         """Apply DeductionRule[] to a gross value. per = 'area' | 'volume' | 'length'."""
         notes, total = [], 0.0
         thickness = part.get("thickness") or 0
@@ -277,10 +278,20 @@ class RuleEngine:
                 msg += f", threshold {fmt(t)} by {by}"
             msg += f"{'; ' + str(kept) + ' kept' if kept else ''})"
             notes.append(msg)
+            if trace is not None:
+                data = dict(what=what, count=len(chosen) * faces, kept=kept * faces, mode=mode)
+                if mode != "all":
+                    data.update(threshold=t, compareBy=by)
+                if mode_slot := slot(d.get("mode")):
+                    data["modeParam"] = mode_slot
+                code = {"all": "all", "excess_only": "excess"}.get(mode, "over_threshold")
+                trace.append(step("deduct", f"deduct.{code}", -ded * faces, data, slot(d.get("threshold"))))
             if self.val(d.get("addReveals")) and per == "area" and chosen and what != "embedded":
                 rev = sum((2 * (o["height"] or 0) + (o["width"] or 0)) * (o.get("depth") or thickness) for o in chosen)
                 total -= rev
                 notes.append(f"+ {fmt(round(rev, 4))} reveals")
+                if trace is not None:
+                    trace.append(step("add", "add.reveals", rev * faces))
         return gross - total, notes
 
     def surface_values(self, part: dict, surface: str) -> tuple[float | None, float | None, str]:
@@ -316,10 +327,14 @@ class RuleEngine:
             return v, v, "edges (perimeter x thickness)"
         return g, n, surface
 
-    def quantity(self, spec: dict, part: dict) -> tuple[float | None, str, str]:
+    def quantity(self, spec: dict, part: dict, trace=None) -> tuple[float | None, str, str]:
         """(value in SI or None, unit, explanation)."""
         k = spec["kind"]
         unit = spec.get("unit") or UNIT_DEFAULT.get(k, "nr")
+
+        def gross(value, **params):
+            if trace is not None:
+                trace.append(step("start", f"start.{k}", value, {"count": 1, **params}))
         if k == "count":
             return 1.0, unit, "count = 1"
         if k == "perimeter":
@@ -331,8 +346,9 @@ class RuleEngine:
             v = part.get(field)
             if v is None:
                 return None, unit, f"length ({basis}) missing"
+            gross(v, basis=basis)
             if spec.get("deductions"):
-                v, notes = self.deductions(v, spec["deductions"], part, "length")
+                v, notes = self.deductions(v, spec["deductions"], part, "length", trace)
                 return v, unit, f"length ({basis}) {fmt(part.get(field))} " + " ".join(notes)
             return v, unit, f"length ({basis}) = {fmt(round(v, 4))}"
         if k == "area":
@@ -342,15 +358,18 @@ class RuleEngine:
             if spec.get("deductions"):
                 if g is None:
                     return None, unit, f"area ({label}) missing"
+                gross(g, surface=surface, start="gross")
                 if surface == "both":                      # deduct openings from each face
-                    one, notes = self.deductions(g / 2, spec["deductions"], part, "area")
+                    one, notes = self.deductions(g / 2, spec["deductions"], part, "area", trace, faces=2)
                     v = 2 * one
                     notes = [n + " per face" for n in notes]
                 else:
-                    v, notes = self.deductions(g, spec["deductions"], part, "area")
+                    v, notes = self.deductions(g, spec["deductions"], part, "area", trace)
                 return v, unit, (f"area ({label}, gross {fmt(round(g, 4))}) {' '.join(notes)} = {fmt(round(v, 4))}" if notes
                                  else f"area ({label}) = {fmt(round(v, 4))} (no openings to deduct)")
             v = g if start == "gross" else n
+            if v is not None:
+                gross(v, surface=surface, start=start)
             return v, unit, f"area ({label}, {start}) = {fmt(round(v, 4)) if v is not None else 'missing'}"
         if k == "volume":
             start = self.val(spec.get("start")) or "net"
@@ -358,10 +377,13 @@ class RuleEngine:
                 g = part.get("gross_volume")
                 if g is None:
                     return None, unit, "volume missing"
-                v, notes = self.deductions(g, spec["deductions"], part, "volume")
+                gross(g, start="gross")
+                v, notes = self.deductions(g, spec["deductions"], part, "volume", trace)
                 return v, unit, (f"volume (gross {fmt(round(g, 4))}) {' '.join(notes)} = {fmt(round(v, 4))}" if notes
                                  else f"volume = {fmt(round(v, 4))} (no openings to deduct)")
             v = part.get("gross_volume" if start == "gross" else "net_volume")
+            if v is not None:
+                gross(v, start=start)
             return v, unit, f"volume ({start}) = {fmt(round(v, 4)) if v is not None else 'missing'}"
         if k == "mass":
             basis = self.val(spec.get("basis")) or "volume_density"
@@ -386,12 +408,12 @@ class RuleEngine:
             pick = self.val(spec["pick"])
             if pick not in spec["options"]:
                 return None, "nr", f"choose: option '{pick}' not defined"
-            v, u, expl = self.quantity(spec["options"][pick], part)
+            v, u, expl = self.quantity(spec["options"][pick], part, trace)
             return v, u, f"[{pick}] {expl}"
         if k == "when":
             cond_val, cond_txt = self.x.explain(spec["if"], self.ctx(part))
             branch = "then" if cond_val else "else"
-            v, u, expl = self.quantity(spec[branch], part)
+            v, u, expl = self.quantity(spec[branch], part, trace)
             return v, u, f"when {cond_txt} -> {branch}: {expl}"
         if k == "formula":
             v, txt = self.x.explain(self.val(spec["expr"]) or "", self.ctx(part))
@@ -592,7 +614,8 @@ class RuleEngine:
 
     def add_part(self, item: dict, el: dict, part: dict):
         rid = item["id"]
-        v, unit, expl = self.quantity(item["quantity"], part)
+        part_steps = []
+        v, unit, expl = self.quantity(item["quantity"], part, part_steps)
         note = None
         source = "measured"
         if v is None:
@@ -619,20 +642,30 @@ class RuleEngine:
                 note = "waiting for user input"
             else:
                 note = f"missing: {expl}"
+        if not part_steps:
+            kind = item["quantity"]["kind"]
+            code = kind if kind in UNIT_DEFAULT else "value"
+            part_steps.append(step("start", f"start.{code if v is not None else 'missing'}", v, {"count": 1}))
         factor = self.val(item.get("factor"))
         if v is not None and factor not in (None, 1):
             expl += f"; x factor {fmt(factor)}"
+            part_steps.extend(quantity_delta(v, v * factor, "factor", "factor", {"factor": factor}, slot(item.get("factor"))))
             v *= factor
         mn = item.get("minimum")
         if v is not None and mn and self.val(mn.get("per")) == "element":
             m = self.val(mn["value"])
             if v < m:
                 expl += f"; raised to minimum {fmt(m)}"
+                part_steps.extend(quantity_delta(v, m, "add", "add.minimum", {"minimum": self.convert(m, unit)}, slot(mn["value"])))
                 v = m
+        for item_step in part_steps:
+            item_step["value"] = self.convert(item_step["value"], unit)
         v = self.convert(v, unit)
         rnd = item.get("rounding") or self.defaults.get("rounding")
         if rnd and self.val(rnd.get("at")) == "element":
-            v = self.round_(v, rnd)
+            rounded = self.round_(v, rnd)
+            part_steps.extend(quantity_delta(v, rounded, "round", "round", param=slot(rnd["step"])))
+            v = rounded
         # line key
         keys = {}
         for k in item.get("lineKey", []):
@@ -662,6 +695,7 @@ class RuleEngine:
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
                                           "name": (el.get("name") or "") + (f" [{part['_part']}]" if part.get("_part") else ""),
                                           "quantity": None if v is None else round(v, 6), "note": note or expl})
+        collect(line, part_steps, el["guid"])
         line["_parts"].append(part)
         if v is None:
             line["_missing"] += 1
@@ -703,10 +737,13 @@ class RuleEngine:
                 m = self.convert(self.val(mn["value"]), line["unit"])
                 if line["quantity"] < m:
                     line["notes"].append(f"raised to line minimum {fmt(m)}")
+                    collect(line, quantity_delta(line["quantity"], m, "add", "add.minimum", {"minimum": m}, slot(mn["value"])))
                     line["quantity"] = m
             rnd = item.get("rounding") or self.defaults.get("rounding")
             if rnd and self.val(rnd.get("at", "line")) == "line":
-                line["quantity"] = self.round_(line["quantity"], rnd)
+                rounded = self.round_(line["quantity"], rnd)
+                collect(line, quantity_delta(line["quantity"], rounded, "round", "round", param=slot(rnd["step"])))
+                line["quantity"] = rounded
             # summary fields for classification / grouping
             vals = {f: Counter(_key(p.get(f)) for p in parts) for f in MIXABLE}
             line["_fields"] = {f: _unkey(c.most_common(1)[0][0]) for f, c in vals.items()}
@@ -787,6 +824,11 @@ class RuleEngine:
                         if model_id := sctx.get("model_id"):
                             trace["model"] = model_id
                         line["trace"]["elements"].append(trace)
+                        collect(line, [step("derive", "derive.missing" if v is None else "derive", v, {
+                            "formula": self.val(d["quantity"]), "sourceLine": srcline["key"],
+                            "sourceDescription": srcline["description"], "sourceLines": [srcline["key"]],
+                            "lines": 1, "count": 1,
+                        }, slot(d["quantity"]))], guid)
                         if v is None:
                             line["_missing"] += 1
                         else:
@@ -808,7 +850,9 @@ class RuleEngine:
                 line["notes"].append(f"{line['_missing']} source(s) had no value")
             rnd = next((x.get("rounding") for x in self.rules.get("derived", []) if x["id"] == line["ruleId"]), None) \
                 or self.defaults.get("rounding")
-            line["quantity"] = self.round_(line["quantity"], rnd)
+            rounded = self.round_(line["quantity"], rnd)
+            collect(line, quantity_delta(line["quantity"], rounded, "round", "round", param=slot(rnd["step"]) if rnd else None))
+            line["quantity"] = rounded
             for k in ("_missing", "_count"):
                 line.pop(k)
             self.log.info("derived", f"line '{line['description']}' = {fmt(line['quantity']) if line['quantity'] is not None else 'FLAGGED'} {line['unit']}",
@@ -840,6 +884,8 @@ class RuleEngine:
                     ([] if q is not None else ["no model behind this line: quantity to be entered"]),
                     "_fields": {"manual_kind": m["kind"]}, "_mixed": [], "_manual_kind": m["kind"],
                     "_manual_codes": m.get("codes", {}), "location": {}}
+            collect(line, [step("start", "manual" if q is not None else "manual.missing", line["quantity"],
+                                {"formula": formula} if m.get("formula") else {})])
             lines.append(line)
             self.log.info("manual", f"manual item '{line['description']}' ({m['kind']}): "
                           f"{fmt(line['quantity']) + ' ' + line['unit'] if q is not None else 'quantity to be entered'}",

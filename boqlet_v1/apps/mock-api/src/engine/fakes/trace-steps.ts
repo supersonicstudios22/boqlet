@@ -271,6 +271,11 @@ export function addTraceSteps(result: BoqResult, authors: EditAuthors) {
   }
   const items = new Map(((result.ruleSet as { items?: { id: string; quantity?: unknown }[] }).items ?? []).map((i) => [i.id, i.quantity]));
   for (const line of lines) {
+    if (line.trace.steps?.length) {
+      const by = authors(line.key);
+      if (by) for (const step of line.trace.steps) if (step.kind === "edit") step.params.by = by;
+      continue;
+    }
     const edit = line.overridden?.fields.includes("quantity") ? line.overridden : undefined;
     const engineQuantity = edit ? (edit.engineQuantity ?? null) : line.quantity;
     const engineUnit = (edit?.engineUnit ?? line.unit) as BoqLine["unit"];

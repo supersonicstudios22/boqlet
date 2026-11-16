@@ -38,7 +38,7 @@ a fake are marked "(fake)" in phase-1 test runs and re-checked in phase 3.
 
 | Fake | What the mock does in phase 1 | Known gap until the real task | Replaced by |
 |---|---|---|---|
-| Trace steps | Builds `trace.steps` after the run from the existing trace (formula, params, element shares and their notes): start (gross), deduct per kind of opening with the threshold's slot, reveals, factor, line minimum, rounding, derive (source lines found by element GlobalId), manual, edit (with its author and reason), result; values add up to the quantity (`engine/fakes/trace-steps.ts`, FE-013) | Approximate wording; a line whose element notes can't be read is one start step with the elements' sum | EN-013 |
+| Trace steps | Native runs provide structured steps from the calculation. The adapter adds edit author metadata. | The optional legacy engine still uses the approximate trace step adapter. | EN-013 |
 | Pricing workbooks (MP1) | SheetJS for offer request and pricebook workbooks | Simplified layouts | EN-P1 |
 
 ## What it implements

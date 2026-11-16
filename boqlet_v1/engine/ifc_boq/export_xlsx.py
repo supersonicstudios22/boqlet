@@ -20,6 +20,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from .sheets.boq_import import annotate
+from .trace_steps import describe as describe_step
 
 F = "Arial"
 H_FONT = Font(name=F, size=10, bold=True, color="FFFFFF")
@@ -199,6 +200,9 @@ def export(result: dict, meta: dict) -> bytes:
                      f"{l['trace']['formula']}" + (f"   [{params}]" if params else ""), ""], BOLD, SEC_FILL, wrap_cols=(1, 4))
         wc.cell(row=r, column=2).number_format = _qfmt(l["unit"])
         r += 1
+        for item in l["trace"].get("steps", []):
+            _row(wc, r, ["    " + describe_step(item), item["value"], item.get("unit"), "", ""], SMALL)
+            r += 1
         for e in l["trace"]["elements"]:
             _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], e.get("note"), e["guid"]],
                  NORMAL, None, wrap_cols=(1, 4))
