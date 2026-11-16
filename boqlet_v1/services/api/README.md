@@ -38,3 +38,11 @@ Use the same value across API processes and the mail sender. Invitation creation
 resend, and revocation commit with their audit and outbox changes. The link is valid
 for fourteen days. Resending rotates the token and cancels undelivered messages for
 the old link. SMTP delivery is tracked in BE-020.
+
+## Pilot plans and projects
+
+Flyway seeds the plans and the built-in Library. New organisations get the plan
+marked default and new projects get the current published defaults plus an empty
+project dictionary. Pilot subscriptions use the manual provider. The API checks
+the stored plan and overrides, records limit denials, and counts usage by UTC
+calendar month. Only non-sample active projects use an active-project slot.

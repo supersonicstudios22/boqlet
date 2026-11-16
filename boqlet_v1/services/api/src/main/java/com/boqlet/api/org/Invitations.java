@@ -1,7 +1,8 @@
 package com.boqlet.api.org;
 
+import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
-import com.boqlet.api.db.StoredJson;
+import com.boqlet.api.http.ApiException;
 import com.boqlet.api.identity.IdentityService;
 import com.boqlet.contract.model.InviteMemberRequest;
 import com.boqlet.contract.model.Membership;
@@ -9,7 +10,6 @@ import com.boqlet.contract.model.OrgInvitation;
 import com.boqlet.contract.model.OrgRole;
 import com.boqlet.contract.model.PreviewOrgInvitation200Response;
 import com.boqlet.contract.model.UserRef;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -46,16 +46,16 @@ public class Invitations {
     private final OrgAccess access;
     private final Orgs orgs;
     private final IdentityService identities;
-    private final StoredJson json;
+    private final EntitlementService limits;
     private final byte[] deliverySecret;
 
-    Invitations(JdbcTemplate database, OrgAccess access, Orgs orgs, IdentityService identities, StoredJson json,
+    Invitations(JdbcTemplate database, OrgAccess access, Orgs orgs, IdentityService identities, EntitlementService limits,
                 @Value("${boqlet.auth.invitation-secret:}") String secret) {
         this.database = database;
         this.access = access;
         this.orgs = orgs;
         this.identities = identities;
-        this.json = json;
+        this.limits = limits;
         this.deliverySecret = secret.getBytes(StandardCharsets.UTF_8);
     }
 
@@ -82,11 +82,7 @@ public class Invitations {
                 """, org, email)) {
             throw Orgs.failure(HttpStatus.CONFLICT, "already_invited", "This address already has a pending invitation.");
         }
-        JsonNode maximum = json.read(orgs.effectiveLimits(org), JsonNode.class).path("seats");
-        if (maximum.isIntegralNumber()) {
-            long used = seats(org);
-            if (used >= maximum.asLong()) throw Orgs.limit("seats", used, maximum.asLong());
-        }
+        limits.checkCapacity(org, actor, "seats", limits.seats(org));
         UUID id = Ids.newId();
         UUID nonce = UUID.randomUUID();
         database.update("""
@@ -98,13 +94,6 @@ public class Invitations {
         return get(org, id).invitation();
     }
 
-    long seats(UUID org) {
-        return database.queryForObject("""
-                SELECT (SELECT count(*) FROM memberships WHERE org_id = ?)
-                     + (SELECT count(*) FROM org_invitations WHERE org_id = ? AND status = 'pending' AND expires_at > now())
-                """, Long.class, org, org);
-    }
-
     @Transactional
     public OrgInvitation resend(UUID org, UUID actor, UUID id) {
         var scope = access.lock(org, actor, OWNER, ADMIN);
@@ -112,9 +101,7 @@ public class Invitations {
         if (row.invitation().getRole() == OWNER) OrgAccess.checkRole(scope.role(), OWNER);
         if (!row.storedStatus().equals("pending")) throw invalidStatus(row.storedStatus());
         if (row.invitation().getStatus() == OrgInvitation.StatusEnum.EXPIRED) {
-            JsonNode limit = json.read(orgs.effectiveLimits(org), JsonNode.class).path("seats");
-            long used = seats(org);
-            if (limit.isIntegralNumber() && used >= limit.asLong()) throw Orgs.limit("seats", used, limit.asLong());
+            limits.checkCapacity(org, actor, "seats", limits.seats(org));
             if (exists("""
                     SELECT EXISTS (SELECT 1 FROM org_invitations WHERE org_id = ? AND lower(email) = ?
                     AND status = 'pending' AND expires_at > now())
@@ -163,7 +150,7 @@ public class Invitations {
         }
         if (invite.getStatus() != OrgInvitation.StatusEnum.PENDING) throw invalidStatus(invite.getStatus().getValue());
         if (!invite.getEmail().equalsIgnoreCase(identities.user(actor).getEmail())) {
-            throw new com.boqlet.api.http.ApiException(HttpStatus.CONFLICT, "email_mismatch",
+            throw new ApiException(HttpStatus.CONFLICT, "email_mismatch",
                     "The invitation was sent to another email address.", Map.of("invitedEmail", invite.getEmail()));
         }
         int joined = database.update("""
@@ -221,8 +208,8 @@ public class Invitations {
                 """, org, invitation);
     }
 
-    private static com.boqlet.api.http.ApiException invalidStatus(String status) {
-        return new com.boqlet.api.http.ApiException(HttpStatus.CONFLICT, "invalid_transition",
+    private static ApiException invalidStatus(String status) {
+        return new ApiException(HttpStatus.CONFLICT, "invalid_transition",
                 "The invitation is " + status + ".", Map.of("status", status));
     }
 

@@ -1,13 +1,13 @@
 package com.boqlet.api.org;
 
 import com.boqlet.api.audit.AuditWriter;
+import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.http.RequestContext;
 import com.boqlet.api.identity.IdentityService;
 import com.boqlet.contract.model.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -38,13 +38,16 @@ public class Orgs {
     private final StoredJson json;
     private final IdentityService identities;
     private final AuditWriter audit;
+    private final EntitlementService limits;
 
-    Orgs(JdbcTemplate database, OrgAccess access, StoredJson json, IdentityService identities, AuditWriter audit) {
+    Orgs(JdbcTemplate database, OrgAccess access, StoredJson json, IdentityService identities, AuditWriter audit,
+         EntitlementService limits) {
         this.database = database;
         this.access = access;
         this.json = json;
         this.identities = identities;
         this.audit = audit;
+        this.limits = limits;
     }
 
     @Transactional
@@ -54,8 +57,7 @@ public class Orgs {
         UUID org = Ids.newId();
         ObjectNode settings = merge(json.object(DEFAULT_SETTINGS), request.getSettings());
         String plan = database.queryForObject("SELECT id FROM plans WHERE default_plan", String.class);
-        checkApproval(settings, null, database.queryForObject(
-                "SELECT entitlements::text FROM plans WHERE id = ?", String.class, plan));
+        if (approvalEnabled(settings)) limits.requirePlanFeature(plan, "approvalWorkflow");
         int created = database.update("""
                 INSERT INTO orgs (id, name, slug, settings) VALUES (?, ?, ?, CAST(? AS jsonb))
                 ON CONFLICT (slug) DO NOTHING
@@ -74,7 +76,9 @@ public class Orgs {
         if (!slug.equals(current.getSlug())) checkSlug(slug);
         String displayName = request.getName() == null ? current.getName() : name(request.getName());
         ObjectNode settings = merge(json.object(current.getSettings()), request.getSettings());
-        checkApproval(settings, current.getSettings().getApprovalRequired(), effectiveLimits(org));
+        if (approvalEnabled(settings) && !approvalEnabled(json.object(current.getSettings()))) {
+            limits.requireFeature(org, actor, "approvalWorkflow");
+        }
         try {
             database.update("""
                     UPDATE orgs SET name = ?, slug = ?, settings = CAST(? AS jsonb), updated_at = now() WHERE id = ?
@@ -167,13 +171,6 @@ public class Orgs {
         record(org, actor, "member.removed", "user", user, Map.of("role", oldRole.getValue(), "left", self));
     }
 
-    String effectiveLimits(UUID org) {
-        return database.queryForObject("""
-                SELECT (p.entitlements || s.overrides)::text FROM subscriptions s
-                JOIN plans p ON p.id = s.plan_id WHERE s.org_id = ?
-                """, String.class, org);
-    }
-
     void record(UUID org, UUID actor, String action, String type, UUID subject, Map<String, ?> data) {
         audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.USER, null, action, type, subject,
                 json.object(data));
@@ -213,16 +210,8 @@ public class Orgs {
         return target;
     }
 
-    private void checkApproval(ObjectNode settings, Boolean previous, String limits) {
-        boolean enabled = settings.path("approvalRequired").asBoolean() || settings.path("fourEyes").asBoolean();
-        if (enabled && !Boolean.TRUE.equals(previous) && !json.read(limits, JsonNode.class).path("approvalWorkflow").asBoolean()) {
-            throw limit("approvalWorkflow", 0, 0);
-        }
-    }
-
-    static ApiException limit(String key, long current, long max) {
-        return new ApiException(HttpStatus.PAYMENT_REQUIRED, "limit_reached", "The plan limit has been reached.",
-                Map.of("limit", key, "current", current, "max", max));
+    private boolean approvalEnabled(ObjectNode settings) {
+        return settings.path("approvalRequired").asBoolean() || settings.path("fourEyes").asBoolean();
     }
 
     private static String name(String value) {

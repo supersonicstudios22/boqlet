@@ -1,9 +1,9 @@
-package com.boqlet.api.org;
+package com.boqlet.api.audit;
 
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.contract.model.AuditEvent;
 import com.boqlet.contract.model.AuditPage;
-import com.boqlet.contract.model.OrgRole;
+import com.boqlet.api.http.ApiException;
 import com.boqlet.contract.model.UserRef;
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -14,20 +14,17 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-class OrgAudit {
-    private final OrgAccess access;
+public class AuditReader {
     private final NamedParameterJdbcTemplate database;
     private final StoredJson json;
 
-    OrgAudit(OrgAccess access, NamedParameterJdbcTemplate database, StoredJson json) {
-        this.access = access;
+    AuditReader(NamedParameterJdbcTemplate database, StoredJson json) {
         this.database = database;
         this.json = json;
     }
 
-    AuditPage page(UUID org, UUID actor, String cursor, int limit, String actorId, String action,
-                   String entityType, OffsetDateTime from, OffsetDateTime to) {
-        OrgAccess.checkRole(access.require(org, actor).role(), OrgRole.OWNER, OrgRole.ADMIN);
+    public AuditPage page(UUID org, UUID project, String cursor, int limit, String actorId, String action,
+                          String entityType, OffsetDateTime from, OffsetDateTime to) {
         int offset = offset(cursor);
         int count = Math.clamp(limit, 1, 1000);
         var parameters = new MapSqlParameterSource().addValue("org", org)
@@ -37,6 +34,7 @@ class OrgAudit {
                 LEFT JOIN users u ON u.id = a.actor_id AND u.deleted_at IS NULL
                 WHERE a.org_id = :org
                 """);
+        filter(sql, parameters, "project", "a.project_id = :project", project);
         filter(sql, parameters, "actor", "a.actor_id::text = :actor", actorId);
         filter(sql, parameters, "action", "a.action = :action", action);
         filter(sql, parameters, "entity", "a.entity_type = :entity", entityType);
@@ -53,8 +51,7 @@ class OrgAudit {
                 event.setActor(new UserRef(row.getObject("actor_id", UUID.class), row.getString("actor_name"))
                         .email(row.getString("actor_email")));
             }
-            event.setData(json.read(row.getString("data"), com.fasterxml.jackson.databind.node.ObjectNode.class)
-                    .isEmpty() ? Map.of() : json.read(row.getString("data"), Map.class));
+            event.setData(json.read(row.getString("data"), Map.class));
             return event;
         });
         return rows.size() > count ? new AuditPage(rows.subList(0, count)).nextCursor(Long.toString((long) offset + count))
@@ -69,7 +66,7 @@ class OrgAudit {
         } catch (NumberFormatException ignored) {
             // The API reports opaque cursors that cannot be reused.
         }
-        throw Orgs.failure(HttpStatus.BAD_REQUEST, "invalid_cursor", "The audit cursor is invalid.");
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_cursor", "The audit cursor is invalid.", Map.of());
     }
 
     private static void filter(StringBuilder sql, MapSqlParameterSource parameters, String key, String expression, Object value) {

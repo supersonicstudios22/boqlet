@@ -1,5 +1,6 @@
 package com.boqlet.api.org;
 
+import com.boqlet.api.audit.AuditReader;
 import com.boqlet.api.identity.Login;
 import com.boqlet.contract.api.OrgsApi;
 import com.boqlet.contract.model.*;
@@ -15,9 +16,9 @@ class OrgController implements OrgsApi {
     private final OrgAccess access;
     private final Orgs orgs;
     private final Invitations invitations;
-    private final OrgAudit audit;
+    private final AuditReader audit;
 
-    OrgController(OrgAccess access, Orgs orgs, Invitations invitations, OrgAudit audit) {
+    OrgController(OrgAccess access, Orgs orgs, Invitations invitations, AuditReader audit) {
         this.access = access;
         this.orgs = orgs;
         this.invitations = invitations;
@@ -111,7 +112,8 @@ class OrgController implements OrgsApi {
     @Override
     public ResponseEntity<AuditPage> listOrgAudit(UUID org, String cursor, Integer limit, String actorId, String action,
                                                  String entityType, OffsetDateTime from, OffsetDateTime to) {
-        return ResponseEntity.ok(audit.page(org, actor(), cursor, limit, actorId, action, entityType, from, to));
+        OrgAccess.checkRole(access.require(org, actor()).role(), OrgRole.OWNER, OrgRole.ADMIN);
+        return ResponseEntity.ok(audit.page(org, null, cursor, limit, actorId, action, entityType, from, to));
     }
 
     @Override

@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, engine worker and Java service |
 | Role | **Backend agent** |
-| Latest verified | EN-002 diffs, EN-005 previews, EN-008 Duplex revision fixture, and the BE-003 organisation and invitation routes |
-| Next task | BE-004 entitlement and usage endpoints, BE-005 projects, EN-013 structured traces, EN-006 round-trip workbooks, and then the remaining backend and worker tasks |
+| Latest verified | BE-004 entitlements and usage, BE-005 project and membership routes, and the Chromium FL-3 revision flow |
+| Next task | BE-006 model storage and BE-007 job dispatch and ingestion. EN-013 and EN-006 remain on the engine track. |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
-| In progress | BE-027 realtime and provider session revocation, BE-003 project attention and email delivery follow their dependent tasks. |
+| In progress | BE-005 sample project, attention and live project counts depend on models and BoQs. BE-027 realtime and provider revocation and BE-020 email delivery remain. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
 
 ## Entry template
@@ -45,8 +45,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ## Entries
 
+### 2026-11-16 — BE-004 entitlements and BE-005 project foundation (backend agent)
+- **Built:** database-backed plans, entitlement checks and overrides, audited limit denials, UTC monthly usage, manual pilot billing reads, project CRUD and archive, membership permissions, last-lead rule, project defaults and dictionary, and project audit. Flyway seeds the built-in Library from the repository presets. The organisation membership foreign key cascades project memberships when someone leaves.
+- **Verified:** the PostgreSQL HTTP integration test covers archive and restore, usage and double-ingestion protection, defaults, cross-tenant project visibility, project roles, last lead, and cascade on leaving. The pinned Chromium run of FL-3 passed using both real IFC revisions.
+- **Follow-up:** usage recording is connected to job completion in BE-007. Project counts, sample BoQ setup and attention need models, runs and revisions. Pilot checkout remains manual.
+
 ### 2026-11-16 — BE-003 organisation membership and invitations (backend agent)
-- **Built:** PostgreSQL organisation, membership, invitation, setup and audit routes. Organisation creation assigns the plan marked default from the seeded plans table. The application serializes membership writes on the organisation row so a concurrent leave or role change cannot remove the last owner. A pending invitation reserves a seat.
+- **Built:** `8639b0c`. PostgreSQL organisation, membership, invitation, setup and audit routes. Organisation creation assigns the plan marked default from the seeded plans table. The application serializes membership writes on the organisation row so a concurrent leave or role change cannot remove the last owner. A pending invitation reserves a seat.
 - **Verified:** Java build and five PostgreSQL integration tests pass. The HTTP workflow covers a partial settings update, invitation seat limit, public preview, token rotation, cross-tenant visibility, email matching, setup permissions and audit, the last owner, and soft deletion.
 - **Decisions taken:** the transactional outbox stores invitation delivery metadata. The API stores a hash of the signed token, and the eventual sender derives the link from the nonce and the application secret. Resend cancels pending delivery rows and invalidates the old link.
 - **Follow-up:** the outbox awaits its SMTP sender in BE-020. Project-membership cascade and attention depend on project and BoQ state. Retention and deletion scheduling are BE-024.
@@ -59,7 +64,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ### 2026-11-16 — EN-002, EN-005 and EN-008 worker previews and revision diffs (backend agent)
 - **Built:** `4600534`. The worker computes Library previews and revision comparisons. The native diff understands parsed IFC material references and associates element changes with the logical model across versions. The reproducible Duplex v2 fixture removes a wall, changes a door type and adds a window. The golden diff checks five affected lines and three element changes.
-- **Verified:** the fixture generator is reproducible. The full local suite passed with 206 engine, 208 frontend, 60 mock unit, 177 shared contract and 169 scenario tests. Two existing scenario TODOs and one optional live-engine smoke were skipped. The focused browser check uses both Duplex revisions.
+- **Verified:** the fixture generator is reproducible. The full local suite passed with 206 engine, 208 frontend, 60 mock unit, 177 shared contract and 169 scenario tests. Two existing scenario TODOs and one optional live-engine smoke were skipped. The focused Chromium test passed with both Duplex revisions.
 - **Follow-up:** Excel change report rendering still runs through the mock subprocess until EN-006. Decision causes use run snapshots and question element IDs where available.
 
 ### 2026-11-16 — Engine classifications, wizard data and preset templates (backend agent)

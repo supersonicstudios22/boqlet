@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.boqlet.api.audit.AuditWriter;
 import com.boqlet.api.audit.AuditWriter.ActorKind;
+import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.http.Idempotency;
 import com.boqlet.api.http.RequestContext;
@@ -20,6 +21,7 @@ import com.boqlet.api.org.Invitations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -69,6 +71,7 @@ class ApiFoundationTest {
     @Autowired AuditWriter audit;
     @Autowired JdbcTemplate database;
     @Autowired Invitations invitations;
+    @Autowired EntitlementService entitlements;
 
     @Test
     void healthUsesPostgresqlAndPreservesTheRequestId() throws Exception {
@@ -193,6 +196,50 @@ class ApiFoundationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].action").value("org.setup_done"));
 
         UUID ownerId = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        UUID guestId = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'guest'", UUID.class);
+        UUID orgId = UUID.fromString(json.readTree(created).path("id").asText());
+        var projectResponse = http.perform(auth(post(org + "/projects"), "owner", owner)
+                .content("{\"name\":\"Architecture\"}")).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.currency").value("GBP")).andExpect(jsonPath("$.projectDictionaryId").exists())
+                .andExpect(jsonPath("$.defaults.ruleSetVersionId").exists())
+                .andExpect(jsonPath("$.defaults.dictionaryVersionIds[0]").exists())
+                .andExpect(jsonPath("$.permissions.editModels").value(true)).andReturn().getResponse().getContentAsString();
+        UUID projectId = UUID.fromString(json.readTree(projectResponse).path("id").asText());
+        String project = "/api/v1/projects/" + projectId;
+        http.perform(auth(get(org + "/projects?q=arch"), "owner", owner)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(projectId.toString()));
+        http.perform(auth(get(project), "guest", guest)).andExpect(status().isNotFound());
+        http.perform(auth(post(project + "/members"), "owner", owner)
+                .content("{\"userId\":\"" + guestId + "\",\"role\":\"viewer\"}"))
+                .andExpect(status().isCreated());
+        http.perform(auth(get(project), "guest", guest)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.editModels").value(false));
+        http.perform(auth(delete(project + "/members/" + ownerId), "owner", owner))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("last_lead"));
+        http.perform(auth(post(org + "/projects"), "owner", owner).content("{\"name\":\"Over limit\"}"))
+                .andExpect(status().isPaymentRequired()).andExpect(jsonPath("$.details.limit").value("activeProjects"));
+        assertThat(database.queryForObject("SELECT count(*) FROM limit_events WHERE org_id = ?", Integer.class, orgId))
+                .isEqualTo(2);
+
+        UUID job = Ids.newId();
+        entitlements.recordUsage(orgId, projectId, job, "parse", OffsetDateTime.now(), 90_000, 512L, 5L, "succeeded");
+        entitlements.recordUsage(orgId, projectId, job, "parse", OffsetDateTime.now(), 90_000, 512L, 5L, "succeeded");
+        http.perform(auth(get(org + "/entitlements"), "guest", guest)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.usage.activeProjects").value(1))
+                .andExpect(jsonPath("$.usage.processingMinutesThisMonth").value(1.5));
+        http.perform(auth(get(org + "/usage"), "guest", guest)).andExpect(status().isForbidden());
+        http.perform(auth(get(org + "/usage"), "owner", owner)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.byProject[0].projectName").value("Architecture"))
+                .andExpect(jsonPath("$.byKind.parse").value(1.5));
+        http.perform(auth(post(project + "/archive"), "owner", owner)).andExpect(status().isOk());
+        http.perform(auth(patch(project), "owner", owner).content("{\"name\":\"Archived\"}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("project_archived"));
+        http.perform(auth(post(project + "/unarchive"), "owner", owner)).andExpect(status().isOk());
+        http.perform(auth(delete(org + "/members/" + guestId), "guest", guest)).andExpect(status().isNoContent());
+        http.perform(auth(get(project), "guest", guest)).andExpect(status().isNotFound());
+        assertThat(database.queryForObject("SELECT count(*) FROM project_members WHERE user_id = ?", Integer.class, guestId))
+                .isZero();
+
         http.perform(auth(delete(org + "/members/" + ownerId), "owner", owner)).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("last_owner"));
         http.perform(auth(delete(org), "owner", owner).content("{\"confirmName\":\"Pilot Studio\"}"))
