@@ -6,6 +6,7 @@ import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
+import com.boqlet.api.storage.ObjectStorage;
 import com.boqlet.contract.model.Job;
 import com.boqlet.contract.model.JobError;
 import com.boqlet.contract.model.JobProgress;
@@ -37,15 +38,17 @@ public class Jobs {
     private final EntitlementService limits;
     private final ProjectAccess projects;
     private final OrgAccess orgs;
+    private final ObjectStorage storage;
     private final Map<String, JobHandler> handlers;
 
-    Jobs(JdbcTemplate database, StoredJson json, EntitlementService limits, ProjectAccess projects, OrgAccess orgs,
+    Jobs(JdbcTemplate database, StoredJson json, EntitlementService limits, ProjectAccess projects, OrgAccess orgs, ObjectStorage storage,
          List<JobHandler> handlers) {
         this.database = database;
         this.json = json;
         this.limits = limits;
         this.projects = projects;
         this.orgs = orgs;
+        this.storage = storage;
         this.handlers = handlers.stream().collect(Collectors.toUnmodifiableMap(JobHandler::type, Function.identity()));
     }
 
@@ -80,6 +83,10 @@ public class Jobs {
     public Job get(UUID id, UUID actor) {
         var row = record(id);
         readable(row, actor);
+        var output = row.job().getOutput();
+        if (output != null && output.remove("previewObjectKey") instanceof String key) {
+            output.put("previewResultUrl", storage.download(key, "private, no-store", "application/json").toString());
+        }
         return row.job();
     }
 

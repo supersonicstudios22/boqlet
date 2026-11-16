@@ -3,6 +3,8 @@ package com.boqlet.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -27,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -139,14 +142,60 @@ class NativeWorkerTest {
         assertThat(glb).startsWith((byte) 'g', (byte) 'l', (byte) 'T', (byte) 'F');
         assertThat(perform(post(base + "/names").content("{}"), cookie, 200).path("names").size()).isGreaterThan(0);
         assertThat(perform(get("/api/v1/orgs/" + org + "/usage"), cookie, 200).path("byKind").has("parse")).isTrue();
+        verifyLibrary(org, version, cookie);
     }
 
-    private void awaitJob(String job, Cookie cookie) throws Exception {
+    private void verifyLibrary(String org, String modelVersion, Cookie cookie) throws Exception {
+        String library = "/api/v1/orgs/" + org + "/presets";
+        JsonNode system = perform(get(library + "?kind=rule_set&layer=system"), cookie, 200);
+        var asModelled = java.util.stream.StreamSupport.stream(system.spliterator(), false)
+                .filter(item -> item.path("slug").asText().equals("as-modelled")).findFirst().orElseThrow();
+        String parent = id(asModelled.path("latestPublishedVersion"));
+        var preset = perform(post(library).content("""
+                {"kind":"rule_set","name":"Studio rules","start":{"mode":"patch","fromVersionId":"%s"}}
+                """.formatted(parent)), cookie, 201);
+        String presetPath = "/api/v1/presets/" + id(preset);
+        String draftId = id(preset.path("draft"));
+        var draftResponse = http.perform(auth(get("/api/v1/preset-versions/" + draftId), cookie))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.flattened.items").isArray()).andReturn().getResponse();
+        String tag = draftResponse.getHeader("ETag");
+        var doc = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(draftResponse.getContentAsString()).path("doc");
+        doc.withObject("params").putObject("wall_opening_threshold").put("value", 0.5);
+        doc.withObject("params").putObject("wall_opening_mode").put("value", "over_threshold");
+        String save = json.createObjectNode().set("doc", doc).toString();
+        http.perform(auth(put(presetPath + "/draft").header("If-Match", tag).content(save), cookie))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.problems").isEmpty());
+        http.perform(auth(put(presetPath + "/draft").header("If-Match", tag).content(save), cookie))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("draft_conflict"));
+
+        String previewId = id(perform(post(presetPath + "/preview").content("""
+                {"modelVersionIds":["%s"],"compareWithPublished":true}
+                """.formatted(modelVersion)), cookie, 202));
+        var preview = awaitJob(previewId, cookie).path("output");
+        assertThat(preview.path("compare").path("versionId").asText()).isEqualTo(parent);
+        String url = preview.path("previewResultUrl").asText();
+        var report = NETWORK.send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(report.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(report.body()).path("lines").size()).isGreaterThan(0);
+        var redirect = http.perform(auth(get(presetPath + "/template.xlsx"), cookie)).andExpect(status().isFound())
+                .andReturn().getResponse().getHeader("Location");
+        byte[] template = NETWORK.send(HttpRequest.newBuilder(URI.create(redirect)).GET().build(),
+                HttpResponse.BodyHandlers.ofByteArray()).body();
+        var upload = new MockMultipartFile("file", "rules.xlsx", "application/octet-stream", template);
+        http.perform(auth(multipart(presetPath + "/template-import").file(upload), cookie)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.changes").isEmpty());
+        var published = perform(post(presetPath + "/publish").content("{\"changeNote\":\"Pilot settings\"}"), cookie, 200);
+        assertThat(published.path("status").asText()).isEqualTo("published");
+        assertThat(published.path("number").asInt()).isEqualTo(1);
+    }
+
+    private JsonNode awaitJob(String job, Cookie cookie) throws Exception {
         long until = System.nanoTime() + Duration.ofSeconds(120).toNanos();
         while (System.nanoTime() < until) {
             var state = perform(get("/api/v1/jobs/" + job), cookie, 200);
             String status = state.path("status").asText();
-            if ("succeeded".equals(status)) return;
+            if ("succeeded".equals(status)) return state;
             if ("failed".equals(status) || "cancelled".equals(status)) throw new AssertionError(state.toPrettyString());
             Thread.sleep(250);
         }

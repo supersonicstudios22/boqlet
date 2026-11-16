@@ -22,8 +22,8 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **2 (backend)**, engine worker and Java service |
 | Role | **Backend agent** |
-| Latest verified | EN-006 native workbook export and import, and BE-006/BE-007 native IFC upload and parse |
-| Next task | Finish BE-008 Library verification, then BoQ and run workflows (BE-009 through BE-012). EN-013 structured traces and EN-009 queue transport remain. |
+| Latest verified | BE-008 Library publish, preview and template workflows on Java and the native worker |
+| Next task | Complete BoQ and run workflows (BE-009 through BE-012). EN-013 structured traces and EN-009 queue transport remain. |
 | Waiting for the owner | Hosting and deployment deferred to the deployment session (P49) |
 | In progress | BE-005 sample project, attention and live project counts depend on models and BoQs. BE-027 realtime and provider revocation and BE-020 email delivery remain. |
 | Notes for the next session | Pilot access is invite-only and worker limits must be configurable (P49). Pricing remains deferred (P48). Use the shared contract and scenario suites against the mock now and against Java from M5. |
@@ -45,8 +45,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 ## Entries
 
+### 2026-11-16 — BE-008 Library (backend agent)
+- **Built:** PostgreSQL system, organisation and project presets with draft ETags and immutable published parent references, role checks, terms, native worker preview, format and template upload and export, and publication checks. Models in a preview must belong to one project. Signed preview URLs are refreshed when the permitted caller reads the job.
+- **Verified:** Maven `verify` passed six PostgreSQL tests with the native integration enabled. The native workflow makes an organisation rule-set patch, checks a stale ETag, compares a draft with its built-in parent through the worker, downloads and reimports its workbook, and publishes it.
+- **Follow-up:** preset usage depends on BoQ revision inputs. Federation and resolution drafts can run a preview. Their comparison output and full schema validation still need coverage.
+
 ### 2026-11-16 — EN-006 native workbooks (backend agent)
-- **Built:** worker jobs render BoQ and diff Excel files and return read-only BoQ edit reports. BoQ workbooks include cover metadata, positioning and working and plan watermarks. The hidden key column is locked and the exported line values are stored in a very hidden worksheet.
+- **Built:** `bb40eba`. Worker jobs render BoQ and diff Excel files and return read-only BoQ edit reports. BoQ workbooks include cover metadata, positioning and working and plan watermarks. The hidden key column is locked and the exported line values are stored in a very hidden worksheet.
 - **Verified:** full local suite passed with 206 Python tests, 208 app tests, 60 mock unit tests, 177 contract tests and 169 scenarios. The round-trip tests exercise quantity edit, move, exclusion, new manual line and invalid cells. The revision test renders the real Duplex diff. Excel and LibreOffice desktop checks remain.
 - **Decisions taken:** clearing a keyed row proposes an exclusion. This keeps exclusions possible while leaving the key locked. Standard Excel numeric cells retain their type and render separators using the spreadsheet application's locale. The cover records the project locale and number-format preference.
 

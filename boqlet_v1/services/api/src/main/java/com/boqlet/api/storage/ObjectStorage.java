@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
@@ -130,9 +131,28 @@ public class ObjectStorage {
                         .responseCacheControl(cacheControl).responseContentType(contentType))).url().toString());
     }
 
+    public URI downloadAttachment(String key, String contentType, String fileName) {
+        configured();
+        String encoded = java.net.URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+        return URI.create(presigner.presignGetObject(request -> request.signatureDuration(DOWNLOAD_TTL)
+                .getObjectRequest(object -> object.bucket(bucket).key(key).responseCacheControl("private, no-store")
+                        .responseContentDisposition("attachment; filename*=UTF-8''" + encoded)
+                        .responseContentType(contentType))).url().toString());
+    }
+
     public InputStream open(String key) {
         configured();
         return client.getObject(request -> request.bucket(bucket).key(key));
+    }
+
+    public void put(String key, String contentType, byte[] data) {
+        configured();
+        client.putObject(request -> request.bucket(bucket).key(key).contentType(contentType), RequestBody.fromBytes(data));
+    }
+
+    public void delete(String key) {
+        configured();
+        client.deleteObject(request -> request.bucket(bucket).key(key));
     }
 
     public void abort(String key, String upload) {

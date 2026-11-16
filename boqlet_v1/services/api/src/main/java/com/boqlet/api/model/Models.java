@@ -126,6 +126,22 @@ public class Models {
         return visible(id, actor).tree();
     }
 
+    public record WorkerModel(UUID project, UUID version, UUID model, String name, String fileName, String discipline,
+                              Map<String, Object> scope, JsonNode artifacts) {
+        public Map<String, Object> input() {
+            return Map.of("id", version, "modelId", model, "name", name, "fileName", fileName, "discipline", discipline,
+                    "scope", scope, "parsedKey", artifacts.path("parsedKey").asText(), "meshesKey", artifacts.path("meshesKey").asText());
+        }
+    }
+
+    public WorkerModel workerModel(UUID id, UUID actor) {
+        var row = visible(id, actor);
+        ready(row, "parsedKey");
+        Model model = model(row.tree().getModelId()).tree();
+        return new WorkerModel(row.project(), row.tree().getId(), model.getId(), model.getName(), row.tree().getFileName(),
+                model.getDiscipline(), model.getScope() == null ? Map.of() : model.getScope(), row.artifacts());
+    }
+
     @Transactional
     public CreateModelVersion201Response createVersion(UUID model, UUID actor, CreateModelVersionRequest request) {
         Project project = projects.lock(model(model).tree().getProjectId(), actor, "editModels");
