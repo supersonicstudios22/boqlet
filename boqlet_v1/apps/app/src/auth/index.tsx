@@ -5,11 +5,10 @@ import { setAccessTokenSource } from "@/api/client";
 import { registerGlobalErrorHandler } from "@/api/global-errors";
 import type { AuthAdapter } from "./AuthAdapter";
 import { mockAuthAdapter } from "./adapters/mock";
+import { keycloakAuthAdapter } from "./adapters/keycloak";
 import { isLeaving, startLeaving } from "./leaving";
 
-/** The adapter in use: `NEXT_PUBLIC_AUTH_ADAPTER` (only `mock` until BE-000 decides the provider). */
-const ADAPTERS: Record<string, AuthAdapter> = { mock: mockAuthAdapter };
-export const authAdapter: AuthAdapter = ADAPTERS[process.env.NEXT_PUBLIC_AUTH_ADAPTER ?? "mock"] ?? mockAuthAdapter;
+export const authAdapter: AuthAdapter = process.env.NEXT_PUBLIC_AUTH_ADAPTER === "keycloak" ? keycloakAuthAdapter : mockAuthAdapter;
 
 // The API client asks the adapter for the token on every request.
 setAccessTokenSource(() => authAdapter.getAccessToken());

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useAuth, useSession } from "@/auth";
+import { openAppSession } from "@/auth/app-session";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Poster } from "@/components/poster";
 import { Wordmark } from "@/components/shell/wordmark";
@@ -34,12 +35,21 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
 
   const accept = useMutation({
     mutationFn: async () => {
+      if (auth.appSession() === null) {
+        const opened = await openAppSession();
+        if (opened.kind === "conflict") {
+          router.replace(`/session-conflict?returnTo=${encodeURIComponent(returnTo)}`);
+          return { kind: "session-conflict" } as const;
+        }
+      }
       const before = new Set(((await api.GET("/me")).data?.memberships ?? []).map((m) => m.org.id));
       await api.POST("/invitations/{token}/accept", { params: { path: { token } } });
       const after = (await api.GET("/me")).data!;
-      return after.memberships.find((m) => !before.has(m.org.id))?.org.slug ?? null;
+      return { kind: "accepted", slug: after.memberships.find((m) => !before.has(m.org.id))?.org.slug } as const;
     },
-    onSuccess: async (slug) => {
+    onSuccess: async (result) => {
+      if (result.kind !== "accepted") return;
+      const { slug } = result;
       await client.invalidateQueries({ queryKey: keys.me() });
       if (slug) rememberOrg(slug);
       router.push(slug ? `/${slug}` : "/");
