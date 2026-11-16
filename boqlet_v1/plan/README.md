@@ -190,4 +190,4 @@ merges `v_1` into it.
 | Frontend, backend specs (06–07) | Written; backend decisions open on purpose |
 | Delivery (08) | Phases, milestones, task lists, session rules and build log written (P37–P40, P44, P45); the pricing module (MP1, MP2) is for a later phase (P48) |
 | Design (06) | Design guidelines decided (P43); wordmark SVG still to come from the owner |
-| **Build** | **Phase 1 done 2026-11-14** (M0–M4 on the mock; MP1 for a later phase, P48). M0 done 2026-11-12; M1, M2, M3 done 2026-11-13 (M1 except the sample project's content, M2 except v1 criterion 12's test with a person new to the app, M3 except criterion 4's walk-through by a person); M4 (admin console, extension points, co-editing) done 2026-11-14. **Next: phase 2, BE-000** (the backend owner's review and decisions). Live position: `10-build-log.md` |
+| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock; see the phase-1 summary for manual acceptance checks). **Phase 2 in progress:** BE-000 and EN-001 complete. Next: EN-004. Live position: `10-build-log.md` |
