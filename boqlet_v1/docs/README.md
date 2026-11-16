@@ -26,6 +26,7 @@ what is built, what is not, and the open questions.
 | 15 | [15-classifications-guide.md](15-classifications-guide.md) | You use the app and want to make or change a classification: how a line gets its code, the tabs, importing a code list, common tasks, what to do when something looks wrong. |
 | 16 | [16-dictionaries-guide.md](16-dictionaries-guide.md) | You use the app and want to teach it what names in models mean: layers, Names in the model, patterns, meanings, values read from names, common tasks. |
 | 17 | [17-deploying-a-demo.md](17-deploying-a-demo.md) | You want to put the dev build on Vercel for an internal demo: what is deployed, how, and what the demo cannot do. |
+| 18 | [18-contabo-pilot.md](18-contabo-pilot.md) | You operate the real invited-pilot stack on the shared Contabo host. |
 
 ## Reference material (`reference/`)
 

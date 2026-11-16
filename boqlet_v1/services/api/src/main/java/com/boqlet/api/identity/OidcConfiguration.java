@@ -16,8 +16,11 @@ class OidcConfiguration {
     @Bean
     @ConditionalOnProperty(name = "BOQLET_OIDC_ISSUER")
     JwtDecoder identityDecoder(@Value("${boqlet.auth.issuer}") String issuer,
-            @Value("${boqlet.auth.audience}") String audience) {
-        var decoder = NimbusJwtDecoder.withIssuerLocation(issuer).build();
+            @Value("${boqlet.auth.audience}") String audience,
+            @Value("${BOQLET_OIDC_JWKS_URL:}") String jwksUrl) {
+        var decoder = jwksUrl.isBlank()
+                ? NimbusJwtDecoder.withIssuerLocation(issuer).build()
+                : NimbusJwtDecoder.withJwkSetUri(jwksUrl).build();
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(issuer),
                 token -> token.getAudience() != null && token.getAudience().contains(audience)

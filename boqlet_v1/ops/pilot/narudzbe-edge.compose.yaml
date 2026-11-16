@@ -1,0 +1,17 @@
+services:
+  proxy:
+    volumes:
+      - type: bind
+        source: /srv/boqlet/edge/routes.json
+        target: /etc/traefik/routes.json
+        read_only: true
+        bind: {create_host_path: false}
+    networks:
+      proxy-egress:
+        gw_priority: 1
+      boqlet-ingress:
+
+networks:
+  boqlet-ingress:
+    external: true
+    name: boqlet-pilot-ingress

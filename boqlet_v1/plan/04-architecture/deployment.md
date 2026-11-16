@@ -1,5 +1,7 @@
 # Deployment (cloud-neutral)
 
+The [Contabo pilot runbook](../../docs/18-contabo-pilot.md) covers the live v1 topology, DNS, worker controls, verification and rollback.
+
 Everything runs as containers. Any provider with containers, a managed Postgres and S3-compatible
 storage works (P09): AWS (ECS/EKS, RDS, S3), GCP (Cloud Run for web/API, GKE or VMs for
 workers, Cloud SQL, GCS), Azure, Hetzner (VMs + k3s, managed Postgres, Object Storage), Fly.io,

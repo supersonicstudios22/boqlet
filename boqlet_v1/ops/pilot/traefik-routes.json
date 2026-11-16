@@ -1,0 +1,41 @@
+{
+  "http": {
+    "routers": {
+      "boqlet-web": {
+        "rule": "Host(`booqlet.com`)",
+        "entryPoints": ["websecure"],
+        "service": "boqlet-web",
+        "middlewares": ["private-headers"],
+        "tls": {"certResolver": "pilot"}
+      },
+      "boqlet-api": {
+        "rule": "Host(`booqlet.com`) && (Path(`/api/v1`) || PathPrefix(`/api/v1/`))",
+        "entryPoints": ["websecure"],
+        "priority": 100,
+        "service": "boqlet-api",
+        "middlewares": ["private-headers"],
+        "tls": {"certResolver": "pilot"}
+      },
+      "boqlet-identity": {
+        "rule": "Host(`auth.booqlet.com`) && (PathPrefix(`/realms/boqlet/`) || PathPrefix(`/resources/`))",
+        "entryPoints": ["websecure"],
+        "service": "boqlet-identity",
+        "middlewares": ["private-headers"],
+        "tls": {"certResolver": "pilot"}
+      },
+      "boqlet-storage": {
+        "rule": "Host(`files.booqlet.com`) && PathPrefix(`/boqlet-pilot/`) && (Method(`OPTIONS`) || ((Method(`GET`) || Method(`PUT`)) && QueryRegexp(`X-Amz-Signature`, `^[0-9a-f]{64}$`)))",
+        "entryPoints": ["websecure"],
+        "service": "boqlet-storage",
+        "middlewares": ["private-headers"],
+        "tls": {"certResolver": "pilot"}
+      }
+    },
+    "services": {
+      "boqlet-web": {"loadBalancer": {"servers": [{"url": "http://boqlet-web:3000"}]}},
+      "boqlet-api": {"loadBalancer": {"responseForwarding": {"flushInterval": "-1ms"}, "servers": [{"url": "http://boqlet-api:8080"}]}},
+      "boqlet-identity": {"loadBalancer": {"servers": [{"url": "http://boqlet-identity:8080"}]}},
+      "boqlet-storage": {"loadBalancer": {"passHostHeader": true, "servers": [{"url": "http://boqlet-storage:8333"}]}}
+    }
+  }
+}
