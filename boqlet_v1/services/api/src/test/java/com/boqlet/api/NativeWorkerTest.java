@@ -48,10 +48,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.threads.virtual.enabled=false")
 @DirtiesContext
@@ -63,6 +59,7 @@ class NativeWorkerTest {
     private static final String BUCKET = "boqlet-native-test";
     private static final String ACCESS = "boqlet-test";
     private static final String SECRET = "boqlet-local-test-only";
+    private static final int S3_PORT = 8333;
     private static final Path ROOT = Path.of("../..").toAbsolutePath().normalize();
     private static Process worker;
     private static final java.util.List<Process> queueWorkers = new java.util.ArrayList<>();
@@ -73,10 +70,10 @@ class NativeWorkerTest {
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Container
-    static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
-            .withEnv("MINIO_ROOT_USER", ACCESS).withEnv("MINIO_ROOT_PASSWORD", SECRET)
-            .withCommand("server", "/data").withExposedPorts(9000)
-            .waitingFor(Wait.forHttp("/minio/health/ready").forPort(9000));
+    static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("chrislusf/seaweedfs:4.53"))
+            .withEnv("AWS_ACCESS_KEY_ID", ACCESS).withEnv("AWS_SECRET_ACCESS_KEY", SECRET)
+            .withEnv("S3_BUCKET", BUCKET).withExposedPorts(S3_PORT)
+            .waitingFor(Wait.forHttp("/").forPort(S3_PORT).forStatusCode(403));
 
     @Container
     static final GenericContainer<?> MAIL = new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:v1.0.1"))
@@ -84,11 +81,7 @@ class NativeWorkerTest {
 
     @DynamicPropertySource
     static void services(DynamicPropertyRegistry properties) throws IOException {
-        String endpoint = "http://" + S3.getHost() + ":" + S3.getMappedPort(9000);
-        try (var admin = S3Client.builder().region(Region.US_EAST_1).forcePathStyle(true).endpointOverride(URI.create(endpoint))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(ACCESS, SECRET))).build()) {
-            admin.createBucket(request -> request.bucket(BUCKET));
-        }
+        String endpoint = "http://" + S3.getHost() + ":" + S3.getMappedPort(S3_PORT);
         int port;
         try (var listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
             port = listener.getLocalPort();
@@ -294,7 +287,7 @@ class NativeWorkerTest {
         }
         var dsn = "postgresql://boqlet_queue_test:local-queue-test-only@" + POSTGRES.getHost() + ":"
                 + POSTGRES.getMappedPort(5432) + "/" + POSTGRES.getDatabaseName();
-        var endpoint = "http://" + S3.getHost() + ":" + S3.getMappedPort(9000);
+        var endpoint = "http://" + S3.getHost() + ":" + S3.getMappedPort(S3_PORT);
         for (String pool : java.util.List.of("ifc", "default")) {
             var start = new ProcessBuilder(System.getenv("BOQLET_NATIVE_WORKER_PYTHON"), "-m", "ifc_boq.worker_queue", "--pool", pool,
                     "--concurrency", pool.equals("ifc") ? "2" : "1", "--poll-seconds", "0.2")

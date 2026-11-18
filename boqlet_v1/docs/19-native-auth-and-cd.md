@@ -6,6 +6,8 @@ The Boqlet frontend uses the Java API at `/api/v1` for product data. The product
 
 An invitee opens their existing organisation invitation and chooses **Set up your invited account**. The API takes the email address from the valid invitation and the user sets a password. After sign-in they return to the invitation to accept the membership. An existing account signs in with its password.
 
+The invite gate controls account creation. Once signed in, a pilot can create a separate organisation under the existing [F01 rules](../plan/01-features/F01-accounts-and-orgs.md). Whether to restrict pilot organisation creation to explicitly approved owners remains a product decision.
+
 For the first owner or an assisted password reset, verify the address independently, then run `bash issue-setup-link.sh EMAIL setup` or `bash issue-setup-link.sh EMAIL reset` privately on the server. The command returns a bearer link that expires after one hour. Share it only via the verified recipient's approved private channel. The database stores a hash, and successful password setup consumes the link. A reset ends the account's active sessions. The app rejects resetting an unknown or legacy-only account. SMTP configuration for general invitations is still required. This flow does not give the recipient platform administrator access.
 
 The original Keycloak database and image can be retained for rollback. The native profile starts without its Keycloak container and does not need any Keycloak issuer or credentials.
@@ -15,6 +17,8 @@ On 2026-11-18, Contabo switched to `82258a96b1faa5a245e52fe8c825d43e90c75ad8` fr
 ## CI and deployment
 
 GitHub Actions runs the repository checks for pull requests and pushes to `main` or `v_1`. The deployment job runs only for a successful push to `v_1`. It builds the three first-party images under the full commit SHA, checks that the SHA is still the branch head, and transfers the image archive to Contabo. The deployment environment serializes rollout jobs. The host script independently takes a lock and accepts only the three expected image tags. It changes only the application containers for Boqlet and verifies private readiness, both public app routes and the native authentication endpoint before saving the new revision. Previous images remain available for a compatible rollback. Database migrations must support the previous app image for automatic rollback.
+
+The Java worker integration suite uses the same SeaweedFS release as Contabo alongside PostgreSQL, MailHog and the actual Python worker.
 
 One-time repository and host setup requires access to `dobrosav22/boqlet` on GitHub. Protect `v_1`, including workflow changes, and restrict the `boqlet-pilot` GitHub environment to that branch. Set these environment values.
 
