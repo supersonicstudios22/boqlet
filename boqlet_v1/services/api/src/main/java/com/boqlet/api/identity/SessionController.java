@@ -26,7 +26,11 @@ class SessionController implements SessionsApi {
 
     @Override
     public ResponseEntity<Session> openSession(OpenSessionRequest request) {
-        Session session = sessions.open(Login.current(), request.getDeviceLabel(), Boolean.TRUE.equals(request.getTakeover()));
+        var login = Login.current();
+        if (login.providerSession().startsWith("native:")) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(login.session());
+        }
+        Session session = sessions.open(login, request.getDeviceLabel(), Boolean.TRUE.equals(request.getTakeover()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.SET_COOKIE, cookie(session.getId().toString()).build().toString())
                 .body(session);

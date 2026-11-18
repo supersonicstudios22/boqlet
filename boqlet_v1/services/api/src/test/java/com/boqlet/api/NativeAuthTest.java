@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +70,9 @@ class NativeAuthTest {
         assertThat(first.getValue()).hasSize(43);
         assertThat(first.isHttpOnly() && first.getSecure()).isTrue();
         http.perform(get("/api/v1/me").cookie(first)).andExpect(status().isOk()).andExpect(jsonPath("$.user.email").value(EMAIL));
+        http.perform(post("/api/v1/sessions").cookie(first).header("Origin", ORIGIN)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Test\"}"))
+                .andExpect(status().isCreated()).andExpect(header().doesNotExist("Set-Cookie"));
         http.perform(delete("/api/v1/sessions/current").cookie(first)).andExpect(status().isForbidden());
         http.perform(signIn(PASSWORD, false).header("Origin", ORIGIN))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("session_active"));
