@@ -2,6 +2,9 @@
 # Until FE-046 every product job runs in the product root boqlet_v1/ (P44).
 name: ci
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [v_1, main]
@@ -150,3 +153,45 @@ jobs:
           IFC_BOQ_PYTHON: python
       - run: npm run test:contract:mock
       - run: npm run test:scenarios:mock
+
+  deploy:
+    name: Deploy Boqlet pilot
+    if: github.event_name == 'push' && github.ref == 'refs/heads/v_1'
+    needs: [api, contract, typecheck, e2e, engine, suites]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: boqlet-pilot
+    concurrency:
+      group: boqlet-pilot
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package the verified revision
+        run: |
+          docker build --tag "boqlet-web:$GITHUB_SHA" --file ops/pilot/web.Dockerfile .
+          docker build --tag "boqlet-api:$GITHUB_SHA" --file services/api/Dockerfile .
+          docker build --tag "boqlet-engine:$GITHUB_SHA" --file ops/pilot/engine.Dockerfile .
+      - name: Deploy the image set
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_KEY: ${{ secrets.BOQLET_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ vars.BOQLET_KNOWN_HOSTS }}
+          DEPLOY_TARGET: ${{ vars.BOQLET_DEPLOY_TARGET }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS" && test -n "$DEPLOY_TARGET"
+          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/v_1" --jq .object.sha)
+          if [[ "$head" != "$GITHUB_SHA" ]]; then
+            printf 'Skipped superseded revision %s\n' "$GITHUB_SHA"
+            exit 0
+          fi
+          umask 077
+          custody=$(mktemp -d)
+          trap 'rm -rf -- "$custody"' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > "$custody/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$custody/known_hosts"
+          docker save "boqlet-web:$GITHUB_SHA" "boqlet-api:$GITHUB_SHA" "boqlet-engine:$GITHUB_SHA" |
+            gzip -1 |
+            ssh -T -i "$custody/key" -o BatchMode=yes -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$custody/known_hosts" \
+              -- "$DEPLOY_TARGET" "deploy $GITHUB_SHA"

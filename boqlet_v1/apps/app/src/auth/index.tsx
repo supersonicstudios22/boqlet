@@ -6,9 +6,13 @@ import { registerGlobalErrorHandler } from "@/api/global-errors";
 import type { AuthAdapter } from "./AuthAdapter";
 import { mockAuthAdapter } from "./adapters/mock";
 import { keycloakAuthAdapter } from "./adapters/keycloak";
+import { nativeAuthAdapter } from "./adapters/native";
 import { isLeaving, startLeaving } from "./leaving";
 
-export const authAdapter: AuthAdapter = process.env.NEXT_PUBLIC_AUTH_ADAPTER === "keycloak" ? keycloakAuthAdapter : mockAuthAdapter;
+const adapters: Record<string, AuthAdapter> = {
+  native: nativeAuthAdapter, keycloak: keycloakAuthAdapter, mock: mockAuthAdapter,
+};
+export const authAdapter: AuthAdapter = adapters[process.env.NEXT_PUBLIC_AUTH_ADAPTER ?? "mock"] ?? mockAuthAdapter;
 
 // The API client asks the adapter for the token on every request.
 setAccessTokenSource(() => authAdapter.getAccessToken());

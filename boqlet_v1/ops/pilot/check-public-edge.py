@@ -48,10 +48,15 @@ def check_apis():
         if response.status != 401 or response.headers.get_content_type() != "application/json":
             raise
 
-    issuer = "https://auth.booqlet.com/realms/boqlet"
-    with urlopen(issuer + "/.well-known/openid-configuration", timeout=10) as response:
-        if json.load(response)["issuer"] != issuer:
-            raise RuntimeError("Wrong Boqlet OIDC issuer")
+    sign_in = Request("https://booqlet.com/api/v1/auth/sign-in", data=b"{}",
+                      headers={"Origin": "https://booqlet.com", "Content-Type": "application/json"})
+    try:
+        with urlopen(sign_in, timeout=10):
+            raise RuntimeError("Boqlet accepted an empty sign-in request")
+    except HTTPError as response:
+        if response.status != 400 or json.load(response)["code"] != "invalid_body":
+            raise
+
     print("Narudzbe and Boqlet API routing passed.")
 
 

@@ -19,8 +19,6 @@ probe() {
   curl -fsS --retry 3 --retry-all-errors --max-time 5 -H "Host: $1" "http://$address:8443$2"
 }
 probe booqlet.com / >/dev/null
-probe auth.booqlet.com /realms/boqlet/.well-known/openid-configuration |
-  jq -e '.issuer == "https://auth.booqlet.com/realms/boqlet"'
 code() {
   curl -sS --max-time 5 -o /dev/null -w '%{http_code}' -H "Host: $1" "http://$address:8443$2"
 }

@@ -1,5 +1,7 @@
 # Boqlet invited pilot on Contabo
 
+The [native sign-in and GitHub rollout runbook](19-native-auth-and-cd.md) supersedes the original Keycloak sign-in and manual image release procedure below.
+
 ## Live deployment
 
 The v1 stack went live on 2026-11-16 on Contabo host `vmi3709447` (IPv4 `212.47.65.124`) using branch `v_1`, application baseline `e184cf6`, and the pilot packaging and internal JWKS configuration under [ops/pilot](../ops/pilot). The host has eight shared vCPUs, 24 GB RAM and a 450 GB virtual disk. The deployed Linux amd64 image IDs and upstream registry digests are in [images.lock](../ops/pilot/images.lock).

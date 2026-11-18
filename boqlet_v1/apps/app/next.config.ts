@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
   // Share links (F18 "Security"): never indexed, never leak the token through the referrer.
   async headers() {
     return [
+      { source: "/sign-up/:rest*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
       {
         source: "/s/:token*",
         headers: [

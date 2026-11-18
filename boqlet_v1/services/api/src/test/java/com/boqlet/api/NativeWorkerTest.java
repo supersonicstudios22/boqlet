@@ -73,7 +73,7 @@ class NativeWorkerTest {
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Container
-    static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
+    static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
             .withEnv("MINIO_ROOT_USER", ACCESS).withEnv("MINIO_ROOT_PASSWORD", SECRET)
             .withCommand("server", "/data").withExposedPorts(9000)
             .waitingFor(Wait.forHttp("/minio/health/ready").forPort(9000));

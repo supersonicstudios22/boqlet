@@ -20,7 +20,6 @@ service_ip() {
 }
 curl -fsS --max-time 5 "http://$(service_ip api):8080/actuator/health/readiness" | jq -e '.status == "UP"'
 curl -fsS --max-time 5 "http://$(service_ip boqlet-web):3000/" -o /dev/null
-curl -fsS --max-time 5 "http://$(service_ip identity):8080/realms/boqlet/.well-known/openid-configuration" | jq -e '.issuer == "https://auth.booqlet.com/realms/boqlet"'
 docker exec -i boqlet-pilot-db-1 psql -v ON_ERROR_STOP=1 -U boqlet_admin -d boqlet <<'SQL'
 DO $$
 BEGIN

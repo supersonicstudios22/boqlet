@@ -27,6 +27,7 @@ what is built, what is not, and the open questions.
 | 16 | [16-dictionaries-guide.md](16-dictionaries-guide.md) | You use the app and want to teach it what names in models mean: layers, Names in the model, patterns, meanings, values read from names, common tasks. |
 | 17 | [17-deploying-a-demo.md](17-deploying-a-demo.md) | You want to put the dev build on Vercel for an internal demo: what is deployed, how, and what the demo cannot do. |
 | 18 | [18-contabo-pilot.md](18-contabo-pilot.md) | You operate the real invited-pilot stack on the shared Contabo host. |
+| 19 | [19-native-auth-and-cd.md](19-native-auth-and-cd.md) | You enroll pilot users or manage GitHub deployments. |
 
 ## Reference material (`reference/`)
 

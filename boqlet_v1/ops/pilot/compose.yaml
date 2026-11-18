@@ -50,6 +50,7 @@ services:
 
   identity:
     <<: *service
+    profiles: [legacy-identity]
     image: quay.io/keycloak/keycloak:26.8.2
     command: ["start", "--import-realm"]
     depends_on:
@@ -94,9 +95,8 @@ services:
       BOQLET_JDBC_URL: jdbc:postgresql://db:5432/boqlet
       BOQLET_DB_USER: boqlet_app
       BOQLET_DB_PASSWORD: ${DB_PASSWORD:?}
-      BOQLET_OIDC_ISSUER: https://auth.booqlet.com/realms/boqlet
-      BOQLET_OIDC_JWKS_URL: http://identity:8080/realms/boqlet/protocol/openid-connect/certs
-      BOQLET_PILOT_EMAILS: ${PILOT_EMAILS:-}
+      BOQLET_NATIVE_AUTH: "true"
+      BOQLET_FORWARD_HEADERS_STRATEGY: native
       BOQLET_INVITATION_SECRET: ${INVITATION_SECRET:?}
       BOQLET_APP_URL: https://booqlet.com
       BOQLET_SMTP_HOST: ${SMTP_HOST:-}
