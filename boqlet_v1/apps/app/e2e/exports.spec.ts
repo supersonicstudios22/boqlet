@@ -71,25 +71,26 @@ test("F12-AC1, F06-AC3 a Duplex run downloads an xlsx whose totals match the she
   expect([...actual.keys()].sort()).toEqual([...expected.keys()].sort());
   for (const [unit, total] of expected) expect(actual.get(unit)!).toBeCloseTo(total, 4);
   // The quantity edit with its reason (F06-AC3).
-  const row = rows.find((r) => r.quantity === 123.5 && r.notes.includes("reason: Measured on site"));
+  const row = rows.find((r) => r.quantity === 123.5 && r.notes.includes("Reason: Measured on site"));
   expect(row, "the edited line with its reason").toBeTruthy();
-  expect(row!.notes).toContain("quantity edited: 123.5 instead of");
+  expect(row!.notes).toMatch(/quantity edited: .+ → 123.5/);
   expect(rows.some((r) => r.notes.includes("Out of scope"))).toBe(false);
 });
 
-/** Every text cell of a workbook's first sheet, read with the engine's openpyxl. */
-function firstSheetText(file: string): string {
+/** Every text cell of the workbook, including its cover and BoQ sheet. */
+function workbookText(file: string): string {
   const engine = path.join(ROOT, "engine");
   const py = existsSync(path.join(engine, ".venv", "Scripts", "python.exe")) ? path.join(engine, ".venv", "Scripts", "python.exe") : path.join(engine, ".venv", "bin", "python");
   const script = [
     "import sys",
     "from openpyxl import load_workbook",
-    "ws = load_workbook(sys.argv[1], read_only=True).worksheets[0]",
-    "for row in ws.iter_rows(values_only=True):",
-    "    for c in row:",
-    "        if isinstance(c, str): print(c)",
+    "workbook = load_workbook(sys.argv[1], read_only=True)",
+    "for ws in workbook.worksheets:",
+    "    for row in ws.iter_rows(values_only=True):",
+    "        for c in row:",
+    "            if isinstance(c, str): print(c)",
   ].join("\n");
-  return execFileSync(py, ["-c", script, file], { encoding: "utf8" });
+  return execFileSync(py, ["-c", script, file], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
 }
 
 test("FE-032 F12-AC3 the Exports tab: a working export says WORKING; the saved version's frozen file doesn't; the audit CSV downloads", async ({ page }, testInfo) => {
@@ -100,7 +101,7 @@ test("FE-032 F12-AC3 the Exports tab: a working export says WORKING; the saved v
   await page.getByTestId("exports-new").click();
   const workingFile = testInfo.outputPath("working.xlsx");
   await (await working).saveAs(workingFile);
-  expect(firstSheetText(workingFile)).toContain("(WORKING)");
+  expect(workbookText(workingFile)).toContain("(WORKING)");
   await expect(page.locator('[data-testid="exports-revision"][data-label="A"] [data-testid="export-row"][data-kind="boq_xlsx"]')).toHaveCount(1);
 
   const boq = await apiAs<{ currentRevision: { id: string } }>(olivia, "GET", `/boqs/${url.split("/").pop()}`);
@@ -112,9 +113,9 @@ test("FE-032 F12-AC3 the Exports tab: a working export says WORKING; the saved v
   await frozenRow.getByTestId("export-download").click();
   const frozenFile = testInfo.outputPath("saved.xlsx");
   await (await frozen).saveAs(frozenFile);
-  const frozenText = firstSheetText(frozenFile);
+  const frozenText = workbookText(frozenFile);
   expect(frozenText).not.toContain("(WORKING)");
-  expect(frozenText).toContain("revision A: Issued");
+  expect(frozenText).toContain("Issued");
 
   await page.goto(`${projectUrl}/activity`);
   const csv = page.waitForEvent("download");

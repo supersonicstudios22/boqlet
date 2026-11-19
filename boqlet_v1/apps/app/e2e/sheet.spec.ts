@@ -111,10 +111,10 @@ test("F06 §5 a derived line's steps name its source lines, which open on click"
   await page.locator('[data-testid="sheet-line"][data-source="derived"]').first().click();
   const detail = page.getByTestId("line-detail");
   const derive = detail.locator('[data-testid="how-step"][data-kind="derive"]');
-  await expect(derive).toBeVisible();
+  await expect(derive.first()).toBeVisible();
   const { values } = await stepValues(detail);
   expect(Math.abs(values.slice(0, -1).reduce<number>((s, v) => s + (v ?? 0), 0) - values.at(-1)!)).toBeLessThanOrEqual(0.005);
-  const source = derive.getByTestId("how-source-line").last();
+  const source = derive.last().getByTestId("how-source-line").last();
   const name = (await source.textContent())!;
   await source.click();
   await expect(detail.locator("h3")).toHaveText(name);

@@ -14,8 +14,9 @@ async function twoRuns() {
   const made = await generatedDuplexBoq(bytes);
   const { olivia, run } = made;
   const boqId = made.url.split("/").pop()!;
-  const { items } = await apiAs<{ items: { key: string; quantity: number | null; description: string }[] }>(olivia, "GET", `/runs/${run.id}/lines`);
-  const line = items.find((l) => l.quantity && l.quantity > 10)!;
+  const { items } = await apiAs<{ items: { key: string; ruleKind: string; quantity: number | null; description: string }[] }>(olivia, "GET", `/runs/${run.id}/lines`);
+  // Edit a derived line so a measured source's downstream calculation does not also change.
+  const line = items.find((l) => l.ruleKind === "derived" && l.quantity && l.quantity > 10)!;
   await apiAs(olivia, "POST", `/boqs/${boqId}/overrides`, { lineKey: line.key, quantity: line.quantity! * 2, reason: "Site measure" });
   const boq = await apiAs<{ currentRevision: { id: string } }>(olivia, "GET", `/boqs/${boqId}`);
   const second = await generate(olivia, boq.currentRevision.id);

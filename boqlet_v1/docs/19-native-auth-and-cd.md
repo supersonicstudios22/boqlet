@@ -20,7 +20,7 @@ GitHub Actions runs the repository checks for pull requests and pushes to `main`
 
 The Java worker integration suite uses the same SeaweedFS release as Contabo alongside PostgreSQL, MailHog and the actual Python worker.
 
-One-time repository and host setup requires access to `dobrosav22/boqlet` on GitHub. Protect `v_1`, including workflow changes, and restrict the `boqlet-pilot` GitHub environment to that branch. Set these environment values.
+One-time repository and host setup requires access to `supersonicstudios22/boqlet` on GitHub. Protect `v_1`, including workflow changes, and restrict the `boqlet-pilot` GitHub environment to that branch. Set these environment values.
 
 | Name | Type | Value |
 | --- | --- | --- |
@@ -32,6 +32,6 @@ On the host, install `deploy-release.sh` as root-owned at `/usr/local/sbin/boqle
 
 For the initial native cutover, retain the original Compose and images, deploy migration V15 and the new native web/API together, and run the authenticated smoke before stopping Keycloak. Point `/srv/boqlet/current` at the verified native release's product root. For subsequent authorized manual promotions, the same host script supports `--local FULL_SHA` when the matching three images are already loaded.
 
-GitHub reported pull access only for the signed-in account during setup. The workflow cannot be installed or tested end to end until an authorized repository maintainer pushes these changes and sets the environment secret and variables.
+On 2026-11-19, the owner granted write and administrator access. The repository now belongs to supersonicstudios22/boqlet. The v_1 branch has been published, and the boqlet-pilot GitHub environment allows deployment only from v_1. Its deployment secret and pinned-host variables are configured.
 
-The root-owned receiver is installed on Contabo. Its dedicated SSH public key and GitHub environment secret still need to be paired. The manual initial deployment used the same Docker image layout as the workflow. The first end-to-end Actions run is pending repository access.
+The root-owned receiver is installed on Contabo. A dedicated Ed25519 public key is installed with a forced deployment command and OpenSSH restrict options. Its private key is stored only in the GitHub environment secret after setup. The ordinary operator SSH key remains separate. The first automatic rollout is being verified.

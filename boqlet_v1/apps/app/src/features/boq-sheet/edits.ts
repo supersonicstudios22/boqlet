@@ -105,7 +105,8 @@ export function effectiveLines(lines: readonly RunLine[], overrides: readonly Li
   const manualById = new Map(manual.map((m) => [m.item.id, m]));
   const out: SheetLine[] = lines.map((line) => {
     const o = byKey.get(line.key);
-    const m = line.ruleKind === "manual" ? manualById.get(line.ruleId) : undefined;
+    const manualId = line.ruleId.startsWith("boq.") ? line.ruleId.slice(4) : line.ruleId;
+    const m = line.ruleKind === "manual" ? manualById.get(manualId) : undefined;
     if (!o && !line.overridden && !m) return line;
     const engine = engineValues(line);
     const next: SheetLine = { ...line, quantity: engine.quantity, description: engine.description, unit: engine.unit as RunLine["unit"], codes: { ...line.codes }, excluded: false };
@@ -135,7 +136,8 @@ export function effectiveLines(lines: readonly RunLine[], overrides: readonly Li
     }
     return next;
   });
-  const inRun = new Set(lines.filter((l) => l.ruleKind === "manual").map((l) => l.ruleId));
+  const inRun = new Set(lines.filter((l) => l.ruleKind === "manual")
+    .map((l) => l.ruleId.startsWith("boq.") ? l.ruleId.slice(4) : l.ruleId));
   manual.filter((m) => !inRun.has(m.item.id)).forEach((m, i) => out.push(manualLine(m, lists, lines.length + i)));
   return out;
 }

@@ -48,7 +48,7 @@ describe("effective lines (F06 §6)", () => {
     expect(out[1]).toMatchObject({ key: "manual-1", quantity: 42, source: "manual", pending: true, sortAfter: "a", manual: m });
     expect(out[1]!.codes[S]!.path.map((p) => p.code)).toEqual(["B", "B.01"]);
     // Once a run has it, it's an ordinary line with its record attached.
-    const ran = effectiveLines([line("a"), line("manual-1", { ruleId: "manual-1", ruleKind: "manual", sortIndex: 1 })], [], [m], lists);
+    const ran = effectiveLines([line("a"), line("manual-1", { ruleId: "boq.manual-1", ruleKind: "manual", sortIndex: 1 })], [], [m], lists);
     expect(ran).toHaveLength(2);
     expect(ran[1]).toMatchObject({ manual: m, sortAfter: "a" });
     expect(ran[1]!.pending).toBeUndefined();
