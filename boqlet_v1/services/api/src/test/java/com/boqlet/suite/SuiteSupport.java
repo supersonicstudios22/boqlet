@@ -110,6 +110,57 @@ public class SuiteSupport {
             return Map.of("pending", pending);
         }
 
+        /**
+         * A native setup or reset link (P50), exactly as `ops/pilot/issue-setup-link.sh` issues one:
+         * `{email, purpose}` (`setup` for an address without an account, `reset` for one with a
+         * password), valid for an hour. Answers the raw token for `/sign-up?token=`; 409 when the
+         * address is ineligible for that purpose.
+         */
+        @PostMapping("/setup-link")
+        org.springframework.http.ResponseEntity<Map<String, String>> setupLink(@RequestBody Map<String, String> body) {
+            String email = body.getOrDefault("email", "").trim().toLowerCase(java.util.Locale.ROOT);
+            String purpose = body.getOrDefault("purpose", "setup");
+            if (!email.matches("[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}") || email.length() > 254
+                    || !(purpose.equals("setup") || purpose.equals("reset"))) {
+                // Answered here: an exception would go to `/error`, which the product's chain denies.
+                return org.springframework.http.ResponseEntity.badRequest().body(Map.of("code", "invalid_body", "message", "An email and setup or reset."));
+            }
+            byte[] random = new byte[32];
+            new java.security.SecureRandom().nextBytes(random);
+            String token = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(random);
+            String digest;
+            try {
+                digest = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            } catch (java.security.NoSuchAlgorithmException impossible) {
+                throw new IllegalStateException(impossible);
+            }
+            var issued = database.queryForList("""
+                    INSERT INTO native_setup_links (email, token_hash, expires_at, purpose)
+                    SELECT ?, ?, now() + interval '1 hour', ?
+                    WHERE (? = 'setup' AND NOT EXISTS (SELECT FROM users WHERE lower(email) = ?))
+                       OR (? = 'reset' AND EXISTS (
+                             SELECT FROM native_credentials c JOIN users u ON u.id = c.user_id
+                             WHERE lower(u.email) = ? AND u.deleted_at IS NULL))
+                    ON CONFLICT (email) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at, purpose = excluded.purpose
+                    RETURNING 1
+                    """, Integer.class, email, digest, purpose, purpose, email, purpose, email);
+            if (issued.isEmpty()) {
+                return org.springframework.http.ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("code", "ineligible", "message", "This address is ineligible for the requested link."));
+            }
+            return org.springframework.http.ResponseEntity.status(HttpStatus.CREATED).body(Map.of("token", token, "email", email, "purpose", purpose));
+        }
+
+        /**
+         * Forgets native sign-in attempts (`native_auth_limits`): a browser suite signs in many
+         * people from one address, far more than a person would in 15 minutes.
+         */
+        @PostMapping("/auth-limits/reset")
+        Map<String, Object> resetAuthLimits() {
+            return Map.of("cleared", database.update("DELETE FROM native_auth_limits"));
+        }
+
         @GetMapping("/clock")
         Map<String, Object> clock() {
             return database.queryForObject("SELECT now(), (SELECT ms FROM suite_clock.offset_ms)", (row, index) ->

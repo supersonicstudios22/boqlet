@@ -20,6 +20,8 @@ const MODULE_AREAS: string[] = [];
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // A second dev server beside `npm run dev:app` (the browser smoke against Java, playwright.java.config.ts) builds in its own folder.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   env: { MODULE_PRICING },
   transpilePackages: ["@ifc-boq/api"],
   // Share links (F18 "Security"): never indexed, never leak the token through the referrer.

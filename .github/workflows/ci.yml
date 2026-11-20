@@ -38,6 +38,9 @@ jobs:
         env:
           IFC_BOQ_SKIP_ENGINE_SETUP: "1"
       - run: python -m pip install -e ./engine
+      # The browser smoke suite against Java (apps/app/e2e-java, NativeWorkerTest#browserSmokeAgainstJava).
+      - run: npx playwright install --with-deps chromium
+        working-directory: boqlet_v1/apps/app
       - name: Verify the core and the native workflow
         run: |
           export BOQLET_NATIVE_WORKER_PYTHON="$(command -v python)"
@@ -47,6 +50,8 @@ jobs:
           BOQLET_NATIVE_QUEUE_TEST: "1"
           # The shared scenario suite against Java (FE-041); its workbook scenarios run this Python.
           BOQLET_NATIVE_SCENARIOS: "1"
+          # The app with native sign-in in a browser against Java (FE-041/FE-043).
+          BOQLET_BROWSER_SMOKE: "1"
           IFC_BOQ_PYTHON: python
           AWS_ACCESS_KEY_ID: boqlet-test
           AWS_SECRET_ACCESS_KEY: boqlet-local-test-only

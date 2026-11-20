@@ -290,6 +290,63 @@ class NativeWorkerTest {
         }
     }
 
+    /**
+     * The browser smoke suite against Java (FE-041/FE-043, `apps/app/e2e-java`): the app, built with
+     * the native adapter, on a second API instance with native sign-in (P50), as the pilot runs. It
+     * covers what the mock can't show: sign-in with a password and its cookie, takeover, live updates,
+     * direct uploads to object storage (with the pilot's bucket CORS) and the main flow. Opt-in with
+     * `BOQLET_BROWSER_SMOKE=1` and Node; Playwright's Chromium must be installed for `apps/app`.
+     */
+    @Test
+    @EnabledIfEnvironmentVariable(named = "BOQLET_BROWSER_SMOKE", matches = "1")
+    void browserSmokeAgainstJava() throws Exception {
+        assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
+        if (POSTGRES_QUEUE) startQueueWorkers();
+        String app = "http://localhost:3100";
+        allowBrowserUploads(app);
+        var arguments = new java.util.ArrayList<String>(java.util.List.of("--server.port=0", "--spring.threads.virtual.enabled=false"));
+        SETTINGS.forEach((name, value) -> arguments.add("--" + name + "=" + value));
+        arguments.addAll(java.util.List.of("--BOQLET_NATIVE_AUTH=true", "--BOQLET_APP_URL=" + app, "--boqlet.auth.secure-cookie=false"));
+        try (var nativeApi = new org.springframework.boot.builder.SpringApplicationBuilder(BoqletApplication.class,
+                com.boqlet.suite.SuiteSupport.class).run(arguments.toArray(String[]::new))) {
+            String api = "http://localhost:" + nativeApi.getEnvironment().getProperty("local.server.port");
+            Path appDir = ROOT.resolve("apps/app");
+            Path cli = java.util.stream.Stream.of(appDir, ROOT).map(dir -> dir.resolve("node_modules/@playwright/test/cli.js"))
+                    .filter(java.nio.file.Files::exists).findFirst().orElseThrow();
+            Path log = Path.of("target/browser-smoke.log").toAbsolutePath();
+            var command = new java.util.ArrayList<>(java.util.List.of(node(), cli.toString(), "test", "-c", "playwright.java.config.ts"));
+            String filter = System.getenv("BOQLET_BROWSER_SMOKE_FILTER");
+            if (filter != null && !filter.isBlank()) command.addAll(java.util.List.of("-g", filter));
+            var script = new ProcessBuilder(command).directory(appDir.toFile()).redirectErrorStream(true).redirectOutput(log.toFile());
+            script.environment().put("BOQLET_JAVA_API", api);
+            script.environment().put("BOQLET_JAVA_APP", app);
+            script.environment().put("BOQLET_SUITE_MAILHOG", "http://" + MAIL.getHost() + ":" + MAIL.getMappedPort(8025));
+            script.environment().put("BOQLET_NODE", node());
+            Process test = script.start();
+            try {
+                assertThat(test.waitFor(25, java.util.concurrent.TimeUnit.MINUTES)).as("browser smoke timed out").isTrue();
+                assertThat(test.exitValue()).as("browser smoke result %s", java.nio.file.Files.readString(log)).isZero();
+            } finally {
+                if (test.isAlive()) test.descendants().forEach(ProcessHandle::destroyForcibly);
+                if (test.isAlive()) test.destroyForcibly();
+            }
+        }
+    }
+
+    /** The bucket's CORS for the app's origin, as the pilot sets it (`ops/pilot/configure-storage.py`). */
+    private static void allowBrowserUploads(String origin) {
+        var credentials = software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(ACCESS, SECRET));
+        try (var s3 = software.amazon.awssdk.services.s3.S3Client.builder().region(software.amazon.awssdk.regions.Region.US_EAST_1)
+                .credentialsProvider(credentials).forcePathStyle(true)
+                .endpointOverride(URI.create("http://" + S3.getHost() + ":" + S3.getMappedPort(S3_PORT))).build()) {
+            var rule = software.amazon.awssdk.services.s3.model.CORSRule.builder().allowedMethods("GET", "PUT")
+                    .allowedOrigins(origin).allowedHeaders("Content-Type", "x-amz-*").exposeHeaders("ETag", "Content-Length")
+                    .maxAgeSeconds(600).build();
+            s3.putBucketCors(cors -> cors.bucket(BUCKET).corsConfiguration(c -> c.corsRules(rule)));
+        }
+    }
+
     private static String node() {
         String node = System.getenv("BOQLET_NATIVE_NODE");
         return node == null || node.isBlank() ? null : node;
