@@ -55,4 +55,11 @@ export const sessionHandlers: Handlers = {
     }
     return noContent();
   },
+  // Native sign-in (P50) is Java's; the mock signs people in through `/_dev/users` (FE-005).
+  signInWithPassword() {
+    throw new HttpError(404, "native_auth_disabled", "This backend doesn't run native sign-in.");
+  },
+  setPassword() {
+    throw new HttpError(404, "native_auth_disabled", "This backend doesn't run native sign-in.");
+  },
 };

@@ -36,6 +36,22 @@ for (const [tag, ops] of [...byTag].sort(([a], [b]) => a.localeCompare(b))) {
   });
 }
 
+// Native sign-in (P50) is served only by a backend that runs it. The suites run against the mock
+// and against Java with test tokens, so they see the disabled answer; Java's NativeAuthTest covers
+// the enabled behaviour.
+describe("native sign-in on a backend that doesn't run it", () => {
+  for (const [path, body] of [
+    ["/auth/sign-in", { email: "someone@example.com", password: "a long enough password", deviceLabel: "Contract suite" }],
+    ["/auth/set-password", { token: "t".repeat(43), password: "a long enough password" }],
+  ] as const) {
+    it(`POST ${path} answers 404 native_auth_disabled`, async () => {
+      const res = await fetch(API_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      expect(res.status).toBe(404);
+      expect(((await res.json()) as { code: string }).code).toBe("native_auth_disabled");
+    });
+  }
+});
+
 it("covers every tag the contract declares", () => {
   const declared = ((s.doc.tags as { name: string }[] | undefined) ?? []).map((t) => t.name);
   for (const tag of declared) expect(byTag.has(tag), `no operation for tag ${tag}`).toBe(true);

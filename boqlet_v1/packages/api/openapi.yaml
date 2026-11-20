@@ -28,6 +28,11 @@ tags:
   - name: notifications
   - name: events
   - name: sessions
+  - name: auth
+    description: >-
+      Native sign-in (P50): email and password on the boqlet domain. Served only by a backend that
+      runs native sign-in (Java with `BOQLET_NATIVE_AUTH=true`); any other backend, the mock included,
+      answers `404 native_auth_disabled`.
   - name: sharing
   - name: public
   - name: admin
@@ -1454,6 +1459,65 @@ paths:
         "204": { description: OK }
 
   # ───────────────────────────── sessions (F01 §10, BR-54) ─────────────────────────────
+  /auth/sign-in:
+    post:
+      tags: [auth]
+      operationId: signInWithPassword
+      security: []
+      description: >-
+        Native sign-in (P50, F01 §10). Checks the password and opens the account's session in one
+        step: `201` sets the opaque `boqlet_session` cookie (Secure, HttpOnly, SameSite=Lax, path
+        `/api/v1`) and returns the session. `409 session_active` when another session is active,
+        unless `takeover` is true. The request must come from the app's exact origin. Attempts are
+        throttled per source and per email (`429 auth_throttled`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, deviceLabel]
+              properties:
+                email: { type: string, description: "at most 254 characters, else `400 invalid_body`" }
+                password: { type: string }
+                deviceLabel: { type: string }
+                takeover: { type: boolean, default: false }
+      responses:
+        "201": { description: Signed in; the session cookie is set, content: { application/json: { schema: { $ref: "#/components/schemas/Session" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { description: Wrong email or password (`unauthenticated`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: Not from the app's origin (`invalid_origin`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "409": { description: Another session is active, content: { application/json: { schema: { $ref: "#/components/schemas/SessionConflict" } } } }
+        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/set-password:
+    post:
+      tags: [auth]
+      operationId: setPassword
+      security: []
+      description: >-
+        Sets the password (P50) from a token: a one-hour setup or reset link issued on the server,
+        or a pending organisation invitation (the person then signs in and accepts it). A setup or
+        reset link is consumed; a reset ends the account's active sessions. The password is 15 to
+        128 characters, the name at most 120. `400 invalid_setup` for a used, expired or unknown
+        token or a password or name out of range.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string }
+                password: { type: string }
+                name: { type: [string, "null"] }
+      responses:
+        "204": { description: Password set }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { description: Not from the app's origin (`invalid_origin`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /sessions:
     post:
       tags: [sessions]
