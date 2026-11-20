@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { client, ROOT_URL } from "../support/env";
+import { client, ROOT_URL, authentication } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -170,7 +170,7 @@ describe("answering (F05 §2, §3)", () => {
 
 describe("decisions page (F05 §7)", () => {
   it("exports the decisions as CSV", async () => {
-    const res = await fetch(`${ROOT_URL}/api/v1/projects/${projectId}/decisions.csv`, { headers: { Authorization: `Bearer ${owner.token}` } });
+    const res = await fetch(`${ROOT_URL}/api/v1/projects/${projectId}/decisions.csv`, { headers: await authentication(owner.token) });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/csv");
     const lines = (await res.text()).trim().split(/\r?\n/);

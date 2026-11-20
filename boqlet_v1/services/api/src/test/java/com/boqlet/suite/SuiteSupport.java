@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,15 +28,49 @@ import org.springframework.web.bind.annotation.RestController;
 public class SuiteSupport {
     public static final String TOKEN_PREFIX = "suite.signup.";
 
-    /** The email a sign-up token carries, or null for any other token. */
+    /**
+     * The test clock (testing.md, the mock's `/_test/clock`). Java reads the time from PostgreSQL's
+     * `now()`, so the clock lives there: {@link #installClock} adds a schema `suite_clock` whose
+     * `now()` is the real time plus an offset, and the test's connections search it before
+     * `pg_catalog` ({@link #SEARCH_PATH}, as `connection-init-sql`). Objects are still created in
+     * `public`. Only a test installs it; no build or deployment has the schema.
+     */
+    public static final String SEARCH_PATH = "public, suite_clock, pg_catalog";
+
+    public static void installClock(String jdbcUrl, String user, String password) throws java.sql.SQLException {
+        try (var connection = java.sql.DriverManager.getConnection(jdbcUrl, user, password);
+             var statement = connection.createStatement()) {
+            statement.execute("CREATE SCHEMA IF NOT EXISTS suite_clock");
+            statement.execute("CREATE TABLE IF NOT EXISTS suite_clock.offset_ms (ms bigint NOT NULL)");
+            statement.execute("INSERT INTO suite_clock.offset_ms SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM suite_clock.offset_ms)");
+            statement.execute("""
+                    CREATE OR REPLACE FUNCTION suite_clock.now() RETURNS timestamptz LANGUAGE sql STABLE AS
+                    $$ SELECT pg_catalog.now() + (SELECT ms FROM suite_clock.offset_ms) * interval '1 millisecond' $$
+                    """);
+        }
+    }
+
+    /**
+     * The email a sign-up token carries, or null for any other token. A sign-up token is
+     * `suite.signup.<base64url email>`; `suite.signup.<base64url email>.<browser>` is the same
+     * person in another browser (tests/support/java-sessions.ts).
+     */
     public static String emailOf(String token) {
-        if (!token.startsWith(TOKEN_PREFIX) || token.length() == TOKEN_PREFIX.length()) return null;
+        String person = personOf(token);
+        if (person == null) return null;
         try {
-            return new String(java.util.Base64.getUrlDecoder().decode(token.substring(TOKEN_PREFIX.length())),
+            return new String(java.util.Base64.getUrlDecoder().decode(person.substring(TOKEN_PREFIX.length())),
                     java.nio.charset.StandardCharsets.UTF_8);
         } catch (IllegalArgumentException invalid) {
             return null;
         }
+    }
+
+    /** The person's own token (the account's subject) without the browser, or null. */
+    public static String personOf(String token) {
+        if (!token.startsWith(TOKEN_PREFIX) || token.length() == TOKEN_PREFIX.length()) return null;
+        int browser = token.indexOf('.', TOKEN_PREFIX.length());
+        return browser < 0 ? token : token.substring(0, browser);
     }
 
     /** `/_test/**` is open to the suite; the product's chain denies every path it doesn't know. */
@@ -54,6 +89,28 @@ public class SuiteSupport {
 
         SuiteController(JdbcTemplate database) {
             this.database = database;
+        }
+
+        @GetMapping("/clock")
+        Map<String, Object> clock() {
+            return database.queryForObject("SELECT now(), (SELECT ms FROM suite_clock.offset_ms)", (row, index) ->
+                    Map.of("now", row.getObject(1, java.time.OffsetDateTime.class).toInstant().toString(), "offsetMs", row.getLong(2)));
+        }
+
+        /** `{advanceMs}`, `{advanceDays}`, `{set: iso}` or `{reset: true}`, as on the mock. */
+        @PostMapping("/clock")
+        Map<String, Object> moveClock(@RequestBody(required = false) Map<String, Object> body) {
+            Map<String, Object> move = body == null ? Map.of() : body;
+            if (Boolean.TRUE.equals(move.get("reset"))) {
+                database.update("UPDATE suite_clock.offset_ms SET ms = 0");
+            } else if (move.get("set") instanceof String at) {
+                database.update("UPDATE suite_clock.offset_ms SET ms = (extract(epoch FROM (?::timestamptz - pg_catalog.now())) * 1000)::bigint", at);
+            } else {
+                long ms = move.get("advanceMs") instanceof Number n ? n.longValue() : 0;
+                ms += move.get("advanceDays") instanceof Number d ? Math.round(d.doubleValue() * 86_400_000) : 0;
+                database.update("UPDATE suite_clock.offset_ms SET ms = ms + ?", ms);
+            }
+            return clock();
         }
 
         /**

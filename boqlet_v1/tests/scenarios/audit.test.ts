@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { API_URL, client } from "../support/env";
+import { API_URL, client, authentication } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -52,7 +52,7 @@ describe("project activity (S18)", () => {
 
   it("is for leads and approvers: a viewer gets 403", async () => {
     expect((await client(member.token).GET("/projects/{projectId}/audit", { params: { path: { projectId } } })).response.status).toBe(403);
-    expect((await fetch(`${API_URL}/projects/${projectId}/audit.csv`, { headers: { Authorization: `Bearer ${member.token}` } })).status).toBe(403);
+    expect((await fetch(`${API_URL}/projects/${projectId}/audit.csv`, { headers: await authentication(member.token) })).status).toBe(403);
   });
 });
 
@@ -62,7 +62,7 @@ describe("org audit (S25)", () => {
     const joined = (await api.GET("/orgs/{orgId}/audit", { params: { path: { orgId }, query: { action: "member.joined" } } })).data!.items;
     expect(joined).toHaveLength(1);
     expect(joined[0]!.actor?.id).toBe(member.id);
-    const res = await fetch(`${API_URL}/orgs/${orgId}/audit.csv?action=member.joined`, { headers: { Authorization: `Bearer ${owner.token}` } });
+    const res = await fetch(`${API_URL}/orgs/${orgId}/audit.csv?action=member.joined`, { headers: await authentication(owner.token) });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/text\/csv/);
     const lines = (await res.text()).replace(/^﻿/, "").trim().split("\r\n");
@@ -73,6 +73,6 @@ describe("org audit (S25)", () => {
 
   it("is for owners and admins: a member gets 403", async () => {
     expect((await client(member.token).GET("/orgs/{orgId}/audit", { params: { path: { orgId } } })).response.status).toBe(403);
-    expect((await fetch(`${API_URL}/orgs/${orgId}/audit.csv`, { headers: { Authorization: `Bearer ${member.token}` } })).status).toBe(403);
+    expect((await fetch(`${API_URL}/orgs/${orgId}/audit.csv`, { headers: await authentication(member.token) })).status).toBe(403);
   });
 });

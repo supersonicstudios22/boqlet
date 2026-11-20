@@ -100,6 +100,12 @@ class NativeWorkerTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
+        try {
+            com.boqlet.suite.SuiteSupport.installClock(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        } catch (java.sql.SQLException failed) {
+            throw new IOException(failed);
+        }
+        properties.add("spring.datasource.hikari.connection-init-sql", () -> "SET search_path = " + com.boqlet.suite.SuiteSupport.SEARCH_PATH);
         properties.add("boqlet.auth.pilot-emails", () -> "owner@example.test,platform@example.test");
         properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
         properties.add("spring.mail.host", MAIL::getHost);

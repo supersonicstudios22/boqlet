@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { API_URL, client } from "../support/env";
+import { API_URL, client, authentication } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -43,14 +43,14 @@ async function exported(file: string) {
   const { data: started } = await api().POST("/runs/{runId}/exports", { params: { path: { runId: boq.currentRevision.currentRun!.id } }, body: { format: "xlsx", groupBy: systemId } });
   const done = await job(started!.id);
   const exportId = (done.output as { exportId: string }).exportId;
-  const res = await fetch(`${API_URL}/exports/${exportId}/download`, { headers: { Authorization: `Bearer ${owner.token}` } });
+  const res = await fetch(`${API_URL}/exports/${exportId}/download`, { headers: await authentication(owner.token) });
   writeFileSync(file, Buffer.from(await res.arrayBuffer()));
 }
 
 async function importFile(file: string) {
   const form = new FormData();
   form.append("file", new Blob([readFileSync(file)]), path.basename(file));
-  const res = await fetch(`${API_URL}/revisions/${boq.currentRevision.id}/edits-import`, { method: "POST", headers: { Authorization: `Bearer ${owner.token}` }, body: form });
+  const res = await fetch(`${API_URL}/revisions/${boq.currentRevision.id}/edits-import`, { method: "POST", headers: await authentication(owner.token), body: form });
   expect(res.status).toBe(202);
   const done = await job(((await res.json()) as { id: string }).id);
   expect(done.type).toBe("import_boq_edits");
@@ -122,7 +122,7 @@ describe("edits import (F12-AC4)", () => {
     const form = new FormData();
     form.append("file", new Blob([readFileSync(file)]), "other.xlsx");
     // The other BoQ has no run: refused before reading.
-    expect((await fetch(`${API_URL}/revisions/${other.currentRevision.id}/edits-import`, { method: "POST", headers: { Authorization: `Bearer ${owner.token}` }, body: form })).status).toBe(409);
+    expect((await fetch(`${API_URL}/revisions/${other.currentRevision.id}/edits-import`, { method: "POST", headers: await authentication(owner.token), body: form })).status).toBe(409);
     writeFileSync(path.join(tmp, "junk.xlsx"), "not a workbook");
     const { report } = await importFile(path.join(tmp, "junk.xlsx"));
     expect(report.overrides).toEqual([]);

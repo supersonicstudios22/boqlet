@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { API_URL, client } from "../support/env";
+import { API_URL, client, authentication } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
@@ -308,13 +308,13 @@ describe("frozen exports and the audit CSV (F12, FE-032)", () => {
   });
 
   it("the project audit as CSV, with the page's filters, for leads and approvers", async () => {
-    const res = await fetch(`${API_URL}/projects/${projectId}/audit.csv?action=version.saved`, { headers: { Authorization: `Bearer ${lead.token}` } });
+    const res = await fetch(`${API_URL}/projects/${projectId}/audit.csv?action=version.saved`, { headers: await authentication(lead.token) });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/text\/csv/);
     const lines = (await res.text()).replace(/^﻿/, "").trim().split(/\r\n/);
     expect(lines[0]).toBe("at,actor,action,entityType,entityId,project,data");
     expect(lines.length).toBeGreaterThan(1);
     expect(lines.slice(1).every((l) => l.split(",")[2] === "version.saved")).toBe(true);
-    expect((await fetch(`${API_URL}/projects/${projectId}/audit.csv`, { headers: { Authorization: `Bearer ${estimator.token}` } })).status).toBe(403);
+    expect((await fetch(`${API_URL}/projects/${projectId}/audit.csv`, { headers: await authentication(estimator.token) })).status).toBe(403);
   });
 });

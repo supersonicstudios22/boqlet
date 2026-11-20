@@ -325,9 +325,10 @@ class ApiFoundationTest {
                     case "owner", "owner-b" -> "owner";
                     case "uninvited", "unverified", "guest", "platform" -> token;
                     case "suite-olivia", "suite-ivana", "suite-marko", "suite-ana", "suite-victor", "suite-pat" -> token;
-                    // People the shared scenarios sign up (com.boqlet.suite.SuiteSupport).
+                    // People the shared scenarios sign up (com.boqlet.suite.SuiteSupport): the person is
+                    // the subject; each browser of theirs is its own provider session (sid).
                     default -> {
-                        if (com.boqlet.suite.SuiteSupport.emailOf(token) != null) yield token;
+                        if (com.boqlet.suite.SuiteSupport.emailOf(token) != null) yield com.boqlet.suite.SuiteSupport.personOf(token);
                         throw new JwtException("Invalid test token.");
                     }
                 };

@@ -1,7 +1,7 @@
 import { gunzipSync } from "node:zlib";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { API_URL, client } from "../support/env";
+import { API_URL, client, authentication } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
@@ -46,7 +46,7 @@ async function generate(revisionId: string) {
 
 /** The full BoqResult of a run (302 to a signed, gzipped JSON). */
 async function result(runId: string) {
-  const res = await fetch(`${API_URL}/runs/${runId}/result`, { headers: { Authorization: `Bearer ${owner.token}` }, redirect: "manual" });
+  const res = await fetch(`${API_URL}/runs/${runId}/result`, { headers: await authentication(owner.token), redirect: "manual" });
   expect(res.status).toBe(302);
   const blob = await fetch(res.headers.get("Location")!);
   expect(blob.ok).toBe(true);

@@ -1,4 +1,4 @@
-import { API_URL } from "./env";
+import { API_URL, authentication } from "./env";
 
 export interface ReceivedEvent {
   event: string;
@@ -8,7 +8,7 @@ export interface ReceivedEvent {
 /** Listens to `GET /events` as one person and collects what arrives (conventions.md "Server-Sent Events"). */
 export async function listen(token: string) {
   const controller = new AbortController();
-  const res = await fetch(`${API_URL}/events`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal });
+  const res = await fetch(`${API_URL}/events`, { headers: await authentication(token), signal: controller.signal });
   if (!res.ok) throw new Error(`/events answered ${res.status}`);
   const events: ReceivedEvent[] = [];
   const reader = res.body!.getReader();

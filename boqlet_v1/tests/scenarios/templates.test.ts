@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { API_URL, client } from "../support/env";
+import { API_URL, client, authentication } from "../support/env";
 import { user, type TestUser } from "../support/users";
 
 /**
@@ -31,7 +31,7 @@ function py(file: string, edit: string): string {
 }
 
 async function download(presetId: string, source = "draft") {
-  const res = await fetch(`${API_URL}/presets/${presetId}/template.xlsx?source=${source}`, { headers: { Authorization: `Bearer ${ivana.token}` }, redirect: "manual" });
+  const res = await fetch(`${API_URL}/presets/${presetId}/template.xlsx?source=${source}`, { headers: await authentication(ivana.token), redirect: "manual" });
   expect(res.status).toBe(302);
   const file = await fetch(res.headers.get("Location")!);
   expect(file.ok).toBe(true);
@@ -43,7 +43,7 @@ async function download(presetId: string, source = "draft") {
 async function upload(presetId: string, file: string) {
   const form = new FormData();
   form.append("file", new Blob([readFileSync(file)]), "template.xlsx");
-  const res = await fetch(`${API_URL}/presets/${presetId}/template-import`, { method: "POST", headers: { Authorization: `Bearer ${ivana.token}` }, body: form });
+  const res = await fetch(`${API_URL}/presets/${presetId}/template-import`, { method: "POST", headers: await authentication(ivana.token), body: form });
   return { status: res.status, body: (await res.json()) as { doc: Record<string, unknown>; changes: { what: string; summary: string }[]; problems: { sheet?: string; row?: number; column?: string; message: string }[]; code?: string } };
 }
 
