@@ -25,7 +25,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 | Latest verified | CI on `605cdd2` (2026-11-19): all six jobs green, including 106 browser tests and nine Java integration and architecture tests; the automatic rollout to the pilot passed its synthetic sign-in, upload, parse and sample BoQ smoke (`docs/19`). |
 | Next task | **FE-041** Point the app at Java: adapt contract changes C01–C05 (C05 adds the native sign-in routes to `openapi.yaml`), run the shared scenario suite (with `isolation.test.ts`) against Java, test live updates across two API instances, and run the Playwright suite against Java. Then FE-042, FE-043 (re-check against native sign-in, P50). |
 | Waiting for the owner | Nothing for M8a. Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. Staging (BE-032) is a future todo the owner schedules. |
-| In progress | **FE-041.** Done: C05 (`e9eadfb`); the shared scenario suite runs against Java (`4819d03`, opt-in `BOQLET_NATIVE_SCENARIOS=1`). First run 2026-11-20: 99 pass, 43 fail, 27 skipped of 171. Harness work left: requests made with plain `fetch` lack the session cookie (audit, boqs AC5, edits-import, questions CSV, templates, `/events` in co-editing); seed data the mock has and Java doesn't (Duplex project and its BoQs, Studio presets, Small Firm at its limit; `versions` and `shares` fail in `beforeAll`); the test clock (`/_test/clock`); two browsers per person (`inSession`). Java behaviour that differs from the mock: line edits after regeneration (2 of 7 kept), error codes (`invalid_preset` vs `invalid_inputs`, the code-list reason), admin CSV columns and limit hits, change-report file name, `groupBy` validation, server-side grouping, preset `archived` and `usedByCount`, parse-once for identical files, names preview, dismissed questions, org-deletion notices, the edits-import traceback. Run: see the Javadoc of `sharedScenariosPassAgainstJava`. |
+| In progress | **FE-041.** Done: C05 (`e9eadfb`), C06 (`c5ee763`); the shared scenario suite passes against Java unchanged and runs in CI (`67e46c0`), with the Java fixes it found (`ececd45`, `f1779fd`). Left: live updates across two API instances; the Playwright suite against Java; the app's own adaptations (re-check the phase-1 limitations in `docs/11`). |
 | Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Phase-2 checks carried into phase 3 are listed in the phase-2 summary and `docs/11` "Known limitations … phase 2". Pricing stays deferred (P48). |
 
 ## Entry template
@@ -44,6 +44,21 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-20 — FE-041 decisions: the shared suites against Java (frontend agent)
+- **Built:** `c538394`..`67e46c0`. `tests/scenarios` passes against Java unchanged and runs in CI's API job.
+- **Decisions taken:** Java's test support lives in test sources only (`com.boqlet.suite.SuiteSupport`, outside the
+  scanned package, imported by `NativeWorkerTest`): `POST /_test/users` (sign-up with a `suite.signup.<email>` token),
+  `/_test/clock` (a `suite_clock.now()` searched before `pg_catalog` by the test's connections; the queue functions
+  keep the real time), `POST /_test/mail/settle` (waits for the outbox; mail is read from MailHog). On Java a person
+  can have several browsers (`suite.signup.<email>.<browser>`, same subject, own provider session; `java-sessions.ts`).
+  The part of the mock seed the scenarios read is made through the API (`tests/support/seed-java.ts`).
+- **Deviations from the spec:** none in behaviour. C06 records Java's existing `409 checkout_unavailable` (D7).
+  Scenarios that need a paid plan set it through `tests/support/plans.ts`.
+- **For the next agent:** a full Java scenario run takes 5–15 minutes locally on Windows; use
+  `BOQLET_SCENARIO_FILTER=<file,file>`. The generated Java models start optional maps and lists empty, and a required
+  nullable field gets `@NotNull` (patched for `DecisionInput.answer` in the pom): check both when Java output differs from
+  the mock.
 
 ### 2026-11-20 — Phase 2 summary: backend, real engine and pilot (backend agent)
 - **Built:** BE-000 (`34f470c`); ME: EN-001 to EN-008 and EN-010 to EN-013 (`0d14b8a`..`d0580b8`);

@@ -264,18 +264,14 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   green push to `v_1` deploys to it. A separate staging environment is a future todo (BE-032);
   until then "on staging" checks run on the pilot with synthetic accounts, and load, performance
   and restore tests run against the local native stack.
-- The shared scenario suite (`tests/scenarios`) still runs against the mock only, because it depends
-  on the mock's seed fixtures; the contract suite (177 checks) passes against Java. Running the
-  scenarios, including `isolation.test.ts`, against Java is M5's and M7's remaining exit check and
-  is done in FE-041. Java's own integration tests cover cross-tenant denial.
 - Live updates across two API instances (M6) are built (PostgreSQL journal with LISTEN/NOTIFY) but
   not tested with two instances (FE-041, BE-026).
-- The native sign-in routes (`POST /auth/sign-in`, `POST /auth/set-password`) are not in
-  `openapi.yaml` yet (C05, FE-041).
 - Pilot operations (docs/18): enrolling the first real owner, email delivery to outside addresses,
   and off-host backup with a tested restore are not qualified yet; no exported traces, metrics or
   alert routing (BE-025).
 - Billing is manual for pilots; a billing provider waits for paid self-service (BE-021, D7).
+- Local Windows runs of the native queue worker occasionally hang one parse for minutes (seen once in
+  the scenario run against Java; CI on Linux hasn't shown it). Investigate if it recurs.
 - Tests still to add: multipart upload integration (BE-006); comparison output and full schema
   checks for federation and resolution previews (BE-008); native coverage of approval, every
   decision type, batching and grouping edge cases (BE-009 to BE-012).
@@ -348,6 +344,12 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-20 | 67e46c0 | FE-041: the shared scenario suite runs against Java in CI and passes unchanged (169 passed, 2 todo, as on the mock; was 99 of 171). Java test support (test sources only): sign-up, browsers per person, a database test clock, a mail-settle endpoint, and the part of the mock seed the scenarios read. |
+| 2026-11-20 | f1779fd | FE-041: Java fixes found by the scenarios: archive is the lead's and PATCH restores; a null answer dismisses; identical files are parsed once (BR-08); a saved version's export is its frozen file (BR-25); revision list order and the closed working version; server-side group lines; F12 file names and audit CSV columns; admin CSV; limit-event actions (V16); invalid_inputs, groupBy, presence 45 s, the engine's code-list reason. |
+| 2026-11-20 | c5ee763 | FE-041: contract change C06, checkout answers 409 checkout_unavailable without self-service billing (D7); the billing page says why. |
+| 2026-11-20 | ececd45 | FE-041: Java places manual lines after their sortHint line and sortAfter null first in the section. |
+| 2026-11-20 | e9eadfb | FE-041: contract change C05, native sign-in routes in openapi.yaml; 404 native_auth_disabled from the mock and from Java without native sign-in. |
+| 2026-11-20 | c538394 | FE-041: engine/requirements.txt gains psycopg (the local engine setup could not start the queue workers). |
 | 2026-11-20 | (this commit) | Phase 2 closed; ready for phase 3 (FE-041). The owner kept one deployed environment, the Contabo pilot, and made staging (BE-032) a future todo (P51); native sign-in recorded as P50 and contract change C05. Plan, milestones, tasks, build log and this file brought up to date. |
 | 2026-11-19 | 605cdd2 | Fixed manual rows mapped wrongly after regeneration, and updated the browser checks to the native export and derivation behaviour; first automatic GitHub Actions rollout to the pilot passed (recorded in 6aa365c, docs/19). |
 | 2026-11-18 | 61596c9 | The deploy gate's Java worker integration suite runs on the same SeaweedFS release as the pilot. |
