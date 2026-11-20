@@ -19,14 +19,23 @@ export async function listen(token: string) {
       for (;;) {
         const { value, done } = await reader.read();
         if (done) return;
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: true }).replace(/\r\n?/g, "\n");
         let end: number;
         while ((end = buffer.indexOf("\n\n")) >= 0) {
           const block = buffer.slice(0, end);
           buffer = buffer.slice(end + 2);
-          const event = /^event: (.*)$/m.exec(block)?.[1];
-          const data = /^data: (.*)$/m.exec(block)?.[1];
-          if (event && data !== undefined) events.push({ event, data: JSON.parse(data) });
+          // The SSE format: "field: value" or "field:value" (one leading space is dropped); data lines join.
+          let event: string | undefined;
+          const data: string[] = [];
+          for (const line of block.split("\n")) {
+            const colon = line.indexOf(":");
+            if (colon <= 0) continue;
+            const field = line.slice(0, colon);
+            const text = line.slice(colon + 1).replace(/^ /, "");
+            if (field === "event") event = text;
+            else if (field === "data") data.push(text);
+          }
+          if (event && data.length) events.push({ event, data: JSON.parse(data.join("\n")) });
         }
       }
     } catch {

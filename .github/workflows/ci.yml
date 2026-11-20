@@ -45,6 +45,9 @@ jobs:
           mvn -B -ntp -f services/api/pom.xml verify
         env:
           BOQLET_NATIVE_QUEUE_TEST: "1"
+          # The shared scenario suite against Java (FE-041); its workbook scenarios run this Python.
+          BOQLET_NATIVE_SCENARIOS: "1"
+          IFC_BOQ_PYTHON: python
           AWS_ACCESS_KEY_ID: boqlet-test
           AWS_SECRET_ACCESS_KEY: boqlet-local-test-only
 

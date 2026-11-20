@@ -25,8 +25,7 @@ interface MailHogMessage {
 
 /**
  * Java sends real SMTP. The Java suite test runs MailHog and passes its HTTP API as
- * `BOQLET_SUITE_MAILHOG`. Delivery goes through the outbox poller, so this waits a moment for mail.
- * MailHog lists the newest message first, like the mock's outbox is read here.
+ * `BOQLET_SUITE_MAILHOG`. MailHog lists the newest message first, like the mock's outbox is read here.
  */
 async function mailHog(email: string): Promise<SentMail[]> {
   const base = process.env.BOQLET_SUITE_MAILHOG;
@@ -46,12 +45,10 @@ async function mailHog(email: string): Promise<SentMail[]> {
       };
     });
   };
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const mails = await read();
-    if (mails.length) return mails;
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  return [];
+  // Java's sender polls its outbox: wait until everything due is sent (the suite test's /_test/mail/settle).
+  const settled = await fetch(`${ROOT_URL}/_test/mail/settle`, { method: "POST" });
+  if (!settled.ok) throw new Error(`/_test/mail/settle answered ${settled.status}`);
+  return read();
 }
 
 const decodeQuotedPrintable = (text: string) =>

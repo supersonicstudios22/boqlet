@@ -226,9 +226,10 @@ class NativeWorkerTest {
     }
 
     /**
-     * The shared scenario suite (`tests/scenarios`) against this API (FE-041). Opt-in with
-     * `BOQLET_NATIVE_SCENARIOS=1` (and Node) until every scenario passes on Java; CI turns it on
-     * then. `BOQLET_SCENARIO_FILTER` runs one file (`orgs`, `isolation`, ...) while working on it.
+     * The shared scenario suite (`tests/scenarios`) against this API (FE-041): the same scenarios
+     * as on the mock, unchanged. Runs with `BOQLET_NATIVE_SCENARIOS=1` and Node (CI sets both; it
+     * takes minutes, so local runs opt in). `BOQLET_SCENARIO_FILTER` runs some files
+     * (`orgs,isolation`) while working on them.
      */
     @Test
     @EnabledIfEnvironmentVariable(named = "BOQLET_NATIVE_SCENARIOS", matches = "1")

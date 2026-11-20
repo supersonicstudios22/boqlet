@@ -91,6 +91,25 @@ public class SuiteSupport {
             this.database = database;
         }
 
+        /**
+         * Waits until the email outbox has sent everything due (up to 15 s), so MailHog holds every
+         * mail the backend has written: the mock writes mail at once, Java's sender polls its outbox.
+         */
+        @PostMapping("/mail/settle")
+        Map<String, Object> settleMail() throws InterruptedException {
+            long until = System.nanoTime() + java.time.Duration.ofSeconds(15).toNanos();
+            long pending;
+            do {
+                pending = database.queryForObject("""
+                        SELECT count(*) FROM email_outbox
+                        WHERE sent_at IS NULL AND canceled_at IS NULL AND next_attempt_at <= now()
+                        """, Long.class);
+                if (pending == 0) break;
+                Thread.sleep(100);
+            } while (System.nanoTime() < until);
+            return Map.of("pending", pending);
+        }
+
         @GetMapping("/clock")
         Map<String, Object> clock() {
             return database.queryForObject("SELECT now(), (SELECT ms FROM suite_clock.offset_ms)", (row, index) ->

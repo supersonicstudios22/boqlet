@@ -84,9 +84,11 @@ let code = 1;
 try {
   const require = createRequire(path.join(process.cwd(), "package.json"));
   const { startVitest } = await import(pathToFileURL(require.resolve("vitest/node")).href);
-  // An optional file filter after the suite: `node run.mjs scenarios library --mock`.
+  // An optional file filter after the suite: `node run.mjs scenarios library --mock`; several are comma-separated.
+  // Several files: `node run.mjs scenarios audit,admin --mock`.
   const only = process.argv.slice(3).find((a) => !a.startsWith("--"));
-  const vitest = await startVitest("test", [only ? `${suite}/${only}` : `${suite}/`], { run: true, root: here, config: path.join(here, "vitest.config.ts") });
+  const filters = only ? only.split(",").filter(Boolean).map((name) => `${suite}/${name}`) : [`${suite}/`];
+  const vitest = await startVitest("test", filters, { run: true, root: here, config: path.join(here, "vitest.config.ts") });
   code = process.exitCode ?? (vitest?.state.getCountOfFailedTests() ? 1 : 0);
   await vitest?.close();
 } finally {
