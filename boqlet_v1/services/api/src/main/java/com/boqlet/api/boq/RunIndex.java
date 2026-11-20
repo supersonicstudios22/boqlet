@@ -49,22 +49,63 @@ public class RunIndex {
 
     private record IndexEntry(String key, boolean missing) {}
 
+    /**
+     * Display order (F06 §13): the engine's order, then each manual line placed after its
+     * `sortHint` line, then each edited line after its `sortAfter` line (`null`: first in its
+     * section). A target that isn't in the run leaves the line where it is.
+     */
     private List<JsonNode> ordered(JsonNode source, JsonNode snapshot) {
         var lines = new ArrayList<JsonNode>();
-        var byKey = new HashMap<String, JsonNode>();
-        source.forEach(line -> {
-            lines.add(line);
-            byKey.put(line.path("key").asText(), line);
-        });
+        source.forEach(lines::add);
+        var moves = new ArrayList<Map.Entry<String, JsonNode>>();
+        for (JsonNode manual : snapshot.path("manualItems")) {
+            if (manual.hasNonNull("sortHint")) moves.add(Map.entry(manual.path("item").path("id").asText(), manual.get("sortHint")));
+        }
         for (JsonNode override : snapshot.path("overrides")) {
-            if (!override.has("sortAfter")) continue;
-            var line = byKey.get(override.path("lineKey").asText());
-            JsonNode after = override.get("sortAfter").isNull() ? null : byKey.get(override.path("sortAfter").asText());
-            if (line == null || line.equals(after) || (!override.get("sortAfter").isNull() && after == null)) continue;
-            lines.remove(line);
-            lines.add(after == null ? 0 : lines.indexOf(after) + 1, line);
+            if (override.has("sortAfter")) moves.add(Map.entry(override.path("lineKey").asText(), override.get("sortAfter")));
+        }
+        String primary = null;
+        for (JsonNode line : lines) {
+            var systems = line.path("codes").fieldNames();
+            if (systems.hasNext()) {
+                primary = systems.next();
+                break;
+            }
+        }
+        for (var move : moves) {
+            int from = indexOf(lines, move.getKey());
+            if (from < 0) continue;
+            JsonNode line = lines.remove(from);
+            int to;
+            if (move.getValue().isNull()) {
+                String section = section(line, primary);
+                int first = -1;
+                for (int index = 0; index < lines.size() && first < 0; index++) {
+                    if (section(lines.get(index), primary).equals(section)) first = index;
+                }
+                to = first < 0 ? from : first;
+            } else {
+                int target = indexOf(lines, move.getValue().asText());
+                to = target < 0 ? from : target + 1;
+            }
+            lines.add(to, line);
         }
         return lines;
+    }
+
+    private static int indexOf(List<JsonNode> lines, String key) {
+        for (int index = 0; index < lines.size(); index++) {
+            if (lines.get(index).path("key").asText().equals(key)) return index;
+        }
+        return -1;
+    }
+
+    /** The line's section in the first classification: its code path, e.g. `A/A.01`. */
+    private static String section(JsonNode line, String primary) {
+        if (primary == null) return "";
+        var path = new ArrayList<String>();
+        line.path("codes").path(primary).path("path").forEach(step -> path.add(step.path("code").asText()));
+        return String.join("/", path);
     }
 
     private void index(UUID run, List<JsonNode> lines, JsonNode doc, Map<String, UUID> versions) {
