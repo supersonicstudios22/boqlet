@@ -5,6 +5,7 @@ import type { Schemas } from "@ifc-boq/api";
 import { API_URL, client } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
+import { setPlan } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /** F18 public share links (FE-036, BR-56), through the API only. */
@@ -63,8 +64,7 @@ beforeAll(async () => {
   const { data: org } = await as(lead).POST("/orgs", { body: { name: "Share Firm", slug: slug("shares") } });
   orgId = org!.id;
   // Four people: more seats than the free plan has (and its "Made with" badge goes away).
-  const { data: checkout } = await as(lead).POST("/orgs/{orgId}/billing/checkout", { params: { path: { orgId } }, body: { planId: "team", returnUrl: "http://localhost:3000/back" } });
-  await fetch(checkout!.url, { redirect: "manual" });
+  await setPlan(lead, orgId, "team");
   const { data: project } = await as(lead).POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Shared Duplex" } });
   projectId = project!.id;
   estimator = await member("Erik Estimator", "estimator");

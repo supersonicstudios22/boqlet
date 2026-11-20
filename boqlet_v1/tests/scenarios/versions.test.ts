@@ -3,6 +3,7 @@ import type { Schemas } from "@ifc-boq/api";
 import { API_URL, client, authentication } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
+import { setPlan } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
@@ -75,8 +76,7 @@ beforeAll(async () => {
   expect(refused.response.status).toBe(402);
   const billing = (await as(lead).GET("/orgs/{orgId}/billing", { params: { path: { orgId } } })).data!;
   const plan = billing.plans!.find((p) => p.entitlements.approvalWorkflow === true && (p.entitlements.seats ?? 99) >= 3)!;
-  const { data: checkout } = await as(lead).POST("/orgs/{orgId}/billing/checkout", { params: { path: { orgId } }, body: { planId: plan.id, returnUrl: "http://localhost:3000/back" } });
-  await fetch(checkout!.url, { redirect: "manual" });
+  await setPlan(lead, orgId, plan.id);
   const { data: project } = await as(lead).POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Duplex" } });
   projectId = project!.id;
   approver = await member("member", "approver");

@@ -55,6 +55,7 @@
     "revision_in_review": "This version is in review. Withdraw the review to change it.",
     "approval_off": "Approval isn't switched on: save the version instead.",
     "invalid_reviewer": "Reviewers are the project's leads and approvers.",
-    "not_saved": "With approval on, save the approved working version before confirming the BoQ."
+    "not_saved": "With approval on, save the approved working version before confirming the BoQ.",
+    "checkout_unavailable": "Plans can't be changed here yet. The boqlet team changes your plan: contact us."
   }
 }

@@ -375,6 +375,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description The billing provider's checkout page for a plan (F14). Without self-service billing (the pilot's manual billing, D7) the platform admin sets plans (`adminSetSubscription`) and this answers `409 checkout_unavailable`. */
         post: operations["createCheckout"];
         delete?: never;
         options?: never;
@@ -4938,6 +4939,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RedirectUrl"];
+                };
+            };
+            /** @description No self-service checkout (`checkout_unavailable`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };
