@@ -13,12 +13,12 @@ import { EngineRefused, EngineUnavailable, engine, type PresetFolder } from "../
 import { emit } from "../events.js";
 import { notify as sendNotification } from "../notify.js";
 import { decisionsSnapshot, unappliedQuestionIds } from "../decisions.js";
-import { applyLineOrder } from "../engine/fakes/line-edits.js";
-import { addTraceSteps } from "../engine/fakes/trace-steps.js";
 import { conflict, HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
+import { addEditAuthors } from "../trace-authors.js";
 import { createJob, jobView, projectAudience, runJob } from "../jobs.js";
 import { PROJECT_PERMISSIONS, projectPermissions, projectRoleOf, visibleProject, writableProject } from "../projects.js";
+import { applyLineOrder } from "../line-order.js";
 import { json, type Handlers } from "../router.js";
 import {
   db,
@@ -514,7 +514,7 @@ function startRun(run: RunRec, revision: RevisionRec, boq: BoqRec, project: Proj
           (stage, pct) => ctx.progress(stage, Math.max(pct, 2)));
         if (ctx.cancelled()) return;
         applyLineOrder(result, adjustments.overrides, adjustments.manualItems);
-        addTraceSteps(result, (key) => {
+        addEditAuthors(result, (key) => {
           const by = adjustments.overrides.find((o) => o.lineKey === key && o.quantity !== undefined)?.createdBy;
           return by ? db().users.find((u) => u.id === by)?.name : undefined;
         });

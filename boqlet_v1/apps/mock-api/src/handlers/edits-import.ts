@@ -1,12 +1,11 @@
 /**
  * F12 "Editing in Excel and importing back" (FE-037, P20): `POST /revisions/{id}/edits-import` reads an
- * edited BoQ workbook in an `import_boq_edits` job (the round-trip fake, `engine/fakes/boq_roundtrip.py`)
- * and keeps its EditsImportReport; `GET /jobs/{jobId}/edits-import-report` hands it out. Nothing is applied
+ * edited BoQ workbook in an `import_boq_edits` job (the engine worker, EN-006) and keeps its
+ * EditsImportReport; `GET /jobs/{jobId}/edits-import-report` hands it out. Nothing is applied
  * here: the person reviews it and applies what they tick through `applyLineEdits`.
  */
 import { getBlob, putBlob } from "../blobs.js";
-import { readEditedXlsx, type ImportLine } from "../engine/fakes/export-xlsx.js";
-import type { EditedLine } from "../engine/fakes/line-edits.js";
+import { readEditedXlsx, type ImportLine } from "../engine/exports.js";
 import { conflict, HttpError, notFound } from "../http.js";
 import { createJob, jobView, runJob } from "../jobs.js";
 import { notify } from "../notify.js";
@@ -52,7 +51,7 @@ export const editsImportHandlers: Handlers = {
     void runJob(job, async (ctx) => {
       ctx.progress("read", 20);
       const result = await runResult(run);
-      const lines: ImportLine[] = (result.lines as EditedLine[]).map((l) => ({ key: l.key, codes: l.codes, ...(l.excluded ? { excluded: true } : {}) }));
+      const lines: ImportLine[] = result.lines.map((l) => ({ key: l.key, codes: l.codes, ...(l.excluded ? { excluded: true } : {}) }));
       const report = (await readEditedXlsx(bytes, { boqId: boq.id, primary: null, lines })) as Report;
       // Manual lines get ids unique to this import (applying twice never clashes).
       for (const m of report.manualItems) m.item.item.id = `xlsx-${job.id.slice(0, 8)}-${m.row ?? report.manualItems.indexOf(m)}`;

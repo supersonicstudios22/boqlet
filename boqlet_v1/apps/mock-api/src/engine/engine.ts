@@ -1,13 +1,10 @@
 /**
- * The mock uses the worker's HTTP transport. The PoC adapter is available for local mock
- * data whose models were parsed before EN-001.
+ * The mock's engine: the engine worker over its HTTP transport (`WorkerEngine`). The interface
+ * stays so tests can swap in a stub engine (`setEngine`).
  */
-import { openAsBlob } from "node:fs";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { BoqResult, CodeListBuildRequest, CodeListBuildResponse, RunDiff, SceneIndex, TableReadResponse } from "@ifc-boq/types";
-import { PRODUCT_ROOT } from "../paths.js";
 import { WorkerEngine } from "./worker.js";
+import type { DiffExportMeta, ExportMeta, ImportInfo } from "./exports.js";
 import type { TemplateImport, TemplateInput } from "./preset-template.js";
 import type { PreviewChange } from "./preset-preview.js";
 
@@ -51,7 +48,14 @@ export interface Engine {
   parseModel(file: { path: string; name?: string }, progress?: EngineProgress): Promise<ParsedModelSummary>;
   run(input: RunInput, progress?: EngineProgress): Promise<RunOutput>;
   preview?(input: RunInput, compare?: RunInput, progress?: EngineProgress): Promise<{ result: BoqResult; changes?: PreviewChange[] }>;
+  /** Compares two runs (EN-002); the worker writes the diff under `prefix`. */
   diff?(from: DiffInputSide, to: DiffInputSide, inputsChanged: string[], prefix: string, progress?: EngineProgress): Promise<RunDiff>;
+  /** The BoQ workbook of a result (EN-006). */
+  exportBoq?(result: BoqResult, meta: ExportMeta): Promise<Uint8Array>;
+  /** The change report workbook of a stored diff (EN-006). */
+  exportDiff?(diffKey: string, meta: DiffExportMeta): Promise<Uint8Array>;
+  /** Reads an edited BoQ workbook back against the BoQ's current lines: the EditsImportReport (EN-006). */
+  importBoq?(file: Uint8Array, info: ImportInfo): Promise<unknown>;
   savePreset(kind: PresetFolder, id: string, doc: unknown): Promise<void>;
   deletePreset(kind: PresetFolder, id: string): Promise<void>;
   /** Problems in a preset document; for a rule-set patch also the flattened rule set. */
@@ -82,123 +86,12 @@ export class EngineRefused extends Error {
   }
 }
 
-/** Phase 1: the proof-of-concept engine API. Dropped when EN-001 lands (FE-046 deletes the API). */
-export class PocEngine implements Engine {
-  readonly name = "poc";
-  constructor(private readonly baseUrl = process.env.POC_ENGINE_URL ?? `http://127.0.0.1:${process.env.IFC_BOQ_ENGINE_PORT ?? 8787}`) {}
-
-  private async call<T>(method: string, route: string, body?: BodyInit, json = true): Promise<T> {
-    let res: Response;
-    try {
-      res = await fetch(this.baseUrl + route, {
-        method,
-        body,
-        headers: json && body ? { "Content-Type": "application/json" } : undefined,
-      });
-    } catch (e) {
-      throw new EngineUnavailable(`engine not reachable at ${this.baseUrl}: ${(e as Error).message}`);
-    }
-    if (!res.ok) {
-      let detail = res.statusText;
-      try {
-        detail = ((await res.json()) as { detail?: string }).detail ?? detail;
-      } catch {
-        /* not JSON */
-      }
-      throw new EngineRefused(res.status, String(detail));
-    }
-    return (await res.json()) as T;
-  }
-
-  health() {
-    return this.call<{ ok: boolean; version?: string }>("GET", "/api/health");
-  }
-
-  async parseModel(file: { path: string; name?: string }) {
-    const form = new FormData();
-    form.append("file", await openAsBlob(file.path), file.name ?? path.basename(file.path));
-    return this.call<ParsedModelSummary>("POST", "/api/models", form, false);
-  }
-
-  run(input: RunInput) {
-    return this.call<RunOutput>("POST", "/api/runs", JSON.stringify(input));
-  }
-
-  async savePreset(kind: PresetFolder, id: string, doc: unknown) {
-    await this.call("PUT", `/api/presets/${kind}/${encodeURIComponent(id)}`, JSON.stringify({ doc }));
-  }
-
-  async deletePreset(kind: PresetFolder, id: string) {
-    await this.call("DELETE", `/api/presets/${kind}/${encodeURIComponent(id)}`);
-  }
-
-  checkPreset(kind: PresetFolder, doc: unknown, library: unknown[] = []) {
-    return this.call<{ ok: boolean; problems: string[]; flattened?: unknown }>("POST", `/api/presets/${kind}/check`, JSON.stringify({ doc, library }));
-  }
-
-  async names(engineModelId: string, dictionaries: unknown[]) {
-    const res = await this.call<{ names: Record<string, unknown>[] }>("POST", `/api/models/${encodeURIComponent(engineModelId)}/names`, JSON.stringify({ dictionaries }));
-    // The PoC sends null for the optional layer/dictionary/entryId of unresolved names; NameUse (and the
-    // contract) leave them out. Noted for EN-001 in the build log.
-    const optional = new Set(["layer", "dictionary", "entryId"]);
-    return { names: res.names.map((n) => Object.fromEntries(Object.entries(n).filter(([key, value]) => !(optional.has(key) && value === null)))) };
-  }
-
-  async geometry(engineModelId: string) {
-    const route = `/api/models/${encodeURIComponent(engineModelId)}/geometry.glb`;
-    let res: Response;
-    try {
-      res = await fetch(this.baseUrl + route);
-    } catch (e) {
-      throw new EngineUnavailable(`engine not reachable at ${this.baseUrl}: ${(e as Error).message}`);
-    }
-    if (!res.ok) throw new EngineRefused(res.status, res.statusText);
-    return new Uint8Array(await res.arrayBuffer());
-  }
-
-  async scene(engineModelId: string) {
-    return this.call<SceneIndex>("GET", `/api/models/${encodeURIComponent(engineModelId)}/scene`);
-  }
-
-  readCodeTable(file: Blob, fileName: string) {
-    const form = new FormData();
-    form.append("file", file, fileName);
-    return this.call<TableReadResponse>("POST", "/api/codelists/read", form, false);
-  }
-
-  buildCodeList(request: CodeListBuildRequest) {
-    return this.call<CodeListBuildResponse>("POST", "/api/codelists/build", JSON.stringify(request));
-  }
-
-  async writeTemplate(input: TemplateInput) {
-    const { xlsx } = await this.call<{ xlsx: string }>("POST", "/api/templates/template-export", JSON.stringify(input));
-    return Buffer.from(xlsx, "base64");
-  }
-
-  readTemplate(input: TemplateInput, file: Uint8Array) {
-    return this.call<TemplateImport | { error: string }>("POST", "/api/templates/template-import",
-      JSON.stringify({ ...input, file: Buffer.from(file).toString("base64") }));
-  }
-
-  /**
-   * The PoC API has no endpoint for the checks' element lists, so the interim path reads them from
-   * the engine's cache (`parsed.json` → `verification.checks`) on this machine (mock-api.md
-   * "Interim engine path"). The worker returns them with the parse output (EN-001).
-   */
-  async checks(engineModelId: string) {
-    if (!/^[0-9a-f]+$/i.test(engineModelId)) return [];
-    const cache = process.env.IFC_BOQ_CACHE ?? path.join(PRODUCT_ROOT, "engine", ".cache");
-    try {
-      const parsed = JSON.parse(await readFile(path.join(cache, "models", engineModelId, "parsed.json"), "utf8")) as { verification?: { checks?: unknown[] } };
-      return parsed.verification?.checks ?? [];
-    } catch {
-      return [];
-    }
-  }
-}
-
-let current: Engine = process.env.POC_ENGINE_URL && !process.env.ENGINE_URL ? new PocEngine() : new WorkerEngine();
+let current: Engine = new WorkerEngine();
 export const engine = () => current;
+/** A worker-only operation the current engine doesn't have: there is no fallback (FE-042). */
+export function unsupported(operation: string) {
+  return new EngineUnavailable(`The ${current.name} engine can't ${operation}: it needs the engine worker (ENGINE_URL).`);
+}
 /** Tests replace the engine (e.g. with a recorded one). */
 export function setEngine(next: Engine) {
   current = next;

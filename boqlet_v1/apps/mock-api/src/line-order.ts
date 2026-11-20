@@ -1,8 +1,10 @@
-/** Display ordering is applied after the worker generates the lines. */
+/**
+ * Display ordering (mock-api.md "Line edits"): the mock owns it, the engine doesn't. After the
+ * engine generates the lines, manual lines move after their `sortHint` line and edited lines after
+ * their `sortAfter` line (`null`: first in their section of the first classification).
+ */
 import type { BoqLine, BoqResult } from "@ifc-boq/types";
-import type { ManualItemRec, OverrideRec } from "../../store.js";
-
-export type EditedLine = BoqLine;
+import type { ManualItemRec, OverrideRec } from "./store.js";
 
 export function applyLineOrder(result: BoqResult, overrides: OverrideRec[], items: ManualItemRec[]) {
   const lines = result.lines;

@@ -1,12 +1,12 @@
 /**
  * F12 run exports (FE-017): `POST /runs/{runId}/exports` starts an `export_xlsx` job that writes the
- * run's BoQ Excel (the "BoQ export" fake: the engine's exporter over the run's edited result), keeps
- * it in the blob folder and records an `Export`; downloads are a 302 to a signed URL.
+ * run's BoQ Excel (the engine worker's exporter over the run's result, EN-006), keeps it in the blob
+ * folder and records an `Export`; downloads are a 302 to a signed URL.
  */
 import { audit } from "../audit.js";
 import { putBlob, signedUrl } from "../blobs.js";
 import { nowIso } from "../clock.js";
-import { exportXlsx } from "../engine/fakes/export-xlsx.js";
+import { exportXlsx } from "../engine/exports.js";
 import { HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
 import { notify } from "../notify.js";

@@ -8,7 +8,7 @@ import { PRESETS_DIR } from "../paths.js";
 import type { TemplateImport, TemplateInput } from "./preset-template.js";
 import type { PreviewChange } from "./preset-preview.js";
 import { EngineRefused, EngineUnavailable, type DiffInputSide, type Engine, type EngineProgress, type ParsedModelSummary, type PresetFolder, type RunInput } from "./engine.js";
-import type { ExportMeta, ImportLine } from "./fakes/export-xlsx.js";
+import type { DiffExportMeta, ExportMeta, ImportInfo } from "./exports.js";
 
 type Preset = { id: string; extends?: string };
 type JobOutput = { status: string; output?: unknown; error?: { message: string; code: string } };
@@ -200,7 +200,7 @@ export class WorkerEngine implements Engine {
     }
   }
 
-  async exportDiff(diffKey: string, meta: { title: string; fromLabel: string; toLabel: string; groupBy?: string }) {
+  async exportDiff(diffKey: string, meta: DiffExportMeta) {
     const prefix = `_engine/workbooks/${randomUUID()}`;
     try {
       const { xlsxKey } = await this.job<{ xlsxKey: string }>("export_xlsx", { diffKey, meta }, prefix);
@@ -210,7 +210,7 @@ export class WorkerEngine implements Engine {
     }
   }
 
-  async importBoq(file: Uint8Array, info: { boqId: string; primary: string | null; lines: ImportLine[] }) {
+  async importBoq(file: Uint8Array, info: ImportInfo) {
     const prefix = `_engine/workbooks/${randomUUID()}`;
     try {
       const fileKey = `${prefix}/source.xlsx`;

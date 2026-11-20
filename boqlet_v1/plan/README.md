@@ -17,7 +17,7 @@ GitHub Actions. **Phase 3 (frontend role) is next, starting with FE-041.** Every
 starts with the prompt in `08-delivery/sessions.md` and works by that file: it says how to
 start, what to decide yourself and what to ask, when to stop and how to hand over.
 
-1. Read this README (decisions P01–P51 are settled; don't reopen them),
+1. Read this README (decisions P01–P52 are settled; don't reopen them),
    `08-delivery/sessions.md`, and `10-build-log.md` "Current position" (where the build
    stands, the next task, and your role).
 2. `08-delivery/milestones.md`: phases, milestones, exit criteria.
@@ -138,7 +138,8 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P48 | **The pricing module is for a later phase** (2026-11-14). MP1 (pricing on the mock, FE-P1…FE-P7) and MP2 (EN-P1, BE-P1…BE-P4) are not built in phases 1 and 2; the owner schedules them later. Phase 1 ends after M4, phase 2 after M7. The module boundary (P36) stays: the extension points (FE-039), `openapi-pricing.yaml`, the core-only build and the module-removed checks are still built and kept green. v1 criterion 6 ("only if the module ships in v1") is not part of release 1 unless the owner brings the module forward. |
 | P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](07-backend/decisions.md). *(Sign-in refined by P50; staging by P51.)* |
 | P50 | **Native sign-in instead of Keycloak** (2026-11-18, the deployment session). Users sign in with email and password on the boqlet domain; the Java API checks Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. Requests that change state must come from the exact boqlet origin. The single active session and takeover (BR-54) stay. The first owner and assisted resets use a one-hour setup link issued on the server. Refines D1 in `07-backend/decisions.md`. Runbook: `docs/19-native-auth-and-cd.md`. |
-| P51 | **One deployed environment until further notice** (2026-11-20, the owner). The invited pilot on Contabo (`docs/18`, booqlet.com) is the only deployed environment; GitHub Actions deploys every green push to `v_1` there. A separate staging environment (BE-032) is a **future todo**, not part of phases 2 and 3. Wherever the plan says "staging", read the pilot deployment: acceptance there uses synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`), and load, performance and restore tests that would disturb pilot users run against the local native stack instead. At the release (FE-047) the same host becomes production, deployed from `main`. Refines P46 and D8. |
+| P51 | **One deployed environment until further notice** (2026-11-20, the owner). The invited pilot on Contabo (`docs/18`, booqlet.com) is the only deployed environment; GitHub Actions deploys every green push to `v_1` there. A separate staging environment (BE-032) is a **future todo**, not part of phases 2 and 3. Wherever the plan says "staging", read the pilot deployment: acceptance there uses synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`), and load, performance and restore tests that would disturb pilot users run against the local native stack instead. At the release (FE-047) the same host becomes production, deployed from `main`. Refines P46 and D8. *2026-11-20, the owner: it stays the only environment and is development for now (no real users), so checks may run there.* |
+| P52 | **Browser tests against Java are a focused smoke set** (2026-11-20, the owner). The 106 Playwright tests keep running on the mock; a separate set of about 15–20 browser tests runs against Java with native sign-in (F01 criteria, FL-1 to the sample BoQ, upload to share link, live co-editing), in CI. The shared contract and scenario suites cover every operation on Java. Refines FE-041 and FE-043 acceptance ("every M1–M4 flow against Java"). |
 
 ## Where the code lives (P44)
 
@@ -151,7 +152,7 @@ root**: `engine/` means `boqlet_v1/engine/` until FE-046, and `engine/` afterwar
 boqlet_v1/                     the product root: one npm workspace (apps/*, packages/*), name "boqlet"
   apps/app                     Next.js product frontend (phase 1; wired to Java in phase 3)
   apps/mock-api                Mock backend implementing both contracts (phase 1): PoC engine API plus
-                               engine fakes, then the engine worker from phase 2; afterwards an e2e test double
+                               engine fakes, the engine worker since phase 2 (fakes gone, FE-042); afterwards an e2e test double
   apps/web                     PoC dev UI and its Guide, behind the live demo; deleted in FE-046
   packages/api                 openapi.yaml (moved from plan/05-api in FE-001) + generated client (@ifc-boq/api)
   packages/pricing-api         openapi-pricing.yaml + its generated client (pricing module only)

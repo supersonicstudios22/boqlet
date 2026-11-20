@@ -39,7 +39,7 @@ npm run dev:poc      # PoC: engine on 127.0.0.1:8787 + web on http://localhost:5
 | `npm run dev:app` | The product in development: engine worker (8788) + mock API (`apps/mock-api`, 4010) + app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the mock). Sign in as a seeded user (`/_dev/users` on 4010). |
 | `npm run dev:engine-worker` | Engine worker on port 8788. Uses the mock's blob folder by default. `ENGINE_WORKER_PORT`, `ENGINE_STORAGE`, `ENGINE_HTTP_CONCURRENCY`, and `ENGINE_MAX_MODEL_MB` configure local runs. |
 | `npm run dev:mock` / `npm run mock:seed` / `npm run mock:reset` | The mock API alone / seed `apps/mock-api/.data` if empty / wipe and reseed. |
-| `npm run test` | Typecheck all workspaces, lint the app, the app's and the mock's tests, the contract and scenario suites against a fresh mock, then the engine tests (pytest). The mock's Duplex test runs only when the engine is up (`npm run dev:engine`). |
+| `npm run test` | Typecheck all workspaces, lint the app, the app's and the mock's tests, the contract and scenario suites against a fresh mock, then the engine tests (pytest). The mock's Duplex test runs only when the engine worker is up (`npm run dev:engine-worker`). |
 | `npm run test:contract:mock` / `npm run test:scenarios:mock` | The shared suites (`tests/contract`, `tests/scenarios`) against a fresh mock they start themselves. Without `:mock` they run against `API_URL` (a running mock, or Java in phase 2). |
 | `npm run lint` / `npm run test:app` / `npm run e2e:app` | The app's ESLint (no literal UI strings, F15) / Vitest unit tests / Playwright end-to-end tests (starts the app if it isn't running). |
 | `npm run test:engine` | Engine tests only. Includes the Duplex acceptance test. |
@@ -63,7 +63,7 @@ Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
 | Path | What lives there |
 |---|---|
 | `apps/app` | The product frontend, Next.js (phase 1; wired to Java in phase 3). |
-| `apps/mock-api` | Mock backend implementing both contracts (phase 1): the PoC engine API plus engine fakes, later the engine worker; afterwards an e2e test double. |
+| `apps/mock-api` | Mock backend implementing both contracts (phase 1), computing through the engine worker (the PoC engine API and the engine fakes are gone, FE-042); afterwards an e2e test double. |
 | `apps/web` | React 18 + Vite PoC dev UI and its Guide, behind the live demo: drop IFC, choose presets, generate, inspect lines, log, questions, compare, download Excel. Deleted in FE-046. |
 | `packages/api` | `openapi.yaml` (the core HTTP contract) and its generated client (`@ifc-boq/api`). |
 | `packages/pricing-api`, `packages/pricing-ui` | The optional, removable pricing module's contract, client and frontend (P36). |

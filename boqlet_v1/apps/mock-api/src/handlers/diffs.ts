@@ -1,16 +1,15 @@
 /**
  * F08 §3–7 change report (FE-030): `POST /runs/{runId}/compare` starts a `diff` job (or answers the
  * cached diff), `GET /diffs/{id}` with its lines and elements (paged, filtered in memory) and the change
- * report export. The comparison is the "Change report" fake (`engine/fakes/diff.ts`, EN-002).
+ * report export. The engine worker compares the runs (EN-002) and writes the report's Excel (EN-006).
  */
-import { gunzipSync, gzipSync } from "node:zlib";
-import type { SceneIndex } from "@ifc-boq/types";
+import { gunzipSync } from "node:zlib";
+import type { RunDiff } from "@ifc-boq/types";
 import { audit } from "../audit.js";
 import { getBlob, putBlob } from "../blobs.js";
 import { nowIso } from "../clock.js";
-import { engine, type DiffInputSide } from "../engine/engine.js";
-import { changeReportXlsx, diffRuns, inputsChanged, type DiffResult, type DiffSide } from "../engine/fakes/diff.js";
-import { WorkerEngine } from "../engine/worker.js";
+import { engine, unsupported, type DiffInputSide } from "../engine/engine.js";
+import { exportDiffXlsx } from "../engine/exports.js";
 import { HttpError, notFound } from "../http.js";
 import { newId } from "../ids.js";
 import { createJob, jobView, runJob } from "../jobs.js";
@@ -20,15 +19,14 @@ import { json, type Handlers } from "../router.js";
 import { db, persist, type DiffRec, type ExportRec, type RunRec, type UserRec } from "../store.js";
 import { revisionLabel } from "./boqs.js";
 import { exportFileName } from "./exports.js";
-import { runFor, runResult } from "./lines.js";
-import { sceneOf } from "./viewer.js";
+import { runFor } from "./lines.js";
 
-const bodies = new Map<string, Pick<DiffResult, "lines" | "elements">>();
+const bodies = new Map<string, Pick<RunDiff, "lines" | "elements">>();
 
 async function bodyOf(diff: DiffRec) {
   const hit = bodies.get(diff.id);
   if (hit) return hit;
-  const body = JSON.parse(gunzipSync(await getBlob(diff.key)).toString("utf8")) as Pick<DiffResult, "lines" | "elements">;
+  const body = JSON.parse(gunzipSync(await getBlob(diff.key)).toString("utf8")) as Pick<RunDiff, "lines" | "elements">;
   bodies.set(diff.id, body);
   if (bodies.size > 8) bodies.delete(bodies.keys().next().value!);
   return body;
@@ -49,19 +47,32 @@ function diffOf(user: UserRec, diffId: string) {
   return diff;
 }
 
-/** What the fake compares: the run's result, request, asked questions and models with their scenes. */
-async function sideOf(run: RunRec, other: RunRec): Promise<DiffSide> {
-  const versionsOther = new Map(other.request.inputs.models.map((m) => [m.modelId, m.modelVersionId]));
-  const models = await Promise.all(
-    run.request.inputs.models.map(async (m) => {
-      const model = db().models.find((x) => x.id === m.modelId);
-      const version = db().modelVersions.find((v) => v.id === m.modelVersionId);
-      // Scenes are only needed when the other run has another version of the model (or none).
-      const scene: SceneIndex | undefined = version && versionsOther.get(m.modelId) !== m.modelVersionId ? await sceneOf(version) : undefined;
-      return { modelId: m.modelId, name: model?.name ?? m.modelId, versionId: m.modelVersionId, ...(scene ? { scene } : {}) };
-    }),
-  );
-  return { result: await runResult(run), request: run.request as DiffSide["request"], askedQuestionIds: run.askedQuestionIds ?? [], models };
+type RunRequest = RunRec["request"];
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/** A request's line edits by line key, without who made them and when. */
+const overrideKey = (request: RunRequest) =>
+  new Map((request.adjustments?.overrides ?? []).map((o) => {
+    const { lineKey, id: _i, createdAt: _c, createdBy: _b, updatedAt: _u, updatedBy: _ub, boqId: _bq, ...content } = o as typeof o & Record<string, unknown>;
+    return [lineKey, JSON.stringify(content)];
+  }));
+
+/** Which inputs differ between the two runs' requests (the keys of `pendingChanges`), for the worker's diff. */
+export function inputsChanged(from: RunRequest, to: RunRequest) {
+  const models = (r: RunRequest) => r.inputs.models.map((m) => `${m.modelId}:${m.modelVersionId}`).sort();
+  const out: string[] = [];
+  if (!same(models(from), models(to))) out.push("inputs.models");
+  if (from.inputs.ruleSetVersionId !== to.inputs.ruleSetVersionId) out.push("inputs.ruleSet");
+  if (!same(from.inputs.classificationVersionIds, to.inputs.classificationVersionIds)) out.push("inputs.classifications");
+  if (!same(from.inputs.dictionaryVersionIds, to.inputs.dictionaryVersionIds) || (from.projectDictionaryVersionId ?? null) !== (to.projectDictionaryVersionId ?? null)) out.push("inputs.dictionaries");
+  if ((from.inputs.federationVersionId ?? null) !== (to.inputs.federationVersionId ?? null)) out.push("inputs.federation");
+  if ((from.inputs.resolutionVersionId ?? null) !== (to.inputs.resolutionVersionId ?? null)) out.push("inputs.resolution");
+  const answers = (r: RunRequest) => (r.decisions ?? []).map((d) => [d.questionId, d.answer]).sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+  if (!same(answers(from), answers(to))) out.push("decisions");
+  const edits = (r: RunRequest) => [[...overrideKey(r).entries()].sort(), (r.adjustments?.manualItems ?? []).map((m) => JSON.stringify(m.item)).sort()];
+  if (!same(edits(from), edits(to))) out.push("adjustments");
+  return out;
 }
 
 function workerSide(run: RunRec): DiffInputSide {
@@ -97,18 +108,13 @@ export const diffHandlers: Handlers = {
       ctx.progress("load", 10);
       const id = newId();
       const prefix = `orgs/${project.orgId}/diffs/${id}/`;
+      // The worker writes the diff at `<prefix>diff.json.gz`.
       const key = prefix + "diff.json.gz";
       const backend = engine();
-      let result: DiffResult;
-      if (backend.diff) {
-        result = await backend.diff(workerSide(from), workerSide(to),
-          inputsChanged(from.request, to.request), prefix, (stage, pct) => ctx.progress(stage, pct));
-      } else {
-        const [a, b] = await Promise.all([sideOf(from, to), sideOf(to, from)]);
-        result = diffRuns(a, b);
-        await putBlob(key, gzipSync(JSON.stringify(result)));
-      }
-      const rec: DiffRec = { id, fromRunId: from.id, toRunId: to.id, projectId: project.id, orgId: project.orgId, summary: result.summary, questions: result.questions, key, jobId: job.id, createdAt: nowIso() };
+      if (!backend.diff) throw unsupported("compare runs");
+      const result = await backend.diff(workerSide(from), workerSide(to),
+        inputsChanged(from.request, to.request), prefix, (stage, pct) => ctx.progress(stage, pct));
+      const rec: DiffRec = { id, fromRunId: from.id, toRunId: to.id, projectId: project.id, orgId: project.orgId, summary: { ...result.summary }, questions: result.questions, key, jobId: job.id, createdAt: nowIso() };
       db().diffs.push(rec);
       bodies.set(id, { lines: result.lines, elements: result.elements });
       persist();
@@ -150,49 +156,9 @@ export const diffHandlers: Handlers = {
     const org = db().orgs.find((o) => o.id === project.orgId)!;
     void runJob(job, async (ctx) => {
       ctx.progress("export", 10);
-      const { lines, elements } = await bodyOf(diff);
       const system = (to.classifications ?? [])[0]?.id;
-      const group = (l: (typeof lines)[number]) => {
-        const top = system ? (l.after ?? l.before)?.codes?.[system]?.path?.[0] : undefined;
-        return top ? `${top.code} ${top.title}` : "";
-      };
-      const s = diff.summary as DiffResult["summary"];
       const label = (r: typeof revision) => `${revisionLabel(r.number)}${r.status === "draft" ? " (working)" : ""}`;
-      const title = `${project.name} / ${boq.name}: changes`;
-      const adapter = engine();
-      const bytes = adapter instanceof WorkerEngine
-        ? await adapter.exportDiff(diff.key, { title, fromLabel: label(fromRevision), toLabel: label(revision), groupBy: system })
-        : await changeReportXlsx({
-        title,
-        subtitle: `${label(fromRevision)} (run of ${from.finishedAt ?? from.createdAt}) to ${label(revision)} (run of ${to.finishedAt ?? to.createdAt})`,
-        summary: [
-          ["Lines added", s.linesAdded],
-          ["Lines removed", s.linesRemoved],
-          ["Lines changed", s.linesChanged],
-          ["Lines unchanged", s.linesUnchanged],
-          ["Elements added", s.elementsAdded],
-          ["Elements removed", s.elementsRemoved],
-          ["Elements changed", s.elementsChanged],
-          ["Questions new", s.questionsNew],
-          ["Questions resolved", s.questionsResolved],
-          ["Inputs that differ", s.inputsChanged.join(", ") || "none"],
-          ...s.byModel.map((m): [string, string] => [`Elements in ${m.model}`, `${m.added} added, ${m.removed} removed, ${m.changed} changed`]),
-          ...(s.guidChurnWarning ? [["Warning", "More than 50% of elements changed id. Check the export settings of the authoring tool."] as [string, string]] : []),
-        ],
-        lines: lines.map((l) => ({
-          group: group(l),
-          lineKey: l.lineKey,
-          description: (l.after ?? l.before)!.description,
-          unit: (l.after ?? l.before)!.unit,
-          change: l.change,
-          before: l.before?.quantity ?? null,
-          after: l.after?.quantity ?? null,
-          delta: l.delta,
-          deltaPct: l.deltaPct,
-          causes: l.causes.join(", "),
-        })),
-        elements: elements.map((e) => ({ guid: e.guid, model: e.model, change: e.change, fields: e.fields.join(", "), lines: e.lineKeys.join(", ") })),
-      });
+      const bytes = await exportDiffXlsx(diff.key, { title: `${project.name} / ${boq.name}: changes`, fromLabel: label(fromRevision), toLabel: label(revision), groupBy: system });
       const id = newId();
       const createdAt = nowIso();
       const fileName = exportFileName(project.code || project.name, boq.name, revisionLabel(revision.number), createdAt).replace(/\.xlsx$/, "_changes.xlsx");

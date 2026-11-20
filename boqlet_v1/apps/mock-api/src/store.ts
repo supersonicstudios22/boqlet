@@ -122,7 +122,7 @@ export interface ModelVersionRec {
   engineModelId?: string;
   archived?: boolean;
 }
-/** A change report between two runs (F08 §3, the "Change report" fake): the body is kept gzipped in the blob folder. */
+/** A change report between two runs (F08 §3, the engine worker's diff, EN-002): the body is kept gzipped in the blob folder. */
 export interface DiffRec {
   id: string;
   fromRunId: string;

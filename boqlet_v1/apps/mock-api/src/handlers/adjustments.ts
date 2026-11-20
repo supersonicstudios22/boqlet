@@ -1,8 +1,8 @@
 /**
  * F06 §6–7 (FE-011): line edits (`LineOverride`, one row per line key, carried to later
  * revisions) and manual lines (`ManualItem`), per BoQ. They are written to the working version's
- * BoQ and apply on the next run (the fakes in `engine/fakes/line-edits.ts`); `checkPreset` runs the
- * engine's check, e.g. for a manual line's formula.
+ * BoQ and apply on the next run (the engine applies them, EN-003; the mock orders the lines,
+ * `line-order.ts`); `checkPreset` runs the engine's check, e.g. for a manual line's formula.
  */
 import { announceLineEdits, leavePresence, touchPresence } from "../presence.js";
 import { audit } from "../audit.js";

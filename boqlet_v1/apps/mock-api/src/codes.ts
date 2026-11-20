@@ -1,7 +1,7 @@
 /**
  * The code lists a revision's classifications carry, by the engine's system id (the key of a line's
- * `codes`). Used to check codes in line edits and manual lines, and by the fakes that put a chosen
- * code on a line the way the engine does (the path follows `parent`, as in classify.py).
+ * `codes`). Used to check codes in line edits and manual lines; `lineCode` builds a code the way the
+ * engine does (the path follows `parent`, as in classify.py).
  */
 import type { LineCode } from "@ifc-boq/types";
 import { db, type RevisionInputs } from "./store.js";

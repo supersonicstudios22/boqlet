@@ -8,7 +8,7 @@ import type { BoqLine, BoqResult } from "@ifc-boq/types";
 import { audit } from "../audit.js";
 import { putBlob, signedUrl } from "../blobs.js";
 import { nowIso } from "../clock.js";
-import { exportXlsx } from "../engine/fakes/export-xlsx.js";
+import { exportXlsx } from "../engine/exports.js";
 import { conflict, forbidden, HttpError, notFound } from "../http.js";
 import { limitRefused } from "../limits.js";
 import { newId } from "../ids.js";

@@ -175,7 +175,7 @@ async function flattenedOf(version: PresetVersionRec): Promise<unknown> {
   return flat;
 }
 
-/** What the template fake needs for a preset's document (F10 §14). */
+/** What the engine's preset template (EN-012) needs for a preset's document (F10 §14). */
 async function templateInput(preset: PresetRec, version: PresetVersionRec | undefined, source: TemplateInput["source"]): Promise<TemplateInput> {
   if (preset.kind !== "rule_set" && preset.kind !== "classification" && preset.kind !== "dictionary") throw new HttpError(400, "no_template", "Templates exist for rule sets, classifications and dictionaries.");
   if (!version) throw conflict("no_draft", "The preset has no draft and no version.");
@@ -348,10 +348,9 @@ export const presetHandlers: Handlers = {
     const { preset } = visiblePreset(user!, version.presetId);
     let flattened: unknown;
     const doc = version.doc as { extends?: string } | null;
-    // Every rule set comes flattened (a patch resolved; F16's setup markers merged, the fake until EN-011).
+    // Every rule set comes flattened (a patch resolved; F16's setup steps from the engine, EN-011).
     if (preset.kind === "rule_set" && doc) {
       try {
-        // The "Setup markers" fake adds F16's wizard markers to rule sets built on As modelled.
         flattened = await flattenedOf(version);
       } catch (e) {
         if (e instanceof EngineUnavailable) throw engineDown();
@@ -442,7 +441,7 @@ export const presetHandlers: Handlers = {
   },
 
   /**
-   * F10 §6 (the "Preview" fake until EN-005): the draft (or a version) run on model versions the user
+   * F10 §6 (the engine's preview, EN-005): the draft (or a version) run on model versions the user
    * can see, with the other inputs from `otherInputs` or the models' project defaults, compared with
    * the latest published version. A `preview` job; its output carries `previewResultUrl`
    * (`PreviewResult`). Nothing is stored for a BoQ; the time counts as processing (BR-62).

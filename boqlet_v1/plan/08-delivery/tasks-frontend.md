@@ -350,7 +350,8 @@ tests against the local native stack. **Sign-in is native (P50)**: FE-043's adap
 - The mock stays as the e2e test double.
 - Run the full Playwright suite against Java staging.
 **Accept:**
-- every M1–M4 flow passes against Java staging;
+- every M1–M4 flow passes against Java staging; *under P52: the Java browser smoke set passes, the 106
+  browser tests pass on the mock, and the shared contract and scenario suites pass against Java;*
 - every row in `05-api/contract-changes.md` is adapted or marked "nothing to adapt";
 - `git grep contract-change: apps/app` is empty.
 
@@ -367,8 +368,8 @@ real behaviour differs (e.g. derived lines now follow edited quantities, real tr
 - Vendor sign-in, if the pricing module is built (MP2).
 - `NEXT_PUBLIC_AUTH_ADAPTER` selects the adapter. The mock adapter stays for e2e on the mock.
 - **Accept:**
-  - F01 acceptance criteria on Java staging with the real provider;
-  - FL-1 sign-up to first BoQ end to end on staging;
+  - F01 acceptance criteria on Java staging with the real provider (P52: in the Java browser smoke set);
+  - FL-1 sign-up to first BoQ end to end on staging (P52: in the Java browser smoke set);
   - e2e on the mock still green.
 
 ## Phase 3, M8: hardening and release
@@ -389,7 +390,7 @@ in the `en-XA` pseudo-locale and fix clipped, overlapping or untranslated string
 After FE-041…FE-045 and BE-025, BE-026, TS-002…TS-004 are green, and before the release
 (FE-047). This is the last structural change.
 - **Check first** that nothing in the product uses the proof of concept any more:
-  - `PocEngine` and the interim engine path are gone (EN-001);
+  - the mock's PoC engine adapter and the interim engine path are gone (EN-001, FE-042);
   - the fakes table in `mock-api.md` is empty (FE-042);
   - `git grep -n "8787\|ifc_boq.api\|apps/web\|dev:poc"` finds only the PoC itself and
     history docs.
