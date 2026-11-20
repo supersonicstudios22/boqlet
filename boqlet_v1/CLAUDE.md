@@ -134,14 +134,17 @@ into any number of code lists, questions and answers, calculation log, Excel exp
 UI, plus real wall faces with the rooms on them and room-by-room finishes. The engine reproduces the
 hand-made Duplex BoQ exactly. Across federated models the engine links doors to openings, rooms to walls
 and columns through slabs (with the `meshes.npz` sidecar), and it asks about contradictions and double claims.
-Not yet built: coordinate alignment between models, AI name suggestions, model revisions, background jobs, users and projects, the
-Java backend. Also run on 309 public IFC files from 30 authoring tools (buildingSMART samples,
+Since phase 2 the engine also runs as a worker for the Java backend (users, orgs, projects, model
+revisions and their change reports, background jobs, Library, exports, sharing). Not yet built:
+coordinate alignment between models, AI name suggestions. Also run on 309 public IFC files from 30 authoring tools (buildingSMART samples,
 DURAARK, the Auckland OpenIFC repository, Schependomlaan): no engine errors, output valid
 against the contract; quantities checked only for the Duplex and the buildingSMART samples.
 What was run and what is still uncovered: `docs/12-ifc-corpus-catalogue.md`.
 
-The product built on top of this is specified in `plan/` (decisions P01–P48, phases,
-milestones, tasks). Every build session starts with the prompt in `plan/08-delivery/sessions.md`
+The product built on top of this is specified in `plan/` (decisions P01–P51, phases,
+milestones, tasks). Phases 1 and 2 are done; phase 3 (wire up, harden, release) is next. The
+invite-only pilot runs on one deployed environment (P51), deployed from `v_1` by GitHub Actions
+(`docs/18`, `docs/19`); a separate staging environment is a future todo. Every build session starts with the prompt in `plan/08-delivery/sessions.md`
 and works by that file. **Where the build stands** (phase, role, next task, what agents decided
 along the way) is in `plan/10-build-log.md`. The build happens on the branch `v_1` (P46); `main`
 keeps the proof of concept and its live demo until the release.

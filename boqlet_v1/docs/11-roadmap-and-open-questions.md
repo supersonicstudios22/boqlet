@@ -85,7 +85,9 @@ add a row here before you finish, even if nobody asked: this page is how nothing
 
 ## Known limitations of the product build (phase 1, `apps/app` + `apps/mock-api`)
 
-Things the product build doesn't do yet, with the task that deals with each.
+Things the product build didn't do at the end of phase 1, on the mock, with the task that deals
+with each. Phase 2 closed many of them (the real engine, Java, sign-in, the sample project);
+FE-041 and FE-042 re-check each item against Java and the real engine and strike what is fixed.
 
 - The limit dialog (402) says which limit was reached but offers no upgrade path yet (FE-019, FE-035).
 - Deleting an org hides it at once; the 30-day removal of its data (BR-52) is not simulated by the
@@ -254,6 +256,33 @@ Things the product build doesn't do yet, with the task that deals with each.
 - Phase-1 interim: the mock reads check details from the PoC engine's cache on the same machine, and
   drops the `null` optional fields the PoC sends in names (the worker should omit them, EN-001).
 
+## Known limitations of the product build (phase 2: Java, worker, pilot)
+
+What phase 2 left open, with the task that deals with each. Phase 3 starts with FE-041.
+
+- **No staging environment** (P51): the Contabo pilot is the only deployed environment and every
+  green push to `v_1` deploys to it. A separate staging environment is a future todo (BE-032);
+  until then "on staging" checks run on the pilot with synthetic accounts, and load, performance
+  and restore tests run against the local native stack.
+- The shared scenario suite (`tests/scenarios`) still runs against the mock only, because it depends
+  on the mock's seed fixtures; the contract suite (177 checks) passes against Java. Running the
+  scenarios, including `isolation.test.ts`, against Java is M5's and M7's remaining exit check and
+  is done in FE-041. Java's own integration tests cover cross-tenant denial.
+- Live updates across two API instances (M6) are built (PostgreSQL journal with LISTEN/NOTIFY) but
+  not tested with two instances (FE-041, BE-026).
+- The native sign-in routes (`POST /auth/sign-in`, `POST /auth/set-password`) are not in
+  `openapi.yaml` yet (C05, FE-041).
+- Pilot operations (docs/18): enrolling the first real owner, email delivery to outside addresses,
+  and off-host backup with a tested restore are not qualified yet; no exported traces, metrics or
+  alert routing (BE-025).
+- Billing is manual for pilots; a billing provider waits for paid self-service (BE-021, D7).
+- Tests still to add: multipart upload integration (BE-006); comparison output and full schema
+  checks for federation and resolution previews (BE-008); native coverage of approval, every
+  decision type, batching and grouping edge cases (BE-009 to BE-012).
+- Workbooks are checked with openpyxl only; opening them in Excel and LibreOffice by hand is still
+  to do (EN-006, EN-012, FE-044).
+- Load and performance targets are not measured (TS-002, FE-045).
+
 ## Suggested next steps
 
 Engineering, roughly in order of value:
@@ -319,6 +348,24 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-20 | (this commit) | Phase 2 closed; ready for phase 3 (FE-041). The owner kept one deployed environment, the Contabo pilot, and made staging (BE-032) a future todo (P51); native sign-in recorded as P50 and contract change C05. Plan, milestones, tasks, build log and this file brought up to date. |
+| 2026-11-19 | 605cdd2 | Fixed manual rows mapped wrongly after regeneration, and updated the browser checks to the native export and derivation behaviour; first automatic GitHub Actions rollout to the pilot passed (recorded in 6aa365c, docs/19). |
+| 2026-11-18 | 61596c9 | The deploy gate's Java worker integration suite runs on the same SeaweedFS release as the pilot. |
+| 2026-11-18 | 06ffd99 | Native email and password sign-in (Argon2id, opaque HttpOnly cookie, exact-origin checks, setup and reset links) replaces Keycloak (P50); CI builds the three images and deploys `v_1` to Contabo (docs/19). 82258a9 keeps the cookie on session reopen. |
+| 2026-11-16 | ec91916 | Invited pilot packaged and live on Contabo at booqlet.com: own Postgres and SeaweedFS, Traefik TLS, restricted queue role (docs/18); a3edf0c fixes frontend DNS on the shared proxy. |
+| 2026-11-16 | 02bd5c1 | BE-013 to BE-015, BE-020, BE-022 to BE-024, BE-027 to BE-031: PostgreSQL queue with isolated worker claims, SSE journal and notifications, SMTP invitations, scheduler, retention and deletion, public share links, platform admin, extension events; the sample project gets a real Duplex model and BoQ. e184cf6 closes SSE streams on shutdown. |
+| 2026-11-16 | 6c90008 | FE-043: pilot sign-in through hosted Keycloak with a same-origin API cookie (superseded by native sign-in, P50). |
+| 2026-11-16 | d0580b8 | EN-013: structured quantity trace steps recorded where the engine calculates; Excel Calculation sheet. |
+| 2026-11-16 | 776e7da | BE-009 to BE-012: Java BoQ and revision lifecycle, decisions and adjustments, run ingestion with COPY, paged lines and diffs, coverage, Excel and CSV exports. |
+| 2026-11-16 | 419400d | BE-008: Library presets in Java with draft ETags, published parents, worker previews, workbook import and export. |
+| 2026-11-16 | bb40eba | EN-006: BoQ and change workbooks rendered by the worker, with cover, watermarks, locked keys and edit import. |
+| 2026-11-16 | 84e6649 | BE-006, BE-007: signed S3 uploads, model versions, GLB and scene reads, durable HTTP jobs with retry, cancellation and usage. |
+| 2026-11-16 | ca60c41 | BE-004, BE-005: plans, entitlements and usage, projects, memberships, defaults and audit; built-in Library seeded by Flyway. |
+| 2026-11-16 | 8639b0c | BE-003: organisations, memberships, invitations with a transactional outbox, setup and audit. |
+| 2026-11-16 | 58b5cfd | BE-002, BE-027: OIDC identity, invite-only admission, one active session with takeover. |
+| 2026-11-16 | f9fd8e3 | BE-001: Java 21 Spring Boot API with Flyway, generated HTTP interfaces, audit, idempotency and health. |
+| 2026-11-16 | 4600534 | EN-002, EN-005, EN-008: worker previews, revision diffs with material references, reproducible Duplex v2 fixture. |
+| 2026-11-16 | 5f9c631 | EN-007, EN-010, EN-011, EN-012: manual item codes, item texts, setup markers, preset workbook templates; the matching mock fakes removed. |
 | 2026-11-16 | 106de54 | EN-003: engine line overrides, recomputation of derived quantities, orphan questions and excluded-line workbooks. Private edit reasons are excluded from public share responses and workbooks. |
 | 2026-11-16 | cab98f3 | EN-004: structured message codes and params for questions, warnings and logs, generated schemas, and pass-through to the app. |
 | 2026-11-16 | 0d14b8a | EN-001: engine parse/run jobs, file and S3 artifact storage, streaming HTTP and RPC; worker-backed mock verified with the Duplex, contract and scenario suites. |

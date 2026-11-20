@@ -331,6 +331,11 @@ Playwright: FL-4 and FL-5 end to end; module switched off for an org hides every
 
 ## Phase 3, M8a: wire up
 
+**Staging means the pilot deployment (P51)** until BE-032 is built: run the "on staging" checks
+there with synthetic accounts (`ops/pilot/verify-live.sh` shows how), and run load and performance
+tests against the local native stack. **Sign-in is native (P50)**: FE-043's adapter is
+`apps/app/src/auth/adapters/native.tsx`; the Keycloak adapter is no longer deployed.
+
 ### FE-041 Point the app at Java
 - **Adapt to the contract changes of phase 2** (`05-api/contract-changes.md`). For each row:
   - adapt the UI properly where the change affects it, and remove the

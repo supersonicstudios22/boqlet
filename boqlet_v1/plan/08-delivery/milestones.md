@@ -50,11 +50,12 @@ that replaces it. The frontend agent does not change `engine/`.
 | **ME** | Real engine | EN-001…EN-008, EN-010…EN-013 (EN-009 in M6, EN-P1 with MP2 in a later phase, P48) | Every engine task's acceptance; `npm run test:engine` green incl. the Duplex test; the mock switched from the PoC API and its fakes to the worker (each fake deleted as its task lands) |
 | **M5** | Backend core (Java) | BE-001…BE-012, BE-027, BE-031 | Contract and scenario suites green for the core tags against Java |
 | **M6** | Queue workers and realtime | EN-009, BE-013…BE-015 | Jobs flow through Postgres; heartbeat re-queue tested; SSE across two API instances |
-| **M7** | Sharing, admin, notifications, entitlements, billing, staging | BE-020…BE-024, BE-029, BE-030, BE-032 | Core contract suite fully green against Java; isolation suite green; `v_1` deploys to staging (BE-032) |
+| **M7** | Sharing, admin, notifications, entitlements, billing, staging | BE-020…BE-024, BE-029, BE-030, BE-032 | Core contract suite fully green against Java; isolation suite green; `v_1` deploys to the pilot environment (P51; staging, BE-032, is a future todo) |
 | **MP2** | Pricing module (optional; **later phase, P48**: not built in phase 2) | EN-P1, BE-P1…BE-P4 | `openapi-pricing.yaml` suites green against Java; core-only build still green |
 
 **Phase 2 is done** when the same contract and scenario suites that passed against the mock pass
 against Java unchanged, the engine has no open EN task, and staging runs Java + worker (BE-032).
+Under P51 the last condition is met by the pilot deployment, which runs Java + worker + web from `v_1`.
 
 ## Phase 3: integration and release (frontend agent)
 
@@ -62,6 +63,11 @@ against Java unchanged, the engine has no open EN task, and staging runs Java + 
 |---|---|---|---|
 | **M8a** | Wire up | FE-041…FE-043 | The app runs against Java on staging with the real auth adapter; every "(fake)" criterion from phase 1 re-checked green on the real engine; UI adjusted where real behaviour differs; every phase-2 contract change adapted (`05-api/contract-changes.md`) |
 | **M8** | Hardening, new root, release | FE-044, FE-045, BE-025, BE-026, TS-002…TS-004, then FE-046, FE-047 | All v1 acceptance criteria pass on staging; NFR targets measured; `boqlet_v1/` is the repository root and nothing of the PoC is left (FE-046); `v_1` merged into `main`, production deployed from `main` and tagged `v1.0.0` (FE-047) |
+
+**One deployed environment (P51).** Until a staging environment exists (BE-032, a future todo), every
+"on staging" below and in the phase-3 tasks means the pilot deployment (`docs/18`, `docs/19`), checked
+with synthetic accounts in a controlled verification window; load, performance and restore tests that
+would disturb pilot users run against the local native stack.
 
 BE-025 and BE-026 (observability, staging acceptance) are infrastructure the backend agent leaves
 ready at the end of phase 2; the frontend agent runs them in M8. If phase 3 finds a backend bug,

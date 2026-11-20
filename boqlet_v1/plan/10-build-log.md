@@ -20,13 +20,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **Local invited pilot**, Java API, Python workers and Next.js frontend |
-| Role | **Backend agent** |
-| Latest verified | Native PostgreSQL queue, both Duplex IFC revisions and their change report, 177 Java HTTP contract checks, isolated public sharing, SMTP invitations, retention and platform administration. |
-| Next task | Run staging and production acceptance in the separate deployment session. |
-| Waiting for the owner | Hosting and deployment configuration in the deployment session (P49) |
+| Phase | **Phase 3**, integration and release (M8a, then M8) |
+| Role | **Frontend agent** |
+| Latest verified | CI on `605cdd2` (2026-11-19): all six jobs green, including 106 browser tests and nine Java integration and architecture tests; the automatic rollout to the pilot passed its synthetic sign-in, upload, parse and sample BoQ smoke (`docs/19`). |
+| Next task | **FE-041** Point the app at Java: adapt contract changes C01–C05 (C05 adds the native sign-in routes to `openapi.yaml`), run the shared scenario suite (with `isolation.test.ts`) against Java, test live updates across two API instances, and run the Playwright suite against Java. Then FE-042, FE-043 (re-check against native sign-in, P50). |
+| Waiting for the owner | Nothing for M8a. Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. Staging (BE-032) is a future todo the owner schedules. |
 | In progress | — |
-| Notes for the next session | Pilot access is invite-only and worker sizing is configurable (P49). Pricing and paid self-service billing remain deferred (P48–P49). Shared contracts run against Java and the mock. Shared scenarios still use the mock fixtures. |
+| Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Phase-2 checks carried into phase 3 are listed in the phase-2 summary and `docs/11` "Known limitations … phase 2". Pricing stays deferred (P48). |
 
 ## Entry template
 
@@ -44,6 +44,53 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-20 — Phase 2 summary: backend, real engine and pilot (backend agent)
+- **Built:** BE-000 (`34f470c`); ME: EN-001 to EN-008 and EN-010 to EN-013 (`0d14b8a`..`d0580b8`);
+  M5: BE-001 to BE-012, BE-027, BE-031; M6: EN-009, BE-013 to BE-015; M7: BE-020, BE-022 to
+  BE-024, BE-029, BE-030 (`f9fd8e3`..`02bd5c1`); FE-043 pulled forward (`6c90008`); then the
+  deployment session (entry below). BE-021 is manual billing only (D7). BE-032 is a future todo
+  (P51). BE-025 and BE-026 are left for phase 3 as the milestones say.
+- **Exit criteria:**
+  - *ME, every engine task's acceptance and the Duplex test:* engine 206 tests green; the mock runs
+    the worker, and the fakes table in `06-frontend/mock-api.md` has only the legacy trace adapter
+    and the pricing row left (FE-042 removes the first; the second is P48).
+  - *M5, contract and scenario suites green against Java:* the contract suite, 177 checks, passes
+    against Java. **The scenario suite runs against the mock only** (it depends on the mock's seed
+    fixtures): carried into FE-041.
+  - *M6, jobs through Postgres and heartbeat re-queue:* Maven integration tests with the real worker
+    (lost leases retried, isolated attempts). **SSE across two API instances is not tested:** carried
+    into FE-041 and BE-026.
+  - *M7, isolation suite green, `v_1` deploys:* Java integration tests cover cross-tenant denial;
+    **`scenarios/isolation.test.ts` against Java** is carried into FE-041. `v_1` deploys to the pilot
+    automatically (`docs/19`), which stands in for staging under P51.
+  - *Phase done when the same suites pass against Java unchanged:* not yet for the scenarios (above).
+    The owner closed phase 2 on 2026-11-20 with these checks carried into M8a, where FE-041 has to
+    run the app's flows against Java anyway; a backend bug found there is fixed on `v_1` with a test
+    by whichever agent is active (milestones.md).
+- **Decisions taken:** P50 (native sign-in, recorded from the deployment session) and P51 (one
+  deployed environment, staging a future todo), both in `plan/README.md` and `docs/02` (D69, D70).
+  Contract change C05 records the native sign-in routes.
+- **Known issues and debt:** `docs/11` "Known limitations of the product build (phase 2 …)".
+- **For the next agent:** pushes to `v_1` go live on booqlet.com once CI is green; do not run
+  load tests or destructive checks there. Migrations must stay compatible with the previous app image
+  so automatic rollback works (`docs/19`).
+
+### 2026-11-16..19 — Deployment session: Contabo pilot, native sign-in, automatic rollout (backend agent)
+- **Built:** the invited pilot on Contabo (`ec91916`, `a3edf0c`; `docs/18`, `ops/pilot`): its own
+  Compose project, PostgreSQL and SeaweedFS, Traefik TLS, a queue role limited to the queue
+  functions. Native sign-in (`06ffd99`, `82258a9`): email and password, Argon2id, opaque HttpOnly
+  cookie, exact-origin checks, migration V15, setup and reset links issued on the server. GitHub
+  Actions builds the three images per commit and deploys `v_1` through a forced-command SSH key
+  to a root-owned receiver (`docs/19`). The integration suite uses the pilot's SeaweedFS release
+  (`61596c9`). A regeneration defect in manual rows was fixed (`605cdd2`).
+- **Verified:** first automatic rollout of `605cdd2` on 2026-11-19 (all CI jobs green; a synthetic
+  account set its password, uploaded, parsed 218 elements, downloaded the GLB and generated the
+  sample BoQ; account removed afterwards).
+- **Deviations from the spec:** Keycloak (D1, P49) replaced by native sign-in; recorded as P50 on
+  2026-11-20. The new routes were not added to `openapi.yaml` (C05, FE-041).
+- **Known issues and debt:** first real owner enrollment, external email delivery and off-host
+  backup with a tested restore still to qualify (BE-025); no staging (P51).
 
 ### 2026-11-16 — Local pilot integration (backend agent)
 

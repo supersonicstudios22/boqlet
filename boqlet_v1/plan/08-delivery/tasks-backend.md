@@ -193,6 +193,9 @@ Org deletion job (BR-52), old-run row pruning with rehydration from `result_key`
 retention, audit retention per plan.
 
 ### BE-032 Staging environment (D8, deployment.md)
+**Future todo (P51, 2026-11-20).** Not built in phases 2 and 3: the pilot deployment is the only
+deployed environment. When the owner schedules it, build it as below and switch the "on staging"
+checks back to it.
 - Needs from the owner: the hosting account in the provider and region chosen in D8, with
   credentials the agent can use (`09-open-questions.md` "Needed by").
 - Set up staging as code (the tool chosen in D8; recorded in the build log):
@@ -210,7 +213,7 @@ retention, audit retention per plan.
 Structured logs, OpenTelemetry, metrics and alerts from deployment.md, backups and restore test.
 
 ### BE-026 Staging acceptance
-Run all v1 acceptance criteria on staging; record results in `plan/README.md` status.
+Until BE-032 is built, on the pilot deployment with synthetic accounts (P51). Run all v1 acceptance criteria on staging; record results in `plan/README.md` status.
 
 ## Pricing module (removable, P36): backend module `pricing`
 

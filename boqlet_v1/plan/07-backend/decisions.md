@@ -4,10 +4,10 @@ The owner confirmed the backend plan and proposed defaults on 2026-11-16. Implem
 
 | ID | Answer |
 |---|---|
-| D1 | Keycloak-hosted OIDC sign-in and verified email. PostgreSQL owns the single active Boqlet session. Use a same-origin HttpOnly app session cookie and bind it to the authenticated identity. Defer vendor sign-in to the pricing phase. |
+| D1 | Keycloak-hosted OIDC sign-in and verified email. PostgreSQL owns the single active Boqlet session. Use a same-origin HttpOnly app session cookie and bind it to the authenticated identity. Defer vendor sign-in to the pricing phase. *Refined 2026-11-18 by P50: native email and password sign-in in the Java API replaced Keycloak; the session cookie and one-session rule stay.* |
 | D2–D5 | Java 21 and Spring Boot, Spring JDBC and Flyway, a PostgreSQL job queue and `LISTEN/NOTIFY` for SSE fan-out. |
 | D6–D7 | SMTP adapter and a local mail catcher. Manual billing for pilots. Defer Paddle until paid self-service. |
-| D8, D15–D16 | Defer hosting, region, deployment tooling, and hosted monitoring choices to the deployment session. Keep local tests and configuration provider-neutral. |
+| D8, D15–D16 | Defer hosting, region, deployment tooling, and hosted monitoring choices to the deployment session. Keep local tests and configuration provider-neutral. *The deployment session chose Contabo for the invited pilot (`docs/18`) with GitHub Actions rollout (`docs/19`); on 2026-11-20 the owner kept that as the only deployed environment and deferred staging (P51).* |
 | D9 | Excel I/O belongs in the Python worker. |
 | D10–D11 | Pilot load and model sizes are unknown. Keep pool sizes, size routing, per-org concurrency, and job limits configurable. Use the documented performance targets for local benchmarking. |
 | D12–D13 | Invite-only initial rollout. Require verified email before uploads and validate type and size. Isolate parsing with CPU, memory, and time limits. The transport retains access to its storage and queue. Decide public registration bot protection before enabling public signup. |

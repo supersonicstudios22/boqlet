@@ -11,14 +11,13 @@ product to build. When they disagree about the *product*, `plan/` wins. When the
 
 ## Start here (a new session)
 
-**Build status.** The core frontend and backend run locally on `v_1` for the invited pilot.
-The build log records verification and outstanding release checks. Server deployment is a
-separate task (P49). Every session starts with the prompt in
-`08-delivery/sessions.md` and works by
-that file: it says how to start, what to decide yourself and what to ask, when to stop and how
-to hand over.
+**Build status.** Phases 1 and 2 are done. The Java API, the Python workers and the Next.js
+app run as an invite-only pilot on one deployed environment (P51), deployed from `v_1` by
+GitHub Actions. **Phase 3 (frontend role) is next, starting with FE-041.** Every session
+starts with the prompt in `08-delivery/sessions.md` and works by that file: it says how to
+start, what to decide yourself and what to ask, when to stop and how to hand over.
 
-1. Read this README (decisions P01–P49 are settled; don't reopen them),
+1. Read this README (decisions P01–P51 are settled; don't reopen them),
    `08-delivery/sessions.md`, and `10-build-log.md` "Current position" (where the build
    stands, the next task, and your role).
 2. `08-delivery/milestones.md`: phases, milestones, exit criteria.
@@ -134,10 +133,12 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P43 | **The product is called boqlet** (always lowercase). **Visual direction:** warm paper and ink, JetBrains Mono for the UI and Inter Tight for display, 2 px corners, colour only where it means something (blue accent and "derived", orange "to confirm", yellow "manual" and selection, red errors, no green), poster compositions only in the wizard, onboarding, sign-in, share page and dashboard cards, the dimension line as a recurring device, light theme default plus dark. Details and tokens in `06-frontend/design-guidelines.md`. |
 | P44 | **One product root: `boqlet_v1/`.** All product code is built there, as one npm workspace. The first task (FE-000) moves the proof of concept (engine, contract types, presets, fixtures, scripts, PoC UI, docs, this plan) into it, so nothing ever refers across two roots; the PoC demo deployment stays pointed into it. The last structural task (FE-046) removes the PoC leftovers and makes `boqlet_v1/` the repository root. Paths in `plan/` are relative to the product root. |
 | P45 | **Agents work on their own from task to task and milestone to milestone**, by `08-delivery/sessions.md`. They stop only for an owner decision that blocks every remaining task, at the end of a phase, or before an irreversible step. Implementation decisions and deviations are written in `10-build-log.md`, which, with its "Current position", is the handover between sessions and agents. |
-| P46 | **The build happens on the branch `v_1`**, made from `main`. `main` keeps the proof of concept and its live demo untouched until the release: FE-047 tags `main` as `poc-final` and merges `v_1` into it. CI runs on both branches; staging deploys from `v_1` until the release, production from `main` after it. |
+| P46 | **The build happens on the branch `v_1`**, made from `main`. `main` keeps the proof of concept and its live demo untouched until the release: FE-047 tags `main` as `poc-final` and merges `v_1` into it. CI runs on both branches; staging deploys from `v_1` until the release, production from `main` after it. *(Until staging exists, the pilot deploys from `v_1`: P51.)* |
 | P47 | **The backend belongs to its backend owner**: the person who runs phase 2 (the product owner or a backend developer they choose). BE-000 is their entry point: the agent analyses the backend plan and asks them about every backend decision, the open ones and the ones the plan already made (`07-backend/decisions-to-make.md`). The plan's backend choices are defaults. Their answers win over the backend plan, which BE-000 rewrites to match. They may change the HTTP contracts when the backend needs it, by `05-api/contract-changes.md`: contract, suites, mock and the smallest app fix in one commit, every change listed, and the frontend adapted in phase 3 (FE-041). Not theirs alone: product behaviour (the product decisions and business rules, what users can do or see) and the engine rules; changes there go to the product owner. |
 | P48 | **The pricing module is for a later phase** (2026-11-14). MP1 (pricing on the mock, FE-P1…FE-P7) and MP2 (EN-P1, BE-P1…BE-P4) are not built in phases 1 and 2; the owner schedules them later. Phase 1 ends after M4, phase 2 after M7. The module boundary (P36) stays: the extension points (FE-039), `openapi-pricing.yaml`, the core-only build and the module-removed checks are still built and kept green. v1 criterion 6 ("only if the module ships in v1") is not part of release 1 unless the owner brings the module forward. |
-| P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](07-backend/decisions.md). |
+| P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](07-backend/decisions.md). *(Sign-in refined by P50; staging by P51.)* |
+| P50 | **Native sign-in instead of Keycloak** (2026-11-18, the deployment session). Users sign in with email and password on the boqlet domain; the Java API checks Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. Requests that change state must come from the exact boqlet origin. The single active session and takeover (BR-54) stay. The first owner and assisted resets use a one-hour setup link issued on the server. Refines D1 in `07-backend/decisions.md`. Runbook: `docs/19-native-auth-and-cd.md`. |
+| P51 | **One deployed environment until further notice** (2026-11-20, the owner). The invited pilot on Contabo (`docs/18`, booqlet.com) is the only deployed environment; GitHub Actions deploys every green push to `v_1` there. A separate staging environment (BE-032) is a **future todo**, not part of phases 2 and 3. Wherever the plan says "staging", read the pilot deployment: acceptance there uses synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`), and load, performance and restore tests that would disturb pilot users run against the local native stack instead. At the release (FE-047) the same host becomes production, deployed from `main`. Refines P46 and D8. |
 
 ## Where the code lives (P44)
 
@@ -191,4 +192,4 @@ merges `v_1` into it.
 | Frontend, backend specs (06–07) | Written; backend decisions open on purpose |
 | Delivery (08) | Phases, milestones, task lists, session rules and build log written (P37–P40, P44, P45); the pricing module (MP1, MP2) is for a later phase (P48) |
 | Design (06) | Design guidelines decided (P43); wordmark SVG still to come from the owner |
-| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock; see the phase-1 summary for manual acceptance checks). **Phase 2 in progress:** BE-000 and EN-001 complete. Next: EN-004. Live position: `10-build-log.md` |
+| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51; staging BE-032 deferred; carried-over checks listed in the phase-2 summary). **Phase 3 next:** FE-041. Live position: `10-build-log.md` |

@@ -3,7 +3,7 @@
 What the plan assumes but nobody has confirmed, and the questions still open. The owner decides
 when each is closed. **None of these blocks phase 1** (the frontend on the mock); the
 "Needed by" list below says which ones block a later step. Settled decisions are in
-`plan/README.md` (P01–P48).
+`plan/README.md` (P01–P51).
 
 ## Needed by (what blocks what)
 
@@ -11,8 +11,8 @@ when each is closed. **None of these blocks phase 1** (the frontend on the mock)
 |---|---|---|
 | Before the first screens are reviewed (M1) | The boqlet wordmark as SVG (light and dark) and a favicon; until then it is set in the display face | Owner |
 | Start of phase 2 (BE-000) | Every item in `07-backend/decisions-to-make.md`: the open ones D1–D18 (budget, auth, hosting, compute, uploads, abuse, engine upgrades, delivery, operations, data protection, contract changes; Q16 and Q17 among them) and the decisions already in the plan B1–B20, to confirm or change, after the agent's analysis (P47) | The backend owner (whoever runs phase 2), asked by the backend agent; product-behaviour changes (including how users are told about engine upgrades, D14) go to the product owner |
-| Before BE-032 (end of phase 2) | A hosting account in the provider and region chosen in D8, for staging, with credentials the agent can use | Owner |
-| Before FE-047 (release) | The production account, the domain, and the provider secrets for auth (D1), email (D6) and billing (D7); whether the pricing module is on at launch; the go to merge `v_1` into `main` | Owner |
+| When the owner schedules BE-032 (a future todo, P51) | A hosting account for a separate staging environment, with credentials the agent can use | Owner |
+| Before FE-047 (release) | Confirm the pilot host becomes production (P51), the domain, and the provider secrets for email (D6) and billing (D7) (auth is native, P50); whether the pricing module is on at launch; the go to merge `v_1` into `main` | Owner |
 | After the merge in FE-047 | Remove or repoint the Vercel demo project; the PoC stays reachable as the git tag `poc-final` | Owner |
 | Before public launch | Q18 and Q26 (tiers, limits, prices), Q19 and Q20 (legal) | Owner (+ lawyer) |
 | After pilots | Q1–Q3, Q7, Q8, Q10–Q15, Q23, Q24, Q27–Q30, Q32 | Owner, with pilot firms |
