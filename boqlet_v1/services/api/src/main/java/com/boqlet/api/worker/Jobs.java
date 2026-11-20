@@ -293,6 +293,15 @@ public class Jobs {
         } else if (type.equals("parse")) {
             kind = "model_version.ready";
             params.put("fileName", attempt.input().path("fileName").asText());
+            // The app's text is "{model} v{version} is ready" (as the mock sends it); the link opens the version.
+            var versions = database.query("""
+                    SELECT m.id, m.name, v.number FROM model_versions v JOIN models m ON m.id = v.model_id WHERE v.id = ?
+                    """, (row, index) -> new Object[]{row.getString("id"), row.getString("name"), row.getInt("number")}, attempt.subject());
+            if (!versions.isEmpty()) {
+                params.put("model", versions.getFirst()[1]);
+                params.put("version", versions.getFirst()[2]);
+                link += "/models/" + versions.getFirst()[0] + "/versions/" + attempt.subject();
+            }
         } else if (type.equals("run") && result.path("output").path("counts").path("blockingQuestions").asInt() > 0) {
             kind = "run.needs_input";
             params.put("count", result.path("output").path("counts").path("blockingQuestions").asInt());

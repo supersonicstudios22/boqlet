@@ -21,6 +21,7 @@ class EventController {
     ResponseEntity<SseEmitter> open(@RequestHeader(value = "Last-Event-ID", required = false) String lastId,
                                     @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok().cacheControl(CacheControl.noCache().noTransform()).header("X-Accel-Buffering", "no")
-                .body(realtime.connect(Login.current(), lastId, jwt.getExpiresAt()));
+                // Native sign-in (P50) has no token: the stream then ends on its own schedule only.
+                .body(realtime.connect(Login.current(), lastId, jwt == null ? null : jwt.getExpiresAt()));
     }
 }

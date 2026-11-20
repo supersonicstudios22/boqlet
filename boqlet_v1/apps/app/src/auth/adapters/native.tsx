@@ -87,7 +87,6 @@ function NativeSetup() { return <NativeForm setup />; }
 
 function NativeForm({ setup }: { setup: boolean }) {
   const t = useTranslations("auth.native");
-  const signedOut = useTranslations("auth.signedOut");
   const query = useSearchParams();
   const returnTo = safeReturnTo(query.get("returnTo"));
   const email = query.get("email") ?? "";
@@ -126,12 +125,11 @@ function NativeForm({ setup }: { setup: boolean }) {
     }
   }
 
-  const reason = query.get("reason");
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-8 py-16">
       <Wordmark className="text-display-sm" />
       <h1 className="text-title">{t(setup ? "setPassword" : "signIn")}</h1>
-      {!setup && (reason === "session_replaced" || reason === "session_expired") && <p>{signedOut(reason)}</p>}
+      {/* Why one was signed out (`?reason=`) is shown above the form by the sign-in page. */}
       {setup && !token ? <p>{t("setupLink")}</p> : (
         <form onSubmit={submit} onChange={() => setConflict(false)} className="flex flex-col gap-4">
           {setup ? (
