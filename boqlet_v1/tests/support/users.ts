@@ -1,4 +1,4 @@
-import { ROOT_URL, TARGET } from "./env";
+import { API_URL, ROOT_URL, TARGET } from "./env";
 
 /**
  * Seeded people (mock-api.md "Seed data"), by first name. How a suite gets a token depends on the
@@ -43,12 +43,32 @@ export async function user(key: SeedUser): Promise<TestUser> {
   return found;
 }
 
-/** A new person, as if they signed up (F01). Mock: `POST /_dev/users`; Java: after BE-000. */
+/**
+ * A new person, as if they signed up (F01). Mock: `POST /_dev/users`. Java: the test-only
+ * `POST /_test/users` (registered only by the Java suite test, never in a build) creates the
+ * account with a test token (`suite.signup.<base64url email>`), then the person opens their session like the app
+ * does (`POST /sessions`) and keeps its cookie.
+ */
 export async function signUp(name: string, email: string): Promise<TestUser> {
-  if (TARGET !== "mock") throw new Error(`no sign-up strategy for target ${TARGET} yet (BE-000)`);
-  const res = await fetch(`${ROOT_URL}/_dev/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
-  if (!res.ok) throw new Error(`sign-up answered ${res.status}`);
-  return (await res.json()) as TestUser;
+  if (TARGET === "mock") {
+    const res = await fetch(`${ROOT_URL}/_dev/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
+    if (!res.ok) throw new Error(`sign-up answered ${res.status}`);
+    return (await res.json()) as TestUser;
+  }
+  if (TARGET !== "java") throw new Error(`no sign-up strategy for target ${TARGET}`);
+  const res = await fetch(`${ROOT_URL}/_test/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
+  if (!res.ok) throw new Error(`/_test/users answered ${res.status}`);
+  const created = (await res.json()) as TestUser;
+  const session = await fetch(`${API_URL}/sessions`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${created.token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ deviceLabel: "Shared scenario suite" }),
+  });
+  if (session.status !== 201) throw new Error(`opening the session answered ${session.status}`);
+  const cookie = session.headers.get("set-cookie")?.split(";")[0];
+  if (!cookie) throw new Error("opening the session set no cookie");
+  javaUsers.push({ ...created, cookie });
+  return created;
 }
 
 /** A unique email for one test run. */

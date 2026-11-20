@@ -325,10 +325,16 @@ class ApiFoundationTest {
                     case "owner", "owner-b" -> "owner";
                     case "uninvited", "unverified", "guest", "platform" -> token;
                     case "suite-olivia", "suite-ivana", "suite-marko", "suite-ana", "suite-victor", "suite-pat" -> token;
-                    default -> throw new JwtException("Invalid test token.");
+                    // People the shared scenarios sign up (com.boqlet.suite.SuiteSupport).
+                    default -> {
+                        if (com.boqlet.suite.SuiteSupport.emailOf(token) != null) yield token;
+                        throw new JwtException("Invalid test token.");
+                    }
                 };
                 Instant now = Instant.now();
-                String email = subject.startsWith("suite-") ? subject.substring(6) + "@example.com" : subject + "@example.test";
+                String signedUp = com.boqlet.suite.SuiteSupport.emailOf(subject);
+                String email = signedUp != null ? signedUp
+                        : subject.startsWith("suite-") ? subject.substring(6) + "@example.com" : subject + "@example.test";
                 return Jwt.withTokenValue(token).header("alg", "RS256").subject(subject)
                         .claim("sid", token).claim("email", email)
                         .claim("email_verified", !token.equals("unverified"))

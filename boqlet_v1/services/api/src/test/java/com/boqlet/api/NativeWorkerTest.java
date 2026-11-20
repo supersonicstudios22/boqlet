@@ -53,7 +53,7 @@ import org.testcontainers.utility.DockerImageName;
 @DirtiesContext
 @AutoConfigureMockMvc
 @Testcontainers
-@Import(ApiFoundationTest.Tokens.class)
+@Import({ApiFoundationTest.Tokens.class, com.boqlet.suite.SuiteSupport.class})
 @EnabledIfEnvironmentVariable(named = "BOQLET_NATIVE_WORKER_PYTHON", matches = ".+")
 class NativeWorkerTest {
     private static final String BUCKET = "boqlet-native-test";
@@ -213,9 +213,59 @@ class NativeWorkerTest {
         assertThat(diff.path("items").size()).isEqualTo(3);
     }
 
+    /** The shared contract suite (`tests/contract`) against this API. */
     private void verifySharedContract() throws Exception {
+        if (node() == null) return;
+        runSharedSuite("contract", null, Duration.ofSeconds(90));
+    }
+
+    /**
+     * The shared scenario suite (`tests/scenarios`) against this API (FE-041). Opt-in with
+     * `BOQLET_NATIVE_SCENARIOS=1` (and Node) until every scenario passes on Java; CI turns it on
+     * then. `BOQLET_SCENARIO_FILTER` runs one file (`orgs`, `isolation`, ...) while working on it.
+     */
+    @Test
+    @EnabledIfEnvironmentVariable(named = "BOQLET_NATIVE_SCENARIOS", matches = "1")
+    void sharedScenariosPassAgainstJava() throws Exception {
+        assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
+        if (POSTGRES_QUEUE) startQueueWorkers();
+        runSharedSuite("scenarios", System.getenv("BOQLET_SCENARIO_FILTER"), Duration.ofMinutes(25));
+    }
+
+    private static String node() {
         String node = System.getenv("BOQLET_NATIVE_NODE");
-        if (node == null || node.isBlank()) return;
+        return node == null || node.isBlank() ? null : node;
+    }
+
+    private void runSharedSuite(String suite, String filter, Duration timeout) throws Exception {
+        String users = suiteUsers();
+        Path log = Path.of("target/shared-java-" + suite + ".log").toAbsolutePath();
+        var command = new java.util.ArrayList<>(java.util.List.of(node(), "run.mjs", suite));
+        if (filter != null && !filter.isBlank()) command.add(filter);
+        var script = new ProcessBuilder(command).directory(ROOT.resolve("tests").toFile())
+                .redirectErrorStream(true).redirectOutput(log.toFile());
+        script.environment().put("API_URL", "http://localhost:" + apiPort + "/api/v1");
+        script.environment().put("SUITE_TARGET", "java");
+        script.environment().put("BOQLET_JAVA_SUITE_USERS", users);
+        script.environment().put("BOQLET_SUITE_MAILHOG", "http://" + MAIL.getHost() + ":" + MAIL.getMappedPort(8025));
+        Process test = script.start();
+        try {
+            assertThat(test.waitFor(timeout.toSeconds(), java.util.concurrent.TimeUnit.SECONDS))
+                    .as("shared %s suite timed out", suite).isTrue();
+            assertThat(test.exitValue()).as("shared %s result %s", suite, java.nio.file.Files.readString(log)).isZero();
+        } finally {
+            if (test.isAlive()) test.destroyForcibly();
+        }
+    }
+
+    private static String suiteUsersJson;
+
+    /**
+     * The seeded people of the shared suites (mock-api.md "Seed data"): six users with an open
+     * session each, Studio Demo (team plan) and Small Firm (free). Made once per test context.
+     */
+    private synchronized String suiteUsers() throws Exception {
+        if (suiteUsersJson != null) return suiteUsersJson;
         var fixtures = new java.util.LinkedHashMap<String, java.util.UUID>();
         var users = json.createArrayNode();
         for (String key : java.util.List.of("olivia", "ivana", "marko", "ana", "victor", "pat")) {
@@ -225,7 +275,7 @@ class NativeWorkerTest {
             database.update("INSERT INTO users (id, auth_subject, email, name, platform_role) VALUES (?, ?, ?, ?, ?)",
                     id, token, email, key, key.equals("pat") ? "admin" : null);
             Cookie session = http.perform(post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Shared contract suite\"}"))
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Shared suites\"}"))
                     .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
             users.addObject().put("id", id.toString()).put("email", email).put("name", key)
                     .put("token", token).put("cookie", session.getName() + "=" + session.getValue());
@@ -245,19 +295,8 @@ class NativeWorkerTest {
             database.update("INSERT INTO memberships(org_id, user_id, role) VALUES (?, ?, ?)", studio, fixtures.get(key), role);
         }
         database.update("INSERT INTO memberships(org_id, user_id, role) VALUES (?, ?, 'owner')", small, fixtures.get("olivia"));
-        Path log = Path.of("target/shared-java-contract.log").toAbsolutePath();
-        var script = new ProcessBuilder(node, "run.mjs", "contract").directory(ROOT.resolve("tests").toFile())
-                .redirectErrorStream(true).redirectOutput(log.toFile());
-        script.environment().put("API_URL", "http://localhost:" + apiPort + "/api/v1");
-        script.environment().put("SUITE_TARGET", "java");
-        script.environment().put("BOQLET_JAVA_SUITE_USERS", users.toString());
-        Process test = script.start();
-        try {
-            assertThat(test.waitFor(90, java.util.concurrent.TimeUnit.SECONDS)).as("shared contract test timed out").isTrue();
-            assertThat(test.exitValue()).as("shared contract result %s", java.nio.file.Files.readString(log)).isZero();
-        } finally {
-            if (test.isAlive()) test.destroyForcibly();
-        }
+        suiteUsersJson = users.toString();
+        return suiteUsersJson;
     }
 
     private void verifyOrgPurge(Cookie cookie) throws Exception {
@@ -275,7 +314,8 @@ class NativeWorkerTest {
         assertThat(storage.exists(artifact)).isFalse();
     }
 
-    private void startQueueWorkers() throws Exception {
+    private synchronized void startQueueWorkers() throws Exception {
+        if (!queueWorkers.isEmpty()) return;
         database.execute("CREATE ROLE boqlet_queue_test LOGIN PASSWORD 'local-queue-test-only'");
         database.execute("GRANT EXECUTE ON FUNCTION queue_claim(uuid,text,text[]) TO boqlet_queue_test");
         database.execute("GRANT EXECUTE ON FUNCTION queue_renew(uuid,uuid,integer,jsonb) TO boqlet_queue_test");
