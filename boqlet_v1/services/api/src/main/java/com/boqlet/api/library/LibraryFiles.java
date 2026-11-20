@@ -58,7 +58,7 @@ class LibraryFiles {
         try {
             return worker.rpc("codelist-read", Map.of("fileKey", key, "fileName", filename), TableReadResponse.class);
         } catch (ApiException error) {
-            if (error.status() == HttpStatus.BAD_REQUEST) throw invalid("invalid_file", "The spreadsheet could not be read.");
+            if (error.status() == HttpStatus.BAD_REQUEST) throw invalid("invalid_file", error.getMessage());
             throw error;
         } finally {
             storage.delete(key);

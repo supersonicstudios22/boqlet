@@ -58,7 +58,19 @@ public class Boqs {
 
     @Transactional
     public Boq update(UUID boq, UUID actor, UpdateBoqRequest request) {
-        var scope = access.lockBill(boq, actor, "editBoqs");
+        Boolean archived = request.getArchived();
+        if (Boolean.TRUE.equals(archived)) {
+            throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_body", "Archive with POST /boqs/{boqId}/archive.");
+        }
+        // `archived: false` restores an archived BoQ: the lead's, like archiving (F04 §6).
+        boolean restore = Boolean.FALSE.equals(archived);
+        var scope = access.lockBill(boq, actor, restore ? "archive" : "editBoqs");
+        if (restore && scope.bill().archived()) {
+            database.update("UPDATE boqs SET archived = false, updated_at = now() WHERE id = ?", boq);
+            event(scope, actor, "boq.restored", "boq", boq, Map.of("name", scope.bill().name()));
+            scope = access.bill(boq, actor);
+        }
+        if (request.getName() == null && request.getDescription() == null) return access.view(scope, actor);
         access.checkOpen(scope, true);
         database.update("""
                 UPDATE boqs SET name = coalesce(?, name), description = coalesce(?, description), updated_at = now()
@@ -70,7 +82,8 @@ public class Boqs {
 
     @Transactional
     public Boq archive(UUID boq, UUID actor) {
-        var scope = access.lockBill(boq, actor, "editBoqs");
+        // Archiving is the lead's (F04 §6), as the BoQ's `archive` permission says.
+        var scope = access.lockBill(boq, actor, "archive");
         if (!scope.bill().archived()) {
             database.update("UPDATE boqs SET archived = true, updated_at = now() WHERE id = ?", boq);
             event(scope, actor, "boq.archived", "boq", boq, Map.of());

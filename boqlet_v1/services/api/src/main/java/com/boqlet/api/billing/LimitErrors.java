@@ -15,9 +15,10 @@ class LimitErrors {
     }
 
     @ExceptionHandler(LimitReached.class)
-    ResponseEntity<ApiError> denied(LimitReached failure) {
-        // The rejected operation has rolled back before the controller advice records this event.
-        alerts.refused(failure);
+    ResponseEntity<ApiError> denied(LimitReached failure, org.springframework.web.method.HandlerMethod handler) {
+        // The rejected operation has rolled back before the controller advice records this event. Its
+        // action is the refused operation: controller methods carry the contract's operationId.
+        alerts.refused(failure, handler == null ? "refused" : handler.getMethod().getName());
         return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(failure.body());
     }
 }

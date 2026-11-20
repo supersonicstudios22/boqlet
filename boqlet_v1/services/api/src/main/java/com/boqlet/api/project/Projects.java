@@ -153,8 +153,9 @@ public class Projects {
         }
         record(org, project, actor, "project.member_added", "user", user, Map.of("role", role.getValue()));
         if (!actor.equals(user)) {
+            String by = database.queryForObject("SELECT name FROM users WHERE id = ?", String.class, actor);
             notifications.send(user, org, project, "project_member.added", "membership",
-                    Map.of("project", visible.getName(), "role", role.getValue()),
+                    Map.of("project", visible.getName(), "role", role.getValue(), "by", by == null ? "" : by),
                     notifications.projectUrl(org, project), "project", project);
         }
         return member(project, user);

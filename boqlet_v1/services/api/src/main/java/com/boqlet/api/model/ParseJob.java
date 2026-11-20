@@ -56,40 +56,64 @@ class ParseJob implements JobHandler {
         summary.remove(java.util.List.of("fileName", "sizeBytes"));
         JsonNode artifacts = output.path("artifacts");
         validate(attempt, sha, summary, artifacts);
-        database.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", row -> {},
-                attempt.org() + ":" + sha);
-        UUID model = database.queryForObject("SELECT model_id FROM model_versions WHERE id = ?", UUID.class, attempt.subject());
+        if (!ready(attempt.org(), attempt.project(), attempt.actor(), attempt.subject(), sha, summary, artifacts.toString(), attempt.id())) {
+            throw new IllegalStateException("The model version no longer applies to the job.");
+        }
+        return Map.of("modelVersionId", attempt.subject());
+    }
+
+    /**
+     * A version of `org` is ready with a parse result: its own (`job` is its parse job) or the
+     * result of an identical file already parsed in the org (`job` null, BR-08). Answers false when
+     * the version no longer applies (deleted, or another job's).
+     */
+    boolean ready(UUID org, UUID project, UUID actor, UUID version, String sha, JsonNode summary, String artifacts, UUID job) {
+        database.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", row -> {}, org + ":" + sha);
+        UUID model = database.queryForObject("SELECT model_id FROM model_versions WHERE id = ?", UUID.class, version);
         Integer duplicate = database.query("""
                 SELECT number FROM model_versions WHERE org_id = ? AND model_id = ? AND sha256 = ?
                     AND status = 'ready' AND id <> ? AND deleted_at IS NULL
                 ORDER BY number DESC LIMIT 1
-                """, (row, index) -> row.getInt("number"), attempt.org(), model, sha, attempt.subject())
+                """, (row, index) -> row.getInt("number"), org, model, sha, version)
                 .stream().findFirst().orElse(null);
         String sharedArtifacts = database.query("""
                 SELECT artifacts::text FROM model_versions
                 WHERE org_id = ? AND sha256 = ? AND id <> ? AND status = 'ready' AND deleted_at IS NULL
                 ORDER BY created_at LIMIT 1
-                """, (row, index) -> row.getString("artifacts"), attempt.org(), sha, attempt.subject())
-                .stream().findFirst().orElse(artifacts.toString());
+                """, (row, index) -> row.getString("artifacts"), org, sha, version)
+                .stream().findFirst().orElse(artifacts);
         int updated = database.update("""
                 UPDATE model_versions SET status = 'ready', sha256 = ?, summary = CAST(? AS jsonb),
                     artifacts = CAST(? AS jsonb), error = NULL, identical_to_number = ?
-                WHERE id = ? AND parse_job_id = ? AND deleted_at IS NULL
-                """, sha, summary.toString(), sharedArtifacts, duplicate, attempt.subject(), attempt.id());
-        if (updated != 1) throw new IllegalStateException("The model version no longer applies to the job.");
+                WHERE id = ? AND parse_job_id IS NOT DISTINCT FROM ? AND deleted_at IS NULL
+                """, sha, summary.toString(), sharedArtifacts, duplicate, version, job);
+        if (updated != 1) return false;
+        // "detect": the first parsed version's guess becomes the model's discipline (F03 §1).
+        String guess = summary.path("disciplineGuess").asText("");
+        database.update("UPDATE models SET discipline = ? WHERE id = ? AND discipline = 'detect'",
+                guess.isBlank() ? "architecture" : guess, model);
         database.update("""
                 UPDATE models SET latest_version_id = ?, updated_at = now()
                 WHERE id = ? AND coalesce((SELECT number FROM model_versions WHERE id = models.latest_version_id), 0)
                     < (SELECT number FROM model_versions WHERE id = ?)
-                """, attempt.subject(), model, attempt.subject());
-        audit.record(new RequestContext(attempt.actor(), null, attempt.org(), null), AuditWriter.ActorKind.SYSTEM,
-                attempt.project(), "model_version.ready", "modelVersion", attempt.subject(), json.object(Map.of("modelId", model)));
-        newerModel(attempt, model);
-        return Map.of("modelVersionId", attempt.subject());
+                """, version, model, version);
+        audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.SYSTEM,
+                project, "model_version.ready", "modelVersion", version, json.object(Map.of("modelId", model)));
+        newerModel(org, project, version, model);
+        return true;
     }
 
-    private void newerModel(Jobs.Attempt attempt, UUID model) {
-        String project = notifications.projectUrl(attempt.org(), attempt.project());
+    /** The summary of a ready version of the org with this file, if the org has parsed it before (BR-08). */
+    JsonNode parsedBefore(UUID org, String sha, UUID version) {
+        return database.query("""
+                SELECT summary::text FROM model_versions
+                WHERE org_id = ? AND sha256 = ? AND id <> ? AND status = 'ready' AND deleted_at IS NULL
+                ORDER BY created_at LIMIT 1
+                """, (row, index) -> json.read(row.getString(1), JsonNode.class), org, sha, version).stream().findFirst().orElse(null);
+    }
+
+    private void newerModel(UUID org, UUID projectId, UUID version, UUID model) {
+        String project = notifications.projectUrl(org, projectId);
         database.query("""
                 SELECT DISTINCT b.id, b.name AS boq, m.name AS model, latest.number, members.user_id
                 FROM boqs b JOIN boq_revisions r ON r.id = b.current_revision_id
@@ -105,10 +129,10 @@ class ParseJob implements JobHandler {
                               AND r.inputs->'models' @> jsonb_build_array(jsonb_build_object('modelVersionId', older.id)))
                 """, row -> {
             UUID boq = row.getObject("id", UUID.class);
-            notifications.send(row.getObject("user_id", UUID.class), attempt.org(), attempt.project(),
+            notifications.send(row.getObject("user_id", UUID.class), org, projectId,
                     "boq.new_version_available", null, Map.of("boq", row.getString("boq"),
                     "model", row.getString("model"), "version", row.getInt("number")), project + "/boqs/" + boq, "boq", boq);
-        }, model, attempt.subject(), attempt.project());
+        }, model, version, projectId);
     }
 
     private static void validate(Jobs.Attempt attempt, String sha, JsonNode summary, JsonNode artifacts) {

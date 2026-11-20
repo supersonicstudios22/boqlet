@@ -154,8 +154,15 @@ class BoqInputs {
         return data;
     }
 
+    /** A revision's inputs answer `invalid_inputs` (F04 §2), like every other input problem of a revision. */
     private void require(Project project, UUID version, PresetKind kind) {
-        if (version != null) catalog.selected(project.getOrgId(), project.getId(), version, kind);
+        if (version == null) return;
+        try {
+            catalog.selected(project.getOrgId(), project.getId(), version, kind);
+        } catch (com.boqlet.api.http.ApiException unavailable) {
+            if (unavailable.status() != org.springframework.http.HttpStatus.BAD_REQUEST) throw unavailable;
+            throw invalid("A selected preset isn't a published " + kind.getValue().replace('_', ' ') + " available in this project.");
+        }
     }
 
     private void requireList(Project project, List<UUID> ids, PresetKind kind) {

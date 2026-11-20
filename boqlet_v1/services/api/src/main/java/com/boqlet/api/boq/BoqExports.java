@@ -51,6 +51,21 @@ public class BoqExports {
     @Transactional
     public Job startRun(UUID runId, UUID actor, String groupBy) {
         var run = runs.visible(runId, actor);
+        var systems = run.run().getClassifications() == null ? List.<PublicShareSystemsInner>of() : run.run().getClassifications();
+        if (groupBy != null && systems.stream().noneMatch(system -> groupBy.equals(system.getId()))) {
+            throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
+                    "groupBy is not a classification of this run.", Map.of("groupBy", groupBy));
+        }
+        // BR-25: a saved version's run (unless it is also the working version's current run) answers the file
+        // frozen with it, every time: the job that wrote that file.
+        UUID frozenJob = database.query("""
+                SELECT e.job_id FROM boq_revisions r JOIN exports e ON e.id = (r.frozen->'exportIds'->>0)::uuid
+                WHERE r.status = 'issued' AND r.frozen->>'runId' = ? AND e.job_id IS NOT NULL
+                  AND NOT EXISTS (SELECT 1 FROM boqs b JOIN boq_revisions w ON w.id = b.current_revision_id
+                                  WHERE b.id = r.boq_id AND w.status <> 'issued' AND w.current_run_id = ?)
+                ORDER BY r.number LIMIT 1
+                """, (row, index) -> row.getObject(1, UUID.class), runId.toString(), runId).stream().findFirst().orElse(null);
+        if (frozenJob != null) return jobs.get(frozenJob, actor);
         var scope = boqs.bill(run.boq(), actor);
         if (!runId.equals(scope.revision().run()) || scope.revision().status() == RevisionStatus.ISSUED) {
             scope = boqs.revision(run.run().getRevisionId(), actor);
@@ -88,8 +103,8 @@ public class BoqExports {
         }
         if (note != null && !note.isBlank()) metadata.put("issueNote", note.strip());
         OffsetDateTime time = issued == null ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : issued;
-        String file = safe(project.getCode() == null ? project.getName() : project.getCode()) + "_" + safe(scope.bill().name())
-                + "_Rev" + safe(label) + "_" + time.toLocalDate() + ".xlsx";
+        String file = fileName(project.getCode() == null ? project.getName() : project.getCode(), scope.bill().name(), label,
+                time.toLocalDate());
         return enqueue(project, actor, revision.id(), frozen ? "issued_boq_xlsx" : "boq_xlsx", "run", currentId,
                 file, Map.of("resultKey", run.resultKey(), "meta", metadata));
     }
@@ -173,6 +188,11 @@ public class BoqExports {
     private void record(UUID org, UUID project, UUID actor, String action, UUID id) {
         audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.USER, project,
                 action, "export", id, json.object(Map.of()));
+    }
+
+    /** F12: `{projectCode or name}_{boqName}_Rev{label}_{yyyy-mm-dd}.xlsx`, sanitised. */
+    static String fileName(String project, String boq, String label, java.time.LocalDate date) {
+        return safe(project) + "_" + safe(boq) + "_Rev" + safe(label) + "_" + date + ".xlsx";
     }
 
     private static String safe(String value) {

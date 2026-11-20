@@ -132,7 +132,7 @@ class Adjustments {
     public BoqPresence presence(UUID boq, UUID actor, String line) {
         var scope = access.bill(boq, actor);
         database.update("""
-                INSERT INTO boq_presence (boq_id, user_id, line_key, expires_at) VALUES (?, ?, ?, now() + interval '30 seconds')
+                INSERT INTO boq_presence (boq_id, user_id, line_key, expires_at) VALUES (?, ?, ?, now() + interval '45 seconds')
                 ON CONFLICT (boq_id, user_id) DO UPDATE SET line_key = excluded.line_key, expires_at = excluded.expires_at
                 """, boq, actor, line);
         var presence = present(scope);

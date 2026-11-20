@@ -107,7 +107,8 @@ class Diffs {
             metadata.put("groupBy", target.run().getClassifications().getFirst().getId());
         }
         var registered = exports.enqueue(project, actor, revision.revision().id(), "changes_xlsx", "diff", id,
-                "boq-changes-" + revision.revision().label().replaceAll("[^A-Za-z0-9_-]", "_") + ".xlsx",
+                BoqExports.fileName(project.getCode() == null ? project.getName() : project.getCode(), revision.bill().name(),
+                        revision.revision().label(), java.time.LocalDate.now(java.time.ZoneOffset.UTC)).replaceFirst("\\.xlsx$", "_changes.xlsx"),
                 Map.of("diffKey", diff.key(), "meta", metadata));
         return jobs.get(registered.job(), actor);
     }

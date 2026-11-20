@@ -54,11 +54,13 @@ public class Models {
     private final Jobs jobs;
     private final WorkerClient worker;
     private final AuditWriter audit;
+    private final ParseJob parses;
     private final long uploadLimit;
 
     Models(JdbcTemplate database, StoredJson json, ObjectMapper mapper, ProjectAccess projects, EntitlementService limits,
-           ObjectStorage storage, Jobs jobs, WorkerClient worker, AuditWriter audit,
+           ObjectStorage storage, Jobs jobs, WorkerClient worker, AuditWriter audit, ParseJob parses,
            @Value("${boqlet.worker.max-upload-mib}") long uploadMib) {
+        this.parses = parses;
         this.database = database;
         this.json = json;
         this.mapper = mapper;
@@ -228,6 +230,12 @@ public class Models {
                     UPDATE model_versions SET status = 'failed', error = CAST(? AS jsonb) WHERE id = ?
                     """, json.object(Map.of("code", "not_ifc", "message", failure.getMessage(), "retryable", false)).toString(), id);
             event(project, actor, "model_version.failed", "modelVersion", id);
+            return version(id).tree();
+        }
+        // BR-08: a file the org has parsed before is ready at once, with no parse job (F03-AC4).
+        String sha = storage.sha256(row.source());
+        var summary = parses.parsedBefore(project.getOrgId(), sha, id);
+        if (summary != null && parses.ready(project.getOrgId(), project.getId(), actor, id, sha, summary, null, null)) {
             return version(id).tree();
         }
         return enqueue(project, row, actor);

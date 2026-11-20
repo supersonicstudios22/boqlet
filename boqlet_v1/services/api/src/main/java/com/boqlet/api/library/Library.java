@@ -351,7 +351,7 @@ public class Library {
     private Preset view(PresetCatalog.Head head, boolean edit, UUID actor) {
         var view = new Preset(head.id(), head.kind(), head.layer(), head.slug(), head.name(), head.archived())
                 .orgId(head.org()).projectId(head.project()).description(head.description()).basedOn(head.basedOn())
-                .starred(head.starred()).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(usage(head.id(), actor).size())
+                .starred(Boolean.TRUE.equals(head.starred()) ? Boolean.TRUE : null).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(usage(head.id(), actor).size())
                 .permissions(Map.of("edit", edit, "archive", edit, "publish", edit, "preview", head.unavailable() == null));
         if (head.published() != null) view.setLatestPublishedVersion(catalog.version(head.published()).info());
         if (head.draft() != null) view.setDraft(catalog.version(head.draft()).info());

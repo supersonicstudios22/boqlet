@@ -194,6 +194,12 @@
                                     <fileset dir="${project.build.directory}/generated-sources/openapi/src/main/java/com/boqlet/contract/model"
                                              includes="RevisionInputsPartial.java"/>
                                 </replaceregexp>
+                                <!-- A required answer may be JSON null (dismiss, F05 §3): the generator's @NotNull
+                                     on the JsonNullable refuses it. Decisions checks that the answer is present. -->
+                                <replaceregexp match="@NotNull\s+(@JsonProperty\(&quot;answer&quot;\))" replace="\1" flags="g">
+                                    <fileset dir="${project.build.directory}/generated-sources/openapi/src/main/java/com/boqlet/contract/model"
+                                             includes="DecisionInput.java"/>
+                                </replaceregexp>
                             </target>
                         </configuration>
                     </execution>

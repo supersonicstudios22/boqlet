@@ -50,14 +50,15 @@ class AdminController implements AdminApi {
     public ResponseEntity<String> adminExportOrgs(String plan, String status, String country, String tag, String signal,
             AdminFunnelStep stuck, String query, String sort) {
         var rows = orgs.list(new AdminOrganisations.Filter(plan, status, country, tag, signal, stuck, query, sort), null, 0);
-        var csv = new StringBuilder("Name,Country,Plan,Status,Subscription,Trial ends,Seats used,Seats max,Active projects,")
-                .append("Active projects max,Processing minutes,Processing minutes max,Limit hits,Last activity,Created,Owner email,Tags\r\n");
+        // The fields of AdminOrgRow by their contract names, as the mock writes them (F19 "orgs table, CSV").
+        var csv = new StringBuilder("﻿id,name,country,planId,status,subscriptionStatus,trialEndsAt,seatsUsed,seatsMax,activeProjects,")
+                .append("activeProjectsMax,processingMinutes,processingMinutesMax,limitHits30d,lastActivityAt,createdAt,ownerEmail,tags\r\n");
         for (var row : rows) {
-            csv.append(Stream.of(row.getName(), row.getCountry(), row.getPlanId(), row.getStatus(), row.getSubscriptionStatus(),
+            csv.append(Stream.of(row.getId(), row.getName(), row.getCountry(), row.getPlanId(), row.getStatus(), row.getSubscriptionStatus(),
                     row.getTrialEndsAt().orElse(null), row.getSeats().getUsed(), row.getSeats().getMax().orElse(null),
                     row.getActiveProjects().getUsed(), row.getActiveProjects().getMax().orElse(null), row.getProcessingMinutes().getUsed(),
                     row.getProcessingMinutes().getMax().orElse(null), row.getLimitHits30d(), row.getLastActivityAt().orElse(null),
-                    row.getCreatedAt(), row.getOwnerEmail(), String.join(", ", row.getTags()))
+                    row.getCreatedAt(), row.getOwnerEmail(), String.join("; ", row.getTags()))
                     .map(AdminController::csvCell).collect(Collectors.joining(","))).append("\r\n");
         }
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))

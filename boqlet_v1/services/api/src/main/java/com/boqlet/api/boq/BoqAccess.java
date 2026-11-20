@@ -101,7 +101,10 @@ public class BoqAccess {
 
     List<BoqRevision> versions(UUID boq, UUID actor) {
         var scope = bill(boq, actor);
-        return database.query("SELECT * FROM boq_revisions WHERE boq_id = ? ORDER BY number", this::versionRow, boq)
+        // Newest first. While the BoQ is confirmed its working version is closed: kept, not listed (F09 §5–6).
+        boolean confirmed = scope.bill().status() == Boq.StatusEnum.CONFIRMED;
+        return database.query("SELECT * FROM boq_revisions WHERE boq_id = ?" + (confirmed ? " AND status = 'issued'" : "")
+                        + " ORDER BY number DESC", this::versionRow, boq)
                 .stream().map(revision -> viewRevision(new Scope(scope.bill(), revision, scope.project()), actor)).toList();
     }
 

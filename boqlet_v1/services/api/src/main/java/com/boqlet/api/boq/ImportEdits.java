@@ -57,6 +57,12 @@ class ImportEdits {
         jobs.get(job, actor);
         String key = database.query("SELECT report_key FROM edits_import_reports WHERE job_id = ?",
                 (row, index) -> row.getString(1), job).stream().findFirst().orElseThrow(() -> BoqAccess.missing("edit report"));
-        return artifacts.read(key, EditsImportReport.class);
+        var report = artifacts.read(key, EditsImportReport.class);
+        // The generated model starts `codes` as an empty map; a proposal that moves nothing has none (as the engine wrote it).
+        for (var proposal : report.getOverrides()) {
+            var edit = proposal.getEdit();
+            if (edit != null && edit.getCodes() != null && edit.getCodes().isEmpty()) edit.setCodes(null);
+        }
+        return report;
     }
 }

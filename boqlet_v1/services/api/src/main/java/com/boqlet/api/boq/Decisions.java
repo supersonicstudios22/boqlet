@@ -72,15 +72,16 @@ public class Decisions {
         var additions = new ArrayList<Saved>();
         OffsetDateTime at = OffsetDateTime.now(ZoneOffset.UTC);
         for (var input : request.getDecisions()) {
-            var raw = json.object(input);
+            // `answer: null` is an answer (dismiss: leave it, F05 §3); only a missing answer is refused.
+            var provided = input.getAnswer();
             String key = input.getQuestionId();
-            if (key.isBlank() || !seen.add(key) || !KINDS.contains(input.getKind()) || !raw.has("answer")) {
+            if (key.isBlank() || !seen.add(key) || !KINDS.contains(input.getKind()) || provided == null || !provided.isPresent()) {
                 throw invalid("invalid_body", "Provide a unique question, a supported kind and an answer.");
             }
             Saved existing = prior.get(key);
             JsonNode stored = question(project, key);
             if (stored == null && existing != null) stored = existing.question();
-            JsonNode answer = raw.get("answer");
+            JsonNode answer = json.tree(provided.get());
             check(key, input.getKind(), answer, stored, project, actor);
             String note = input.getNote() == null || input.getNote().isBlank() ? null : input.getNote().strip();
             boolean answerChanged = existing == null || !same(existing.answer(), answer);

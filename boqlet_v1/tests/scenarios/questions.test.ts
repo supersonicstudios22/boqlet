@@ -142,7 +142,8 @@ describe("answering (F05 §2, §3)", () => {
     expect(info).toBeTruthy();
     const bad = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: { decisions: [{ questionId: info.id, kind: info.kind, answer: 42 }] } });
     expect(bad.response.status).toBe(400);
-    await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: { decisions: [{ questionId: info.id, kind: info.kind, answer: null }] } });
+    const dismissed = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: { decisions: [{ questionId: info.id, kind: info.kind, answer: null }] } });
+    expect(dismissed.response.status, JSON.stringify(dismissed.error)).toBe(200);
     expect(await pendingChanges(api)).toContain("decisions");
     const next = await generate(api);
     const row = (await questionsOf(api, next.id)).find((q) => q.id === info.id)!;

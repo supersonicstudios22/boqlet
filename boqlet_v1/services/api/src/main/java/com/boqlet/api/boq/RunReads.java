@@ -72,7 +72,7 @@ class RunReads {
             groups = groups(filter.toString(), args);
             if (path == null || path.isEmpty()) return new LinesPage(List.of()).groups(groups).total(total).nextCursor(null);
             args.addValue("path", path).addValue("pathDepth", path.split("/", -1).length);
-            filter.append("""
+            filter.append(" ").append("""
                     AND (SELECT string_agg(part.value->>'code', '/' ORDER BY part.ordinality)
                          FROM jsonb_array_elements(l.line->'codes'->CAST(:system AS text)->'path') WITH ORDINALITY part
                          WHERE part.ordinality <= :pathDepth) = :path

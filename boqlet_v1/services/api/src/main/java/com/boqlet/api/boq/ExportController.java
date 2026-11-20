@@ -8,8 +8,12 @@ import com.boqlet.api.project.ProjectAccess;
 import com.boqlet.contract.api.ExportsApi;
 import com.boqlet.contract.model.*;
 import java.time.OffsetDateTime;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.stream.Collectors;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -30,9 +34,14 @@ class ExportController implements ExportsApi {
     private final BoqAccess boqs;
     private final Runs runs;
     private final Idempotency idempotency;
+    private final JdbcTemplate database;
+    private final ObjectMapper json;
 
     ExportController(BoqExports exports, Diffs diffs, ImportEdits imports, Decisions decisions, AuditReader audit,
-                     OrgAccess orgs, ProjectAccess projects, BoqAccess boqs, Runs runs, Idempotency idempotency) {
+                     OrgAccess orgs, ProjectAccess projects, BoqAccess boqs, Runs runs, Idempotency idempotency,
+                     JdbcTemplate database, ObjectMapper json) {
+        this.database = database;
+        this.json = json;
         this.exports = exports;
         this.diffs = diffs;
         this.imports = imports;
@@ -111,24 +120,37 @@ class ExportController implements ExportsApi {
     private ResponseEntity<String> auditCsv(UUID org, UUID project, String user, String action, String entity,
                                            OffsetDateTime from, OffsetDateTime to) {
         var out = new StringBuilder("\uFEFF");
-        csv(out, "at", "actor", "actor_kind", "action", "entity_type", "entity_id", "data");
+        // F12 "Audit CSV", as the mock writes it: actor is the person's name or "system", project its name, data JSON.
+        csv(out, "at", "actor", "action", "entityType", "entityId", "project", "data");
+        var projectNames = new java.util.HashMap<UUID, String>();
         String cursor = null;
         do {
             var page = audit.page(org, project, cursor, 1000, user, action, entity, from, to);
             for (var row : page.getItems()) {
-                csv(out, row.getAt(), row.getActor() == null ? "" : row.getActor().getName(),
-                        row.getActorKind(), row.getAction(), row.getEntityType(), row.getEntityId(), row.getData());
+                UUID projectId = row.getProjectId() == null ? null : row.getProjectId().orElse(null);
+                String projectName = projectId == null ? "" : projectNames.computeIfAbsent(projectId, id -> database
+                        .query("SELECT name FROM projects WHERE id = ?", (result, index) -> result.getString(1), id)
+                        .stream().findFirst().orElse(id.toString()));
+                String data;
+                try {
+                    data = json.writeValueAsString(row.getData() == null ? Map.of() : row.getData());
+                } catch (JsonProcessingException failed) {
+                    throw new IllegalStateException(failed);
+                }
+                csv(out, row.getAt(), row.getActor() == null ? "system" : row.getActor().getName(),
+                        row.getAction(), row.getEntityType(), row.getEntityId(), projectName, data);
             }
             cursor = page.getNextCursor().orElse(null);
         } while (cursor != null);
         return csvResponse("audit.csv", out);
     }
 
+    /** One CSV row (RFC 4180): a cell is quoted only when it needs it; text a spreadsheet would run as a formula is defused. */
     private static void csv(StringBuilder out, Object... values) {
         out.append(java.util.Arrays.stream(values).map(value -> {
             String text = value == null ? "" : value.toString();
             if (value instanceof String && text.stripLeading().matches("(?s)^[=+@-].*")) text = "'" + text;
-            return "\"" + text.replace("\"", "\"\"") + "\"";
+            return text.matches("(?s).*[\",\r\n].*") ? "\"" + text.replace("\"", "\"\"") + "\"" : text;
         }).collect(Collectors.joining(","))).append("\r\n");
     }
 

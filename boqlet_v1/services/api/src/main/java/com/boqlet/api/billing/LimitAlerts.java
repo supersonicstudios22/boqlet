@@ -33,12 +33,12 @@ class LimitAlerts {
     }
 
     @Transactional
-    public void refused(LimitReached failure) {
+    public void refused(LimitReached failure, String action) {
         if (failure.org == null) return;
         database.update("""
                 INSERT INTO limit_events (id, org_id, user_id, limit_name, current_value, max_value, action)
-                SELECT ?, id, ?, ?, ?, ?, 'refused' FROM orgs WHERE id = ?
-                """, Ids.newId(), failure.actor, failure.key, failure.current, failure.maximum, failure.org);
+                SELECT ?, id, ?, ?, ?, ?, ? FROM orgs WHERE id = ?
+                """, Ids.newId(), failure.actor, failure.key, failure.current, failure.maximum, action, failure.org);
         publish(failure.org, failure.key, failure.current, failure.maximum, "limit.reached");
     }
 

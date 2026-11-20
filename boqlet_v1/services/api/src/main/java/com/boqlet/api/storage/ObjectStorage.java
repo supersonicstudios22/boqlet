@@ -145,6 +145,18 @@ public class ObjectStorage {
         return client.getObject(request -> request.bucket(bucket).key(key));
     }
 
+    /** The object's SHA-256 (lowercase hex), streamed: the same digest the engine records for a model's file. */
+    public String sha256(String key) {
+        try (InputStream data = open(key)) {
+            var digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[1 << 20];
+            for (int read; (read = data.read(buffer)) > 0;) digest.update(buffer, 0, read);
+            return java.util.HexFormat.of().formatHex(digest.digest());
+        } catch (java.io.IOException | java.security.NoSuchAlgorithmException failure) {
+            throw new IllegalStateException("The stored file could not be read.", failure);
+        }
+    }
+
     public boolean exists(String key) {
         configured();
         return head(key) != null;

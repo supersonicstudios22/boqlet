@@ -54,7 +54,16 @@ public class WorkerClient {
                     HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) return json.readValue(response.body(), type);
             if (response.statusCode() == 422) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "engine_input", "The engine rejected the input.", Map.of());
+                // The engine's reason (FastAPI's `detail`), e.g. which file types it reads.
+                String reason = null;
+                try {
+                    var detail = json.readTree(response.body()).path("detail");
+                    if (detail.isTextual() && !detail.asText().isBlank()) reason = detail.asText();
+                } catch (IOException unreadable) {
+                    // keep the general message
+                }
+                throw new ApiException(HttpStatus.BAD_REQUEST, "engine_input",
+                        reason == null ? "The engine rejected the input." : reason, Map.of());
             }
         } catch (IOException failure) {
             throw unavailable();
