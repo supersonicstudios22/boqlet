@@ -14,7 +14,8 @@ import { user, type TestUser } from "../support/users";
  */
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const PYTHON = path.join(ROOT, "engine", ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
+// The engine's venv, or the Python the run names (IFC_BOQ_PYTHON, as CI's Java job does).
+const PYTHON = process.env.IFC_BOQ_PYTHON ?? path.join(ROOT, "engine", ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
 
 /** Three levels (10 › 10.20 › 10.20.30) and one code given twice, as a header row plus rows. */
 const ROWS = [
@@ -56,7 +57,7 @@ afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
 describe("F10 code-list import", () => {
   it("F10-AC4 importing an xlsx code list with 3 levels builds the hierarchy and reports duplicates", async () => {
-    expect(existsSync(PYTHON), "the engine's venv (npm run setup:engine)").toBe(true);
+    expect(process.env.IFC_BOQ_PYTHON !== undefined || existsSync(PYTHON), "the engine's venv (npm run setup:engine)").toBe(true);
     const { data: read, response } = await upload(ivana.token, xlsx(path.join(dir, "codes.xlsx"), ROWS), "codes.xlsx");
     expect(response.status).toBe(200);
     expect(read!.sheets).toHaveLength(1);
