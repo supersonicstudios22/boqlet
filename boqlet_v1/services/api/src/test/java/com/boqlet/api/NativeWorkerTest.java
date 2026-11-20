@@ -97,33 +97,37 @@ class NativeWorkerTest {
         start.environment().put("AWS_SECRET_ACCESS_KEY", SECRET);
         start.environment().put("AWS_DEFAULT_REGION", "us-east-1");
         worker = start.start();
-        properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        properties.add("spring.datasource.username", POSTGRES::getUsername);
-        properties.add("spring.datasource.password", POSTGRES::getPassword);
         try {
             com.boqlet.suite.SuiteSupport.installClock(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
         } catch (java.sql.SQLException failed) {
             throw new IOException(failed);
         }
-        properties.add("spring.datasource.hikari.connection-init-sql", () -> "SET search_path = " + com.boqlet.suite.SuiteSupport.SEARCH_PATH);
-        properties.add("boqlet.auth.pilot-emails", () -> "owner@example.test,platform@example.test");
-        properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
-        properties.add("spring.mail.host", MAIL::getHost);
-        properties.add("spring.mail.port", () -> MAIL.getMappedPort(1025));
-        properties.add("spring.mail.properties[mail.smtp.auth]", () -> false);
-        properties.add("spring.mail.properties[mail.smtp.starttls.enable]", () -> false);
-        properties.add("spring.mail.properties[mail.smtp.starttls.required]", () -> false);
-        properties.add("BOQLET_SMTP_FROM", () -> "boqlet@example.test");
-        properties.add("BOQLET_SMTP_POLL_MS", () -> 250);
-        properties.add("boqlet.storage.bucket", () -> BUCKET);
-        properties.add("boqlet.storage.region", () -> "us-east-1");
-        properties.add("boqlet.storage.endpoint", () -> endpoint);
-        properties.add("boqlet.worker.url", () -> url);
+        SETTINGS.put("spring.datasource.url", POSTGRES.getJdbcUrl());
+        SETTINGS.put("spring.datasource.username", POSTGRES.getUsername());
+        SETTINGS.put("spring.datasource.password", POSTGRES.getPassword());
+        SETTINGS.put("spring.datasource.hikari.connection-init-sql", "SET search_path = " + com.boqlet.suite.SuiteSupport.SEARCH_PATH);
+        SETTINGS.put("boqlet.auth.pilot-emails", "owner@example.test,platform@example.test");
+        SETTINGS.put("boqlet.auth.invitation-secret", "local-test-signing-secret-2026-only");
+        SETTINGS.put("spring.mail.host", MAIL.getHost());
+        SETTINGS.put("spring.mail.port", MAIL.getMappedPort(1025));
+        SETTINGS.put("spring.mail.properties[mail.smtp.auth]", false);
+        SETTINGS.put("spring.mail.properties[mail.smtp.starttls.enable]", false);
+        SETTINGS.put("spring.mail.properties[mail.smtp.starttls.required]", false);
+        SETTINGS.put("BOQLET_SMTP_FROM", "boqlet@example.test");
+        SETTINGS.put("BOQLET_SMTP_POLL_MS", 250);
+        SETTINGS.put("boqlet.storage.bucket", BUCKET);
+        SETTINGS.put("boqlet.storage.region", "us-east-1");
+        SETTINGS.put("boqlet.storage.endpoint", endpoint);
+        SETTINGS.put("boqlet.worker.url", url);
         if (POSTGRES_QUEUE) {
-            properties.add("BOQLET_ENGINE_TRANSPORT", () -> "postgres");
-            properties.add("BOQLET_ENGINE_MODEL_POOL", () -> "ifc");
+            SETTINGS.put("BOQLET_ENGINE_TRANSPORT", "postgres");
+            SETTINGS.put("BOQLET_ENGINE_MODEL_POOL", "ifc");
         }
+        SETTINGS.forEach((name, value) -> properties.add(name, () -> value));
     }
+
+    /** The API's configuration in this test, for a second instance on the same database. */
+    private static final java.util.Map<String, Object> SETTINGS = new java.util.LinkedHashMap<>();
 
     @AfterAll
     static void stopServices() {
@@ -237,6 +241,53 @@ class NativeWorkerTest {
         assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
         if (POSTGRES_QUEUE) startQueueWorkers();
         runSharedSuite("scenarios", System.getenv("BOQLET_SCENARIO_FILTER"), Duration.ofMinutes(25));
+    }
+
+    /**
+     * M6: live updates reach a client of another API instance. A second instance runs on the same
+     * database; a person's browser listens there, and another browser's takeover through this instance
+     * revokes its session: the stream on the second instance gets `session.revoked`.
+     */
+    @Test
+    void realtimeReachesClientsOfAnotherApiInstance() throws Exception {
+        String email = "two-instances@example.test";
+        String person = com.boqlet.suite.SuiteSupport.TOKEN_PREFIX + java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(email.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        database.update("INSERT INTO users (id, auth_subject, email, name) VALUES (?, ?, ?, ?)", Ids.newId(), person, email, "Two Instances");
+        Cookie first = http.perform(post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + person + ".first")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"First browser\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
+        // As arguments: they take precedence over application.yml, as the test's dynamic properties do.
+        var arguments = new java.util.ArrayList<String>(java.util.List.of("--server.port=0", "--spring.threads.virtual.enabled=false"));
+        SETTINGS.forEach((name, value) -> arguments.add("--" + name + "=" + value));
+        try (var second = new org.springframework.boot.builder.SpringApplicationBuilder(BoqletApplication.class, ApiFoundationTest.Tokens.class)
+                .run(arguments.toArray(String[]::new))) {
+            String port = second.getEnvironment().getProperty("local.server.port");
+            var stream = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/v1/events"))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + person + ".first")
+                    .header(HttpHeaders.COOKIE, first.getName() + "=" + first.getValue())
+                    .header(HttpHeaders.ACCEPT, "text/event-stream").timeout(Duration.ofSeconds(30)).GET().build();
+            var response = NETWORK.send(stream, HttpResponse.BodyHandlers.ofInputStream());
+            assertThat(response.statusCode()).isEqualTo(200);
+            try (var data = response.body(); var pool = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+                var revoked = pool.submit(() -> {
+                    var reader = new java.io.BufferedReader(new java.io.InputStreamReader(data, java.nio.charset.StandardCharsets.UTF_8));
+                    for (String line; (line = reader.readLine()) != null;) {
+                        if (line.replace(" ", "").equals("event:session.revoked")) return true;
+                    }
+                    return false;
+                });
+                Thread.sleep(500);
+                http.perform(post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + person + ".second")
+                                .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Second browser\",\"takeover\":true}"))
+                        .andExpect(status().isCreated());
+                try {
+                    assertThat(revoked.get(15, java.util.concurrent.TimeUnit.SECONDS)).as("session.revoked on the other instance").isTrue();
+                } finally {
+                    revoked.cancel(true);
+                }
+            }
+        }
     }
 
     private static String node() {

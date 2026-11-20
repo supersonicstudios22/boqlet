@@ -264,8 +264,6 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   green push to `v_1` deploys to it. A separate staging environment is a future todo (BE-032);
   until then "on staging" checks run on the pilot with synthetic accounts, and load, performance
   and restore tests run against the local native stack.
-- Live updates across two API instances (M6) are built (PostgreSQL journal with LISTEN/NOTIFY) but
-  not tested with two instances (FE-041, BE-026).
 - Pilot operations (docs/18): enrolling the first real owner, email delivery to outside addresses,
   and off-host backup with a tested restore are not qualified yet; no exported traces, metrics or
   alert routing (BE-025).
