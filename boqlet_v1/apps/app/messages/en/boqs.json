@@ -306,7 +306,8 @@
       "map": "map rule",
       "decision": "your answer",
       "ifc": "from the model",
-      "default": "default"
+      "default": "default",
+      "item": "set on the item"
     },
     "mapRule": "map rule {id}",
     "location": "Location",

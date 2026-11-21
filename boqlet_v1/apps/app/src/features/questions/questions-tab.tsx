@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tag } from "@/features/boqs/boq-header";
 import { useOrg } from "@/features/orgs/org-context";
 import { showIn3dHref } from "@/features/viewer/viewer-tab";
+import { useEngineMessage } from "@/i18n/engine-message";
 import { cn } from "@/lib/utils";
 import { AnswerControl, type AnswerContext } from "./answer-control";
 import { useAnswerFlow } from "./answer-flow";
@@ -197,6 +198,7 @@ function QuestionRow({
 }) {
   const t = useTranslations("questions");
   const format = useFormatter();
+  const message = useEngineMessage()(q);
   const initial = initialValue(q);
   const [value, setValue] = useState<Answer | undefined>(initial.value);
   const answered = q.decision;
@@ -205,7 +207,7 @@ function QuestionRow({
     <li className={cn("grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 border-b border-border py-3 lg:grid-cols-[auto_auto_minmax(0,1fr)_minmax(14rem,28rem)]", answered && "text-muted-foreground")} data-testid="question-row" data-question-id={q.id} data-answered={answered ? "true" : "false"}>
       <input
         type="checkbox"
-        aria-label={t("select", { question: q.message })}
+        aria-label={t("select", { question: message.text })}
         checked={checked}
         disabled={!canAnswer || (!checked && !canSelect)}
         onChange={onToggle}
@@ -216,8 +218,8 @@ function QuestionRow({
         {q.blocking ? t("blocking") : t("info")}
       </Tag>
       <div className="flex min-w-0 flex-col gap-1">
-        <p className="text-foreground">
-          {q.message}
+        <p className="text-foreground" data-testid="question-message" data-message={message.source}>
+          {message.text}
           {q.occurrences ? <span className="text-muted-foreground"> — {t("elements", { count: q.occurrences })}</span> : null}
           {showIn3d && (
             <Link href={showIn3d} className="ml-2 text-link hover:underline" data-testid="question-show-in-3d">
@@ -246,7 +248,7 @@ function QuestionRow({
             value={value}
             context={context}
             disabled={busy}
-            label={t("answerFor", { question: q.message })}
+            label={t("answerFor", { question: message.text })}
             testId="answer-control"
             onChange={(v, commit) => {
               setValue(v);

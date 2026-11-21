@@ -8,6 +8,7 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useEngineMessage } from "@/i18n/engine-message";
 import { cn } from "@/lib/utils";
 
 const STAGES = ["parse", "names", "measure", "match", "quantity", "derived", "manual", "classify", "decision", "summary"] as const;
@@ -17,6 +18,7 @@ const LEVELS = ["info", "detail", "warning"] as const;
 export function LogTab({ run }: { run: Run | undefined }) {
   const t = useTranslations("boqs.log");
   const message = useErrorMessage();
+  const engineMessage = useEngineMessage();
   const [filters, setFilters] = useState<LogFilters>({});
   const log = useLog(run?.id, filters);
   const set = (key: keyof LogFilters, value: string) => setFilters((f) => ({ ...f, [key]: value.trim() || undefined }));
@@ -77,7 +79,7 @@ export function LogTab({ run }: { run: Run | undefined }) {
               <tr key={e.seq} className="border-b border-border align-top" data-testid="log-entry">
                 <td className="py-1 pr-2 text-right tabular-nums text-muted-foreground">{e.seq}</td>
                 <td className="py-1 pr-2">{t.has(`stages.${e.stage}`) ? t(`stages.${e.stage}`) : e.stage}</td>
-                <td className={cn("py-1 pr-2", e.level === "warning" && "border-l-2 border-[var(--status-attention)] pl-2", e.level === "detail" && "text-muted-foreground")}>{e.message}</td>
+                <td className={cn("py-1 pr-2", e.level === "warning" && "border-l-2 border-[var(--status-attention)] pl-2", e.level === "detail" && "text-muted-foreground")}>{engineMessage(e).text}</td>
                 <td className="truncate py-1 text-muted-foreground" title={e.guid}>
                   {e.lineKey ?? e.ruleId ?? ""}
                 </td>

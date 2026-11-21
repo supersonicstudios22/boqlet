@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { lexicon, toReadable, type Lexicon } from "@/features/library/lib/readable";
 import { cn } from "@/lib/utils";
 import { useOrg } from "@/features/orgs/org-context";
+import { useEngineMessage } from "@/i18n/engine-message";
 import { HowCalculated } from "./how-calculated";
 import { displayUnit } from "./model";
 import { SourceTag } from "./source-tag";
@@ -124,6 +125,7 @@ export function LineDetailBody({
 }) {
   const t = useTranslations("boqs.detail");
   const format = useFormatter();
+  const message = useEngineMessage();
   const num = (v: number) => format.number(v, { maximumFractionDigits: 6 });
   const value = (v: unknown) => (typeof v === "boolean" ? (v ? t("yes") : t("no")) : typeof v === "number" ? num(v) : typeof v === "string" ? v : JSON.stringify(v));
   const slotLabel = (name: string) => lex.slotLabels.get(name) ?? slots[name]?.label ?? name;
@@ -275,7 +277,7 @@ export function LineDetailBody({
                     {line.log!.map((e) => (
                       <li key={e.seq} className="flex gap-2">
                         <span className="w-10 shrink-0 text-right tabular-nums text-muted-foreground">{e.seq}</span>
-                        <span className={e.level === "warning" ? "border-l-2 border-[var(--status-attention)] pl-2" : undefined}>{e.message}</span>
+                        <span className={e.level === "warning" ? "border-l-2 border-[var(--status-attention)] pl-2" : undefined}>{message(e).text}</span>
                       </li>
                     ))}
                   </ol>

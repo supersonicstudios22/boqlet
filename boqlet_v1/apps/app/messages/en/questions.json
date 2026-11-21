@@ -35,10 +35,9 @@
     "double_claim": "Measured twice",
     "unclassified": "No code",
     "classification_conflict": "Code conflict",
-    "orphan_override": "Edit without a matching line",
+    "orphan_override": "Edit without a line",
     "contradiction": "Contradiction",
-    "overlap": "Overlap",
-    "orphan_override": "Edit without a line"
+    "overlap": "Overlap"
   },
   "special": {
     "dismissed": "left as it is",

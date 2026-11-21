@@ -13,7 +13,7 @@ test.describe.configure({ timeout: 300_000 });
 
 const unnamedDuplex = async () => generatedDuplexBoq(new Uint8Array(await readFile(DUPLEX)), ["acme-cost-codes"], { dictionaryVersionIds: [] });
 
-test("F05-AC1, AC3 bulk-answering the names is one request; one regenerate completes the BoQ", async ({ page }) => {
+test("F05-AC1, AC3, F15-AC3 bulk-answering the names is one request; one regenerate completes the BoQ; questions render from message keys", async ({ page }) => {
   const { url, run } = await unnamedDuplex();
   expect(run.status).toBe("needs_input");
   await signInAs(page, "olivia");
@@ -21,6 +21,10 @@ test("F05-AC1, AC3 bulk-answering the names is one request; one regenerate compl
   await expect(page.getByTestId("questions-summary")).toContainText("blocking");
   const rows = page.getByTestId("question-row");
   await expect(rows.first()).toContainText("Blocking");
+  // F15-AC3, contract change C01: every engine question renders from its message key, none from the engine's English.
+  const messages = page.getByTestId("question-message");
+  expect(await messages.count()).toBe(await rows.count());
+  await expect(page.locator('[data-testid="question-message"][data-message="fallback"]')).toHaveCount(0);
 
   // Select one blocking name, then every question answered the same way.
   await rows.first().getByTestId("question-select").check();
