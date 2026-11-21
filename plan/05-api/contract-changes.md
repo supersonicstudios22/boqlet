@@ -15,14 +15,12 @@ made, and the list of every change, so that phase 3 knows what to adapt.
    - `npm run api:lint` and `npm run api:gen`;
    - update the shared suites (`tests/contract`, `tests/scenarios`) so they describe the new
      behaviour. They stay the spec that Java must pass;
-   - update the mock's handlers (`apps/mock-api`) for the changed operations, so the app's
-     end-to-end tests on the mock stay meaningful;
+   - update the Java backend for the changed operations (since P53 there is no mock to update);
    - make the **smallest change in `apps/app`** that keeps it compiling and its tests green.
      That means renamed fields and adjusted calls, never a redesign. Mark each spot with
      `// contract-change: <row id>`.
 3. **List it below.** Additive changes are listed too (a new optional field the UI could show).
-4. CI stays green: lint, typecheck, the app's and the mock's tests, the suites against the mock
-   and against Java.
+4. CI stays green: lint, typecheck, the app's tests, the suites and browser tests against Java.
 
 ## How phase 3 uses this list
 

@@ -1,0 +1,97 @@
+# The backend on one machine, for development (docs/20-local-backend.md).
+# Started by `npm run local:up` (scripts/local.mjs), which also waits for the API.
+# The app runs on the host (`npm run dev:app`, http://localhost:3000) and proxies /api/v1 here.
+# Every secret below is a fixed local-only value; nothing here is used by the pilot (ops/pilot).
+name: boqlet-local
+
+x-storage-credentials: &storage-credentials
+  AWS_ACCESS_KEY_ID: boqlet-local
+  AWS_SECRET_ACCESS_KEY: boqlet-local-only-secret
+  AWS_DEFAULT_REGION: us-east-1
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: boqlet
+      POSTGRES_PASSWORD: boqlet-local
+      POSTGRES_DB: boqlet
+    ports: ["127.0.0.1:${LOCAL_DB_PORT:-55432}:5432"]
+    volumes: [db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "boqlet"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  # S3-compatible object storage. The browser uploads to and downloads from it directly with
+  # signed URLs, so it is published on the host at the address the API signs for.
+  storage:
+    image: chrislusf/seaweedfs:4.53
+    environment:
+      <<: *storage-credentials
+      S3_BUCKET: boqlet-local
+    ports: ["127.0.0.1:${LOCAL_S3_PORT:-8333}:8333"]
+    volumes: [objects:/data]
+
+  # Creates the bucket if needed and allows the app's origin to upload (as ops/pilot/configure-storage.py does).
+  storage-init:
+    build: {context: ../.., dockerfile: ops/pilot/engine.Dockerfile}
+    image: boqlet-local-engine
+    command: ["python", "/local/init-storage.py"]
+    environment:
+      <<: *storage-credentials
+      S3_ENDPOINT: http://storage:8333
+      S3_BUCKET: boqlet-local
+      APP_ORIGIN: http://localhost:${LOCAL_APP_PORT:-3000}
+    volumes: ["./init-storage.py:/local/init-storage.py:ro"]
+    depends_on: [storage]
+    restart: "no"
+
+  # Catches every email the API sends; read them at http://localhost:8025.
+  mail:
+    image: mailhog/mailhog:v1.0.1
+    ports: ["127.0.0.1:${LOCAL_MAIL_UI_PORT:-8025}:8025"]
+
+  engine:
+    build: {context: ../.., dockerfile: ops/pilot/engine.Dockerfile}
+    image: boqlet-local-engine
+    depends_on:
+      storage-init: {condition: service_completed_successfully}
+    environment:
+      <<: *storage-credentials
+      ENGINE_STORAGE: s3://boqlet-local
+      ENGINE_S3_ENDPOINT: http://storage:8333
+
+  api:
+    build: {context: ../.., dockerfile: services/api/Dockerfile}
+    image: boqlet-local-api
+    depends_on:
+      db: {condition: service_healthy}
+      storage-init: {condition: service_completed_successfully}
+      engine: {condition: service_started}
+    ports: ["127.0.0.1:${LOCAL_API_PORT:-8080}:8080"]
+    environment:
+      <<: *storage-credentials
+      BOQLET_JDBC_URL: jdbc:postgresql://db:5432/boqlet
+      BOQLET_DB_USER: boqlet
+      BOQLET_DB_PASSWORD: boqlet-local
+      BOQLET_NATIVE_AUTH: "true"
+      BOQLET_SECURE_COOKIE: "false"
+      BOQLET_APP_URL: http://localhost:${LOCAL_APP_PORT:-3000}
+      BOQLET_INVITATION_SECRET: boqlet-local-signing-secret-not-for-production
+      BOQLET_SMTP_HOST: mail
+      BOQLET_SMTP_PORT: "1025"
+      BOQLET_SMTP_AUTH: "false"
+      BOQLET_SMTP_STARTTLS: "false"
+      BOQLET_SMTP_FROM: boqlet@localhost.test
+      BOQLET_S3_BUCKET: boqlet-local
+      BOQLET_S3_REGION: us-east-1
+      BOQLET_S3_ENDPOINT: http://storage:8333
+      BOQLET_S3_PUBLIC_ENDPOINT: http://localhost:${LOCAL_S3_PORT:-8333}
+      BOQLET_ENGINE_TRANSPORT: http
+      BOQLET_ENGINE_HTTP_URL: http://engine:8788
+
+volumes:
+  db:
+  objects:

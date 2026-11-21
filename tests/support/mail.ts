@@ -1,8 +1,8 @@
-import { ROOT_URL, TARGET } from "./env";
+import { ROOT_URL } from "./env";
 
 /**
- * Emails the backend sent (invitations carry their token only by email). Mock: its outbox at
- * `/_dev/outbox`. Java: the MailHog the Java suite test runs (its real SMTP sender delivers there).
+ * Emails the backend sent (invitations carry their token only by email): the MailHog the Java
+ * suite test runs (its real SMTP sender delivers there).
  */
 export interface SentMail {
   to: string;
@@ -12,10 +12,7 @@ export interface SentMail {
 }
 
 export async function mailsTo(email: string): Promise<SentMail[]> {
-  if (TARGET === "java") return mailHog(email);
-  if (TARGET !== "mock") throw new Error(`no mail sink for target ${TARGET} yet`);
-  const res = await fetch(`${ROOT_URL}/_dev/outbox`);
-  return ((await res.json()) as SentMail[]).filter((m) => m.to.toLowerCase() === email.toLowerCase());
+  return mailHog(email);
 }
 
 interface MailHogMessage {
@@ -25,7 +22,7 @@ interface MailHogMessage {
 
 /**
  * Java sends real SMTP. The Java suite test runs MailHog and passes its HTTP API as
- * `BOQLET_SUITE_MAILHOG`. MailHog lists the newest message first, like the mock's outbox is read here.
+ * `BOQLET_SUITE_MAILHOG`. MailHog lists the newest message first.
  */
 async function mailHog(email: string): Promise<SentMail[]> {
   const base = process.env.BOQLET_SUITE_MAILHOG;

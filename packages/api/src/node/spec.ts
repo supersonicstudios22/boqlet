@@ -1,8 +1,7 @@
 /**
- * Node only (`@ifc-boq/api/spec`): used by the mock API and the shared test suites.
+ * Node only (`@ifc-boq/api/spec`): used by the shared test suites.
  * The contract, loaded once: `packages/api/openapi.yaml` bundled (external engine schemas pulled
  * in), a route table, and Ajv validators for parameters, request bodies and responses.
- * The mock answers only what this file declares; everything else is 404.
  */
 import { bundle, createConfig } from "@redocly/openapi-core";
 import Ajv2020 from "ajv/dist/2020.js";

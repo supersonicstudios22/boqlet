@@ -7,7 +7,7 @@ import { signUp, uniqueEmail, type TestUser } from "../support/users";
 /**
  * F06 §6–7 line edits and manual lines (FE-011) on the Duplex: every kind of edit and a manual line
  * survive regeneration and a new model version (F06-AC3, AC6); the rules that refuse an edit (AC4).
- * Edits are applied by the mock's "Line edits applied" fake until EN-003.
+ * The engine applies the edits (EN-003).
  */
 
 const slug = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;

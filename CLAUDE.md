@@ -15,8 +15,9 @@ values used and the elements that contributed.
 getBoq(models, rules, classifications, dictionaries, decisions) -> BoqResult
 ```
 
-The product is the monorepo specified in `plan/`: a Next.js app, a mock API (the e2e test double),
-a **Java** backend (owns users, projects, storage, jobs) and the Python engine as its worker.
+The product is the monorepo specified in `plan/`: a Next.js app, a **Java** backend (owns users,
+projects, storage, jobs) and the Python engine as its worker. The mock API that stood in for Java
+while it was built was removed (P53); locally the real backend runs in Docker (`docs/20`).
 Anything that decides something belongs in the engine as plain functions over the contract types
 (see `docs/03-architecture.md`, code boundaries); the backend stores, permits and schedules. The
 proof of concept it grew from (a React dev UI and a local engine API) was removed in FE-046; it
@@ -25,18 +26,21 @@ stays reachable as the git tag `poc-final`.
 ## Run it
 
 ```bash
-npm install          # also creates engine/.venv and installs the Python engine (Python 3.10-3.13)
-npm run dev:app      # engine worker + mock API + app on http://localhost:3000
+npm install                              # also creates engine/.venv (Python 3.10-3.13)
+npm run dev:app                          # backend in Docker (Java, engine, PostgreSQL, storage, mail) + app on http://localhost:3000
+npm run local:user -- you@example.com    # sign-up link for a first account
 ```
 
 | Command | What it does |
 |---|---|
-| `npm run dev:app` | The product in development: engine worker (8788) + mock API (`apps/mock-api`, 4010) + app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the mock). Sign in as a seeded user (`/_dev/users` on 4010). |
-| `npm run dev:engine-worker` | Engine worker on port 8788. Uses the mock's blob folder by default. `ENGINE_WORKER_PORT`, `ENGINE_STORAGE`, `ENGINE_HTTP_CONCURRENCY`, and `ENGINE_MAX_MODEL_MB` configure local runs. |
-| `npm run dev:mock` / `npm run mock:seed` / `npm run mock:reset` | The mock API alone / seed `apps/mock-api/.data` if empty / wipe and reseed. |
-| `npm run test` | Typecheck all workspaces, lint the app, the app's and the mock's tests, the contract and scenario suites against a fresh mock, then the engine tests (pytest). The mock's Duplex test runs only when the engine worker is up (`npm run dev:engine-worker`). |
-| `npm run test:contract:mock` / `npm run test:scenarios:mock` | The shared suites (`tests/contract`, `tests/scenarios`) against a fresh mock they start themselves. Without `:mock` they run against `API_URL` (a running mock, or Java in phase 2). |
-| `npm run lint` / `npm run test:app` / `npm run e2e:app` | The app's ESLint (no literal UI strings, F15) / Vitest unit tests / Playwright end-to-end tests (starts the app if it isn't running). |
+| `npm run dev:app` | The product in development: `local:up`, then the app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the Java API on 8080). Native sign-in; accounts from `local:user`. |
+| `npm run local:up` / `local:down` / `local:reset` | The local backend (`ops/local/compose.yaml`, `docs/20-local-backend.md`): build and start Java, the engine worker, PostgreSQL, SeaweedFS and MailHog (http://localhost:8025) in Docker / stop / stop and delete the data. Run `local:up` again after changing `services/api` or `engine`. |
+| `npm run local:user -- <email>` / `local:admin -- <email>` | A one-hour sign-up (or password reset) link / make an account a platform admin. |
+| `npm run local:check` / `local:status` / `local:logs -- [service]` | End-to-end check of the local backend (sign-up, upload, parse, BoQ run) / readiness / logs. |
+| `npm run dev:engine-worker` | A standalone engine worker on port 8788, files in `engine/.cache/blobs` (the local backend runs its own in Docker). `ENGINE_WORKER_PORT`, `ENGINE_STORAGE`, `ENGINE_HTTP_CONCURRENCY`, and `ENGINE_MAX_MODEL_MB` configure it. |
+| `npm run test` | Typecheck all workspaces, lint the app, the app's unit tests, then the engine tests (pytest). |
+| `mvn -f services/api/pom.xml verify` | The Java build and its tests (Docker needed). With `BOQLET_NATIVE_WORKER_PYTHON`, `BOQLET_NATIVE_NODE`, `BOQLET_NATIVE_SCENARIOS=1` and `BOQLET_BROWSER_SMOKE=1` it also runs the shared contract and scenario suites (`tests/`) and the browser smoke (`apps/app/e2e-java`) against Java, as CI does (`services/api/README.md`). |
+| `npm run lint` / `npm run test:app` | The app's ESLint (no literal UI strings, F15) / Vitest unit tests. |
 | `npm run test:engine` | Engine tests only. Includes the Duplex acceptance test. |
 | `npm run typecheck` | Typecheck all workspaces. |
 | `npm run api:lint` | Lint both HTTP contracts (`packages/api/openapi.yaml`, `packages/pricing-api/openapi-pricing.yaml`). |
@@ -57,8 +61,7 @@ Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
 
 | Path | What lives there |
 |---|---|
-| `apps/app` | The product frontend, Next.js (phase 1; wired to Java in phase 3). |
-| `apps/mock-api` | Mock backend implementing both contracts, computing through the engine worker; the e2e test double. |
+| `apps/app` | The product frontend, Next.js. |
 | `packages/api` | `openapi.yaml` (the core HTTP contract) and its generated client (`@ifc-boq/api`). |
 | `packages/pricing-api`, `packages/pricing-ui` | The optional, removable pricing module's contract, client and frontend (P36). |
 | `packages/types/src` | **The engine contract.** Every shape as TypeScript: rules, parsed model, measured element, dictionary, classification, BoQ result, HTTP API. Source of truth. |
@@ -69,9 +72,10 @@ Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
 | `presets/` | Rule sets, dictionaries, classifications, resolution settings, as JSON. Loaded from disk on every run, so edits apply without restarting. `presets/user/` (git-ignored) holds what the Library saves; shipped presets are never written. |
 | `fixtures/` | The NIBS Duplex IFC and the hand-made reference BoQ; buildingSMART certification samples (CC BY 4.0) in `ifc/buildingsmart/`. |
 | `scripts/` | Node helpers that set up and run the Python engine from npm. |
-| `tests/contract`, `tests/scenarios`, `tests/perf` | Shared contract and behaviour suites (run against the mock and against Java), performance suite. |
+| `tests/contract`, `tests/scenarios`, `tests/perf` | Shared contract and behaviour suites and the performance suite, run against Java by `NativeWorkerTest`. |
 | `plan/` | The product specification, with `10-build-log.md` (where the build stands). |
 | `ops/pilot` | The deployed environment on Contabo: Compose, Dockerfiles, deploy receiver, checks, backups (`docs/18`, `docs/19`). |
+| `ops/local` | The backend on one machine for development, in Docker Compose (`docs/20`). |
 | `docs/` | The engine and everything decided so far, written for the next developer or agent. |
 | `.github/workflows/` | CI and the automatic rollout (`docs/19`). |
 
@@ -111,9 +115,10 @@ Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
 | Use the Library to manage classifications (user guide) | `docs/15-classifications-guide.md` |
 | Use the Library to manage dictionaries (user guide) | `docs/16-dictionaries-guide.md` |
 | Operate the deployed environment | `docs/18-contabo-pilot.md`, `docs/19-native-auth-and-cd.md` |
+| Run the backend locally | `docs/20-local-backend.md` |
 | Dictionaries and code lists | `docs/07-dictionaries-and-classification.md` |
 | What is not built yet, open questions | `docs/11-roadmap-and-open-questions.md` |
-| Build the product (Next.js frontend, mock API, Java backend, engine worker): specs, API contract, phases, tasks | `plan/README.md` "Start here", then `plan/08-delivery/sessions.md` and `plan/10-build-log.md` |
+| Build the product (Next.js frontend, Java backend, engine worker): specs, API contract, phases, tasks | `plan/README.md` "Start here", then `plan/08-delivery/sessions.md` and `plan/10-build-log.md` |
 | Everything from the original conversation, verbatim | `docs/reference/` |
 
 ## Status in one paragraph
@@ -132,7 +137,7 @@ DURAARK, the Auckland OpenIFC repository, Schependomlaan): no engine errors, out
 against the contract; quantities checked only for the Duplex and the buildingSMART samples.
 What was run and what is still uncovered: `docs/12-ifc-corpus-catalogue.md`.
 
-The product built on top of this is specified in `plan/` (decisions P01–P52, phases,
+The product built on top of this is specified in `plan/` (decisions P01–P53, phases,
 milestones, tasks). **Released as v1.0.0 (2026-11-21)**: phases 1–3 are done. The invite-only
 pilot runs on one deployed environment (P51), deployed from `main` by GitHub Actions (`docs/18`,
 `docs/19`); a separate staging environment is a future todo. Work on `main`; every green push deploys. Every build session starts with the prompt in `plan/08-delivery/sessions.md` and

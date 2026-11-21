@@ -17,7 +17,7 @@ deployed from `main` by GitHub Actions. Nothing is scheduled; the owner sets wha
 starts with the prompt in `08-delivery/sessions.md` and works by that file: it says how to
 start, what to decide yourself and what to ask, when to stop and how to hand over.
 
-1. Read this README (decisions P01–P52 are settled; don't reopen them),
+1. Read this README (decisions P01–P53 are settled; don't reopen them),
    `08-delivery/sessions.md`, and `10-build-log.md` "Current position" (where the build
    stands, the next task, and your role).
 2. `08-delivery/milestones.md`: phases, milestones, exit criteria.
@@ -41,8 +41,10 @@ start, what to decide yourself and what to ask, when to stop and how to hand ove
 Rules that catch people out:
 - **Paths in `plan/` are relative to the repository root** (the product root since FE-046; P44).
 - The core never depends on the pricing module (P36, `04-architecture/modules.md`).
-- Only the engine computes quantities (BR-01). In phase 1 the mock fakes engine features
-  without measuring (`06-frontend/mock-api.md`).
+- Only the engine computes quantities (BR-01).
+- There is one backend, Java (P53). The mock API of phases 1–3 was removed; where the plan
+  describes it (phase history, task specs, milestones), read it as history. Locally the
+  backend runs in Docker (`docs/20-local-backend.md`).
 - The look follows `06-frontend/design-guidelines.md` (P43).
 
 ## How to use this folder
@@ -51,7 +53,7 @@ Rules that catch people out:
    then the feature specs you are working on in `01-features/`.
 2. Take a task from `08-delivery/` (`tasks-frontend.md`, `tasks-backend.md`, `tasks-engine.md`).
    Every task names the spec sections it implements and its acceptance criteria.
-3. The HTTP contract is `packages/api/openapi.yaml` (core) plus `packages/pricing-api/openapi-pricing.yaml` (the optional pricing module; both moved from `05-api/` in FE-001). Frontend, mock API and Java backend all
+3. The HTTP contract is `packages/api/openapi.yaml` (core) plus `packages/pricing-api/openapi-pricing.yaml` (the optional pricing module; both moved from `05-api/` in FE-001). The app, the shared suites and the Java backend all
    implement or consume exactly these files. Change the contract first, then the code.
 4. If a spec is silent or contradictory, do not guess on product behaviour: add the question to
    `09-open-questions.md` and ask the owner. Implementation details inside a module are yours.
@@ -75,7 +77,7 @@ Rules that catch people out:
 | 11 | [02-flows/flows.md](02-flows/flows.md), [02-flows/screens.md](02-flows/screens.md) | End-to-end flows, screen inventory, wireframes |
 | 12 | [04-architecture/](04-architecture/) (start with `modules.md` for the core/module boundary) | System, engine worker contract, storage/jobs/realtime, security, deployment, NFRs |
 | 13 | [05-api/](05-api/) | `openapi.yaml` (core), `openapi-pricing.yaml` (pricing module), API conventions |
-| 14 | [06-frontend/](06-frontend/) | Next.js architecture, what to reuse from the PoC, mock API (and its engine fakes), design system, the owner's design guidelines (when supplied) |
+| 14 | [06-frontend/](06-frontend/) | Next.js architecture, what to reuse from the PoC, the removed mock API (history, P53), design system, the owner's design guidelines (when supplied) |
 | 15 | [07-backend/](07-backend/) | Java architecture, DB schema, decisions to make |
 | 16 | [08-delivery/](08-delivery/) | Milestones, task lists, testing, how sessions run (`sessions.md`) |
 | 17 | [09-open-questions.md](09-open-questions.md) | What is still open, who decides, and by when |
@@ -98,7 +100,7 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P08 | **Invite-only pilots first, then public sign-up with a limited free plan.** Billing is provider-agnostic. Pilots use manual billing; Paddle is deferred until paid self-service. |
 | P09 | **Cloud-neutral deployment**: containers, Postgres, S3-compatible storage. The provider is chosen at deploy time. |
 | P10 | **Authentication is not decided.** The agent that starts the backend asks the owner (options in `07-backend/decisions-to-make.md`). The frontend codes against an auth adapter. |
-| P11 | *(Refined by P38, P39: phases; in phase 1 the mock uses the PoC engine API plus fakes.)* **Frontend first, against a mock API** that implements `openapi.yaml`, keeps CRUD state itself and uses the **real Python engine** for computation. The Java backend replaces the mock by changing a base URL. |
+| P11 | *(Refined by P38, P39: phases; in phase 1 the mock uses the PoC engine API plus fakes. Superseded by P53: the mock was removed.)* **Frontend first, against a mock API** that implements `openapi.yaml`, keeps CRUD state itself and uses the **real Python engine** for computation. The Java backend replaces the mock by changing a base URL. |
 | P12 | Frontend: **React + Next.js**. Backend: **Java** (D62). Engine: **Python workers** (D61). |
 | P13 | "Needs input" is a state of a **run and its BoQ revision**, not of a job. A job always ends (succeeded, failed or cancelled); answering questions starts a new run. (Refines doc 10.) |
 | P14 | **Item texts live on the classification's codes.** A firm's BoQ item is a number plus a written description that is priced. The text is the code's `description`, a template with blanks the engine fills per line; the line shows it instead of the rule set's short line text. Classification still never changes a number (BR-02, BR-11). |
@@ -139,7 +141,8 @@ decisions D01–D68 are in `docs/02-decisions.md` and still hold unless changed 
 | P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](07-backend/decisions.md). *(Sign-in refined by P50; staging by P51.)* |
 | P50 | **Native sign-in instead of Keycloak** (2026-11-18, the deployment session). Users sign in with email and password on the boqlet domain; the Java API checks Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. Requests that change state must come from the exact boqlet origin. The single active session and takeover (BR-54) stay. The first owner and assisted resets use a one-hour setup link issued on the server. Refines D1 in `07-backend/decisions.md`. Runbook: `docs/19-native-auth-and-cd.md`. |
 | P51 | **One deployed environment until further notice** (2026-11-20, the owner). The invited pilot on Contabo (`docs/18`, booqlet.com) is the only deployed environment; GitHub Actions deploys every green push to `v_1` there. A separate staging environment (BE-032) is a **future todo**, not part of phases 2 and 3. Wherever the plan says "staging", read the pilot deployment: acceptance there uses synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`), and load, performance and restore tests that would disturb pilot users run against the local native stack instead. At the release (FE-047) the same host becomes production, deployed from `main`. Refines P46 and D8. *2026-11-20, the owner: it stays the only environment and is development for now (no real users), so checks may run there.* |
-| P52 | **Browser tests against Java are a focused smoke set** (2026-11-20, the owner). The 106 Playwright tests keep running on the mock; a separate set of about 15–20 browser tests runs against Java with native sign-in (F01 criteria, FL-1 to the sample BoQ, upload to share link, live co-editing), in CI. The shared contract and scenario suites cover every operation on Java. Refines FE-041 and FE-043 acceptance ("every M1–M4 flow against Java"). |
+| P52 | *(Superseded by P53: the mock and its 106 browser tests were removed; the Java smoke set is the browser suite.)* **Browser tests against Java are a focused smoke set** (2026-11-20, the owner). The 106 Playwright tests keep running on the mock; a separate set of about 15–20 browser tests runs against Java with native sign-in (F01 criteria, FL-1 to the sample BoQ, upload to share link, live co-editing), in CI. The shared contract and scenario suites cover every operation on Java. Refines FE-041 and FE-043 acceptance ("every M1–M4 flow against Java"). |
+| P53 | **The mock API is removed; Java is the only backend** (2026-11-21, the owner). `apps/mock-api`, the app's mock sign-in adapter, the 106 Playwright tests that ran only on the mock (`apps/app/e2e`) and every `:mock` script are deleted. Development runs the real backend locally in Docker (`ops/local`, `npm run dev:app`, `docs/20-local-backend.md`): Java with native sign-in, the engine worker, PostgreSQL, SeaweedFS, MailHog. The shared contract and scenario suites and the browser smoke (`apps/app/e2e-java`) run against Java through `NativeWorkerTest` (CI's `api` job); CI's `local` job checks the local stack end to end. Browser coverage the mock suite had beyond the Java smoke set is a todo (docs/11). Supersedes P11 and P52; P38's phase history stays as written. |
 
 ## Where the code lives (P44)
 
@@ -150,7 +153,6 @@ the proof of concept and moved that folder to the root.)
 ```text
 ./                             one npm workspace (apps/*, packages/*), name "boqlet"
   apps/app                     Next.js product frontend
-  apps/mock-api                Mock backend implementing both contracts through the engine worker; the e2e test double
   packages/api                 openapi.yaml + generated client (@ifc-boq/api)
   packages/pricing-api         openapi-pricing.yaml + its generated client (pricing module only)
   packages/types               Engine contract (TS -> JSON Schema)
@@ -159,9 +161,10 @@ the proof of concept and moved that folder to the root.)
   presets/  fixtures/          presets and test models
   scripts/                     Node helpers that set up and run the engine
   tests/contract  tests/scenarios
-                               shared suites: run against the mock and against Java
+                               shared suites: run against Java (NativeWorkerTest)
   tests/perf                   performance suite (TS-002)
   ops/pilot                    the deployed environment (docs/18, docs/19)
+  ops/local                    the backend on one machine for development (docs/20)
   plan/                        this specification, with 10-build-log.md
   docs/                        engine documentation and operations
   .github/workflows/           CI and the rollout

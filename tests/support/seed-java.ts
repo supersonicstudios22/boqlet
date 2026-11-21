@@ -1,6 +1,6 @@
 /**
- * The part of the mock's seed (mock-api.md "Seed data") the scenarios read, made on Java through
- * the API, once before the suite (vitest `globalSetup`, Java only). The Java suite test has already
+ * The seed data the scenarios read, made through the API once before the suite (vitest
+ * `globalSetup`). The Java suite test has already
  * made the people, Studio Demo and Small Firm (NativeWorkerTest#suiteUsers).
  *
  * - Studio Demo's project **Duplex**: Olivia leads; Marko estimator, Ana approver, Victor viewer;
@@ -15,7 +15,6 @@ import { client } from "./env";
 import { user } from "./users";
 
 export default async function seed() {
-  if (process.env.SUITE_TARGET !== "java") return;
   const [olivia, ivana, marko, ana, victor] = await Promise.all((["olivia", "ivana", "marko", "ana", "victor"] as const).map((key) => user(key)));
   const me = (await client(olivia.token).GET("/me")).data!;
   const orgId = me.memberships.find((m) => m.org.slug === "studio-demo")!.org.id;

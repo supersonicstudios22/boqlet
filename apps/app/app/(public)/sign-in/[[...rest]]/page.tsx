@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authAdapter } from "@/auth";
 
-/** S01: the adapter's sign-in page (the mock lists the seeded users), and why one was signed out (F01 §10). */
+/** S01: the adapter's sign-in page, and why one was signed out (F01 §10). */
 export default function SignInPage() {
   const Page = authAdapter.SignInPage;
   return (

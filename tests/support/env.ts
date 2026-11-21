@@ -2,16 +2,15 @@ import { createApiClient, type ApiClient } from "@ifc-boq/api";
 import { credentials, isBrowser, isSignUpToken, newBrowser, opened201 } from "./java-sessions";
 
 /**
- * Where the suites run. `API_URL` is the API base (`http://localhost:4010/api/v1` for the mock,
- * the Java service in phase 2); the backend's root (for `/_test/*`) is derived from it.
+ * Where the suites run: `API_URL` is the Java API's base (`<root>/api/v1`); the backend's root
+ * (for the test-only `/_test/*` routes) is derived from it. The suites run against a Java instance
+ * that registers those routes: `NativeWorkerTest` (`services/api`), which sets `API_URL`.
  */
-export const API_URL = (process.env.API_URL ?? "http://localhost:4010/api/v1").replace(/\/$/, "");
+export const API_URL = (process.env.API_URL ?? "http://localhost:8080/api/v1").replace(/\/$/, "");
 export const ROOT_URL = API_URL.replace(/\/api\/v1$/, "");
-export const TARGET = process.env.SUITE_TARGET ?? "mock";
 
 /** Headers that authenticate a plain `fetch` as `token` (Java also needs the session's cookie). */
 export async function authentication(token: string): Promise<Record<string, string>> {
-  if (TARGET !== "java") return { Authorization: `Bearer ${token}` };
   const { bearer, cookie } = await credentials(token);
   return { Authorization: `Bearer ${bearer}`, ...(cookie ? { Cookie: cookie } : {}) };
 }
@@ -24,7 +23,7 @@ export function client(token?: string | null): ApiClient {
   return createApiClient({
     baseUrl: API_URL,
     getAccessToken: () => token ?? null,
-    middleware: TARGET === "java" && token ? [{
+    middleware: token ? [{
       async onRequest({ request }) {
         // A person's own token signing in is a new browser (java-sessions.ts).
         if (isSignIn(request) && isSignUpToken(token)) {

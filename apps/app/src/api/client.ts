@@ -10,7 +10,7 @@ export function setAccessTokenSource(source: TokenSource) {
   tokenSource = source;
 }
 
-/** The one API client of the app. Swapping mock for Java changes only `NEXT_PUBLIC_API_BASE_URL`. */
+/** The one API client of the app. */
 export const api: ApiClient = createApiClient({
   baseUrl: API_BASE_URL,
   getAccessToken: () => tokenSource(),

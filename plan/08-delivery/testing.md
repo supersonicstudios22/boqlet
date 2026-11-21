@@ -5,25 +5,23 @@
 | Layer | Tool | Where | What |
 |---|---|---|---|
 | Engine unit + acceptance | pytest | `engine/tests` | Existing suite (194 tests) incl. Duplex `HAND_BOQ`; new worker, diff, override, sheets tests (tasks-engine.md) |
-| Contract | Schemathesis or a hand-written suite over the generated client | `tests/contract` | Every operation in `openapi.yaml`: status codes, schemas, error codes; runs against the **mock** (phase 1) and **Java** (phase 2, unchanged) |
-| Behaviour scenarios | Vitest (TS) over the generated client | `tests/scenarios` | Domain rules through the API: state machines, permissions, limits, versions and confirmation, BR-xx. Same suite against mock and Java |
+| Contract | Schemathesis or a hand-written suite over the generated client | `tests/contract` | Every operation in `openapi.yaml`: status codes, schemas, error codes; runs against **Java** (`NativeWorkerTest`, CI's API job; the mock in phases 1–3 until P53) |
+| Behaviour scenarios | Vitest (TS) over the generated client | `tests/scenarios` | Domain rules through the API: state machines, permissions, limits, versions and confirmation, BR-xx. Against Java (`NativeWorkerTest`, `BOQLET_NATIVE_SCENARIOS=1`) |
 | Frontend unit | Vitest + Testing Library | `apps/app` | Components with logic: grouping, readable formulas, comparison flags display, decimal display, permission gating |
-| End-to-end | Playwright | `apps/app/e2e` | Flows FL-1…FL-8 against mock + real engine (CI, the 106 browser tests) |
-| Browser smoke against Java (P52) | Playwright | `apps/app/e2e-java` (`playwright.java.config.ts`) | 13 tests with native sign-in against a local Java API, worker, Postgres, MinIO and MailHog: F01 criteria, native cookie and origin rules, reset links, FL-1 to the sample BoQ, upload through a share link, live co-editing. Run by `NativeWorkerTest#browserSmokeAgainstJava` when `BOQLET_BROWSER_SMOKE=1` (CI's API job); `BOQLET_BROWSER_SMOKE_FILTER` narrows it locally |
+| Browser tests against Java (P52, P53) | Playwright | `apps/app/e2e-java` (`playwright.java.config.ts`) | 13 tests with native sign-in against a local Java API, worker, Postgres, MinIO and MailHog: F01 criteria, native cookie and origin rules, reset links, FL-1 to the sample BoQ, upload through a share link, live co-editing. Run by `NativeWorkerTest#browserSmokeAgainstJava` when `BOQLET_BROWSER_SMOKE=1` (CI's API job); `BOQLET_BROWSER_SMOKE_FILTER` narrows it locally |
 | Backend unit/integration | JUnit 5 + Testcontainers | `services/api` | Policies, state machines, repositories, ingestion, fake worker |
-| Performance | Vitest over the generated client (API; k6 was planned, the shared client was simpler and runs against both backends), Playwright (UI), engine timing script | `tests/perf`, `apps/app/e2e/*.perf.spec.ts` | NFR targets (nfr.md); see "Performance" below |
-| Accessibility | axe-core in Playwright | `apps/app/e2e` | Main screens, no serious/critical violations |
+| Performance | Vitest over the generated client (API; k6 was planned, the shared client was simpler), engine timing script | `tests/perf` | NFR targets (nfr.md); see "Performance" below |
+| Local backend | `scripts/local.mjs check` | `ops/local` | The Docker stack end to end: sign-up, upload to object storage, engine parse, BoQ run (CI's `local` job) |
 
 ## The shared suites are the handover mechanism
 
-`tests/contract` and `tests/scenarios` are written by the frontend agent in phase 1 **against
-the mock**. They describe the backend's behaviour precisely. The backend agent's Java backend is
-done when the same suites pass against it unchanged (phase 2). Tests that depend on an engine
-fake (`mock-api.md`) are tagged `@fake` and must pass on the real engine in phase 3. Scenario tests are named after rule ids (`BR-27 confirmed BoQ refuses writes`) and acceptance criteria (`F11-AC2`).
+`tests/contract` and `tests/scenarios` were written by the frontend agent in phase 1 against
+the mock and describe the backend's behaviour precisely. The Java backend was done when the same
+suites passed against it unchanged (phase 2). Since P53 they run only against Java. Scenario tests are named after rule ids (`BR-27 confirmed BoQ refuses writes`) and acceptance criteria (`F11-AC2`).
 
 Each scenario seeds through the API only (no direct DB access), so it runs against both
-implementations. A test-only endpoint `POST /_test/clock` (mock and Java, disabled in
-production builds) moves time for deadline tests.
+implementations. A test-only endpoint `POST /_test/clock` (Java's `SuiteSupport`, in the
+test sources only, never in a build) moves time for deadline tests.
 
 ## Fixtures
 
@@ -49,9 +47,9 @@ run on the owner's Windows machine (`sessions.md`).
 2. Typecheck: workspaces.
 3. Engine tests (`npm run test:engine`).
 4. Codegen drift check: regenerate schemas/clients, fail on diff.
-5. Mock + engine up → contract + scenario suites → Playwright smoke (FL-2 Duplex).
-6. Java build + unit/integration (from M5) → contract + scenario suites against Java → the browser smoke against Java (P52), all in the API job's `mvn verify`.
-7. Nightly: federated pair, performance, accessibility. The full Playwright suite stays on the mock; Java gets the smoke set in step 6 (P52).
+5. Java build + unit/integration → contract + scenario suites against Java → the browser tests against Java (P52), all in the API job's `mvn verify`.
+6. The local backend (`ops/local`) builds and passes `npm run local:check` (CI's `local` job, not a deploy gate).
+7. Nightly: federated pair, performance, accessibility. The browser accessibility checks ran in the mock's Playwright suite, removed with it (P53); moving them to Java is a todo (docs/11).
 
 ## Performance (TS-002)
 
@@ -61,8 +59,8 @@ Each command appends JSON lines to `PERF_OUT=<file>` when it is set.
 | What | How |
 |---|---|
 | Engine parse and run | `engine/.venv/Scripts/python tests/perf/engine_timing.py <file.ifc>` (`--federated A.ifc B.ifc` parses in parallel and runs one BoQ; `--repeat N`). The medium files are downloads (docs/12). |
-| API latency | `npm run perf:mock -w @ifc-boq/tests` against a fresh mock; against Java, `BOQLET_API_PERF=1` runs `NativeWorkerTest#apiPerformanceAgainstJava` (`tests/perf/api.test.ts`, then 50k-line run ingestion) with the variables of CI's API job |
-| UI | `npm run build -w @ifc-boq/app` with `API_PROXY_TARGET=http://localhost:4010`, `next start` on port 3000, then `E2E_PRODUCTION=1 npx playwright test --project=perf --no-deps` in `apps/app` (`e2e/*.perf.spec.ts`; `PERF_VIEWER_IFC=<file>` adds the large-model viewer test). Without `E2E_PRODUCTION` the bounds are loose regression checks under `next dev`, which CI runs after the other browser tests. |
+| API latency | Against Java, `BOQLET_API_PERF=1` runs `NativeWorkerTest#apiPerformanceAgainstJava` (`tests/perf/api.test.ts`, then 50k-line run ingestion) with the variables of CI's API job |
+| UI | The UI performance specs ran in the mock's Playwright suite and were removed with it (P53); moving them to the Java browser suite is a todo (docs/11). |
 | Bundle budgets | `npm run bundle:check -w @ifc-boq/app` after a production build; in CI's build job (`apps/app/bundle-budgets.json`, `--write` to reset them with 10 % headroom) |
 
 ## Test tasks
@@ -86,6 +84,6 @@ Each command appends JSON lines to `PERF_OUT=<file>` when it is set.
 
 ## Core without modules
 
-Every CI run includes a **core-only** job: the app, mock, Java service and engine built and tested
+Every CI run includes a **core-only** job: the app, Java service and engine built and tested
 with the pricing module removed (P36, BR-41). A failure there means the core started depending on
 the module.

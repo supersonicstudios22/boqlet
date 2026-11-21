@@ -5,7 +5,7 @@ import { inSession, signUp, uniqueEmail, type TestUser } from "../support/users"
 
 /**
  * Behaviour scenarios, one group per state machine of 03-domain/state-machines.md. They seed
- * through the API only, so they run against the mock and against Java unchanged (testing.md).
+ * through the API only, so they run against any backend that implements the contract (testing.md).
  * A transition becomes a real test in the task that builds it (named in each `todo`); until then
  * it is listed here so the coverage still missing is visible in every run.
  */

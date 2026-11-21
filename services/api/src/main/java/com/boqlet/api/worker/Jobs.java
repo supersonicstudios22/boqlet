@@ -320,7 +320,7 @@ public class Jobs {
         } else if (type.equals("parse")) {
             kind = "model_version.ready";
             params.put("fileName", attempt.input().path("fileName").asText());
-            // The app's text is "{model} v{version} is ready" (as the mock sends it); the link opens the version.
+            // The app's text is "{model} v{version} is ready"; the link opens the version.
             var versions = database.query("""
                     SELECT m.id, m.name, v.number FROM model_versions v JOIN models m ON m.id = v.model_id WHERE v.id = ?
                     """, (row, index) -> new Object[]{row.getString("id"), row.getString("name"), row.getInt("number")}, attempt.subject());

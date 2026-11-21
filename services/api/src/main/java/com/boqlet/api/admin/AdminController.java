@@ -50,7 +50,7 @@ class AdminController implements AdminApi {
     public ResponseEntity<String> adminExportOrgs(String plan, String status, String country, String tag, String signal,
             AdminFunnelStep stuck, String query, String sort) {
         var rows = orgs.list(new AdminOrganisations.Filter(plan, status, country, tag, signal, stuck, query, sort), null, 0);
-        // The fields of AdminOrgRow by their contract names, as the mock writes them (F19 "orgs table, CSV").
+        // The fields of AdminOrgRow by their contract names, as the contract names them (F19 "orgs table, CSV").
         var csv = new StringBuilder("﻿id,name,country,planId,status,subscriptionStatus,trialEndsAt,seatsUsed,seatsMax,activeProjects,")
                 .append("activeProjectsMax,processingMinutes,processingMinutesMax,limitHits30d,lastActivityAt,createdAt,ownerEmail,tags\r\n");
         for (var row : rows) {

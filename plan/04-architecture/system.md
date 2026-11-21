@@ -1,5 +1,8 @@
 # System architecture
 
+*Since P53 the mock API is gone: Java is the only backend, locally too (`docs/20-local-backend.md`).
+The phase table below keeps the mock as the history of how the backend was built.*
+
 ## Components
 
 ```text

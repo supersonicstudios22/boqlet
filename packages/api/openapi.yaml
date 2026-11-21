@@ -3,7 +3,7 @@ info:
   title: IFC BoQ platform API
   version: 1.0.0-draft
   description: |
-    The HTTP contract between the Next.js app and the backend (mock API first, Java later).
+    The HTTP contract between the Next.js app and the Java backend.
     Conventions (auth, errors, pagination, idempotency, SSE) are in `plan/05-api/conventions.md`.
     Engine shapes are referenced from `packages/types/schema/*.schema.json` (generated from
     `packages/types/src`), never redefined here.
@@ -31,7 +31,7 @@ tags:
   - name: auth
     description: >-
       Native sign-in (P50): email and password on the boqlet domain. Served only by a backend that
-      runs native sign-in (Java with `BOQLET_NATIVE_AUTH=true`); any other backend, the mock included,
+      runs native sign-in (Java with `BOQLET_NATIVE_AUTH=true`); with it off, Java
       answers `404 native_auth_disabled`.
   - name: sharing
   - name: public

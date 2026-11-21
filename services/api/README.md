@@ -15,22 +15,25 @@ To run the built jar locally, set `BOQLET_JDBC_URL`, `BOQLET_DB_USER`, and
 Health endpoints are `/actuator/health/liveness` and `/actuator/health/readiness`.
 Readiness includes PostgreSQL. The API binds its generated routes under `/api/v1`.
 
-From the product root, use `npm ci` to set up the workspaces and engine. With
-PostgreSQL, object storage and Keycloak available, set the service variables
-below and run the API, engine, and web commands in separate terminals.
+To run the whole backend locally, use `npm run local:up` from the product root: it builds
+this service's image (`Dockerfile`, Maven inside Docker) and starts it with native sign-in,
+PostgreSQL, object storage, MailHog and the engine worker (`ops/local/compose.yaml`,
+`docs/20-local-backend.md`). Its `api` service lists every variable a local run needs; to run
+your own jar instead, stop that container and start the jar with the same variables pointed at
+the published ports. Select the engine transport in the API and add the queue workers when
+using PostgreSQL dispatch.
 
-```text
-mvn -f services/api/pom.xml package -DskipTests
-java -jar services/api/target/boqlet-api.jar
-npm run dev:engine-worker
-npm run dev -w @ifc-boq/app
-```
+`mvn verify` runs the shared suites against Java when Node is available: set
+`BOQLET_NATIVE_WORKER_PYTHON` (a Python with the engine installed), `BOQLET_NATIVE_NODE`,
+`BOQLET_NATIVE_SCENARIOS=1` for the scenarios and `BOQLET_BROWSER_SMOKE=1` for the browser smoke
+(`apps/app/e2e-java`, Chromium installed for `apps/app`), as CI's `api` job does.
 
-For this setup, set the web process's `API_PROXY_TARGET` to
-`http://127.0.0.1:8080`. Select the engine transport in the API and add the queue
-workers when using PostgreSQL dispatch.
+## Sign-in
 
-## Pilot sign-in
+The pilot and the local stack use native sign-in (P50): set `BOQLET_NATIVE_AUTH=true`; the
+first owner gets a one-hour setup link (`ops/pilot/issue-setup-link.sh`, locally
+`npm run local:user`). Runbook: `docs/19-native-auth-and-cd.md`. The OIDC settings below are
+kept for the Keycloak rollback.
 
 Set `BOQLET_OIDC_ISSUER` and `BOQLET_OIDC_AUDIENCE` to enable OIDC authentication.
 The access token must contain `sub`, `sid`, `email`, and `email_verified=true`.
@@ -44,7 +47,7 @@ The client can retry with `takeover: true` after confirmation. A replaced sessio
 rejected on subsequent API requests. Sessions expire after twelve hours of inactivity.
 Use `BOQLET_SECURE_COOKIE=false` for local development over HTTP. The default is secure.
 
-The frontend uses `NEXT_PUBLIC_AUTH_ADAPTER=keycloak` and the public
+For Keycloak the frontend uses `NEXT_PUBLIC_AUTH_ADAPTER=keycloak` and the public
 `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, and `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID`
 build settings. The Keycloak client is public with standard flow, PKCE S256,
 an exact application web origin and redirects to the app. Include the API

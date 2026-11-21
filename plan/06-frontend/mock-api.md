@@ -1,4 +1,9 @@
-# Mock API (`apps/mock-api`)
+# Mock API (`apps/mock-api`), removed
+
+> **Removed on 2026-11-21 (P53).** Java is the only backend; development runs it locally in
+> Docker (`docs/20-local-backend.md`). This page is kept as the record of what the mock did in
+> phases 1–3. The code is in git history: the last commit with it is the parent of the P53
+> commit (`git log -- apps/mock-api`).
 
 A Node service that implements `openapi.yaml` well enough to build and test the whole frontend
 before the Java backend exists (P11). CRUD state lives in a JSON file. Computation goes to the

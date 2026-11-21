@@ -4,10 +4,11 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /**
- * Where `/api/v1` goes outside production: the mock API (phase 1) or the Java backend (phase 3).
- * In production the ingress routes `/api/v1` to the API on the same domain (architecture.md).
+ * Where `/api/v1` goes outside production: the Java backend, by default the local one
+ * (`npm run local:up`, docs/20-local-backend.md). In production the ingress routes `/api/v1` to the
+ * API on the same domain (architecture.md).
  */
-const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:4010";
+const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";
 
 /**
  * Module build flags (P36): `MODULE_PRICING=1` builds the app with the pricing module, registered in
@@ -44,11 +45,7 @@ const nextConfig: NextConfig = {
       { source: `/${a}/:path*`, destination: `/areas/${a}/:path*` },
     ]);
     if (process.env.NODE_ENV === "production" && !process.env.API_PROXY_TARGET) return { beforeFiles, afterFiles: [], fallback: [] };
-    const afterFiles = [
-      { source: "/api/v1/:path*", destination: `${apiTarget}/api/v1/:path*` },
-      // The mock's dev endpoints (seeded users for the mock sign-in page); never in production.
-      { source: "/_dev/:path*", destination: `${apiTarget}/_dev/:path*` },
-    ];
+    const afterFiles = [{ source: "/api/v1/:path*", destination: `${apiTarget}/api/v1/:path*` }];
     return { beforeFiles, afterFiles, fallback: [] };
   },
 };

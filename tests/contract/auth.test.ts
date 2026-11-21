@@ -36,8 +36,8 @@ for (const [tag, ops] of [...byTag].sort(([a], [b]) => a.localeCompare(b))) {
   });
 }
 
-// Native sign-in (P50) is served only by a backend that runs it. The suites run against the mock
-// and against Java with test tokens, so they see the disabled answer; Java's NativeAuthTest covers
+// Native sign-in (P50) is served only by a backend that runs it. The suites run against Java
+// with test tokens, so they see the disabled answer; Java's NativeAuthTest covers
 // the enabled behaviour.
 describe("native sign-in on a backend that doesn't run it", () => {
   for (const [path, body] of [

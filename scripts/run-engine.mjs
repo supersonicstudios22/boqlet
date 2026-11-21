@@ -41,8 +41,8 @@ if (!args) {
 const cwd = cmd === "cli" || cmd === "corpus" ? process.env.INIT_CWD || process.cwd() : engine;
 const env = { ...process.env, PYTHONUNBUFFERED: "1" };
 if (cmd === "worker" && !env.ENGINE_STORAGE) {
-  const mockData = env.MOCK_DATA_DIR ? resolve(env.MOCK_DATA_DIR) : join(root, "apps", "mock-api", ".data");
-  env.ENGINE_STORAGE = `file://${join(mockData, "blobs")}`;
+  // A standalone worker for engine work; the local backend runs its own in Docker (ops/local).
+  env.ENGINE_STORAGE = `file://${join(engine, ".cache", "blobs")}`;
 }
 const child = spawn(py, args, { cwd, stdio: "inherit", env });
 child.on("exit", (code) => process.exit(code ?? 0));

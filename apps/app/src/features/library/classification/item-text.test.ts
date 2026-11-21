@@ -55,7 +55,7 @@ describe("item text pieces", () => {
 });
 
 describe("filling an item text from a preview line", () => {
-  it("takes line keys, then unit and quantity, as the mock does", () => {
+  it("takes line keys, then unit and quantity, as the engine does", () => {
     const l = line("walls", { thickness: 0.24, unit: "nr" });
     expect(fillItemText("Walls {thickness} thick, per {unit}, {quantity} in all", l)).toBe("Walls 0.24 thick, per nr, 12.5 in all");
     expect(fillItemText("per {unit}", line("walls"))).toBe("per m2");

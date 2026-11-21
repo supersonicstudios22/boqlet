@@ -131,11 +131,11 @@ Defaults; each can be changed by environment variable.
 | Port | Service | Until |
 |---|---|---|
 | 3000 | Next.js app (`apps/app`) | — |
-| 4010 | Mock API (`apps/mock-api`) | — |
-| 8788 | Engine worker HTTP transport (`ENGINE_URL`, EN-001) | — |
-| 8080 | Java API (`services/api`) | — |
-| 5432 | Postgres | — |
-| 9000, 9001 | MinIO (S3 API, console) | — |
+| 8080 | Java API (`services/api`; `ops/local`, `LOCAL_API_PORT`) | — |
+| 8788 | Standalone engine worker (`npm run dev:engine-worker`); the local stack's worker is not published | — |
+| 55432 | PostgreSQL of the local stack (`LOCAL_DB_PORT`) | — |
+| 8333 | Object storage of the local stack, SeaweedFS S3 (`LOCAL_S3_PORT`) | — |
+| 8025 | MailHog of the local stack (`LOCAL_MAIL_UI_PORT`) | — |
 
 ## Where things are written down
 
@@ -146,6 +146,5 @@ Defaults; each can be changed by environment variable.
 | Milestone summaries, implementation decisions, deviations, known issues | `plan/10-build-log.md` entries |
 | A product decision (the owner's) | `plan/README.md` decisions table (next P-number); platform ones also in `docs/02-decisions.md` |
 | An open question | `plan/09-open-questions.md` |
-| Engine fakes in the mock (phase 1) | `plan/06-frontend/mock-api.md` "Engine fakes" |
 | What the product can't do yet | `docs/11` "Known limitations" |
 | Milestone state | `plan/README.md` status table |

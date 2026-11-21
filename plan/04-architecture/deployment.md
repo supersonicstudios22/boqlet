@@ -21,17 +21,16 @@ Render.
 | Email | provider (adapter) | — | — | transactional, SPF/DKIM/DMARC on the sending domain |
 | Billing | provider (adapter) | — | — | webhooks to `api` |
 
-Phase 1 (frontend build) runs locally: `apps/app` + `apps/mock-api` + the PoC engine API (the engine HTTP
-transport from EN-001), all from `npm run dev:app` (06-frontend/mock-api.md). A shared demo of the frontend
-on the mock can go to any Node host. The engine must run beside it (the Vercel demo of docs/17
-shows the limits of serverless for the engine).
+Development runs the whole backend locally in Docker (`ops/local`, `docs/20-local-backend.md`):
+`npm run dev:app` starts Java, the engine worker, PostgreSQL, object storage and MailHog, then the
+app on the host. (Phases 1–3 used a mock API instead, removed by P53.)
 
 ## Configuration (environment)
 
 | Variable | Service | Purpose |
 |---|---|---|
 | `NEXT_PUBLIC_API_BASE_URL` | web | API base (`/api/v1` behind the same domain recommended) |
-| `NEXT_PUBLIC_AUTH_ADAPTER` | web | `mock` \| the chosen provider |
+| `NEXT_PUBLIC_AUTH_ADAPTER` | web | `native` (default) \| `keycloak` |
 | `DATABASE_URL` | api, worker | Postgres |
 | `STORAGE_URL`, `STORAGE_BUCKET`, credentials | api, worker, rpc | S3 or `file://` |
 | `ENGINE_RPC_URL` | api | rpc service |

@@ -3,8 +3,8 @@
  * a running number in the order the sheet shows, with the code list's separator (`.` when it has
  * none); excluded lines get none, lines without a code count under `0`; with no system, 1, 2, 3 …
  * The sheet numbers what it shows, so the working version renumbers at once as lines are added,
- * moved, reordered or excluded. The same rule as the backend's `positionNo` (apps/mock-api
- * `positions.ts`); a saved version shows the frozen run with its frozen edits, so its numbers stay.
+ * moved, reordered or excluded. The same rule as the backend's `positionNo` (services/api
+ * `RunReads.java`); a saved version shows the frozen run with its frozen edits, so its numbers stay.
  */
 import { buildRows } from "./model";
 import type { SheetLine } from "./edits";

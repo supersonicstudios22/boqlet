@@ -296,6 +296,20 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
 - The accessibility suite (TS-003) runs axe on the main screens; a manual keyboard and
   screen-reader pass has not been done, and the pricing-module screens of TS-003 (S15c, S29) wait
   for the module (P48).
+- **Browser coverage after the mock's removal (P53).** The 106 Playwright tests in `apps/app/e2e`
+  ran only on the mock and were deleted with it. The Java browser suite (`apps/app/e2e-java`, 13
+  tests) covers sign-in, sessions, FL-1 to the sample BoQ, upload to a share link and co-editing;
+  the shared contract and scenario suites cover every operation on Java. Not covered in a browser
+  any more: the sheet, line edits, questions, viewer, Library editors, versions and changes,
+  exports, notifications, admin console, setup wizard, the axe accessibility checks (TS-003), the
+  pseudo-locale check and the UI performance specs (TS-002). Todo: port the flows that matter to
+  `e2e-java` (they need the `SuiteSupport` routes for the clock, users and mail).
+- The scenario "org presets count against libraryOrgPresets per kind (402)" ran only on the mock
+  (Java's plans in the suite don't reach that limit) and was removed with it; Java's library limit
+  has no shared scenario.
+- There is no demo without a backend any more: running the app needs Docker (`docs/20`). The
+  pricing module's only backend was a mock plugin; it was removed too, so the module (P48) needs
+  its Java part (BE-P1…) before anything of it can run.
 
 ## Suggested next steps
 
@@ -362,6 +376,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | (this commit) | P53: **the mock API is removed; Java is the only backend.** Deleted `apps/mock-api`, the app's mock sign-in adapter (the app defaults to native sign-in and proxies `/api/v1` to `http://localhost:8080`), the mock-only Playwright suite (`apps/app/e2e`, 106 tests) and every `:mock` script; the shared suites run only against Java (`NativeWorkerTest`). New: the backend locally in Docker (`ops/local/compose.yaml`, `scripts/local.mjs`, `docs/20-local-backend.md`): Java with native sign-in, the engine worker, PostgreSQL, SeaweedFS, MailHog; `npm run dev:app` starts it and the app, `local:user` issues sign-up links, `local:check` runs sign-up → upload → parse → 41-line Duplex BoQ, also in CI's new `local` job. CI's `e2e` and `suites` jobs are gone; deploys wait for `api`, `contract`, `typecheck`, `engine`. Coverage lost: "Known limitations (phase 3)". |
 | 2026-11-21 | (this commit) | TF-001 (test campaign): the rollout's "superseded" guard compared each `main` push with the head of `v_1`, so both `main` pushes since FE-047 (`8977990`, `3d68ffc`) printed "Skipped superseded revision" with a green job and deployed nothing; booqlet.com stayed on `af92da4` (same application code). It compares with `main` now. The FE-047 row's "deployed to booqlet.com" was not true until this fix. |
 | 2026-11-21 | 8977990 | FE-047: **v1.0.0 released.** `main` tagged `poc-final` (the proof of concept), `v_1` merged into `main` (`--no-ff`), the rollout moved to `main` (`4b9a07c`; the `boqlet-pilot` environment allows `main`), deployed to booqlet.com with all CI jobs green, smoke-checked from outside, tagged `v1.0.0`. The Vercel demo project is the owner's to remove or repoint. |
 | 2026-11-21 | 7a79db3 | FE-046: the product root `boqlet_v1/` is the repository root; the proof of concept (apps/web, the engine's dev API, the Vercel demo) is removed. CI runs at the root; docs and plan point at the new layout. The duplex scenario no longer needs pytest in the API job's Python. |

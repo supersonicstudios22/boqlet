@@ -86,36 +86,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:app
-      - name: Mock API tests (the engine-backed Duplex test runs in the engine job)
-        run: npm run test:mock
       - run: npm run build:app
       # Bundle budgets per route (FE-045): fails when a route's initial JS grows past apps/app/bundle-budgets.json.
       - run: npm run bundle:check -w @ifc-boq/app
-
-  e2e:
-    name: App end-to-end (Playwright)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-        env:
-          IFC_BOQ_PYTHON: python
-      - run: npx playwright install --with-deps chromium
-        working-directory: apps/app
-      - run: npm run e2e:app
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: apps/app/playwright-report
 
   engine:
     name: Engine tests (incl. Duplex acceptance)
@@ -134,36 +107,27 @@ jobs:
         env:
           IFC_BOQ_PYTHON: python
       - run: npm run test:engine
-      - name: The mock runs the Duplex through the engine worker
-        run: |
-          npm run dev:engine-worker > engine.log 2>&1 &
-          for i in $(seq 1 90); do curl -sf http://127.0.0.1:8788/health && break; sleep 2; done
-          npm run test:mock
 
-  suites:
-    name: Contract and scenario suites (mock API and native engine)
+  local:
+    # The local backend (ops/local, docs/20-local-backend.md) builds, starts and works end to end:
+    # sign-up, upload to object storage, engine parse, BoQ run. Not a deploy gate.
+    name: Local backend stack (Docker Compose)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-        env:
-          IFC_BOQ_PYTHON: python
-      - run: npm run test:contract:mock
-      - run: npm run test:scenarios:mock
+      - run: npm run local:up
+      - run: npm run local:check
+      - if: failure()
+        run: docker compose -f ops/local/compose.yaml logs --tail 300
 
   deploy:
     name: Deploy Boqlet pilot
     # Since the v1 release (FE-047) the one environment (P51) deploys from main; v_1 is kept as it was.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [api, contract, typecheck, e2e, engine, suites]
+    needs: [api, contract, typecheck, engine]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: boqlet-pilot

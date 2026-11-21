@@ -2,8 +2,8 @@ import type { ComponentType } from "react";
 
 /**
  * How the app signs people in, independent of the provider (P10, 06-frontend/architecture.md
- * "Auth adapter"). The mock adapter is used until BE-000 picks the real provider; no component
- * imports a provider SDK directly.
+ * "Auth adapter"). Native sign-in (P50) by default, Keycloak kept for rollback (docs/19); no
+ * component imports a provider SDK directly.
  */
 export interface Session {
   /** "loading" until the provider has restored a session. */

@@ -28,6 +28,7 @@ what is built, what is not, and the open questions.
 | 17 | [17-deploying-a-demo.md](17-deploying-a-demo.md) | You want to put the dev build on Vercel for an internal demo: what is deployed, how, and what the demo cannot do. |
 | 18 | [18-contabo-pilot.md](18-contabo-pilot.md) | You operate the real invited-pilot stack on the shared Contabo host. |
 | 19 | [19-native-auth-and-cd.md](19-native-auth-and-cd.md) | You enroll pilot users or manage GitHub deployments. |
+| 20 | [20-local-backend.md](20-local-backend.md) | You run the product on your machine: the Java backend, engine, database, storage and mail in Docker, the app on the host. |
 
 ## Reference material (`reference/`)
 

@@ -1,6 +1,6 @@
 /**
  * The pricing module's API client (`openapi-pricing.yaml`, P36). Only the pricing module
- * (`packages/pricing-ui`, the mock's pricing plugin, the module's suites) imports this package;
+ * (`packages/pricing-ui`, the module's backend and suites when they are built, P48) imports this package;
  * core code never does.
  */
 import createClient, { type Client, type ClientOptions, type Middleware } from "openapi-fetch";

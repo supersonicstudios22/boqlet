@@ -2,15 +2,12 @@
   "name": "@ifc-boq/tests",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared contract and behaviour suites (08-delivery/testing.md): the same tests run against the mock (phase 1) and the Java backend (phase 2), through the generated client. API_URL selects the target.",
+  "description": "Shared contract and behaviour suites (08-delivery/testing.md): run against the Java backend through the generated client (NativeWorkerTest sets API_URL).",
   "type": "module",
   "scripts": {
     "contract": "node run.mjs contract",
     "scenarios": "node run.mjs scenarios",
-    "contract:mock": "node run.mjs contract --mock",
-    "scenarios:mock": "node run.mjs scenarios --mock",
     "perf": "node run.mjs perf",
-    "perf:mock": "node run.mjs perf --mock",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

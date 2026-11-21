@@ -231,8 +231,7 @@ class NativeWorkerTest {
     }
 
     /**
-     * The shared scenario suite (`tests/scenarios`) against this API (FE-041): the same scenarios
-     * as on the mock, unchanged. Runs with `BOQLET_NATIVE_SCENARIOS=1` and Node (CI sets both; it
+     * The shared scenario suite (`tests/scenarios`) against this API (FE-041). Runs with `BOQLET_NATIVE_SCENARIOS=1` and Node (CI sets both; it
      * takes minutes, so local runs opt in). `BOQLET_SCENARIO_FILTER` runs some files
      * (`orgs,isolation`) while working on them.
      */
@@ -344,7 +343,7 @@ class NativeWorkerTest {
     /**
      * The browser smoke suite against Java (FE-041/FE-043, `apps/app/e2e-java`): the app, built with
      * the native adapter, on a second API instance with native sign-in (P50), as the pilot runs. It
-     * covers what the mock can't show: sign-in with a password and its cookie, takeover, live updates,
+     * covers sign-in with a password and its cookie, takeover, live updates,
      * direct uploads to object storage (with the pilot's bucket CORS) and the main flow. Opt-in with
      * `BOQLET_BROWSER_SMOKE=1` and Node; Playwright's Chromium must be installed for `apps/app`.
      */
@@ -427,7 +426,7 @@ class NativeWorkerTest {
     private static String suiteUsersJson;
 
     /**
-     * The seeded people of the shared suites (mock-api.md "Seed data"): six users with an open
+     * The seeded people of the shared suites (`tests/support/users.ts`): six users with an open
      * session each, Studio Demo (team plan) and Small Firm (free). Made once per test context.
      */
     private synchronized String suiteUsers() throws Exception {

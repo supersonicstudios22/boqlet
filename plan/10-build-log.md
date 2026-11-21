@@ -27,6 +27,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 | Waiting for the owner | Remove or repoint the Vercel demo project (`main` no longer has it; the PoC is the tag `poc-final`). The person checks of v1 criteria 4, 7 and 12, and opening exported workbooks in Excel and LibreOffice. On the host (operator): apply `ops/pilot/compose.yaml` (JSON logs, metrics) and install `ops/pilot/backup.sh` with an off-host destination. Later: an alert destination, error tracking. |
 | In progress | The test campaign (`plan/08-delivery/test-plan.md`, log in `test-findings.md`), stage by stage with the owner's go after each. |
 | Notes for the next session | Work on `main` (since FE-047; `v_1` is kept as it was and no longer deploys). Every green push to `main` deploys to booqlet.com (P51, `docs/19`); keep it green. Sign-in is native (P50). Browser tests against Java are the smoke set (P52). Pricing stays deferred (P48). Compose changes on the host are operator tasks (`docs/19`). |
+| Mock removed (P53) | 2026-11-21, the owner: `apps/mock-api` is gone and Java is the only backend. `npm run dev:app` starts the backend locally in Docker (`ops/local`, `docs/20-local-backend.md`); `npm run local:user -- <email>` gives a sign-up link. The test campaign's stages that used the mock (1B, 1D, 1E, 3, 4, 6, 7 of `08-delivery/test-plan.md`) need replanning against Java and the local stack. |
 
 ## Entry template
 
@@ -44,6 +45,40 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-21 — P53: the mock API removed, the backend runs locally (the owner's request)
+- **Built:** the local backend in Docker Compose (`ops/local/compose.yaml`: Java from
+  `services/api/Dockerfile`, the engine from `ops/pilot/engine.Dockerfile`, PostgreSQL 16,
+  SeaweedFS with a bucket and CORS made by `ops/local/init-storage.py`, MailHog) and its helper
+  `scripts/local.mjs` (`local:up`, `down`, `reset`, `logs`, `status`, `user`, `admin`, `check`).
+  Removed `apps/mock-api`, the mock auth adapter and its messages, `apps/app/e2e` with
+  `playwright.config.ts`, the `:mock` scripts and the suites' mock branches; CI's `e2e` and
+  `suites` jobs and the mock steps of `typecheck` and `engine`.
+- **Checked:** `npm run local:up` then `npm run local:check` on the owner's Windows machine
+  (Docker Desktop): sign-up through a setup link, native sign-in, org, project, the Duplex PUT to
+  the signed SeaweedFS URL with the app's origin (CORS answered), parse job, BoQ run with 41 lines.
+  `npm run typecheck`, `npm run lint`, `npm run test:app` (213 tests) green. Not run here: `mvn
+  verify` (no Maven on the machine), so the edited Java comments and the suites' Java-only
+  branches are checked by CI's `api` job.
+- **Decisions taken:** the app defaults to the native adapter and `API_PROXY_TARGET`
+  `http://localhost:8080`; the local API calls the engine over HTTP (`BOQLET_ENGINE_TRANSPORT=http`,
+  no queue role needed); the engine's port isn't published; the local PostgreSQL is on 55432 so it
+  doesn't collide with one installed on the host. The first account comes from a setup link
+  written straight into `native_setup_links` (as `ops/pilot/issue-setup-link.sh`), not from
+  test-only routes: the local stack runs the product image, without `SuiteSupport`.
+  `kinds.test.ts` lists F13's kinds itself instead of reading the mock's `notify.ts`; the app no
+  longer maps `mock-<versionId>` code-list keys (only the mock wrote them).
+- **Deviations from the spec:** P11 and P52 superseded by P53 (`plan/README.md`); testing.md,
+  contract-changes.md, conventions.md, sessions.md, the frontend architecture and deployment
+  pages updated; `06-frontend/mock-api.md` kept as history with a banner. Milestones, task lists
+  and earlier entries still describe the mock: they are history.
+- **Known issues and debt:** browser coverage beyond the Java smoke set, the accessibility and
+  UI performance specs, and the mock-only library-limit scenario were lost with the mock
+  (`docs/11` "Known limitations … phase 3"). The local stack can't run the shared suites (they
+  need `SuiteSupport`); a test image of the API with it would let them run locally.
+- **For the next agent:** `local:up` rebuilds the API and engine images from the working tree;
+  run it again after changing `services/api` or `engine`. The secrets in `ops/local` are fixed
+  local-only values; never reuse them on the pilot.
 
 ### 2026-11-21 — Phase 3 summary and v1.0.0 release notes (frontend agent)
 - **Built:** M8a (FE-041…FE-043, `e9eadfb`..`a48496c`) and M8 in owner-approved segments: FE-044 + TS-003

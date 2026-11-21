@@ -29,8 +29,10 @@ without being rewritten.
   installs `engine/requirements.txt` and the engine package (editable). It writes a hash stamp
   and only reinstalls when `requirements.txt` or `pyproject.toml` change. It never fails the npm
   install; if Python is missing it prints instructions.
-- In development `npm run dev:app` runs the engine worker (HTTP, 8788), the mock API (4010, the
-  backend's executable specification and the e2e test double) and the app (3000).
+- In development `npm run dev:app` starts the backend in Docker (`ops/local`: the Java API on
+  8080, the engine worker, PostgreSQL, object storage, a mail catcher) and the app (3000) on the
+  host (`docs/20-local-backend.md`). The mock API that stood in for Java while it was built was
+  removed (P53).
 - Jobs are asynchronous: an upload completes, the API queues a parse job, a worker claims it, and
   the app follows progress over SSE. Models are keyed by the SHA-256 of their content, so the same
   file is parsed once (BR-08).

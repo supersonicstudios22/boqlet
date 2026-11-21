@@ -19,7 +19,7 @@ const COMPARE_UNIT: Record<string, string> = { area: "m2", width: "m", height: "
 
 /**
  * "How it is calculated" (F06 §5, P25): the line's quantity in plain words, step by step, from the
- * engine's structured trace steps (EN-013; the mock's "Trace steps" fake in phase 1). Each step can
+ * engine's structured trace steps (EN-013). Each step can
  * be expanded to its elements; each rule-set value links to its Settings question in the Library;
  * a derived line links to its source line; an edited line shows the engine's value, the edit, who
  * and why. The steps add up to the result.

@@ -1,6 +1,5 @@
 /**
- * Sessions against Java (F01 §10, BR-54). On the mock a token without a session id is a test
- * client that skips the one-session check. Java checks every request: it needs the cookie of the
+ * Sessions against Java (F01 §10, BR-54). Java checks every request: it needs the cookie of the
  * account's active session, sent with the bearer token of the browser that opened it.
  *
  * A person signed up by the suites (`suite.signup.<email>`) can have several browsers: the token

@@ -9,7 +9,7 @@ import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
- * v1 criterion 1 (TS-004) through the API of whichever backend runs the suite, the mock or Java:
+ * v1 criterion 1 (TS-004) through the Java API:
  * upload → parse job → run job → lines API, with As modelled (the default rule set) and ACME cost
  * codes, gives exactly the hand-made Duplex BoQ. The expected lines are read from the engine's own
  * acceptance test (`HAND_BOQ`, `COUNTS` in engine/tests/test_duplex.py), as e2e/duplex.spec.ts does.

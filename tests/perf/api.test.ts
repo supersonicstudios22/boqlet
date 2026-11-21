@@ -7,8 +7,8 @@ import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
  * TS-002 (nfr.md "API and UI"): CRUD latency p95 ≤ 300 ms and a 500-line page p95 ≤ 500 ms, with
- * ten requests in flight. Runs against API_URL like the shared suites (`node run.mjs perf --mock`,
- * or Java through `NativeWorkerTest#apiPerformanceAgainstJava`). The BoQ is the Duplex plus manual
+ * ten requests in flight. Runs against API_URL like the shared suites, on Java
+ * through `NativeWorkerTest#apiPerformanceAgainstJava`. The BoQ is the Duplex plus manual
  * lines up to 500, which go through the normal run and line indexing. With `PERF_OUT=<file>` each
  * result is appended as a JSON line for the NFR table.
  */
@@ -40,7 +40,7 @@ async function measure(name: string, call: () => Promise<{ response: Response }>
       }
     }),
   );
-  const result = { name, p95: Math.round(quantile(ms, 0.95)), median: Math.round(quantile(ms, 0.5)), target, samples: ms.length, against: process.env.SUITE_TARGET ?? "mock" };
+  const result = { name, p95: Math.round(quantile(ms, 0.95)), median: Math.round(quantile(ms, 0.5)), target, samples: ms.length, against: "java" };
   console.log(`[perf] ${name}: p95 ${result.p95} ms (target ${target} ms), ${ms.length} requests, ${CONCURRENCY} in flight`);
   if (process.env.PERF_OUT) await appendFile(process.env.PERF_OUT, JSON.stringify(result) + "\n");
   return result.p95;

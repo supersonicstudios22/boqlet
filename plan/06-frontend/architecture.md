@@ -2,7 +2,7 @@
 
 The product frontend lives in `apps/app` (new). It is a **UI only**: no business logic, no
 quantity computation (BR-01), no direct engine access. It talks to the API in `openapi.yaml`
-(mock first, Java later) through a generated client.
+(the Java backend) through a generated client.
 
 ## Stack
 
@@ -19,7 +19,7 @@ quantity computation (BR-01), no direct engine access. It talks to the API in `o
 | Styling | **shadcn/ui** from preset `b38miVKzY` (Tailwind CSS 4 + Base UI primitives, components kept in the repo), tokens from `design-guidelines.md`; fonts JetBrains Mono (UI) and Inter Tight (display), self-hosted via `@fontsource-variable/*` | **Decided (P23, P43)** |
 | 3D | three.js (port of `apps/web/src/viewer`) | Lazy-loaded route chunk |
 | Decimals | `big.js` | Pricing module amount display only; the backend computes the stored amounts (BR-47) |
-| Tests | Vitest + Testing Library; Playwright e2e against mock API + engine | 08-delivery/testing.md |
+| Tests | Vitest + Testing Library; Playwright browser tests against Java (`e2e-java`) | 08-delivery/testing.md |
 | Lint | ESLint (next, typescript, `react/jsx-no-literals` or `i18next/no-literal-string` for UI text), Prettier | No literal UI strings (F15) |
 
 ### Pinned versions
@@ -64,8 +64,8 @@ translates its "Close" text (`common.close`); `button.tsx` default and icon size
   through TanStack Query**. Server Components are used for layouts, static chrome and the
   public pages (sign-in shell, invitation previews).
 - **No Next.js route handlers with business logic.** Next serves the UI. The API is a separate
-  service (same domain, `/api/v1` routed to it), so swapping mock → Java changes only
-  `NEXT_PUBLIC_API_BASE_URL` (P11).
+  service (same domain, `/api/v1` routed to it), so the backend is only a base URL
+  (`NEXT_PUBLIC_API_BASE_URL`, P11).
 - Next middleware is allowed only to redirect unauthenticated users to `/sign-in`, when the
   auth adapter exposes a cookie the middleware can check.
 
@@ -100,7 +100,7 @@ apps/app/
     (admin)/admin/…                    # platform admin console (F19), own layout
   src/
     api/            schema.d.ts (generated), client.ts, keys.ts (query keys), hooks/<resource>.ts, errors.ts
-    auth/           AuthAdapter.ts, adapters/mock.tsx, adapters/<provider>.tsx (after the decision)
+    auth/           AuthAdapter.ts, adapters/native.tsx (P50), adapters/keycloak.tsx (rollback)
     realtime/       sse.ts (connect, reconnect, Last-Event-ID), invalidation.ts (event → query keys)
     features/       one folder per feature: projects, models, boq-sheet, questions, viewer, changes,
                     versions, library (ported), sharing, setup, settings, billing, notifications, admin
@@ -158,11 +158,9 @@ export interface AuthAdapter {
   SignUpPage?: React.ComponentType;
 }
 ```
-- `mock` adapter: a sign-in page listing seeded users. The token is `mock:<userId>`, kept in
-  `localStorage` (the tabs of one browser share one sign-in and one session, F01 §10). After sign-in
-  the auth gate opens the app's session (`POST /sessions`) and binds it to the sign-in
-  (`AuthAdapter.bindAppSession`): the mock's token becomes `mock:<userId>:<sessionId>` (FE-012).
-- The real adapter is written after the auth decision (07-backend/decisions-to-make.md). No
+- `native` adapter (P50, the default): email and password forms on the boqlet domain; the API
+  sets an opaque HttpOnly session cookie. `keycloak` is kept for the rollback (docs/19). The
+  `mock` adapter (seeded users, `mock:<userId>` tokens) was removed with the mock API (P53). No
   component imports a provider SDK directly.
 
 ## BoQ workspace (the heaviest screen)
@@ -198,11 +196,11 @@ design system.
 
 | Variable | Example |
 |---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `/api/v1` (proxied in dev to the mock on `http://localhost:4010`) |
-| `NEXT_PUBLIC_AUTH_ADAPTER` | `mock` |
+| `NEXT_PUBLIC_API_BASE_URL` | `/api/v1` (proxied in dev to `API_PROXY_TARGET`, default the local Java API on `http://localhost:8080`) |
+| `NEXT_PUBLIC_AUTH_ADAPTER` | `native` (default) \| `keycloak` |
 | `NEXT_PUBLIC_SENTRY_DSN` | optional |
 
-In dev, `next.config` rewrites `/api/v1/*` to the mock (or Java) so cookies and CSP behave as
+In dev, `next.config` rewrites `/api/v1/*` to the Java API so cookies and CSP behave as
 in production (same origin).
 
 ## Modules (P36)

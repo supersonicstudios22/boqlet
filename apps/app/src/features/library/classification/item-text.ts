@@ -3,7 +3,7 @@
  * item that is priced, a template with blanks (`{thickness}`, `{thickness*1000}`, `{expr: …}`, the
  * same syntax as a rule's line text). The engine fills them (BR-01); here they are only read back:
  * as pieces (plain text and blanks), and as a sample filled by plain substitution from one line of
- * the preview, as the mock does (`fillItemText`, mock-api). Expressions are never evaluated: they
+ * the preview, as the engine fills plain blanks (`engine/ifc_boq/classify.py`). Expressions are never evaluated: they
  * stay as written.
  */
 import type { ClassificationMap } from "@ifc-boq/types";
@@ -31,7 +31,7 @@ export type ItemTextPiece =
 const BLANK = /\{([^{}]*)\}/g;
 const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-/** A line's value for a plain blank: its line keys, then its unit and quantity (as the mock fills them). */
+/** A line's value for a plain blank: its line keys, then its unit and quantity (as the engine fills them). */
 export function lineValue(line: PreviewLine, name: string): string | undefined {
   const keyed = (line.keys as Record<string, unknown> | undefined)?.[name];
   if (keyed !== undefined && keyed !== null && keyed !== "" && typeof keyed !== "object") return String(keyed);

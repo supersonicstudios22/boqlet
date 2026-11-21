@@ -23,7 +23,8 @@ them identically. Contract tests check them (08-delivery/testing.md).
 - `Authorization: Bearer <token>` from the auth adapter, **or** a secure session cookie,
   depending on the auth decision (P10). The contract declares bearer. A cookie session is an
   equivalent implementation the frontend adapter hides.
-- Mock: `Authorization: Bearer mock:<userId>`, where the mock sign-in page picks a seeded user.
+- Native sign-in (P50): the opaque HttpOnly session cookie from `POST /auth/sign-in`. The mock's
+  `Bearer mock:<userId>` tokens went with it (P53).
 - Public endpoints (`security: []`): `GET /plans`, invitation previews by token, billing
   webhooks.
 

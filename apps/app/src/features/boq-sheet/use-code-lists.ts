@@ -10,8 +10,8 @@ import type { CodeEntry, CodeLists } from "./edits";
 type ClassificationDoc = { codeList?: { id?: string; codes?: CodeEntry[]; separator?: string } | null };
 
 /**
- * The code lists of a run's classifications, by the system id its lines' `codes` use (shipped
- * lists under their own id, others under `mock-<versionId>` on the interim engine path). Published
+ * The code lists of a run's classifications, by the system id its lines' `codes` use (the
+ * list's own id). Published
  * versions never change, so they are fetched once.
  */
 export function useCodeLists(run: Run | undefined): CodeLists {
@@ -26,12 +26,11 @@ export function useCodeLists(run: Run | undefined): CodeLists {
   const stamp = results.map((r) => r.dataUpdatedAt).join(",");
   return useMemo(() => {
     const out = new Map<string, Map<string, CodeEntry>>();
-    results.forEach((r, i) => {
+    results.forEach((r) => {
       const list = (r.data?.doc as ClassificationDoc | undefined)?.codeList;
       if (!list?.codes) return;
       const byCode = new Map(list.codes.map((c) => [c.code, c]));
       if (list.id) out.set(list.id, byCode);
-      out.set(`mock-${ids[i]}`, byCode);
     });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,11 +50,10 @@ export function useCodeListSeparators(run: Run | undefined): ReadonlyMap<string,
   const stamp = results.map((r) => r.dataUpdatedAt).join(",");
   return useMemo(() => {
     const out = new Map<string, string>();
-    results.forEach((r, i) => {
+    results.forEach((r) => {
       const list = (r.data?.doc as ClassificationDoc | undefined)?.codeList;
       if (!list?.separator) return;
       if (list.id) out.set(list.id, list.separator);
-      out.set(`mock-${ids[i]}`, list.separator);
     });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps

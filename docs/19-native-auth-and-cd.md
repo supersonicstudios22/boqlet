@@ -2,7 +2,7 @@
 
 ## Sign-in
 
-The Boqlet frontend uses the Java API at `/api/v1` for product data. The production image builds with `NEXT_PUBLIC_AUTH_ADAPTER=native`. Users enter their email and password on the Boqlet domain. The API verifies Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. State-changing API requests must come from the exact Boqlet origin. The existing one-active-session rule still applies and takeover requires confirmation. The mock adapter and Mock API are used by developer and test commands.
+The Boqlet frontend uses the Java API at `/api/v1` for product data. The production image builds with `NEXT_PUBLIC_AUTH_ADAPTER=native`. Users enter their email and password on the Boqlet domain. The API verifies Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. State-changing API requests must come from the exact Boqlet origin. The existing one-active-session rule still applies and takeover requires confirmation. The app defaults to the native adapter everywhere; locally it runs against the same Java API in Docker (`docs/20-local-backend.md`). The mock adapter and the mock API were removed (P53).
 
 An invitee opens their existing organisation invitation and chooses **Set up your invited account**. The API takes the email address from the valid invitation and the user sets a password. After sign-in they return to the invitation to accept the membership. An existing account signs in with its password.
 

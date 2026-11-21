@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * The test-only endpoints the shared suites (`tests/`) need from Java, the counterpart of the
- * mock's `/_dev` and `/_test` routes. Test sources only, outside the application's scanned
+ * The test-only endpoints the shared suites (`tests/`) need from Java. Test sources only, outside the application's scanned
  * package: a test registers it with {@code @Import(SuiteSupport.class)}; no build contains it.
  */
 @TestConfiguration(proxyBeanMethods = false)
@@ -29,7 +28,7 @@ public class SuiteSupport {
     public static final String TOKEN_PREFIX = "suite.signup.";
 
     /**
-     * The test clock (testing.md, the mock's `/_test/clock`). Java reads the time from PostgreSQL's
+     * The test clock (testing.md, `/_test/clock`). Java reads the time from PostgreSQL's
      * `now()`, so the clock lives there: {@link #installClock} adds a schema `suite_clock` whose
      * `now()` is the real time plus an offset, and the test's connections search it before
      * `pg_catalog` ({@link #SEARCH_PATH}, as `connection-init-sql`). Objects are still created in
@@ -93,7 +92,7 @@ public class SuiteSupport {
 
         /**
          * Waits until the email outbox has sent everything due (up to 15 s), so MailHog holds every
-         * mail the backend has written: the mock writes mail at once, Java's sender polls its outbox.
+         * mail the backend has written (Java's sender polls its outbox).
          */
         @PostMapping("/mail/settle")
         Map<String, Object> settleMail() throws InterruptedException {
@@ -167,7 +166,7 @@ public class SuiteSupport {
                     Map.of("now", row.getObject(1, java.time.OffsetDateTime.class).toInstant().toString(), "offsetMs", row.getLong(2)));
         }
 
-        /** `{advanceMs}`, `{advanceDays}`, `{set: iso}` or `{reset: true}`, as on the mock. */
+        /** `{advanceMs}`, `{advanceDays}`, `{set: iso}` or `{reset: true}`. */
         @PostMapping("/clock")
         Map<String, Object> moveClock(@RequestBody(required = false) Map<String, Object> body) {
             Map<String, Object> move = body == null ? Map.of() : body;
@@ -184,7 +183,7 @@ public class SuiteSupport {
         }
 
         /**
-         * A new person, as if they signed up (F01; the mock's `POST /_dev/users`). The account is
+         * A new person, as if they signed up (F01). The account is
          * created directly, so the pilot's invite-only admission doesn't apply. Its test token is
          * {@link #TOKEN_PREFIX} plus the base64url email (bearer tokens allow no `:` or `@`), and
          * {@link #emailOf} reads it back for the test token decoder.

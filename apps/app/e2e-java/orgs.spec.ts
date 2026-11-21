@@ -51,7 +51,7 @@ test("F01-AC4: the last owner can't leave or be demoted", async ({ page }) => {
   await page.goto(`/${org.slug}/settings/members`);
   await expect(page.getByTestId(`member-${owner.email}`)).toContainText("Owner");
   await expect(page.getByTestId(`member-${owner.email}`).locator("select")).toHaveCount(0);
-  // Nobody changes their own role (`own_role`, as on the mock); only an owner could demote them, and there is none other.
+  // Nobody changes their own role (`own_role`); only an owner could demote them, and there is none other.
   const demoted = await rawAs(owner, "PATCH", `/orgs/${org.id}/members/${owner.id}`, { role: "member" });
   expect(demoted).toMatchObject({ status: 409, body: { code: "own_role" } });
   const left = await rawAs(owner, "DELETE", `/orgs/${org.id}/members/${owner.id}`);

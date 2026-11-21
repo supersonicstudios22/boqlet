@@ -1,8 +1,7 @@
 /**
  * The core API client (`openapi.yaml`), generated types plus a small factory over openapi-fetch.
  *
- * Every consumer (the Next app, the contract and scenario suites) builds its client here, so the
- * base URL is the only thing that changes between the mock and the Java backend (P11).
+ * Every consumer (the Next app, the contract and scenario suites) builds its client here.
  */
 import createClient, { type Client, type ClientOptions, type Middleware } from "openapi-fetch";
 import type { components, operations, paths } from "./schema";

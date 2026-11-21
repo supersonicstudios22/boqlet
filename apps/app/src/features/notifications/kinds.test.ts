@@ -1,16 +1,17 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 import messages from "../../../messages/en/notifications.json";
 
 /**
  * F13 (FE-034): every core notification kind is rendered through the catalogue, never shown as its
- * code. The kinds are F13's "Events" table as the mock keeps it (`apps/mock-api/src/notify.ts`).
+ * code. The kinds are F13's "Events" table (plan/02-features), as the Java backend sends them.
  */
-const notify = readFileSync(path.resolve(__dirname, "../../../../mock-api/src/notify.ts"), "utf8");
-const block = notify.slice(notify.indexOf("const KINDS"), notify.indexOf("};", notify.indexOf("const KINDS")));
-const kinds = [...block.matchAll(/"([a-z_]+\.[a-z_]+)"/g)].map((m) => m[1]!);
+const kinds = [
+  "job.succeeded", "job.failed", "model_version.ready", "run.needs_input",
+  "boq.new_version_available", "version.saved", "boq.confirmed", "boq.reopened",
+  "revision.review_requested", "revision.changes_requested", "revision.approved", "revision.review_withdrawn",
+  "project_member.added", "limit.near", "limit.reached",
+];
 
 const t = createTranslator({ locale: "en", messages: { notifications: messages }, namespace: "notifications" });
 const render = (key: string, values: Record<string, unknown>) => t(key as never, values as never) as string;

@@ -7,7 +7,7 @@ export default defineConfig({
     hookTimeout: 60_000,
     // One backend, shared state: files run one after another.
     fileParallelism: false,
-    // Java has no mock seed: make the part the scenarios read (support/seed-java.ts; no-op elsewhere).
+    // The seed data the scenarios read (support/seed-java.ts).
     globalSetup: ["support/seed-java.ts"],
   },
 });

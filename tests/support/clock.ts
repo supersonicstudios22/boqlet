@@ -1,8 +1,8 @@
 import { ROOT_URL } from "./env";
 
 /**
- * The test-only clock (testing.md): `POST /_test/clock` on the mock and on Java (disabled in
- * production builds). Deadline and expiry scenarios move time instead of waiting.
+ * The test-only clock (testing.md): `POST /_test/clock` on Java (registered only by the suite
+ * test, never in a build). Deadline and expiry scenarios move time instead of waiting.
  */
 async function post(body: Record<string, unknown>): Promise<Date> {
   const res = await fetch(`${ROOT_URL}/_test/clock`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

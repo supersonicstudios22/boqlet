@@ -120,7 +120,7 @@ class ExportController implements ExportsApi {
     private ResponseEntity<String> auditCsv(UUID org, UUID project, String user, String action, String entity,
                                            OffsetDateTime from, OffsetDateTime to) {
         var out = new StringBuilder("\uFEFF");
-        // F12 "Audit CSV", as the mock writes it: actor is the person's name or "system", project its name, data JSON.
+        // F12 "Audit CSV": actor is the person's name or "system", project its name, data JSON.
         csv(out, "at", "actor", "action", "entityType", "entityId", "project", "data");
         var projectNames = new java.util.HashMap<UUID, String>();
         String cursor = null;

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { client, TARGET } from "../support/env";
+import { client } from "../support/env";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /**
@@ -173,19 +173,5 @@ describe("F10 Library shell", () => {
     expect((await list(olivia)).some((p) => p.id === created.data!.id)).toBe(false);
     // Ivana edits the org's Library but isn't on this project.
     expect((await create(ivana, { kind: "dictionary", name: "Not mine", projectId: project.id, start: { mode: "empty" } })).response.status).toBe(404);
-  });
-
-  it("org presets count against libraryOrgPresets per kind (402)", async () => {
-    if (TARGET !== "mock") return;
-    const owner = await signUp("Library Owner", uniqueEmail("library"));
-    const { data: org } = await client(owner.token).POST("/orgs", { body: { name: "Library Firm", slug: slug("library") } });
-    const ents = (await client(owner.token).GET("/orgs/{orgId}/entitlements", { params: { path: { orgId: org!.id } } })).data!;
-    const max = ents.limits.libraryOrgPresets!;
-    for (let i = 0; i < max; i++) expect((await create(owner, { kind: "dictionary", name: `N${i}`, start: { mode: "empty" } }, org!.id)).response.status).toBe(201);
-    const over = await create(owner, { kind: "dictionary", name: "One too many", start: { mode: "empty" } }, org!.id);
-    expect(over.response.status).toBe(402);
-    expect((over.error as { details?: Record<string, unknown> }).details).toMatchObject({ limit: "libraryOrgPresets", current: max, max });
-    // Another kind still fits.
-    expect((await create(owner, { kind: "rule_set", name: "Our rules", start: { mode: "empty" } }, org!.id)).response.status).toBe(201);
   });
 });

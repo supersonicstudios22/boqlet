@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { client, TARGET } from "../support/env";
+import { client } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { setPlan } from "../support/plans";
 import { signUp, uniqueEmail } from "../support/users";
@@ -32,18 +32,10 @@ describe("F14 entitlements and billing", () => {
     expect(billing).toMatchObject({ planId: "free", status: "active" });
     const paid = billing.plans!.find((p) => (p.entitlements.activeProjects ?? Infinity) > max)!;
     const checkout = await api.POST("/orgs/{orgId}/billing/checkout", { params: { path: { orgId: org.id } }, body: { planId: paid.id, returnUrl: "http://localhost:3000/back" } });
-    if (TARGET === "mock") {
-      // The manual adapter's checkout page switches the plan and returns.
-      expect(checkout.data!.url).toMatch(/^https?:\/\//);
-      const done = await fetch(checkout.data!.url, { redirect: "manual" });
-      expect(done.status).toBe(302);
-      expect(done.headers.get("location")).toBe("http://localhost:3000/back");
-    } else {
-      // The pilot has no self-service checkout: the platform admin sets plans (D7, C06).
-      expect(checkout.response.status).toBe(409);
-      expect(checkout.error).toMatchObject({ code: "checkout_unavailable" });
-      await setPlan(owner, org.id, paid.id);
-    }
+    // The pilot has no self-service checkout: the platform admin sets plans (D7, C06).
+    expect(checkout.response.status).toBe(409);
+    expect(checkout.error).toMatchObject({ code: "checkout_unavailable" });
+    await setPlan(owner, org.id, paid.id);
     expect((await api.GET("/orgs/{orgId}/entitlements", { params: { path: { orgId: org.id } } })).data!.planId).toBe(paid.id);
     expect((await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org.id } }, body: { name: "Now it fits" } })).response.status).toBe(201);
     const { data: portal } = await api.POST("/orgs/{orgId}/billing/portal", { params: { path: { orgId: org.id } }, body: { returnUrl: "http://localhost:3000/back" } });
