@@ -21,6 +21,36 @@ async function record(name: string, ms: number, targetMs: number) {
   if (process.env.PERF_OUT) await appendFile(process.env.PERF_OUT, JSON.stringify({ name, ms: Math.round(ms), target: targetMs, production: PRODUCTION }) + "\n");
 }
 
+/**
+ * Clicks points on the canvas until one picks an element; the time from that click's pointerdown to
+ * the element's panel in the DOM, measured in the page (no test-runner round trips). -1: nothing hit.
+ */
+async function pickLatency(page: Page): Promise<number> {
+  const box = (await page.getByTestId("viewer-canvas").boundingBox())!;
+  let picked = -1;
+  for (const [fx, fy] of [[0.5, 0.5], [0.45, 0.55], [0.55, 0.45], [0.4, 0.5], [0.6, 0.5], [0.5, 0.6], [0.5, 0.4]]) {
+    await page.evaluate(() => {
+      const w = window as unknown as { __pick?: Promise<number> };
+      w.__pick = new Promise<number>((resolve) => {
+        let down = 0;
+        addEventListener("pointerdown", () => (down = performance.now()), { capture: true, once: true });
+        const seen = new MutationObserver(() => {
+          if (down && document.querySelector('[data-testid="viewer-element"]')) {
+            seen.disconnect();
+            resolve(performance.now() - down);
+          }
+        });
+        seen.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => (seen.disconnect(), resolve(-1)), 2000);
+      });
+    });
+    await page.mouse.click(box.x + box.width * fx!, box.y + box.height * fy!);
+    picked = await page.evaluate(() => (window as unknown as { __pick: Promise<number> }).__pick);
+    if (picked >= 0) break;
+  }
+  return picked;
+}
+
 const fcp = (page: Page) =>
   page.evaluate(
     () =>
@@ -62,30 +92,7 @@ test("nfr: the Duplex viewer is interactive ≤ 3 s warm; picking ≤ 100 ms", a
   await record("Viewer Duplex interactive (warm)", ready, readyLimit);
   expect(ready).toBeLessThanOrEqual(readyLimit);
 
-  // Picking: click points on the canvas until one hits an element. Timed in the page, from the
-  // click's pointerdown to the element's panel in the DOM (no test-runner round trips).
-  const box = (await page.getByTestId("viewer-canvas").boundingBox())!;
-  let picked = -1;
-  for (const [fx, fy] of [[0.5, 0.5], [0.45, 0.55], [0.55, 0.45], [0.4, 0.5], [0.6, 0.5], [0.5, 0.6], [0.5, 0.4]]) {
-    await page.evaluate(() => {
-      const w = window as unknown as { __pick?: Promise<number> };
-      w.__pick = new Promise<number>((resolve) => {
-        let down = 0;
-        addEventListener("pointerdown", () => (down = performance.now()), { capture: true, once: true });
-        const seen = new MutationObserver(() => {
-          if (down && document.querySelector('[data-testid="viewer-element"]')) {
-            seen.disconnect();
-            resolve(performance.now() - down);
-          }
-        });
-        seen.observe(document.body, { childList: true, subtree: true });
-        setTimeout(() => (seen.disconnect(), resolve(-1)), 2000);
-      });
-    });
-    await page.mouse.click(box.x + box.width * fx!, box.y + box.height * fy!);
-    picked = await page.evaluate(() => (window as unknown as { __pick: Promise<number> }).__pick);
-    if (picked >= 0) break;
-  }
+  const picked = await pickLatency(page);
   expect(picked, "a click on the canvas picks an element").toBeGreaterThanOrEqual(0);
   const pickLimit = target(100, 500);
   await record("Viewer picking (Duplex)", picked, pickLimit);
@@ -115,9 +122,20 @@ test("nfr: a live update reaches the UI ≤ 2 s after the event", async ({ page 
  * elements, docs/12). Skipped without it. Parsing it through the mock takes minutes.
  */
 test("nfr: a large model in the viewer is interactive ≤ 15 s; picking ≤ 100 ms", async ({ page }) => {
-  test.skip(!process.env.PERF_VIEWER_IFC, "PERF_VIEWER_IFC names the large model");
+  const artifacts = process.env.PERF_VIEWER_GLB && process.env.PERF_VIEWER_SCENE;
+  test.skip(!process.env.PERF_VIEWER_IFC && !artifacts, "PERF_VIEWER_IFC names the large model (or PERF_VIEWER_GLB and PERF_VIEWER_SCENE its parse output)");
   test.setTimeout(1_800_000);
-  const { url } = await generatedDuplexBoq(new Uint8Array(await readFile(process.env.PERF_VIEWER_IFC!)), ["acme-cost-codes"], {}, { parseMs: 1_500_000, runMs: 300_000 });
+  // With the parse output at hand, a Duplex BoQ is shown with the large model's geometry and scene in
+  // place of its own (no parse; the coverage colours then find no lines, which costs nothing).
+  const { url } = artifacts
+    ? await generatedDuplexBoq(new Uint8Array(await readFile(DUPLEX)), ["acme-cost-codes"])
+    : await generatedDuplexBoq(new Uint8Array(await readFile(process.env.PERF_VIEWER_IFC!)), ["acme-cost-codes"], {}, { parseMs: 1_500_000, runMs: 300_000 });
+  if (artifacts) {
+    const glb = await readFile(process.env.PERF_VIEWER_GLB!);
+    const scene = await readFile(process.env.PERF_VIEWER_SCENE!);
+    await page.route("**/api/v1/model-versions/*/geometry", (route) => route.fulfill({ body: glb, contentType: "model/gltf-binary" }));
+    await page.route("**/api/v1/model-versions/*/scene", (route) => route.fulfill({ body: scene, contentType: "application/json" }));
+  }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signInAs(page, "olivia");
   const start = Date.now();
@@ -125,6 +143,16 @@ test("nfr: a large model in the viewer is interactive ≤ 15 s; picking ≤ 100 
   await expect(page.getByTestId("viewer")).toHaveAttribute("data-ready", "true", { timeout: 120_000 });
   const ready = Date.now() - start;
   const meshes = await page.getByTestId("viewer").getAttribute("data-meshes");
+  const marks = await page.evaluate(() => {
+    const at = (prefix: string) => performance.getEntriesByType("mark").find((m) => m.name.startsWith(prefix))?.startTime ?? NaN;
+    const load = at("viewer:load:");
+    return { untilLoad: Math.round(load), parse: Math.round(at("viewer:parsed:") - load), meshes: Math.round(at("viewer:meshes:") - at("viewer:parsed:")), fit: Math.round(at("viewer:drawn:") - at("viewer:meshes:")), firstFrame: Math.round(at("viewer:frame:") - at("viewer:drawn:")) };
+  });
+  console.log(`[perf] viewer breakdown (ms): ${JSON.stringify(marks)}`);
+  const picked = await pickLatency(page);
+  expect(picked, "a click on the canvas picks an element").toBeGreaterThanOrEqual(0);
+  await record(`Viewer picking (${meshes} meshes)`, picked, target(100, 500));
+  expect(picked).toBeLessThanOrEqual(target(100, 500));
   await record(`Viewer large model interactive (cold, ${meshes} meshes)`, ready, target(15_000, 30_000));
   expect(ready).toBeLessThanOrEqual(target(15_000, 30_000));
 });

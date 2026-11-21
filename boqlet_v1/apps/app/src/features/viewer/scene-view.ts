@@ -49,6 +49,9 @@ export class SceneView {
   /** Old model versions' removed elements (F08 §4 viewer): drawn, never picked or painted. */
   private ghosts = new Map<string, THREE.Group>();
   private ghostsOn = true;
+  /** The performance mark for the first frame after a model loads (TS-002). */
+  private frameMark: string | null = null;
+  private disposed = false;
   private meshes = new Map<string, THREE.Mesh>();
   private modelOf = new Map<string, string>();
   private classOf = new Map<string, string>();
@@ -123,9 +126,13 @@ export class SceneView {
     };
     scene.spaces.forEach((g) => this.spaces.add(g));
     scene.openings.forEach((g) => this.openings.add(g));
+    // Marks for the performance suite (TS-002): parse, per-mesh setup, first frame.
+    performance.mark(`viewer:load:${model}`);
     const gltf = await new GLTFLoader().parseAsync(glb.slice(0), "");
+    performance.mark(`viewer:parsed:${model}`);
     const group = new THREE.Group();
     group.name = model;
+    const outlined: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return;
       const guid = o.name || o.parent?.name || "";
@@ -137,16 +144,38 @@ export class SceneView {
       const storey = storeyOf(guid);
       if (storey) this.storeyOf.set(guid, storey);
       o.material = new THREE.MeshStandardMaterial({ color: this.baseColor(guid), roughness: 0.92, metalness: 0, side: THREE.DoubleSide });
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 35), new THREE.LineBasicMaterial({ color: 0x55606a, transparent: true, opacity: 0.35 }));
-      edges.name = "edges";
-      o.add(edges);
+      outlined.push(o);
       this.meshes.set(guid, o);
     });
     group.add(gltf.scene);
+    performance.mark(`viewer:meshes:${model}`);
     this.groups.set(model, group);
     this.root.add(group);
     this.applyVisibility();
+    this.frameMark = `viewer:frame:${model}`;
     this.fit();
+    performance.mark(`viewer:drawn:${model}`);
+    this.outline(outlined);
+  }
+
+  /**
+   * Edge outlines, built after the model is shown, a slice of meshes per task, so a large model is
+   * interactive at once (TS-002: building them up front was most of a 16k-element model's load).
+   * A ghosted mesh (transparent) gets its outline hidden, as paint() does.
+   */
+  private outline(meshes: THREE.Mesh[], from = 0) {
+    if (this.disposed) return;
+    const end = performance.now() + 12;
+    let i = from;
+    for (; i < meshes.length && performance.now() < end; i++) {
+      const m = meshes[i]!;
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 35), new THREE.LineBasicMaterial({ color: 0x55606a, transparent: true, opacity: 0.35 }));
+      edges.name = "edges";
+      edges.visible = !(m.material as THREE.MeshStandardMaterial).transparent;
+      m.add(edges);
+    }
+    this.render();
+    if (i < meshes.length) setTimeout(() => this.outline(meshes, i), 0);
   }
 
   /**
@@ -362,10 +391,15 @@ export class SceneView {
 
   private render() {
     cancelAnimationFrame(this.frame);
-    this.frame = requestAnimationFrame(() => this.renderer.render(this.scene, this.camera));
+    this.frame = requestAnimationFrame(() => {
+      this.renderer.render(this.scene, this.camera);
+      if (this.frameMark) performance.mark(this.frameMark);
+      this.frameMark = null;
+    });
   }
 
   dispose() {
+    this.disposed = true;
     this.observer.disconnect();
     cancelAnimationFrame(this.frame);
     this.controls.dispose();
