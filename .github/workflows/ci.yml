@@ -94,6 +94,8 @@ jobs:
       - name: Mock API tests (the engine-backed Duplex test runs in the engine job)
         run: npm run test:mock
       - run: npm run build:app
+      # Bundle budgets per route (FE-045): fails when a route's initial JS grows past apps/app/bundle-budgets.json.
+      - run: npm run bundle:check -w @ifc-boq/app
 
   e2e:
     name: App end-to-end (Playwright)

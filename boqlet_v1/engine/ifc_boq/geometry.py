@@ -125,6 +125,80 @@ def shared_volume(a: trimesh.Trimesh, b: trimesh.Trimesh) -> float | None:
         return None
 
 
+def components(n: int, edges: np.ndarray) -> np.ndarray:
+    """Connected components of an undirected graph on nodes 0..n-1: a label per node, the smallest
+    node of its component. Vectorised union-find (hook roots, then compress), so large meshes cost a
+    few numpy passes instead of a Python graph (networkx took a tenth of a medium model's parse)."""
+    label = np.arange(n)
+    if len(edges) == 0:
+        return label
+    a, b = np.asarray(edges[:, 0]), np.asarray(edges[:, 1])
+    while True:
+        la, lb = label[a], label[b]
+        apart = la != lb
+        if not apart.any():
+            return label
+        np.minimum.at(label, np.maximum(la[apart], lb[apart]), np.minimum(la[apart], lb[apart]))
+        while True:
+            up = label[label]
+            if np.array_equal(up, label):
+                break
+            label = up
+
+
+def fix_winding(m: trimesh.Trimesh) -> None:
+    """Turn the faces of each connected body the same way and each body outward (positive volume).
+    The rule is trimesh.repair.fix_normals' (two faces sharing an edge run it in opposite
+    directions), spread breadth-first a whole frontier at a time; trimesh does it face by face in
+    Python, which was most of a medium MEP model's parse. Unlike fix_normals, each body is turned
+    outward on its own, so separate pieces of one element no longer cancel each other's volume."""
+    faces = np.array(m.faces)
+    count = len(faces)
+    pairs, shared = m.face_adjacency, m.face_adjacency_edges
+    if count == 0:
+        return
+
+    def runs(f, u, v):
+        """True where face f runs the edge u -> v (else v -> u)."""
+        t = faces[f]
+        return ((t[:, 0] == u) & (t[:, 1] == v)) | ((t[:, 1] == u) & (t[:, 2] == v)) | ((t[:, 2] == u) & (t[:, 0] == v))
+
+    flip = np.zeros(count, dtype=bool)
+    label = components(count, pairs)
+    if len(pairs):
+        u, v = shared[:, 0], shared[:, 1]
+        clash = runs(pairs[:, 0], u, v) == runs(pairs[:, 1], u, v)       # same direction: one must turn
+        src = np.concatenate([pairs[:, 0], pairs[:, 1]])
+        dst = np.concatenate([pairs[:, 1], pairs[:, 0]])
+        turn = np.concatenate([clash, clash])
+        order = np.argsort(src, kind="stable")
+        dst, turn = dst[order], turn[order]
+        start = np.searchsorted(src[order], np.arange(count + 1))
+        seen = np.zeros(count, dtype=bool)
+        frontier = np.flatnonzero(label == np.arange(count))             # one root per body keeps its turn
+        seen[frontier] = True
+        while frontier.size:
+            lo, n = start[frontier], start[frontier + 1] - start[frontier]
+            total = int(n.sum())
+            if total == 0:
+                break
+            slot = np.repeat(lo - np.cumsum(n) + n, n) + np.arange(total)
+            parent, child, step = np.repeat(frontier, n), dst[slot], turn[slot]
+            new = ~seen[child]
+            child, first = np.unique(child[new], return_index=True)
+            flip[child] = flip[parent[new][first]] ^ step[new][first]
+            seen[child] = True
+            frontier = child
+    faces[flip] = faces[flip][:, ::-1]
+    verts = np.asarray(m.vertices)
+    tri = (verts - verts.mean(0))[faces]                              # centred: georeferenced coordinates are large
+    signed = np.einsum("ij,ij->i", tri[:, 0], np.cross(tri[:, 1], tri[:, 2]))
+    inward = np.bincount(label, weights=signed, minlength=count) < 0
+    turn_body = inward[label]
+    faces[turn_body] = faces[turn_body][:, ::-1]
+    m.faces = faces
+
+
 def save_meshes(meshes: dict[str, trimesh.Trimesh], path: str | Path):
     ids = list(meshes)
     verts = [np.asarray(meshes[i].vertices, dtype=np.float64) for i in ids]

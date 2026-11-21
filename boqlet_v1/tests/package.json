@@ -9,6 +9,8 @@
     "scenarios": "node run.mjs scenarios",
     "contract:mock": "node run.mjs contract --mock",
     "scenarios:mock": "node run.mjs scenarios --mock",
+    "perf": "node run.mjs perf",
+    "perf:mock": "node run.mjs perf --mock",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

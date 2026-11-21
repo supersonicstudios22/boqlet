@@ -27,7 +27,8 @@ def test_worker_duplex_http(tmp_path, monkeypatch):
         }, "parsed/duplex/"))
         assert parsed.headers["content-type"].startswith("application/x-ndjson")
         events = [json.loads(line) for line in parsed.text.splitlines()]
-        assert [event["stage"] for event in events[:-1]] == ["download", "read", "geometry", "verify", "write"]
+        stages = [event["stage"] for event in events[:-1]]
+        assert [s for i, s in enumerate(stages) if i == 0 or s != stages[i - 1]] == ["download", "read", "geometry", "verify", "write"]
         assert events[-1]["status"] == "succeeded", events[-1]
         artifacts = events[-1]["output"]["artifacts"]
         assert all(storage.exists(key) for key in artifacts.values())

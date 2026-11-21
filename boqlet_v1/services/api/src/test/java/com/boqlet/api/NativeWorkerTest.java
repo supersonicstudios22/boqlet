@@ -140,6 +140,7 @@ class NativeWorkerTest {
     @Autowired JdbcTemplate database;
     @Autowired Maintenance maintenance;
     @Autowired ObjectStorage storage;
+    @Autowired com.boqlet.api.boq.RunIndex runIndex;
     @LocalServerPort int apiPort;
 
     @Test
@@ -241,6 +242,56 @@ class NativeWorkerTest {
         assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
         if (POSTGRES_QUEUE) startQueueWorkers();
         runSharedSuite("scenarios", System.getenv("BOQLET_SCENARIO_FILTER"), Duration.ofMinutes(25));
+    }
+
+    /**
+     * TS-002 (nfr.md "API and UI") against this API: the shared perf suite (`tests/perf/api.test.ts`:
+     * CRUD p95 ≤ 300 ms, a 500-line page p95 ≤ 500 ms), then run ingestion of 50,000 lines ≤ 10 s:
+     * the perf suite's run is indexed again from a result made of its own lines repeated to 50,000.
+     * Opt-in with `BOQLET_API_PERF=1` and Node; measured on the local native stack (P51), not in CI.
+     * `PERF_OUT=<file>` collects the numbers as JSON lines.
+     */
+    @Test
+    @EnabledIfEnvironmentVariable(named = "BOQLET_API_PERF", matches = "1")
+    void apiPerformanceAgainstJava() throws Exception {
+        assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
+        if (POSTGRES_QUEUE) startQueueWorkers();
+        runSharedSuite("perf", null, Duration.ofMinutes(20));
+
+        var latest = database.queryForMap("SELECT id, result_key FROM runs WHERE result_key IS NOT NULL ORDER BY created_at DESC LIMIT 1");
+        var run = (java.util.UUID) latest.get("id");
+        JsonNode result;
+        try (var raw = storage.open((String) latest.get("result_key")); var decoded = new java.util.zip.GZIPInputStream(raw)) {
+            result = json.readTree(decoded);
+        }
+        var source = result.path("lines");
+        var lines = json.createArrayNode();
+        for (int i = 0; lines.size() < 50_000; i++) {
+            var line = ((com.fasterxml.jackson.databind.node.ObjectNode) source.get(i % source.size()).deepCopy());
+            line.put("key", line.path("key").asText() + "#" + i);
+            lines.add(line);
+        }
+        ((com.fasterxml.jackson.databind.node.ObjectNode) result).set("lines", lines);
+        var bytes = new java.io.ByteArrayOutputStream();
+        try (var gzip = new java.util.zip.GZIPOutputStream(bytes)) {
+            json.writeValue(gzip, result);
+        }
+        String key = latest.get("result_key") + ".perf-50k";
+        storage.put(key, "application/gzip", bytes.toByteArray());
+        for (String table : java.util.List.of("run_lines", "run_line_elements", "run_questions", "run_warnings", "run_log_entries"))
+            database.update("DELETE FROM " + table + " WHERE run_id = ?", run);
+        database.update("UPDATE runs SET result_key = ?, indexed_at = NULL WHERE id = ?", key, run);
+
+        long start = System.nanoTime();
+        runIndex.ensure(run);
+        long ms = (System.nanoTime() - start) / 1_000_000;
+        System.out.println("[perf] run ingestion, 50,000 lines: " + ms + " ms (target 10000 ms)");
+        String out = System.getenv("PERF_OUT");
+        if (out != null && !out.isBlank())
+            java.nio.file.Files.writeString(Path.of(out), "{\"name\":\"run ingestion (50,000 lines)\",\"ms\":" + ms + ",\"target\":10000,\"against\":\"java\"}\n",
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        assertThat(database.queryForObject("SELECT count(*) FROM run_lines WHERE run_id = ?", Integer.class, run)).isEqualTo(50_000);
+        assertThat(ms).as("run ingestion of 50,000 lines (ms)").isLessThanOrEqualTo(10_000);
     }
 
     /**

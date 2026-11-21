@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Runs a shared suite: `node run.mjs contract|scenarios [--mock]`.
+// Runs a shared suite: `node run.mjs contract|scenarios|perf [--mock]` (perf: TS-002 API latency).
 //   API_URL=<base>/api/v1  runs it against a running backend (the mock, or Java in phase 2).
 //   --mock                 starts a fresh mock on a free port (own data folder, reseeded),
 //                          runs the suite against it and stops it (mock-api.md `test:contract:mock`).
@@ -14,8 +14,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const suite = process.argv[2];
-if (suite !== "contract" && suite !== "scenarios") {
-  console.error("usage: node run.mjs contract|scenarios [--mock]");
+if (suite !== "contract" && suite !== "scenarios" && suite !== "perf") {
+  console.error("usage: node run.mjs contract|scenarios|perf [--mock]");
   process.exit(2);
 }
 const useMock = process.argv.includes("--mock");

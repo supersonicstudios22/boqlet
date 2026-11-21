@@ -90,13 +90,13 @@ export async function apiAs<T>(user: DevUser, method: string, path: string, body
 }
 
 /** A model with one uploaded version, through the API (signed upload), waited until ready. */
-export async function modelWithVersion(user: DevUser, projectId: string, name: string, bytes: Uint8Array, fileName: string) {
+export async function modelWithVersion(user: DevUser, projectId: string, name: string, bytes: Uint8Array, fileName: string, parseTimeoutMs = 180_000) {
   const model = await apiAs<{ id: string }>(user, "POST", `/projects/${projectId}/models`, { name, discipline: "architecture" });
   const { version, upload } = await apiAs<{ version: { id: string }; upload: { method: string; url: string; headers: Record<string, string> } }>(user, "POST", `/models/${model.id}/versions`, { fileName, sizeBytes: bytes.byteLength });
   const put = await fetch(upload.url, { method: upload.method, headers: upload.headers, body: new Blob([bytes as BlobPart]) });
   if (!put.ok) throw new Error(`upload answered ${put.status}`);
   await apiAs(user, "POST", `/model-versions/${version.id}/complete`, {});
-  const deadline = Date.now() + 180_000;
+  const deadline = Date.now() + parseTimeoutMs;
   for (;;) {
     const v = await apiAs<{ status: string }>(user, "GET", `/model-versions/${version.id}`);
     if (v.status === "ready") return { modelId: model.id, versionId: version.id };
@@ -109,17 +109,17 @@ export async function modelWithVersion(user: DevUser, projectId: string, name: s
  * A Studio Demo project with the Duplex and a BoQ under the given classifications (slugs), generated
  * and finished, with `inputs` laid over the defaults. Returns the workspace URL, the project and the run.
  */
-export async function generatedDuplexBoq(bytes: Uint8Array, classificationSlugs: string[] = ["acme-cost-codes", "demo-trades"], inputs: Record<string, unknown> = {}) {
+export async function generatedDuplexBoq(bytes: Uint8Array, classificationSlugs: string[] = ["acme-cost-codes", "demo-trades"], inputs: Record<string, unknown> = {}, timeouts: { parseMs?: number; runMs?: number } = {}) {
   const olivia = await devUser("olivia");
   const me = await apiAs<{ memberships: { org: { id: string; slug: string } }[] }>(olivia, "GET", "/me");
   const org = me.memberships.find((m) => m.org.slug === "studio-demo")!.org;
   const project = await apiAs<{ id: string }>(olivia, "POST", `/orgs/${org.id}/projects`, { name: `Sheet ${unique("p")}` });
-  await modelWithVersion(olivia, project.id, "Architecture", bytes, "Duplex_A.ifc");
+  await modelWithVersion(olivia, project.id, "Architecture", bytes, "Duplex_A.ifc", timeouts.parseMs);
   const presets = await apiAs<{ slug: string; kind: string; latestPublishedVersion?: { id: string } }[]>(olivia, "GET", `/orgs/${org.id}/presets?kind=classification`);
   const classificationVersionIds = classificationSlugs.map((s) => presets.find((p) => p.slug === s)!.latestPublishedVersion!.id);
   const boq = await apiAs<{ id: string; currentRevision: { id: string } }>(olivia, "POST", `/projects/${project.id}/boqs`, { name: "Tender BoQ", inputs: { classificationVersionIds, ...inputs } });
   const { run } = await apiAs<{ run: { id: string } }>(olivia, "POST", `/revisions/${boq.currentRevision.id}/runs`);
-  const deadline = Date.now() + 120_000;
+  const deadline = Date.now() + (timeouts.runMs ?? 120_000);
   for (;;) {
     const r = await apiAs<{ id: string; status: string; stats?: { lines?: number } }>(olivia, "GET", `/runs/${run.id}`);
     if (r.status !== "queued" && r.status !== "running") return { url: `/studio-demo/projects/${project.id}/boqs/${boq.id}`, projectUrl: `/studio-demo/projects/${project.id}`, projectId: project.id, run: r, olivia };
