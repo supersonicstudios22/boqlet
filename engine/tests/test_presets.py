@@ -130,3 +130,22 @@ def test_dictionary_entries_point_to_defined_terms():
     for d in presets.dictionaries().values():
         for e in d["entries"]:
             assert e["term"] in terms, f"{d['id']}: entry {e['id']} -> undefined term {e['term']}"
+def test_setup_markers_use_the_shipped_rule_data():
+    master, library = presets.load_rule_set("as-modelled")
+    assert [step["id"] for step in master["setupSteps"]] == [
+        "walls", "wall-openings", "slab-openings", "roofs", "windows-doors", "layout",
+    ]
+    assert master["params"]["wall_opening_mode"]["setup"] == "wall-openings"
+    switches = {entry["enabled"]["param"] for kind in ("items", "derived", "manual")
+                for entry in master[kind] if isinstance(entry.get("enabled"), dict)}
+    checklist = [name for name, slot in master["params"].items()
+                 if slot["type"] == "boolean" and not slot.get("dependsOn") and name in switches
+                 and slot.get("setup") != "skip"]
+    assert len(checklist) == 14
+    patch = {"id": "pilot", "schemaVersion": "1.0", "name": "Pilot", "version": "1", "extends": master["id"],
+             "params": {"window_measure": {"value": master["params"]["window_measure"]["value"], "setup": "walls"}}}
+    flat = presets.flattened(patch, list(library.values()))
+    assert flat["params"]["window_measure"]["setup"] == "walls"
+    assert flat["setupSteps"] == master["setupSteps"]
+    patch["params"]["window_measure"]["setup"] = "missing-step"
+    assert any("setup step 'missing-step' is not defined" in problem for problem in presets.check("rules", patch))

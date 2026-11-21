@@ -36,9 +36,10 @@ import ifcopenshell.util.placement as up
 import ifcopenshell.util.unit as uu
 
 from . import geometry
+from .geometry import components, fix_winding
 
 ENGINE_VERSION = "0.1.0"
-# Bump when the parse output changes; cached parses with a lower number are parsed again (store.py).
+# Bump when the parse output changes; a run on a parse with another number fails with parse_format_mismatch (worker.py).
 # 2: openings carry objectType (recesses); rooms carry the columns standing in them (intersections).
 PARSE_FORMAT = 2
 TOLERANCE = 0.01                     # 1 % reported vs geometry
@@ -276,9 +277,10 @@ class Parser:
             return False                                  # non-manifold (edges used 3+ times)
         edges = m.edges[idx]
         v = m.vertices
-        for comp in trimesh.graph.connected_components(edges, min_len=1):
-            in_comp = np.isin(edges[:, 0], comp)
-            e = edges[in_comp]
+        loop = components(len(v), edges)[edges[:, 0]]
+        for key in np.unique(loop):
+            e = edges[loop == key]
+            comp = np.unique(e)
             c = v[comp].mean(0)                           # centre first: georeferenced coordinates are large
             a, b = v[e[:, 0]] - c, v[e[:, 1]] - c
             vector_area = 0.5 * np.cross(a, b).sum(0)
@@ -291,14 +293,13 @@ class Parser:
     def bodies(m: trimesh.Trimesh) -> list[np.ndarray]:
         """Vertex sets of the disjoint pieces of a mesh (one IfcWall can hold both spandrel walls
         of a bridge), largest surface area first."""
-        comps = trimesh.graph.connected_components(m.edges, nodes=np.arange(len(m.vertices)), min_len=1)
-        if len(comps) < 2:
+        keys, piece = np.unique(components(len(m.vertices), m.edges), return_inverse=True)
+        if len(keys) < 2:
             return [np.arange(len(m.vertices))]
-        face_comp = np.full(len(m.vertices), -1)
-        for i, c in enumerate(comps):
-            face_comp[c] = i
-        area = np.bincount(face_comp[m.faces[:, 0]], weights=m.area_faces, minlength=len(comps))
-        return [comps[i] for i in np.argsort(-area)]
+        area = np.bincount(piece[m.faces[:, 0]], weights=m.area_faces, minlength=len(keys))
+        by_piece = np.argsort(piece, kind="stable")
+        groups = np.split(by_piece, np.cumsum(np.bincount(piece, minlength=len(keys)))[:-1])
+        return [groups[i] for i in np.argsort(-area, kind="stable")]
 
     @staticmethod
     def oriented_box(points: np.ndarray):
@@ -330,8 +331,13 @@ class Parser:
         order = np.argsort(-np.asarray(ext))
         return [r6(ext[k]) for k in order], [vec(axes[k]) for k in order]
 
-    def run_geometry(self):
+    def run_geometry(self, progress=None):
+        """Meshes and their measurements per element. With `progress`, reports every 10 s while it
+        runs (a medium model's geometry takes minutes: a silent stream reads as a dead worker, and
+        each report is a point where a cancelled job stops)."""
         s = ifcopenshell.geom.settings()
+        total = max(1, len(self.f.by_type("IfcProduct")))
+        done, reported = 0, time.monotonic()
         s.set("use-world-coords", True)
         # Ask for file units and scale with our own factor: the geometry kernel can miss a unit
         # assignment and silently return millimetres as metres (ISO sample wall-with-opening-and-window).
@@ -354,7 +360,7 @@ class Parser:
                     raw = abs(float(m.volume))
                     fixed = False
                     if not m.is_winding_consistent:
-                        trimesh.repair.fix_normals(m)
+                        fix_winding(m)
                         fixed = True
                     info = dict(hasBody=True, meshRef=sh.guid, bboxMin=vec(v.min(0)), bboxMax=vec(v.max(0)),
                                 centroid=vec(m.center_mass if abs(m.volume) > 1e-9 else (v.min(0) + v.max(0)) / 2), volume=r6(abs(m.volume)), surfaceArea=r6(m.area),
@@ -370,6 +376,10 @@ class Parser:
                         info["volumeBeforeRepair"] = r6(raw)
                     geo[sh.guid] = info
                     self.meshes[sh.guid] = m
+                done += 1
+                if progress and time.monotonic() - reported >= 10:
+                    reported = time.monotonic()
+                    progress("geometry", 30 + min(44, 44 * done // total), "Building geometry")
                 if not it.next():
                     break
         return geo
@@ -448,11 +458,13 @@ class Parser:
         return self.storey_of(c, seen) if c is not None else None
 
     # ----- main -----
-    def parse(self):
+    def parse(self, progress=None):
         t0 = time.time()
         f = self.f
+        if progress:
+            progress("geometry", 30, "Building geometry")
         with np.errstate(all="ignore"):          # degenerate meshes (furniture) produce harmless warnings
-            geo = self.run_geometry()
+            geo = self.run_geometry(progress)
 
         # header -----------------------------------------------------------
         hdr = f.header
@@ -793,6 +805,8 @@ class Parser:
         self.faces_and_rooms(elements, spatial)
 
         # verification ----------------------------------------------------
+        if progress:
+            progress("verify", 75, "Verifying elements")
         with np.errstate(all="ignore"):
             self.verify(elements, materials, openings)
 
@@ -998,16 +1012,21 @@ class Parser:
         self.checks = keep
 
     def export_glb(self, out_path):
+        from trimesh.exchange.gltf import export_glb
+
         scene = trimesh.Scene()
         for guid, m in self.meshes.items():
             scene.add_geometry(m, node_name=guid, geom_name=guid)
-        scene.export(out_path)
+        with open(out_path, "wb") as output:
+            output.write(export_glb(scene))
 
 
-def parse_file(path: str, overlaps: bool = True):
+def parse_file(path: str, overlaps: bool = True, progress=None):
     """Parse one IFC file. Returns (ParsedModel dict, Parser) - keep the parser to export geometry."""
+    if progress:
+        progress("read", 15, "Reading IFC")
     p = Parser(path, overlaps=overlaps)
-    return p.parse(), p
+    return p.parse(progress), p
 
 
 def main(argv=None):

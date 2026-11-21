@@ -134,6 +134,12 @@
         "message": {
           "type": "string"
         },
+        "code": {
+          "$ref": "#/definitions/LogCode"
+        },
+        "params": {
+          "$ref": "#/definitions/MessageParams"
+        },
         "ruleId": {
           "type": "string"
         },
@@ -172,6 +178,79 @@
       ],
       "description": "Calculation log: an ordered, human-readable record of what the engine did. Meant for developers and for users checking a number; not a debug dump."
     },
+    "LogCode": {
+      "type": "string",
+      "enum": [
+        "log.parse.model",
+        "log.parse.verification",
+        "log.names.dictionaries",
+        "log.names.resolved",
+        "log.names.unresolved",
+        "log.names.summary",
+        "log.match.rule_set",
+        "log.match.rule_set_problem",
+        "log.match.coverage",
+        "log.decision.answer_applied",
+        "log.decision.line_override",
+        "log.summary.question",
+        "log.summary.result",
+        "log.classify.assigned",
+        "log.classify.unassigned",
+        "log.classify.summary",
+        "log.federation.models",
+        "log.federation.duplicate",
+        "log.federation.scope",
+        "log.federation.owner",
+        "log.federation.aggregate_part",
+        "log.federation.missing_owner",
+        "log.federation.detached_part",
+        "log.federation.overlap_method",
+        "log.federation.model_report",
+        "log.federation.aligned_storey",
+        "log.federation.storey_warning",
+        "log.federation.coordinate_warning",
+        "log.decision.overlap_owner",
+        "log.decision.overlap_both",
+        "log.federation.overlap",
+        "log.federation.aggregate_excluded",
+        "log.federation.aggregate_resummed",
+        "log.federation.aggregate_summary",
+        "log.federation.missing_meshes",
+        "log.federation.linked_opening",
+        "log.federation.opening_summary",
+        "log.federation.unhosted",
+        "log.federation.room_contact",
+        "log.federation.room_summary",
+        "log.federation.embedded",
+        "log.federation.embedded_summary",
+        "log.match.out_of_scope",
+        "log.match.measured_by_parts",
+        "log.match.rule_selected",
+        "log.match.rule_disabled",
+        "log.decision.excluded",
+        "log.decision.claim_selected",
+        "log.decision.claim_all",
+        "log.quantity.skipped",
+        "log.quantity.element",
+        "log.quantity.line",
+        "log.derived.disabled",
+        "log.derived.source",
+        "log.derived.no_sources",
+        "log.derived.line",
+        "log.manual.line",
+        "log.measure.volume_conflict",
+        "log.measure.adopted",
+        "log.measure.embedded",
+        "log.measure.room",
+        "log.measure.aggregate",
+        "log.measure.building",
+        "log.measure.building_note"
+      ]
+    },
+    "MessageParams": {
+      "type": "object",
+      "additionalProperties": {}
+    },
     "RuleSet": {
       "type": "object",
       "properties": {
@@ -200,6 +279,13 @@
             "$ref": "#/definitions/Param"
           },
           "description": "The slots. A standard is mostly a set of values for these."
+        },
+        "setupSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SetupStep"
+          },
+          "description": "The setup wizard's measuring screens (F16 part 1c, EN-011), in order."
         },
         "sections": {
           "type": "array",
@@ -477,6 +563,10 @@
               ],
               "additionalProperties": false,
               "description": "Only relevant when another slot has one of these values (the questionnaire dims it otherwise)."
+            },
+            "setup": {
+              "type": "string",
+              "description": "The setup wizard (F16, P42, EN-011): the id of a `RuleSet.setupSteps` entry this question appears on (part 1c), or \"skip\" to keep an item-switching yes/no question off the checklist (part 1a)."
             }
           },
           "required": [
@@ -551,6 +641,10 @@
               ],
               "additionalProperties": false,
               "description": "Only relevant when another slot has one of these values (the questionnaire dims it otherwise)."
+            },
+            "setup": {
+              "type": "string",
+              "description": "The setup wizard (F16, P42, EN-011): the id of a `RuleSet.setupSteps` entry this question appears on (part 1c), or \"skip\" to keep an item-switching yes/no question off the checklist (part 1a)."
             }
           },
           "required": [
@@ -613,6 +707,10 @@
               ],
               "additionalProperties": false,
               "description": "Only relevant when another slot has one of these values (the questionnaire dims it otherwise)."
+            },
+            "setup": {
+              "type": "string",
+              "description": "The setup wizard (F16, P42, EN-011): the id of a `RuleSet.setupSteps` entry this question appears on (part 1c), or \"skip\" to keep an item-switching yes/no question off the checklist (part 1a)."
             }
           },
           "required": [
@@ -674,6 +772,10 @@
               ],
               "additionalProperties": false,
               "description": "Only relevant when another slot has one of these values (the questionnaire dims it otherwise)."
+            },
+            "setup": {
+              "type": "string",
+              "description": "The setup wizard (F16, P42, EN-011): the id of a `RuleSet.setupSteps` entry this question appears on (part 1c), or \"skip\" to keep an item-switching yes/no question off the checklist (part 1a)."
             }
           },
           "required": [
@@ -762,6 +864,10 @@
               ],
               "additionalProperties": false,
               "description": "Only relevant when another slot has one of these values (the questionnaire dims it otherwise)."
+            },
+            "setup": {
+              "type": "string",
+              "description": "The setup wizard (F16, P42, EN-011): the id of a `RuleSet.setupSteps` entry this question appears on (part 1c), or \"skip\" to keep an item-switching yes/no question off the checklist (part 1a)."
             }
           },
           "required": [
@@ -805,6 +911,26 @@
     "Expr": {
       "type": "string",
       "description": "A formula in the small, safe expression language.\n\nGrammar (evaluated only by the engine, never by `eval`):   literals      12  0.5  \"text\"  true  false   operators     + - * /  ( )  = != > >= < <=  AND OR NOT   functions     IF(c,a,b)  MIN(a,b,..)  MAX(a,b,..)  ROUND(x,step)  CEIL(x,step)                 FLOOR(x,step)  ABS(x)  SQRT(x)  PI()  COALESCE(a,b,..)                 UNDER(term, \"concrete\")   true if a dictionary term is that term or beneath it   variables     any MeasuredField           e.g. net_area, thickness, length                 props[\"Pset_WallCommon.FireRating\"]                 p.<param>                   e.g. p.opening_threshold                 building.<field>            whole-building values (BuildingMeasures), e.g. building.gross_volume                 src.<field> / src.qty       (derived rules only: the source element / line)   aggregates    SUM | COUNT | MIN | MAX | AVG over a collection, with optional WHERE:                   SUM(openings.area WHERE area > p.opening_threshold)                   SUM(layers.volume WHERE material = \"concrete\")                   COUNT(openings WHERE kind = \"door\")                   SUM(faces.net_area WHERE side = \"a\")                 collections: openings, layers, faces, children"
+    },
+    "SetupStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "intro": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title"
+      ],
+      "additionalProperties": false,
+      "description": "One screen of the setup wizard's \"How the main items are measured\" (F16 part 1c), in order."
     },
     "RuleSection": {
       "type": "object",
@@ -1824,6 +1950,13 @@
         "id": {
           "type": "string"
         },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Preferred code by classification system. Unspecified systems still use their maps."
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -1960,6 +2093,13 @@
             },
             "sourceLine": {
               "type": "string"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TraceStep"
+              },
+              "description": "\"How it is calculated\" in steps (P25, F06 §5, EN-013): the values of the steps before `result` add up to it."
             }
           },
           "required": [
@@ -2002,6 +2142,62 @@
           "items": {
             "type": "string"
           }
+        },
+        "overridden": {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "quantity",
+                  "description",
+                  "unit",
+                  "codes",
+                  "excluded",
+                  "order"
+                ]
+              }
+            },
+            "engineQuantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "quantity": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "engineDescription": {
+              "type": "string"
+            },
+            "engineUnit": {
+              "$ref": "#/definitions/Unit"
+            },
+            "engineCodes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "fields"
+          ],
+          "additionalProperties": false
+        },
+        "excluded": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2029,6 +2225,62 @@
         "flagged"
       ],
       "description": "Where a line's quantity comes from."
+    },
+    "TraceStep": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "start",
+            "add",
+            "deduct",
+            "factor",
+            "round",
+            "derive",
+            "edit",
+            "result"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "description": "Message code (EN-004) of the step's sentence: `trace.start.area|volume|length|count|mass|perimeter|value|missing`, `trace.add.reveals|minimum`, `trace.deduct.all|over_threshold|excess`, `trace.factor`, `trace.round`, `trace.derive`, `trace.derive.missing`, `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`, `trace.result`."
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {},
+          "description": "Values the sentence names (count, surface, what, mode, threshold, formula, sourceLine, by, reason…)."
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The step's contribution in `unit` (deductions negative); for `result`, the line quantity. The values of the steps before `result` add up to it (within rounding). null: no value (to confirm)."
+        },
+        "unit": {
+          "$ref": "#/definitions/Unit"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "GlobalIds of the elements the step covers (to expand the step)."
+        },
+        "param": {
+          "type": "string",
+          "description": "The rule-set slot (Settings question) a value of this step came from, e.g. `wall_opening_threshold`."
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "params",
+        "value"
+      ],
+      "additionalProperties": false,
+      "description": "One step of a line's \"How it is calculated\" (P25, F06 §5, EN-013), in the order they apply: start (gross, or the elements' sum), add, deduct, factor, round, derive (a derived line's source), edit (a person's quantity edit), result. The UI writes each step as a sentence from `code`."
     },
     "LineCode": {
       "type": "object",
@@ -2068,11 +2320,16 @@
             "decision",
             "map",
             "ifc",
-            "default"
+            "default",
+            "item"
           ]
         },
         "mapRuleId": {
           "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "description": "The code's item text filled with this line's values (EN-010); absent when the code has none."
         }
       },
       "required": [
@@ -2100,6 +2357,13 @@
         },
         "message": {
           "type": "string"
+        },
+        "code": {
+          "$ref": "#/definitions/QuestionCode",
+          "description": "Structured message fields may be absent on saved runs from older engines."
+        },
+        "params": {
+          "$ref": "#/definitions/MessageParams"
         },
         "answer": {
           "$ref": "#/definitions/AnswerType"
@@ -2146,9 +2410,25 @@
         "double_claim",
         "unclassified",
         "classification_conflict",
+        "orphan_override",
         "contradiction",
         "overlap"
       ]
+    },
+    "QuestionCode": {
+      "type": "string",
+      "enum": [
+        "question.unknown_name",
+        "question.unmatched",
+        "question.contradiction",
+        "question.unclassified",
+        "question.classification_conflict",
+        "question.missing_data",
+        "question.orphan_override",
+        "question.overlap",
+        "question.double_claim"
+      ],
+      "description": "Stable IDs for engine messages. The English fallback remains in each result."
     },
     "AnswerType": {
       "anyOf": [
@@ -2257,10 +2537,13 @@
       "type": "object",
       "properties": {
         "code": {
-          "type": "string"
+          "$ref": "#/definitions/WarningCode"
         },
         "message": {
           "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/MessageParams"
         },
         "guids": {
           "type": "array",
@@ -2277,6 +2560,22 @@
         "message"
       ],
       "additionalProperties": false
+    },
+    "WarningCode": {
+      "type": "string",
+      "enum": [
+        "unknown_code",
+        "mixed_line",
+        "item_text_blank",
+        "rule_set",
+        "federation_hole",
+        "federation_storeys",
+        "federation_coordinates",
+        "federation_overlap",
+        "federation_unhosted",
+        "double_claim"
+      ],
+      "description": "Existing warning codes are also used by consumers to filter warnings."
     },
     "Check": {
       "type": "object",

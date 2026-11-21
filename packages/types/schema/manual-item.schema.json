@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ManualItem",
+  "definitions": {
+    "ManualItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Preferred code by classification system. Unspecified systems still use their maps."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "preliminary",
+            "provisional_sum",
+            "lump_sum",
+            "daywork",
+            "other"
+          ]
+        },
+        "description": {
+          "$ref": "#/definitions/Value%3CTemplate%3E"
+        },
+        "unit": {
+          "$ref": "#/definitions/Unit"
+        },
+        "quantity": {
+          "$ref": "#/definitions/Value%3Cnumber%3E",
+          "description": "Empty (and no formula) = flagged line for the user to fill."
+        },
+        "formula": {
+          "$ref": "#/definitions/Value%3CExpr%3E",
+          "description": "Quantity from a formula over answers (p.*) and whole-building values (building.*), e.g. \"building.gross_volume / 100\" for an item priced per 100 m3 of building. Wins over `quantity`."
+        },
+        "amount": {
+          "$ref": "#/definitions/Value%3Cnumber%3E",
+          "description": "Provisional and lump sums may carry an amount instead of a quantity."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "$ref": "#/definitions/Value%3Cboolean%3E"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "description",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "Value<Template>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Template"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Template": {
+      "type": "string",
+      "description": "Template text with {placeholders}: any MeasuredField, p.<param>, or {expr:...}."
+    },
+    "ParamRef": {
+      "type": "object",
+      "properties": {
+        "param": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "param"
+      ],
+      "additionalProperties": false,
+      "description": "Reference to a named parameter in `RuleSet.params`."
+    },
+    "Unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "nr",
+            "item",
+            "sum",
+            "mm",
+            "m",
+            "km",
+            "m2",
+            "m3",
+            "kg",
+            "t",
+            "ft",
+            "ft2",
+            "ft3",
+            "yd2",
+            "yd3",
+            "lb",
+            "h"
+          ]
+        }
+      ]
+    },
+    "Value<number>": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Value<Expr>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Expr"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Expr": {
+      "type": "string",
+      "description": "A formula in the small, safe expression language.\n\nGrammar (evaluated only by the engine, never by `eval`):   literals      12  0.5  \"text\"  true  false   operators     + - * /  ( )  = != > >= < <=  AND OR NOT   functions     IF(c,a,b)  MIN(a,b,..)  MAX(a,b,..)  ROUND(x,step)  CEIL(x,step)                 FLOOR(x,step)  ABS(x)  SQRT(x)  PI()  COALESCE(a,b,..)                 UNDER(term, \"concrete\")   true if a dictionary term is that term or beneath it   variables     any MeasuredField           e.g. net_area, thickness, length                 props[\"Pset_WallCommon.FireRating\"]                 p.<param>                   e.g. p.opening_threshold                 building.<field>            whole-building values (BuildingMeasures), e.g. building.gross_volume                 src.<field> / src.qty       (derived rules only: the source element / line)   aggregates    SUM | COUNT | MIN | MAX | AVG over a collection, with optional WHERE:                   SUM(openings.area WHERE area > p.opening_threshold)                   SUM(layers.volume WHERE material = \"concrete\")                   COUNT(openings WHERE kind = \"door\")                   SUM(faces.net_area WHERE side = \"a\")                 collections: openings, layers, faces, children"
+    },
+    "Value<boolean>": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    }
+  }
+}

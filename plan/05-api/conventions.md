@@ -8,8 +8,7 @@ them identically. Contract tests check them (08-delivery/testing.md).
 1. `openapi.yaml` is the single source of truth for HTTP. Engine shapes are `$ref`s into
    `packages/types/schema` (D64).
 2. Change the contract first, lint it
-   (`npx @redocly/cli lint <path>/openapi.yaml --config plan/05-api/redocly.yaml`), regenerate
-   the clients, then change code.
+   (`npm run api:lint`), regenerate the clients (`npm run api:gen`), then change code.
 3. The frontend uses a client generated with `openapi-typescript` + `openapi-fetch`. The Java
    backend generates interfaces and DTOs with `openapi-generator` (spring or jaxrs-spec
    generator, interfaces only). The mock validates requests and responses against the file at
@@ -102,9 +101,14 @@ event: job.progress
 data: {"jobId":"…","type":"run","subjectType":"run","subjectId":"…","projectId":"…","stage":"rules","pct":60}
 
 ```
-Events: `job.progress`, `job.finished`, `notification.created`, `entity.changed`
-(payloads in `04-architecture/storage-jobs-realtime.md`). Reconnect with `Last-Event-ID`.
+Events: `job.progress`, `job.finished`, `notification.created`, `entity.changed`,
+`boq.line_edited`, `boq.presence` (payloads in `04-architecture/storage-jobs-realtime.md`; the last
+two also as `BoqLineEdited` and `BoqPresence` in the contract). Presence is reported with
+`PUT /boqs/{boqId}/presence` (every 20 s while the BoQ is open, ends 45 s after the last call). Reconnect with `Last-Event-ID`.
 Heartbeat comments every 25 s. Clients treat events as hints to refetch.
+The response carries `Cache-Control: no-cache, no-transform` and `X-Accel-Buffering: no`:
+without `no-transform`, compressing proxies (the Next dev rewrite among them) buffer the stream and
+events arrive late or never (found in FE-004).
 
 ## Files
 

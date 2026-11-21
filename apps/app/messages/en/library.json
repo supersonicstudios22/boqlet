@@ -1,0 +1,816 @@
+{
+  "names": {
+    "storey_elevation": {
+      "label": "Storey elevation"
+    },
+    "length": {
+      "label": "Length",
+      "help": "Along the element's axis"
+    },
+    "width": {
+      "label": "Width"
+    },
+    "height": {
+      "label": "Height"
+    },
+    "thickness": {
+      "label": "Thickness"
+    },
+    "depth": {
+      "label": "Depth"
+    },
+    "diameter": {
+      "label": "Diameter"
+    },
+    "cross_section_area": {
+      "label": "Cross-section area"
+    },
+    "slope": {
+      "label": "Slope"
+    },
+    "elevation_base": {
+      "label": "Base elevation"
+    },
+    "elevation_top": {
+      "label": "Top elevation"
+    },
+    "profile_girth": {
+      "label": "Profile girth",
+      "help": "Developed width of a profile (flashings, gutters)"
+    },
+    "gross_area": {
+      "label": "Gross area",
+      "help": "Main face, before openings"
+    },
+    "net_area": {
+      "label": "Net area",
+      "help": "Main face, after all openings"
+    },
+    "footprint_area": {
+      "label": "Plan area",
+      "help": "Projection on plan"
+    },
+    "developed_area": {
+      "label": "Developed area",
+      "help": "True sloped or unfolded area (roofs, stairs)"
+    },
+    "floor_area": {
+      "label": "Room floor area",
+      "help": "Rooms only"
+    },
+    "ceiling_area": {
+      "label": "Room ceiling area",
+      "help": "Rooms only"
+    },
+    "wall_area": {
+      "label": "Room wall area",
+      "help": "Rooms only, before openings"
+    },
+    "wall_area_net": {
+      "label": "Room wall area, net",
+      "help": "Rooms only, less doors and windows"
+    },
+    "skirting_length": {
+      "label": "Room skirting length",
+      "help": "Rooms only, perimeter less door widths"
+    },
+    "gross_volume": {
+      "label": "Gross volume",
+      "help": "Before openings"
+    },
+    "net_volume": {
+      "label": "Net volume",
+      "help": "After openings"
+    },
+    "perimeter": {
+      "label": "Perimeter"
+    },
+    "mass": {
+      "label": "Mass",
+      "help": "Reported in the model, if any"
+    },
+    "nominal_mass_per_length": {
+      "label": "Nominal mass per metre",
+      "help": "From the section designation"
+    },
+    "density": {
+      "label": "Density"
+    },
+    "bar_diameter": {
+      "label": "Bar diameter"
+    },
+    "bar_count": {
+      "label": "Bar count"
+    },
+    "bar_length": {
+      "label": "Bar length",
+      "help": "Per bar"
+    },
+    "insulation_thickness": {
+      "label": "Insulation thickness"
+    },
+    "connection_count": {
+      "label": "Connection count"
+    },
+    "ifc_class": {
+      "label": "IFC class",
+      "help": "e.g. \"IfcWall\""
+    },
+    "predefined_type": {
+      "label": "Predefined type",
+      "help": "e.g. \"FLOORING\""
+    },
+    "type_name": {
+      "label": "Type name"
+    },
+    "family": {
+      "label": "Measurement family",
+      "help": "linear, planar, volumetric, countable…"
+    },
+    "family_name": {
+      "label": "Family name",
+      "help": "Authoring-tool family, e.g. a Revit family"
+    },
+    "name": {
+      "label": "Name"
+    },
+    "material": {
+      "label": "Material",
+      "help": "Dictionary term, e.g. use UNDER([Material], \"concrete\")"
+    },
+    "material_raw": {
+      "label": "Material as in the model"
+    },
+    "element_type": {
+      "label": "Element type",
+      "help": "Dictionary term from the type name"
+    },
+    "strength_class": {
+      "label": "Strength class",
+      "help": "e.g. \"C30/37\""
+    },
+    "space_type": {
+      "label": "Room type",
+      "help": "Dictionary term from the room name"
+    },
+    "discipline": {
+      "label": "Discipline"
+    },
+    "storey": {
+      "label": "Storey"
+    },
+    "space": {
+      "label": "Room"
+    },
+    "space_name": {
+      "label": "Room name"
+    },
+    "zone": {
+      "label": "Zone"
+    },
+    "status": {
+      "label": "Status",
+      "help": "new, existing, demolish, temporary"
+    },
+    "is_external": {
+      "label": "External",
+      "help": "true / false"
+    },
+    "load_bearing": {
+      "label": "Load bearing",
+      "help": "true / false"
+    },
+    "system": {
+      "label": "System"
+    },
+    "profile": {
+      "label": "Profile",
+      "help": "Section designation, e.g. \"IPE200\""
+    },
+    "nominal_size": {
+      "label": "Nominal size",
+      "help": "e.g. \"DN50\""
+    },
+    "tag": {
+      "label": "Tag"
+    },
+    "guid": {
+      "label": "GlobalId"
+    },
+    "openings": {
+      "label": "Openings",
+      "help": "Doors, windows and voids in the element"
+    },
+    "layers": {
+      "label": "Layers",
+      "help": "Material layers of the build-up"
+    },
+    "faces": {
+      "label": "Faces",
+      "help": "Sides of the element (walls: side a and b, with the room on each)"
+    },
+    "children": {
+      "label": "Parts",
+      "help": "Parts of an assembly (stair flights, roof slabs)"
+    },
+    "kind": {
+      "label": "Opening kind",
+      "help": "\"door\", \"window\", \"void\" or \"recess\""
+    },
+    "area": {
+      "label": "Area"
+    },
+    "volume": {
+      "label": "Volume"
+    },
+    "side": {
+      "label": "Face side",
+      "help": "\"a\", \"b\", \"top\", \"bottom\", \"edge\""
+    },
+    "index": {
+      "label": "Layer number",
+      "help": "0 = first layer"
+    },
+    "function": {
+      "label": "Layer function",
+      "help": "structure, insulation, finish, membrane, air_gap"
+    },
+    "qty": {
+      "label": "Line quantity",
+      "help": "The source line's quantity"
+    },
+    "unit": {
+      "label": "Line unit"
+    },
+    "building": {
+      "label": "Building",
+      "help": "Whole-building values; the log says whether each is from the model or derived"
+    },
+    "gross_floor_area": {
+      "label": "Gross floor area",
+      "help": "Building: floor slab plan areas, or the model's own value"
+    },
+    "net_floor_area": {
+      "label": "Net floor area",
+      "help": "Building: sum of room floor areas, or the model's own value"
+    },
+    "space_volume": {
+      "label": "Volume of rooms",
+      "help": "Building: sum of room volumes"
+    },
+    "model": {
+      "label": "Model"
+    },
+    "embedded": {
+      "label": "Elements passing through",
+      "help": "Columns and beams through a slab or wall"
+    },
+    "filling_class": {
+      "label": "Filling class",
+      "help": "IFC class of the door or window in an opening"
+    },
+    "keys": {
+      "label": "Line key",
+      "help": "The values that split the source line, e.g. Line key › Type name"
+    },
+    "storeys": {
+      "label": "Number of storeys"
+    }
+  },
+  "formula": {
+    "unclosed": "“{text}” has no closing ]",
+    "unknown": "Unknown name {label}. Pick one from Names."
+  },
+  "kinds": {
+    "rule_set": "Rule sets",
+    "classification": "Classifications",
+    "dictionary": "Dictionaries",
+    "federation": "Federation",
+    "resolution": "Resolution"
+  },
+  "kindsOne": {
+    "rule_set": "Rule set",
+    "classification": "Classification",
+    "dictionary": "Dictionary",
+    "federation": "Federation settings",
+    "resolution": "Resolution settings"
+  },
+  "layers": {
+    "system": "System",
+    "org": "Company",
+    "project": "Project"
+  },
+  "hints": {
+    "rule_set": "How quantities are measured. Changes the numbers.",
+    "classification": "Codes, grouping and item texts. Never changes a number.",
+    "dictionary": "What the names in your models mean.",
+    "federation": "Which discipline's model owns which elements when several models go into one BoQ.",
+    "resolution": "How names are matched to meanings, and when to ask."
+  },
+  "home": {
+    "title": "Library",
+    "intro": "Your firm's measuring knowledge, as data you own: rule sets, classifications and dictionaries, versioned and shared by every project.",
+    "projectIntro": "Presets that belong to this project only, such as its own dictionary or a patch on a company rule set.",
+    "kinds": "Kinds",
+    "layer": "Layer",
+    "allLayers": "All layers",
+    "showArchived": "Show archived",
+    "empty": "Nothing here yet.",
+    "emptyProject": "This project has no presets of its own.",
+    "new": {
+      "rule_set": "New rule set",
+      "classification": "New classification",
+      "dictionary": "New dictionary",
+      "federation": "New federation settings",
+      "resolution": "New resolution settings"
+    }
+  },
+  "columns": {
+    "name": "Name",
+    "layer": "Layer",
+    "basedOn": "Based on",
+    "version": "Version",
+    "edited": "Last edited",
+    "usedBy": "Used by"
+  },
+  "preset": {
+    "tabs": "Preset",
+    "tab": {
+      "edit": "Edit",
+      "versions": "Versions",
+      "usage": "Where used"
+    },
+    "backToLibrary": "‹ Library",
+    "backToProject": "‹ Project library",
+    "versionN": "Version {n}",
+    "unpublished": "Not published yet",
+    "draft": "Draft",
+    "draftProblems": "Draft · {n, plural, one {# problem} other {# problems}}",
+    "problems": "{n, plural, one {# problem} other {# problems}}",
+    "noProblems": "no problems",
+    "basedOn": "Based on",
+    "latest": "Latest",
+    "lastEdit": "Last edit",
+    "editedBy": "{name}, {when}",
+    "starred": "Starred",
+    "starredHint": "Preselected for new projects",
+    "star": "Star for new projects",
+    "unstar": "Unstar",
+    "archived": "Archived",
+    "archivedNote": "This preset is archived: it is hidden from pickers and can't be edited. BoQs that used it keep their numbers.",
+    "unavailable": "Not downloaded",
+    "makeCopy": "Make a copy",
+    "editDetails": "Edit details",
+    "detailsHint": "The name and notes people see in the Library and in the BoQ setup.",
+    "save": "Save",
+    "archive": "Archive",
+    "archiveTitle": "Archive {name}?",
+    "archiveBody": "It disappears from the Library and from every picker. BoQs and saved versions that used it keep their numbers and their copy of it.",
+    "archivedToast": "{name} archived"
+  },
+  "create": {
+    "title": {
+      "rule_set": "New rule set",
+      "classification": "New classification",
+      "dictionary": "New dictionary",
+      "federation": "New federation settings",
+      "resolution": "New resolution settings"
+    },
+    "forProject": "For the project {project}",
+    "name": "Name",
+    "description": "Notes",
+    "optional": "optional",
+    "basedOn": "Based on",
+    "basedOnHint": "Free text, for your own reference, e.g. the rulebook you follow. boqlet doesn't check it against any standard.",
+    "start": "Start from",
+    "modes": {
+      "empty": "Empty",
+      "copy": "A copy",
+      "patch": "Changes on a rule set"
+    },
+    "modeHints": {
+      "empty": "Start with nothing and add what you need.",
+      "copy": "An independent copy of a version. Later changes to the original don't reach it.",
+      "patch": "Store only your changes. It follows the original's future versions."
+    },
+    "copyOf": "Copy of",
+    "patchOn": "Changes on",
+    "version": "Version",
+    "copyName": "{name} (copy)",
+    "submit": "Create",
+    "cancel": "Cancel",
+    "notAllowed": "You can view and pick presets here, but creating them is for library editors (and, in a project, its leads and estimators).",
+    "licenceTitle": "Bring your own licence",
+    "licence": "Rules built on a measurement standard are yours: write them from a copy of the standard you are licensed to use. boqlet ships no standard's rules or texts, and never says a BoQ complies with one.",
+    "licenceOk": "Understood"
+  },
+  "edit": {
+    "draftSaved": "Draft, saved {when}.",
+    "draftOver": "Version {n} stays in use until the draft is published.",
+    "noDraft": "Version {n} is the latest. Your first change starts a draft; version {n} stays in use until the draft is published.",
+    "system": "System presets are read-only. Make a copy to change one.",
+    "discard": "Discard draft",
+    "discardTitle": "Discard the draft?",
+    "discardBody": "Its changes are lost. The published versions stay as they are.",
+    "discardBodyNoVersion": "Its changes are lost. The preset has no published version, so it stays empty until you start again.",
+    "readOnly": "Read-only. Library editors change company presets; a project's leads and estimators change its own.",
+    "problems": "{n, plural, one {# problem} other {# problems}} to fix before publishing",
+    "problemsHint": "Found by the engine's check when the draft was saved.",
+    "statusIdle": "Changes are saved as you go.",
+    "statusPending": "Unsaved changes…",
+    "statusSaving": "Saving…",
+    "statusSaved": "All changes saved.",
+    "statusConflict": "Not saved: the draft changed elsewhere.",
+    "statusError": "Not saved.",
+    "conflictTitle": "Someone else saved this draft",
+    "conflictBody": "The draft was saved in another tab or by a colleague after you opened it. Load their version (your unsaved changes are lost) or save yours over it.",
+    "conflictReload": "Load theirs",
+    "conflictOverwrite": "Keep mine"
+  },
+  "versions": {
+    "hint": "Published versions never change. Tick two to compare them.",
+    "none": "No versions yet.",
+    "compare": "Compare",
+    "pick": "Pick",
+    "pickOne": "Pick {version} to compare",
+    "version": "Version",
+    "note": "Change note",
+    "by": "By",
+    "at": "When",
+    "view": "View",
+    "readOnly": "Read-only. Restore it as a draft to work from it.",
+    "restore": "Restore as draft",
+    "restoreTitle": "Restore version {n} as the draft?",
+    "restoreBody": "The current draft is replaced by version {n}'s document.",
+    "restored": "Version {n} is the draft now",
+    "diffTitle": "{older} → {newer}",
+    "diffSame": "The two versions are the same.",
+    "diffSummary": "{added, plural, one {# line added} other {# lines added}}, {removed, plural, one {# line removed} other {# lines removed}}",
+    "diffSkip": "{n, plural, one {# unchanged line} other {# unchanged lines}}"
+  },
+  "usage": {
+    "none": "No BoQ uses this preset yet.",
+    "project": "Project",
+    "boq": "BoQ",
+    "revision": "Revision",
+    "status": "Status",
+    "version": "Version used",
+    "statuses": {
+      "draft": "Working",
+      "in_review": "In review",
+      "approved": "Approved",
+      "issued": "Issued"
+    }
+  },
+  "document": {
+    "title": "Document",
+    "download": "Download JSON",
+    "truncated": "Showing the first {shown} of {total} lines"
+  },
+  "vocab": {
+    "ops": {
+      "eq": "is",
+      "neq": "is not",
+      "in": "is one of",
+      "not_in": "is none of",
+      "gt": ">",
+      "gte": "≥",
+      "lt": "<",
+      "lte": "≤",
+      "between": "between",
+      "contains": "contains",
+      "starts_with": "starts with",
+      "matches": "matches regex",
+      "exists": "is filled in",
+      "missing": "is missing",
+      "under": "is a kind of"
+    },
+    "quantityKinds": {
+      "count": "Count",
+      "length": "Length",
+      "area": "Area",
+      "volume": "Volume",
+      "mass": "Mass",
+      "perimeter": "Perimeter",
+      "choose": "Choose by slot",
+      "when": "If / else",
+      "formula": "Formula"
+    },
+    "quantityKindWords": {
+      "count": "Count them",
+      "length": "Length",
+      "area": "Area",
+      "volume": "Volume",
+      "mass": "Weight",
+      "perimeter": "Perimeter",
+      "formula": "My own formula",
+      "when": "Depends on a condition (if / else)",
+      "choose": "Let a Settings answer choose"
+    },
+    "surfaces": {
+      "main": "main face",
+      "side_a": "one face (side a)",
+      "side_b": "the other face (side b)",
+      "both": "both faces",
+      "larger": "the larger face",
+      "smaller": "the smaller face",
+      "mean": "average of both faces",
+      "top": "top",
+      "bottom": "underside",
+      "edges": "edges",
+      "footprint": "plan area",
+      "developed": "true sloped / unfolded area"
+    },
+    "lengthBases": {
+      "axis": "along the axis",
+      "overall": "overall, with overlaps",
+      "clear": "clear span",
+      "centreline": "centreline",
+      "girth": "girth (developed width)",
+      "perimeter": "perimeter"
+    },
+    "massBases": {
+      "nominal_per_length": "length × kg/m of the section",
+      "volume_density": "volume × density",
+      "reported": "as the model reports it"
+    },
+    "start": {
+      "gross": "gross, openings left in",
+      "net": "net, the model's openings taken out"
+    },
+    "deductWhat": {
+      "openings": "openings",
+      "doors": "doors",
+      "windows": "windows",
+      "voids": "holes without a door or window",
+      "embedded": "elements passing through",
+      "recesses": "recesses"
+    },
+    "deductModes": {
+      "none": "never",
+      "all": "all of them",
+      "over_threshold": "only those larger than a size, in full",
+      "excess_only": "only the part above a size",
+      "per_element_sum": "all, when together they exceed a size"
+    },
+    "breakdowns": {
+      "element": "whole elements",
+      "layer": "each material layer",
+      "face": "each face (side)",
+      "material": "each material",
+      "child": "each part of an assembly"
+    },
+    "nameGroups": {
+      "measured": "Measured on the element",
+      "describes": "Describing the element",
+      "lists": "Lists (use with SUM, COUNT, MIN, MAX, AVG)",
+      "items": "Fields of list items (inside WHERE, or after a list: Openings › Area)",
+      "line": "On a BoQ line (calculated items per line)",
+      "building": "The whole building (after Building ›, e.g. [Building › Gross volume])"
+    },
+    "classGroups": {
+      "building": "Building",
+      "structure": "Structure",
+      "services": "Services (MEP)",
+      "rooms": "Rooms",
+      "furniture": "Furniture and equipment",
+      "site": "Infrastructure and site"
+    },
+    "classWords": {
+      "IfcBeam": "beams",
+      "IfcBearing": "bearings",
+      "IfcBuildingElementPart": "element parts",
+      "IfcBuildingElementProxy": "unclassified objects (proxies)",
+      "IfcCableCarrierFitting": "cable carrier fittings",
+      "IfcCableCarrierSegment": "cable trays",
+      "IfcCableFitting": "cable fittings",
+      "IfcCableSegment": "cables",
+      "IfcCaissonFoundation": "caisson foundations",
+      "IfcChimney": "chimneys",
+      "IfcColumn": "columns",
+      "IfcCourse": "pavement courses",
+      "IfcCovering": "coverings (finishes, cladding)",
+      "IfcCurtainWall": "curtain walls",
+      "IfcDeepFoundation": "deep foundations",
+      "IfcDiscreteAccessory": "discrete accessorys",
+      "IfcDistributionChamberElement": "manholes and pits",
+      "IfcDistributionControlElement": "sensors and controls",
+      "IfcDoor": "doors",
+      "IfcDuctFitting": "duct fittings",
+      "IfcDuctSegment": "ducts",
+      "IfcEarthworksCut": "earthworks cut",
+      "IfcEarthworksFill": "earthworks fill",
+      "IfcElementAssembly": "element assemblies",
+      "IfcEnergyConversionDevice": "boilers, chillers, heat pumps",
+      "IfcFastener": "fasteners",
+      "IfcFlowController": "valves, dampers, switches",
+      "IfcFlowFitting": "flow fittings",
+      "IfcFlowMovingDevice": "pumps and fans",
+      "IfcFlowSegment": "pipes and ducts (generic)",
+      "IfcFlowStorageDevice": "tanks",
+      "IfcFlowTerminal": "terminals (sanitary, lights, outlets)",
+      "IfcFlowTreatmentDevice": "flow treatment devices",
+      "IfcFooting": "footings",
+      "IfcFurnishingElement": "furnishing",
+      "IfcFurniture": "furniture",
+      "IfcGeographicElement": "trees and terrain features",
+      "IfcJunctionBox": "junction boxs",
+      "IfcKerb": "kerbs",
+      "IfcMechanicalFastener": "mechanical fasteners",
+      "IfcMember": "members (studs, rafters, mullions)",
+      "IfcOpeningElement": "openings",
+      "IfcPavement": "pavements",
+      "IfcPile": "piles",
+      "IfcPipeFitting": "pipe fittings",
+      "IfcPipeSegment": "pipes",
+      "IfcPlate": "plates and panels",
+      "IfcRail": "rails",
+      "IfcRailing": "railings",
+      "IfcRamp": "ramps",
+      "IfcRampFlight": "ramp flights",
+      "IfcReinforcedSoil": "reinforced soils",
+      "IfcReinforcingBar": "reinforcing bars",
+      "IfcReinforcingMesh": "reinforcing meshes",
+      "IfcRoof": "roofs",
+      "IfcShadingDevice": "shading devices",
+      "IfcSign": "signs",
+      "IfcSignal": "signals",
+      "IfcSlab": "slabs",
+      "IfcSpace": "rooms",
+      "IfcStair": "stairs",
+      "IfcStairFlight": "stair flights",
+      "IfcSurfaceFeature": "surface features",
+      "IfcSystemFurnitureElement": "system furniture elements",
+      "IfcTendon": "tendons",
+      "IfcTendonAnchor": "tendon anchors",
+      "IfcTrackElement": "track elements",
+      "IfcTransportElement": "lifts and escalators",
+      "IfcVibrationIsolator": "vibration isolators",
+      "IfcVoidingFeature": "voiding features",
+      "IfcWall": "walls",
+      "IfcWindow": "windows",
+      "IfcZone": "zones"
+    }
+  },
+  "fields": {
+    "unknownOption": "{value} (unknown)",
+    "remove": "Remove {what}",
+    "add": "Add…",
+    "key": "Key",
+    "value": "Value",
+    "removeRow": "Remove row",
+    "addRow": "+ Add row",
+    "exprHelp": {
+      "operators": {
+        "term": "operators",
+        "text": "+ - * / ( ) = != > >= < <= AND OR NOT"
+      },
+      "functions": {
+        "term": "functions",
+        "text": "IF(condition, then, else) MIN MAX ROUND(x, step) CEIL FLOOR ABS SQRT PI() COALESCE UNDER(term, \"root\") CONTAINS(text, \"x\") LOWER"
+      },
+      "lists": {
+        "term": "lists",
+        "text": "SUM([Openings › Area] WHERE [Area] > 0.5) · COUNT([Openings] WHERE [Opening kind] = \"door\") · also AVG, MIN, MAX"
+      },
+      "names": {
+        "term": "names",
+        "text": "In square brackets, as listed under Names. Text in quotes is taken as written. Checked and calculated only by the engine."
+      }
+    },
+    "example": "e.g. {text}",
+    "formula": "formula",
+    "namesTitle": "Names a formula can use",
+    "names": "Names",
+    "syntaxTitle": "Formula syntax",
+    "fx": "fx",
+    "codeTitle": "Show the formula exactly as stored",
+    "code": "code",
+    "findName": "Find a name",
+    "answersHere": "Answers in this rule set",
+    "now": "now {value}",
+    "propertySets": "Property sets: props[\"Pset_WallCommon.FireRating\"]. A value the element doesn't have counts as empty.",
+    "notDefined": "not defined",
+    "yes": "yes",
+    "no": "no",
+    "customFormula": "custom formula",
+    "emptyFormula": "(empty formula)",
+    "slot": "Setting",
+    "slotNotDefined": "{name} (not defined)",
+    "useFixed": "Use a fixed value instead",
+    "useSlot": "Take this value from a setting",
+    "slotToggle": "setting",
+    "andMore": "+ and…",
+    "removeCondition": "Remove condition",
+    "groupType": "Group type",
+    "allOf": "All of these",
+    "anyOf": "Any of these",
+    "noneOf": "None of this",
+    "removeGroup": "Remove group",
+    "ungroup": "ungroup",
+    "addCondition": "+ Condition",
+    "addGroup": "+ Group",
+    "filter": "Filter",
+    "addItem": "+ Add",
+    "nothingYet": "Nothing here yet."
+  },
+  "json": {
+    "note": "The draft exactly as it is saved. Edit and apply; the forms update from it.",
+    "label": "Document as JSON",
+    "apply": "Apply JSON",
+    "discard": "Discard",
+    "invalid": "Not valid JSON: {error}"
+  },
+  "story": {
+    "and": "{head} and {last}",
+    "or": "{head} or {last}",
+    "comma": ", ",
+    "property": "property {name}",
+    "isFilledIn": "is filled in",
+    "isEmpty": "is empty",
+    "orWord": "or",
+    "kindOf": "{what} is a kind of {term}",
+    "classIs": "element kind is {classes}",
+    "classIsNot": "element kind is not {classes}",
+    "logic": {
+      "and": "and",
+      "or": "or",
+      "not": "not"
+    }
+  },
+  "preview": {
+    "title": "Preview",
+    "run": "Preview",
+    "running": "Running…",
+    "project": "Project",
+    "model": "Model",
+    "version": "Model version",
+    "pickProject": "Pick a project…",
+    "pickModel": "Pick a model…",
+    "pickVersion": "Pick a version…",
+    "noReadyVersion": "No ready version",
+    "versionN": "v{n}",
+    "follow": "Follow my changes (runs again after each save)",
+    "hint": "Pick a model version to see the BoQ lines this draft gives, and what it changes against the published version.",
+    "summary": "{lines, plural, one {# line} other {# lines}}, {questions, plural, =0 {no questions} one {# question} other {# questions}}.",
+    "changed": "Against version {n}: {added} added, {removed} removed, {changed} changed.",
+    "noCompare": "Nothing published yet to compare with.",
+    "onlyChanged": "Only changed lines",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "toConfirm": "to confirm",
+    "added": "new",
+    "changedAgainst": "Against {name}: {added} added, {removed} removed, {changed} changed."
+  },
+  "publish": {
+    "open": "Publish version {n}",
+    "title": "Publish {name} as version {n}",
+    "body": "Version {n} can't be changed afterwards. BoQs keep the version they use until someone picks the new one.",
+    "note": "What changed",
+    "noteHint": "Shown in the version history, e.g. \"Openings up to 0.5 m² stay in walls\".",
+    "cancel": "Cancel",
+    "confirm": "Publish version {n}",
+    "done": "Version {n} published",
+    "problems": "{n, plural, one {The draft has a problem} other {The draft has # problems}} to fix first (listed above the editor).",
+    "conflict": "The draft changed elsewhere. Reload or keep yours first."
+  },
+  "clone": {
+    "open": "Clone",
+    "title": "Clone {name}",
+    "copyName": "{name} (copy)",
+    "name": "Name",
+    "how": "How",
+    "body": "A copy in your company's Library, as a draft. Later changes to the original don't reach it.",
+    "bodyRuleSet": "A new rule set in your company's Library, as a draft.",
+    "modes": {
+      "patch": "Based on it",
+      "copy": "Independent copy"
+    },
+    "modeHints": {
+      "patch": "Stores only your changes and follows the original's future versions.",
+      "copy": "A full copy. Later changes to the original don't reach it."
+    },
+    "cancel": "Cancel",
+    "confirm": "Clone"
+  },
+  "template": {
+    "download": "Download as Excel",
+    "upload": "Upload from Excel",
+    "reading": "Reading…",
+    "emptyTemplate": "Download empty template",
+    "reviewTitle": "Changes from the workbook",
+    "changes": "{n, plural, one {# change} other {# changes}} to apply to the draft. Nothing is saved until you apply.",
+    "noChanges": "The workbook changes nothing in the draft.",
+    "problems": "{n, plural, one {# row couldn't be read} other {# rows couldn't be read}}",
+    "problemsHint": "Rows with a problem are left out. Fix them in Excel and upload again, or apply the rest.",
+    "where": "{hasRow, select, yes {Sheet {sheet}, row {row}, column {column}: } other {Sheet {sheet}: }}",
+    "cancel": "Cancel",
+    "apply": "Apply to the draft"
+  },
+  "guided": {
+    "open": "Guided mode",
+    "full": "Open in the full editor",
+    "itemsIntro": "Import your item list (Code list › Import), then choose the item each kind of line gets (Codes per line). Everything else is under Advanced."
+  }
+}

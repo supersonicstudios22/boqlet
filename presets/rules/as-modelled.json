@@ -17,6 +17,38 @@
     "onMissing": "flag",
     "breakdown": "element"
   },
+  "setupSteps": [
+    {
+      "id": "walls",
+      "title": "Walls",
+      "intro": "Walls are in every model; m² or m³ and which face are the commonest differences between practices."
+    },
+    {
+      "id": "wall-openings",
+      "title": "Openings in walls",
+      "intro": "Which windows and doors are deducted from wall quantities."
+    },
+    {
+      "id": "slab-openings",
+      "title": "Openings in floors and roofs",
+      "intro": "Which holes are deducted from slab quantities."
+    },
+    {
+      "id": "roofs",
+      "title": "Roofs",
+      "intro": "Roof areas along the slope or on plan."
+    },
+    {
+      "id": "windows-doors",
+      "title": "Windows and doors",
+      "intro": "Counted, or measured by area."
+    },
+    {
+      "id": "layout",
+      "title": "How lines are split",
+      "intro": "One line per type, or per type and storey."
+    }
+  ],
   "sections": [
     {
       "id": "general",
@@ -86,6 +118,7 @@
   },
   "params": {
     "lines_by_storey": {
+      "setup": "layout",
       "type": "boolean",
       "value": false,
       "label": "Lines per storey",
@@ -338,6 +371,7 @@
       }
     },
     "wall_unit": {
+      "setup": "walls",
       "type": "choice",
       "value": "area",
       "options": [
@@ -371,6 +405,7 @@
       }
     },
     "wall_surface": {
+      "setup": "walls",
       "type": "choice",
       "value": "main",
       "options": [
@@ -397,6 +432,7 @@
       "help": "The engine does not measure each face separately yet, so all choices except 'both sides' currently give the same area."
     },
     "wall_opening_mode": {
+      "setup": "wall-openings",
       "type": "choice",
       "value": "all",
       "options": [
@@ -475,6 +511,7 @@
       }
     },
     "slab_opening_mode": {
+      "setup": "slab-openings",
       "type": "choice",
       "value": "all",
       "options": [
@@ -576,6 +613,7 @@
       }
     },
     "window_measure": {
+      "setup": "windows-doors",
       "type": "choice",
       "value": "count",
       "options": [
@@ -593,6 +631,7 @@
       }
     },
     "door_measure": {
+      "setup": "windows-doors",
       "type": "choice",
       "value": "count",
       "options": [
@@ -633,6 +672,7 @@
       "help": "Reinforcement estimates for slabs are taken from this item."
     },
     "roof_surface": {
+      "setup": "roofs",
       "type": "choice",
       "value": "developed",
       "options": [
@@ -919,6 +959,7 @@
       "question": "Is loose furniture included in the BoQ?"
     },
     "include_proxies": {
+      "setup": "skip",
       "type": "boolean",
       "value": true,
       "label": "Count unknown objects",
@@ -927,6 +968,7 @@
       "help": "No: they are left out and listed as excluded. Either way they are reported."
     },
     "include_non_physical": {
+      "setup": "skip",
       "type": "boolean",
       "value": false,
       "label": "Count marker objects",

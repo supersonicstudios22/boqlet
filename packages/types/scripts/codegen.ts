@@ -5,7 +5,7 @@
  * Run after changing any type:  npm run codegen
  */
 import { createGenerator } from "ts-json-schema-generator";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FAMILY_INFO, IFC_FAMILIES } from "../src/families";
@@ -16,18 +16,29 @@ const root = resolve(pkg, "../..");
 
 const targets: [file: string, type: string, out: string][] = [
   ["rules.ts", "OurRuleType", "rule-set"],
+  ["rules.ts", "ManualItem", "manual-item"],
   ["parsed.ts", "ParsedModel", "parsed-model"],
+  ["measured.ts", "MeasuredElement", "measured-element"],
   ["dictionary.ts", "Dictionary", "dictionary"],
   ["dictionary.ts", "ResolutionSettings", "resolution-settings"],
   ["classification.ts", "CodeList", "codelist"],
   ["classification.ts", "ClassificationMap", "classification-map"],
   ["engine.ts", "BoqResult", "boq-result"],
+  ["diff.ts", "RunDiff", "run-diff"],
   ["engine.ts", "Decision", "decision"],
   ["engine.ts", "FederationSettings", "federation-settings"],
   ["api.ts", "RunRequest", "run-request"],
 ];
 
 mkdirSync(resolve(pkg, "schema"), { recursive: true });
+
+function writeIfChanged(path: string, doc: unknown) {
+  const content = JSON.stringify(doc, null, 2) + "\n";
+  if (!existsSync(path) || readFileSync(path, "utf8").replaceAll("\r\n", "\n") !== content) {
+    writeFileSync(path, content);
+  }
+}
+
 for (const [file, type, out] of targets) {
   const schema = createGenerator({
     path: resolve(pkg, "src", file),
@@ -35,10 +46,10 @@ for (const [file, type, out] of targets) {
     type,
     skipTypeCheck: true,
   }).createSchema(type);
-  writeFileSync(resolve(pkg, "schema", `${out}.schema.json`), JSON.stringify(schema, null, 2) + "\n");
+  writeIfChanged(resolve(pkg, "schema", `${out}.schema.json`), schema);
   console.log(`schema  ${out}.schema.json  (${type})`);
 }
 
 const famOut = resolve(root, "engine/ifc_boq/data/families.json");
-writeFileSync(famOut, JSON.stringify({ IFC_FAMILIES, FAMILY_INFO }, null, 2) + "\n");
+writeIfChanged(famOut, { IFC_FAMILIES, FAMILY_INFO });
 console.log("data    engine/ifc_boq/data/families.json");

@@ -36,6 +36,12 @@
           "items": {
             "$ref": "#/definitions/Decision"
           }
+        },
+        "manualItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ManualItem"
+          }
         }
       },
       "required": [
@@ -404,11 +410,22 @@
           ]
         },
         "answer": {
-          "type": [
-            "string",
-            "number",
-            "boolean",
-            "null"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/LineOverrideEdit"
+            }
           ]
         },
         "note": {
@@ -428,6 +445,173 @@
       ],
       "additionalProperties": false,
       "description": "A user's answer to a Question. Decisions are stored per project (or promoted to company level) and re-applied on every run and every new model version, so the same question is never asked twice."
+    },
+    "LineOverrideEdit": {
+      "type": "object",
+      "properties": {
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/definitions/Unit"
+        },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "excluded": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "An engine decision with a questionId of `override:{lineKey}`."
+    },
+    "Unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "nr",
+            "item",
+            "sum",
+            "mm",
+            "m",
+            "km",
+            "m2",
+            "m3",
+            "kg",
+            "t",
+            "ft",
+            "ft2",
+            "ft3",
+            "yd2",
+            "yd3",
+            "lb",
+            "h"
+          ]
+        }
+      ]
+    },
+    "ManualItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "codes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Preferred code by classification system. Unspecified systems still use their maps."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "preliminary",
+            "provisional_sum",
+            "lump_sum",
+            "daywork",
+            "other"
+          ]
+        },
+        "description": {
+          "$ref": "#/definitions/Value%3CTemplate%3E"
+        },
+        "unit": {
+          "$ref": "#/definitions/Unit"
+        },
+        "quantity": {
+          "$ref": "#/definitions/Value%3Cnumber%3E",
+          "description": "Empty (and no formula) = flagged line for the user to fill."
+        },
+        "formula": {
+          "$ref": "#/definitions/Value%3CExpr%3E",
+          "description": "Quantity from a formula over answers (p.*) and whole-building values (building.*), e.g. \"building.gross_volume / 100\" for an item priced per 100 m3 of building. Wins over `quantity`."
+        },
+        "amount": {
+          "$ref": "#/definitions/Value%3Cnumber%3E",
+          "description": "Provisional and lump sums may carry an amount instead of a quantity."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "$ref": "#/definitions/Value%3Cboolean%3E"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "description",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "Value<Template>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Template"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Template": {
+      "type": "string",
+      "description": "Template text with {placeholders}: any MeasuredField, p.<param>, or {expr:...}."
+    },
+    "Value<number>": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Value<Expr>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Expr"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
+    },
+    "Value<boolean>": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/definitions/ParamRef"
+        }
+      ],
+      "description": "A literal value, or a slot to be filled from `params`."
     }
   }
 }

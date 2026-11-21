@@ -1,0 +1,228 @@
+package com.boqlet.api.project;
+
+import com.boqlet.api.audit.AuditWriter;
+import com.boqlet.api.billing.EntitlementService;
+import com.boqlet.api.db.Ids;
+import com.boqlet.api.db.StoredJson;
+import com.boqlet.api.http.RequestContext;
+import com.boqlet.api.identity.IdentityService;
+import com.boqlet.api.model.Models;
+import com.boqlet.api.org.OrgAccess;
+import com.boqlet.api.realtime.Notifications;
+import com.boqlet.contract.model.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class Projects {
+    private final JdbcTemplate database;
+    private final OrgAccess orgs;
+    private final ProjectAccess access;
+    private final ProjectPresets presets;
+    private final EntitlementService limits;
+    private final StoredJson json;
+    private final AuditWriter audit;
+    private final Notifications notifications;
+    private final Models models;
+
+    Projects(JdbcTemplate database, OrgAccess orgs, ProjectAccess access, ProjectPresets presets,
+             EntitlementService limits, StoredJson json, AuditWriter audit, Notifications notifications, Models models) {
+        this.database = database;
+        this.orgs = orgs;
+        this.access = access;
+        this.presets = presets;
+        this.limits = limits;
+        this.json = json;
+        this.audit = audit;
+        this.notifications = notifications;
+        this.models = models;
+    }
+
+    List<ProjectListItem> list(UUID org, UUID actor, String status, String query) {
+        return access.list(org, actor, status, query).stream().map(row -> {
+            var item = json.read(json.object(row.project()).toString(), ProjectListItem.class);
+            return item.lastActivityAt(row.activity()).counts(counts(row.project().getId()));
+        }).toList();
+    }
+
+    private ProjectListItemAllOfCounts counts(UUID project) {
+        return database.queryForObject("""
+                SELECT (SELECT count(*) FROM models WHERE project_id = ? AND NOT archived) AS models,
+                    count(*) AS boqs, count(*) FILTER (WHERE b.status = 'confirmed') AS confirmed,
+                    count(*) FILTER (WHERE r.status = 'in_review') AS reviews,
+                    coalesce(sum((
+                        SELECT count(*) FROM run_questions q WHERE q.run_id = r.current_run_id
+                            AND (q.question->>'blocking')::boolean
+                            AND NOT EXISTS(SELECT 1 FROM decisions d WHERE d.project_id = b.project_id
+                                AND d.question_id = q.question_id AND d.superseded_at IS NULL)
+                    )),0) AS open
+                FROM boqs b JOIN boq_revisions r ON r.id = b.current_revision_id WHERE b.project_id = ? AND NOT b.archived
+                """, (row, index) -> new ProjectListItemAllOfCounts().models(row.getInt("models")).boqs(row.getInt("boqs"))
+                .confirmedBoqs(row.getInt("confirmed")).revisionsInReview(row.getInt("reviews"))
+                .blockingQuestions(row.getInt("open")), project, project);
+    }
+
+    @Transactional
+    public Project create(UUID org, UUID actor, ProjectCreate request) {
+        OrgSettings settings = orgs.lock(org, actor).org().getSettings();
+        boolean sample = request.getSample() == ProjectCreate.SampleEnum.DUPLEX;
+        if (!sample) limits.checkCapacity(org, actor, "activeProjects", limits.activeProjects(org));
+        UUID project = Ids.newId();
+        UUID dictionary = Ids.newId();
+        String name = name(request.getName());
+        ProjectDefaults defaults = sample ? presets.sampleDefaults()
+                : request.getDefaults() == null ? presets.defaults(org) : request.getDefaults();
+        presets.validate(org, project, defaults);
+        database.update("""
+                INSERT INTO projects (id, org_id, name, code, client, location, currency, unit_system, locale,
+                                      defaults, project_dictionary_id, sample)
+                VALUES (?, ?, ?, ?, ?, CAST(? AS jsonb), ?, ?, ?, CAST(? AS jsonb), ?, ?)
+                """, project, org, name, request.getCode(), request.getClient(), encode(request.getLocation()),
+                first(request.getCurrency(), settings.getDefaultCurrency(), "EUR"),
+                first(request.getUnitSystem() == null ? null : request.getUnitSystem().getValue(),
+                        settings.getDefaultUnitSystem() == null ? null : settings.getDefaultUnitSystem().getValue(), "metric"),
+                first(request.getLocale(), settings.getDefaultLocale(), "en"), encode(defaults), dictionary, sample);
+        presets.createDictionary(org, project, actor, dictionary, name);
+        database.update("INSERT INTO project_members (org_id, project_id, user_id, role) VALUES (?, ?, ?, 'lead')", org, project, actor);
+        record(org, project, actor, "project.created", "project", project, Map.of("name", name, "sample", sample));
+        var created = access.require(project, actor);
+        if (sample) {
+            var model = models.seedDuplex(created, actor);
+            database.update("INSERT INTO sample_projects (project_id, model_version_id, created_by) VALUES (?, ?, ?)",
+                    project, model, actor);
+        }
+        return created;
+    }
+
+    @Transactional
+    public Project update(UUID project, UUID actor, ProjectUpdate request) {
+        Project current = access.lock(project, actor, "edit");
+        String name = request.getName() == null ? current.getName() : name(request.getName());
+        if (request.getDefaults() != null) presets.validate(current.getOrgId(), project, request.getDefaults());
+        database.update("""
+                UPDATE projects SET name = ?, code = coalesce(?, code), client = coalesce(?, client),
+                    location = coalesce(CAST(? AS jsonb), location), currency = coalesce(?, currency),
+                    unit_system = coalesce(?, unit_system), locale = coalesce(?, locale),
+                    defaults = coalesce(CAST(? AS jsonb), defaults), updated_at = now() WHERE id = ?
+                """, name, request.getCode(), request.getClient(), encode(request.getLocation()), request.getCurrency(),
+                request.getUnitSystem() == null ? null : request.getUnitSystem().getValue(), request.getLocale(),
+                encode(request.getDefaults()), project);
+        record(current.getOrgId(), project, actor, "project.updated", "project", project, Map.of());
+        return access.require(project, actor);
+    }
+
+    @Transactional
+    public Project status(UUID project, UUID actor, Project.StatusEnum status) {
+        Project current = access.lock(project, actor, "archive");
+        if (current.getStatus() == status) return current;
+        UUID org = current.getOrgId();
+        if (status == Project.StatusEnum.ACTIVE && !Boolean.TRUE.equals(current.getSample())) {
+            limits.checkCapacity(org, actor, "activeProjects", limits.activeProjects(org));
+        }
+        database.update("UPDATE projects SET status = ?, updated_at = now() WHERE id = ?", status.getValue(), project);
+        record(org, project, actor, status == Project.StatusEnum.ACTIVE ? "project.restored" : "project.archived",
+                "project", project, Map.of());
+        return access.require(project, actor);
+    }
+
+    List<ProjectMember> members(UUID project, UUID actor) {
+        access.require(project, actor);
+        return queryMembers(project, null);
+    }
+
+    @Transactional
+    public ProjectMember addMember(UUID project, UUID actor, UUID user, ProjectRole role) {
+        Project visible = access.lock(project, actor, "manageMembers");
+        UUID org = visible.getOrgId();
+        int joined = database.update("""
+                INSERT INTO project_members (org_id, project_id, user_id, role, added_by)
+                SELECT m.org_id, ?, m.user_id, ?, ? FROM memberships m JOIN users u ON u.id = m.user_id
+                WHERE m.org_id = ? AND m.user_id = ? AND u.deleted_at IS NULL
+                ON CONFLICT DO NOTHING
+                """, project, role.getValue(), actor, org, user);
+        if (joined == 0) {
+            if (queryMembers(project, user).isEmpty()) {
+                throw ProjectAccess.error(HttpStatus.CONFLICT, "not_org_member", "Only organisation members can join a project.");
+            }
+            throw ProjectAccess.error(HttpStatus.CONFLICT, "already_member", "Already a project member.");
+        }
+        record(org, project, actor, "project.member_added", "user", user, Map.of("role", role.getValue()));
+        if (!actor.equals(user)) {
+            String by = database.queryForObject("SELECT name FROM users WHERE id = ?", String.class, actor);
+            notifications.send(user, org, project, "project_member.added", "membership",
+                    Map.of("project", visible.getName(), "role", role.getValue(), "by", by == null ? "" : by),
+                    notifications.projectUrl(org, project), "project", project);
+        }
+        return member(project, user);
+    }
+
+    @Transactional
+    public ProjectMember updateMember(UUID project, UUID actor, UUID user, ProjectRole role) {
+        UUID org = access.lock(project, actor, "manageMembers").getOrgId();
+        ProjectRole previous = member(project, user).getRole();
+        if (role != ProjectRole.LEAD) keepLead(project, previous);
+        database.update("UPDATE project_members SET role = ? WHERE project_id = ? AND user_id = ?",
+                role.getValue(), project, user);
+        record(org, project, actor, "project.member_role_changed", "user", user,
+                Map.of("from", previous.getValue(), "to", role.getValue()));
+        return member(project, user);
+    }
+
+    @Transactional
+    public void removeMember(UUID project, UUID actor, UUID user) {
+        UUID org = access.lock(project, actor, "manageMembers").getOrgId();
+        keepLead(project, member(project, user).getRole());
+        database.update("DELETE FROM project_members WHERE project_id = ? AND user_id = ?", project, user);
+        record(org, project, actor, "project.member_removed", "user", user, Map.of());
+    }
+
+    private List<ProjectMember> queryMembers(UUID project, UUID user) {
+        String select = """
+                SELECT u.*, m.role, m.added_by, by_user.name AS adder_name, by_user.email AS adder_email
+                FROM project_members m JOIN users u ON u.id = m.user_id
+                LEFT JOIN users by_user ON by_user.id = m.added_by AND by_user.deleted_at IS NULL
+                WHERE m.project_id = ? AND u.deleted_at IS NULL
+                """;
+        return database.query(select + (user == null ? " ORDER BY u.name, u.id" : " AND m.user_id = ?"), (row, index) -> {
+            var member = new ProjectMember(IdentityService.mapUser(row, index), ProjectRole.fromValue(row.getString("role")));
+            if (row.getString("adder_name") != null) member.setAddedBy(
+                    new UserRef(row.getObject("added_by", UUID.class), row.getString("adder_name")).email(row.getString("adder_email")));
+            return member;
+        }, user == null ? new Object[]{project} : new Object[]{project, user});
+    }
+
+    private ProjectMember member(UUID project, UUID user) {
+        return queryMembers(project, user).stream().findFirst().orElseThrow(() ->
+                ProjectAccess.error(HttpStatus.NOT_FOUND, "not_found", "The project member was not found."));
+    }
+
+    private void keepLead(UUID project, ProjectRole role) {
+        if (role == ProjectRole.LEAD && database.queryForObject(
+                "SELECT count(*) FROM project_members WHERE project_id = ? AND role = 'lead'", Long.class, project) <= 1) {
+            throw ProjectAccess.error(HttpStatus.CONFLICT, "last_lead", "A project needs at least one lead.");
+        }
+    }
+
+    private void record(UUID org, UUID project, UUID actor, String action, String type, UUID subject, Map<String, ?> data) {
+        audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.USER,
+                project, action, type, subject, json.object(data));
+    }
+
+    private String encode(Object value) {
+        return value == null ? null : json.object(value).toString();
+    }
+
+    private static String name(String value) {
+        if (value.isBlank()) throw ProjectAccess.error(HttpStatus.BAD_REQUEST, "invalid_body", "The name can't be empty.");
+        return value.strip();
+    }
+
+    private static String first(String requested, String configured, String fallback) {
+        return requested != null ? requested : configured != null ? configured : fallback;
+    }
+}

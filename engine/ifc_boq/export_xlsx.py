@@ -19,6 +19,8 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from .sheets.boq_import import annotate
+from .trace_steps import describe as describe_step
 
 F = "Arial"
 H_FONT = Font(name=F, size=10, bold=True, color="FFFFFF")
@@ -47,9 +49,11 @@ def _header(ws, row, cols, widths):
         ws.column_dimensions[get_column_letter(i)].width = w
 
 
-def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=()):
+def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=()):
     for i, v in enumerate(values, 1):
         x = ws.cell(row=row, column=i, value=v)
+        if x.data_type == "f" and i not in formula_cols:
+            x.data_type = "s"
         x.font, x.border = font, BOX
         if fill:
             x.fill = fill
@@ -61,16 +65,30 @@ def _qfmt(unit):
     return NUM3 if unit in ("t",) else ("0" if unit in ("nr", "item") else NUM)
 
 
+def _description(line, primary):
+    if "description" in line.get("overridden", {}).get("fields", []):
+        return line["description"]
+    return line.get("codes", {}).get(primary, {}).get("text") or line["description"]
+
+
 def export(result: dict, meta: dict) -> bytes:
     wb = Workbook()
     systems = meta.get("classifications", [])          # [{id, name}]
+    group_by = meta.get("groupBy")
+    if group_by:
+        systems = sorted(systems, key=lambda system: system["id"] != group_by)
     primary = systems[0]["id"] if systems else None
     lines = result["lines"]
+    text_systems = {system for line in lines for system, code in line["codes"].items() if code.get("text")}
 
     # ------------------------------------------------------------------ BoQ
     ws = wb.active
     ws.title = "BoQ"
-    ws["A1"] = f"Bill of Quantities - {meta.get('modelName', '')}"
+    label = meta.get("revision")
+    status = meta.get("status")
+    working = status in {"working", "draft", "review", "approved"} if status else False
+    title = meta.get("boq") or meta.get("modelName", "")
+    ws["A1"] = f"Bill of Quantities - {title}" + (f" ({label})" if label else "") + (" (WORKING)" if working else "")
     ws["A1"].font = TITLE
     ws["A2"] = (f"Rules: {result['ruleSet']['name']} ({result['ruleSet']['meta'].get('chain', result['ruleSet']['id'])})  |  "
                 f"Grouping: {systems[0]['name'] if systems else 'none'}  |  Status: {result['status']}  |  "
@@ -78,16 +96,27 @@ def export(result: dict, meta: dict) -> bytes:
     ws["A2"].font = SMALL
     ws["A3"] = "Enter rates in the yellow column. Amounts and totals are formulas. Yellow rows are flagged: quantity to be confirmed."
     ws["A3"].font = SMALL
+    manual_count = sum(l["ruleKind"] == "manual" and not l.get("excluded") for l in lines)
+    ws["A4"] = f"Review work not in the models. This bill includes {manual_count} manual line(s)."
+    ws["A4"].font = SMALL
     _header(ws, 5, ["Ref", "Description", "Unit", "Quantity", "Rate", "Amount", "Source", "Notes"],
             [10, 70, 7, 12, 11, 14, 10, 50])
     ws.freeze_panes = "A6"
     groups: dict[tuple, list] = {}
     for l in lines:
+        if l.get("excluded"):
+            continue
         c = l["codes"].get(primary) if primary else None
         top = (c["path"][0]["code"], c["path"][0]["title"]) if c else ("~", "Unclassified")
         groups.setdefault(top, []).append(l)
     r = 6
     subtotal_cells = []
+    roundtrip_rows = []
+    position_numbers = meta.get("positionNumbers") or {}
+    if position_numbers:
+        ws["J5"] = "No."
+        ws["J5"].font, ws["J5"].fill, ws["J5"].border = H_FONT, H_FILL, BOX
+        ws.column_dimensions["J"].width = 12
     for (code, title), ls in sorted(groups.items(), key=lambda kv: kv[0][0]):
         _row(ws, r, [code if code != "~" else "", title, "", "", "", "", "", ""], BOLD, SEC_FILL)
         r += 1
@@ -95,21 +124,66 @@ def export(result: dict, meta: dict) -> bytes:
         for l in ls:
             c = l["codes"].get(primary) if primary else None
             flagged = l["quantity"] is None
-            _row(ws, r, [c["code"] if c else "", l["description"], l["unit"], l["quantity"], None,
-                         f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(l.get("notes", []))],
-                 NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8))
+            notes = l.get("notes", [])
+            description = _description(l, primary)
+            if description != l["description"]:
+                notes = [*notes, f"Measured as: {l['description']}"]
+            if measured := l.get("overridden", {}).get("engineDescription"):
+                notes = [*notes, f"Measured as: {measured}"]
+            if reason := l.get("overridden", {}).get("reason"):
+                if not any(reason in note for note in notes):
+                    notes = [*notes, "Reason: " + reason]
+            _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
+                         f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
+                 NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
             ws.cell(row=r, column=4).number_format = _qfmt(l["unit"])
             ws.cell(row=r, column=5).fill = IN_FILL
             ws.cell(row=r, column=5).font = INPUT
             ws.cell(row=r, column=5).number_format = NUM
             ws.cell(row=r, column=6).number_format = NUM
+            roundtrip_rows.append((r, l["key"], code if code != "~" else ""))
+            if position := position_numbers.get(l["key"]):
+                ws.cell(r, 10, str(position)).data_type = "s"
             r += 1
-        _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL)
+        _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL,
+             formula_cols=(6,))
         ws.cell(row=r, column=6).number_format = NUM
         subtotal_cells.append(f"F{r}")
         r += 2
-    _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""], Font(name=F, size=11, bold=True))
+    _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""],
+         Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
+    if meta.get("boqId"):
+        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows)
+
+    if meta.get("project") or meta.get("boq") or label or meta.get("watermark"):
+        cover = wb.create_sheet("Cover", 0)
+        cover["A1"] = "Bill of Quantities"
+        cover["A1"].font = TITLE
+        cover.column_dimensions["A"].width = 24
+        cover.column_dimensions["B"].width = 82
+        details = [
+            ("Project", meta.get("project")), ("Bill", meta.get("boq")), ("Version", label),
+            ("Status", "WORKING" if working else status), ("Model", meta.get("modelName")),
+            ("Grouping", systems[0]["name"] if systems else None), ("Generated", meta.get("generatedAt")),
+            ("Saved by", meta.get("issuedBy")), ("Saved at", meta.get("issuedAt")), ("Note", meta.get("issueNote")),
+            ("Locale", meta.get("locale")), ("Number format", json.dumps(meta["numberFormat"], ensure_ascii=False)
+             if meta.get("numberFormat") else None),
+        ]
+        for row, (heading, value) in enumerate(((name, data) for name, data in details if data is not None), 3):
+            _row(cover, row, [heading, value], wrap_cols=(2,))
+        if meta.get("watermark"):
+            _row(cover, 19, [meta["watermark"] if isinstance(meta["watermark"], str) else "Made with boqlet"], SMALL)
+        wb.active = cover
+
+    excluded = [line for line in lines if line.get("excluded")]
+    if excluded:
+        we = wb.create_sheet("Excluded lines")
+        _header(we, 1, ["Key", "Description", "Unit", "Quantity", "Reason"], [34, 60, 10, 14, 58])
+        we.freeze_panes = "A2"
+        for i, line in enumerate(excluded, start=2):
+            _row(we, i, [line["key"], line["description"], line["unit"], line["quantity"],
+                         line.get("overridden", {}).get("reason")])
 
     # ------------------------------------------------------------------ Calculation
     wc = wb.create_sheet("Calculation")
@@ -126,6 +200,9 @@ def export(result: dict, meta: dict) -> bytes:
                      f"{l['trace']['formula']}" + (f"   [{params}]" if params else ""), ""], BOLD, SEC_FILL, wrap_cols=(1, 4))
         wc.cell(row=r, column=2).number_format = _qfmt(l["unit"])
         r += 1
+        for item in l["trace"].get("steps", []):
+            _row(wc, r, ["    " + describe_step(item), item["value"], item.get("unit"), "", ""], SMALL)
+            r += 1
         for e in l["trace"]["elements"]:
             _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], e.get("note"), e["guid"]],
                  NORMAL, None, wrap_cols=(1, 4))
@@ -142,15 +219,23 @@ def export(result: dict, meta: dict) -> bytes:
     for s in systems:
         cols += [f"{s['name']} code", f"{s['name']} title"]
         widths += [12, 30]
+        if s["id"] in text_systems:
+            cols.append(f"{s['name']} item text")
+            widths.append(50)
+    cols.append("Measured as")
+    widths.append(60)
     cols += ["Formula", "Elements", "Storey", "Notes"]
     widths += [50, 9, 16, 40]
     _header(wl, 1, cols, widths)
     wl.freeze_panes = "A2"
     for i, l in enumerate(lines, 2):
-        vals = [l["key"], l["ruleId"], l["ruleKind"], l["description"], l["unit"], l["quantity"], l["source"]]
+        vals = [l["key"], l["ruleId"], l["ruleKind"], _description(l, primary), l["unit"], l["quantity"], l["source"]]
         for s in systems:
             c = l["codes"].get(s["id"])
             vals += [c["code"] if c else "", c["title"] if c else ""]
+            if s["id"] in text_systems:
+                vals.append(c.get("text", "") if c else "")
+        vals.append(l.get("overridden", {}).get("engineDescription", l["description"]))
         loc = l.get("location") or {}
         vals += [l["trace"]["formula"], len(l["trace"]["elements"]), loc.get("storey") or ", ".join(loc.get("storeys", [])),
                  "; ".join(l.get("notes", []))]
@@ -219,6 +304,14 @@ def export(result: dict, meta: dict) -> bytes:
             r += 1
             _row(wi, r, [d["questionId"], json.dumps(d.get("answer")), "", d.get("note", "")])
 
+    if meta.get("publicShare"):
+        del wb["Questions"]
+        del wb["Inputs"]
+        if not meta.get("publicLog"):
+            del wb["Log"]
+        if not meta.get("publicLineDetail"):
+            del wb["Calculation"]
+            del wb["Lines"]
     for sheet in wb.worksheets:
         sheet.sheet_view.showGridLines = False
     buf = io.BytesIO()

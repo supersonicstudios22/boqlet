@@ -1,6 +1,6 @@
 # Frontend tasks (`apps/app`, `apps/mock-api`, `packages/api`)
 
-**Owner: the frontend agent**, in phase 1 (M0–M4, MP1) and phase 3 (M8a, M8); see
+**Owner: the frontend agent**, in phase 1 (M0–M4) and phase 3 (M8a, M8); see
 `milestones.md`. In phase 1 the mock talks to the existing proof-of-concept engine API
 (`engine/ifc_boq/api.py`) and fakes engine features that don't exist yet
 (`06-frontend/mock-api.md`, "Engine fakes"). The frontend agent never edits `engine/`; a needed
@@ -59,8 +59,8 @@ the product needs sits under one root. File contents don't change, except the pa
     - `npm run dev:poc` serves the PoC with the Duplex sample;
     - `VITE_DEPLOYED=1 npm run build:poc` builds.
   - The engine's Python loads `api/index.py` from the repository root without errors.
-  - After the push, the demo URL still works. The agent checks it with a logged-in `vercel`
-    CLI if there is one; otherwise the owner checks (`09-open-questions.md` "Needed by").
+  - The live demo is not affected: it deploys from `main`, and the build is on `v_1` (P46). If
+    Vercel builds previews of `v_1`, the preview builds.
 
 ### FE-001 Contract package
 - Move `plan/05-api/openapi.yaml` to `packages/api/openapi.yaml` and `plan/05-api/openapi-pricing.yaml`
@@ -291,7 +291,8 @@ applied without reload, conflict toast on the same line, per-user undo.
 
 ## Pricing module (removable, P36): `packages/pricing-ui`
 
-Built after M3 against the mock's pricing plugin. Nothing in M0–M4 depends on it.
+**For a later phase (P48):** MP1 is not built in phase 1; skip FE-P1…FE-P7 until the owner
+schedules them. When built, against the mock's pricing plugin. Nothing in M0–M4 depends on it.
 
 ### FE-P1 Module skeleton
 Package, `register.ts` (routes, tabs, actions, badges, nav, settings section, i18n namespace
@@ -330,11 +331,29 @@ Playwright: FL-4 and FL-5 end to end; module switched off for an org hides every
 
 ## Phase 3, M8a: wire up
 
+**Staging means the pilot deployment (P51)** until BE-032 is built: run the "on staging" checks
+there with synthetic accounts (`ops/pilot/verify-live.sh` shows how), and run load and performance
+tests against the local native stack. **Sign-in is native (P50)**: FE-043's adapter is
+`apps/app/src/auth/adapters/native.tsx`; the Keycloak adapter is no longer deployed.
+
 ### FE-041 Point the app at Java
-Base URL per environment, per-tag switch while the backend lands (a tag served by Java once its
-contract tests pass), SSE against Java, file uploads to real storage; the mock stays as the e2e
-test double. Run the full Playwright suite against Java staging.
-**Accept:** every M1–M4 flow passes against Java staging.
+- **Adapt to the contract changes of phase 2** (`05-api/contract-changes.md`). For each row:
+  - adapt the UI properly where the change affects it, and remove the
+    `// contract-change: <id>` markers;
+  - set "Adapted" with the commit, or "nothing to adapt".
+
+  Read the build log's phase-2 entries for the backend owner's decisions that change behaviour
+  (`07-backend/decisions.md`).
+- Base URL per environment, and a per-tag switch while the backend lands (a tag is served by
+  Java once its contract tests pass).
+- SSE against Java; file uploads to real storage.
+- The mock stays as the e2e test double.
+- Run the full Playwright suite against Java staging.
+**Accept:**
+- every M1–M4 flow passes against Java staging; *under P52: the Java browser smoke set passes, the 106
+  browser tests pass on the mock, and the shared contract and scenario suites pass against Java;*
+- every row in `05-api/contract-changes.md` is adapted or marked "nothing to adapt";
+- `git grep contract-change: apps/app` is empty.
 
 ### FE-042 Remove the engine fakes
 For each row of `mock-api.md` "Engine fakes": confirm the replacing EN task is done, delete the
@@ -349,8 +368,8 @@ real behaviour differs (e.g. derived lines now follow edited quantities, real tr
 - Vendor sign-in, if the pricing module is built (MP2).
 - `NEXT_PUBLIC_AUTH_ADAPTER` selects the adapter. The mock adapter stays for e2e on the mock.
 - **Accept:**
-  - F01 acceptance criteria on Java staging with the real provider;
-  - FL-1 sign-up to first BoQ end to end on staging;
+  - F01 acceptance criteria on Java staging with the real provider (P52: in the Java browser smoke set);
+  - FL-1 sign-up to first BoQ end to end on staging (P52: in the Java browser smoke set);
   - e2e on the mock still green.
 
 ## Phase 3, M8: hardening and release
@@ -371,12 +390,10 @@ in the `en-XA` pseudo-locale and fix clipped, overlapping or untranslated string
 After FE-041…FE-045 and BE-025, BE-026, TS-002…TS-004 are green, and before the release
 (FE-047). This is the last structural change.
 - **Check first** that nothing in the product uses the proof of concept any more:
-  - `PocEngine` and the interim engine path are gone (EN-001);
+  - the mock's PoC engine adapter and the interim engine path are gone (EN-001, FE-042);
   - the fakes table in `mock-api.md` is empty (FE-042);
   - `git grep -n "8787\|ifc_boq.api\|apps/web\|dev:poc"` finds only the PoC itself and
     history docs.
-- **Tag** the last commit that still has the PoC as `poc-final` and push the tag. The demo can
-  be redeployed from it.
 - **Delete:**
   - `apps/web/` (the PoC UI and its Guide);
   - the PoC dev API: `engine/ifc_boq/api.py` and `store.py`, the `serve` command in
@@ -409,11 +426,17 @@ After FE-041…FE-045 and BE-025, BE-026, TS-002…TS-004 are green, and before 
     suites against the mock and Java, the Java build and the Playwright smoke on staging;
   - a fresh clone runs `npm ci` and `npm run test` green;
   - `git ls-files boqlet_v1` is empty;
-  - the owner is told to remove or repoint the Vercel demo project (`09-open-questions.md`).
+  - the live demo on `main` is still untouched (the merge happens in FE-047).
 
 ### FE-047 Production release (04-architecture/deployment.md)
 - Needs from the owner (`09-open-questions.md` "Needed by"): the production account and region
   (D8), the domain, and the provider secrets for auth (D1), email (D6) and billing (D7).
+- **Merge into `main`** (P46), once the owner has given the go in the session:
+  - tag the current `main` (the proof of concept) `poc-final` and push the tag; the demo can be
+    redeployed from it;
+  - merge `v_1` into `main` (`git merge --no-ff v_1`), push, and check CI on `main` is green;
+  - tell the owner to remove or repoint the Vercel demo project (`main` no longer has it);
+  - from now on staging and production deploy from `main`; `v_1` stays as it is.
 - Deploy `main` to production with the services and configuration in deployment.md:
   - migrations run before the API takes traffic;
   - the pricing module is switched on or off as the owner says (P32).

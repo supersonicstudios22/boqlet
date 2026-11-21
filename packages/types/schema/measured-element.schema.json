@@ -1,0 +1,505 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/MeasuredElement",
+  "definitions": {
+    "MeasuredElement": {
+      "type": "object",
+      "properties": {
+        "guid": {
+          "type": "string"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "discipline": {
+          "type": "string"
+        },
+        "ifc_class": {
+          "type": "string"
+        },
+        "ifc_class_raw": {
+          "type": "string"
+        },
+        "predefined_type": {
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/definitions/ElementFamily"
+        },
+        "name": {
+          "type": "string"
+        },
+        "family_name": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "material": {
+          "type": "string"
+        },
+        "element_type": {
+          "type": "string"
+        },
+        "space_type": {
+          "type": "string"
+        },
+        "materials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "system": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "nominal_size": {
+          "type": "string"
+        },
+        "strength_class": {
+          "type": "string"
+        },
+        "material_raw": {
+          "type": "string"
+        },
+        "site": {
+          "type": "string"
+        },
+        "building": {
+          "type": "string"
+        },
+        "storey": {
+          "type": "string"
+        },
+        "storey_elevation": {
+          "type": "number"
+        },
+        "spaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "zone": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "new",
+            "existing",
+            "demolish",
+            "temporary"
+          ]
+        },
+        "design_option": {
+          "type": "string"
+        },
+        "is_external": {
+          "type": "boolean"
+        },
+        "load_bearing": {
+          "type": "boolean"
+        },
+        "length": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        },
+        "diameter": {
+          "type": "number"
+        },
+        "cross_section_area": {
+          "type": "number"
+        },
+        "slope": {
+          "type": "number"
+        },
+        "elevation_base": {
+          "type": "number"
+        },
+        "elevation_top": {
+          "type": "number"
+        },
+        "profile_girth": {
+          "type": "number"
+        },
+        "gross_area": {
+          "type": "number"
+        },
+        "net_area": {
+          "type": "number"
+        },
+        "footprint_area": {
+          "type": "number"
+        },
+        "developed_area": {
+          "type": "number"
+        },
+        "faces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Face"
+          }
+        },
+        "floor_area": {
+          "type": "number"
+        },
+        "ceiling_area": {
+          "type": "number"
+        },
+        "wall_area": {
+          "type": "number",
+          "description": "Room wall surface, before openings (perimeter x height for a simple room)."
+        },
+        "wall_area_net": {
+          "type": "number",
+          "description": "Room wall surface less the doors and windows in the walls bounding it."
+        },
+        "skirting_length": {
+          "type": "number",
+          "description": "Perimeter less the widths of the doors in the walls bounding it."
+        },
+        "bounded_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Elements whose faces bound the room."
+        },
+        "gross_volume": {
+          "type": "number"
+        },
+        "net_volume": {
+          "type": "number"
+        },
+        "perimeter": {
+          "type": "number"
+        },
+        "mass": {
+          "type": "number"
+        },
+        "nominal_mass_per_length": {
+          "type": "number"
+        },
+        "density": {
+          "type": "number"
+        },
+        "bar_diameter": {
+          "type": "number"
+        },
+        "bar_count": {
+          "type": "number"
+        },
+        "bar_length": {
+          "type": "number"
+        },
+        "insulation_thickness": {
+          "type": "number"
+        },
+        "connection_count": {
+          "type": "number"
+        },
+        "openings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Opening"
+          }
+        },
+        "embedded": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Embedded"
+          },
+          "description": "Linear elements (columns, beams, members) passing through this planar element: the solid volume they share with it, and that volume over this element's thickness (the area they take out of its face). Rooms: the columns standing in them, area = shared volume / room height. Used by `embedded` deductions. `model` is set when the element is in another model of a federation."
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Layer"
+          }
+        },
+        "host_guid": {
+          "type": "string"
+        },
+        "parent_guid": {
+          "type": "string"
+        },
+        "child_guids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ifc_classifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "system": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Classification references already in the IFC (used by maps with source \"ifc\")."
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "description": "All property sets flattened: \"Pset_WallCommon.FireRating\" -> \"EI60\"."
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Provenance"
+          },
+          "description": "Where each numeric value came from, keyed by MeasuredField."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reported vs geometry disagreements found during verification."
+        }
+      },
+      "required": [
+        "guid",
+        "model_id",
+        "discipline",
+        "ifc_class",
+        "ifc_class_raw",
+        "family",
+        "materials",
+        "spaces",
+        "status",
+        "faces",
+        "openings",
+        "layers",
+        "child_guids",
+        "props",
+        "provenance",
+        "warnings"
+      ],
+      "additionalProperties": false
+    },
+    "ElementFamily": {
+      "type": "string",
+      "enum": [
+        "linear",
+        "planar",
+        "volumetric",
+        "countable",
+        "reinforcement",
+        "assembly",
+        "space",
+        "void"
+      ]
+    },
+    "Face": {
+      "type": "object",
+      "properties": {
+        "side": {
+          "type": "string",
+          "enum": [
+            "a",
+            "b",
+            "top",
+            "bottom",
+            "edge",
+            "end"
+          ]
+        },
+        "gross_area": {
+          "type": "number"
+        },
+        "net_area": {
+          "type": "number"
+        },
+        "space": {
+          "type": "string",
+          "description": "Room this face bounds (computed from geometry: the room's surface lying on the face)."
+        },
+        "space_name": {
+          "type": "string"
+        },
+        "space_type": {
+          "type": "string",
+          "description": "Dictionary term of the room, e.g. \"space.bathroom\"."
+        },
+        "is_external": {
+          "type": "boolean"
+        },
+        "normal": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "Outward normal, for orientation-based rules (facade direction)."
+        }
+      },
+      "required": [
+        "side",
+        "gross_area",
+        "net_area"
+      ],
+      "additionalProperties": false
+    },
+    "Opening": {
+      "type": "object",
+      "properties": {
+        "guid": {
+          "type": "string",
+          "description": "GlobalId of the IfcOpeningElement."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "door",
+            "window",
+            "void",
+            "recess"
+          ],
+          "description": "recess: does not go through the host (IfcOpeningElement RECESS, or ObjectType \"Recess\"); not part of net areas or room openings, deducted only by `what: \"recesses\"`."
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "area": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number",
+          "description": "Depth of the opening through the host = reveal depth."
+        },
+        "perimeter": {
+          "type": "number"
+        },
+        "filling_guid": {
+          "type": "string"
+        },
+        "filling_class": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "width",
+        "height",
+        "area",
+        "perimeter"
+      ],
+      "additionalProperties": false
+    },
+    "Embedded": {
+      "type": "object",
+      "properties": {
+        "guid": {
+          "type": "string"
+        },
+        "ifc_class": {
+          "type": "string"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "area": {
+          "type": "number"
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "guid",
+        "ifc_class",
+        "volume"
+      ],
+      "additionalProperties": false
+    },
+    "Layer": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "number"
+        },
+        "material": {
+          "type": "string"
+        },
+        "material_raw": {
+          "type": "string"
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "area": {
+          "type": "number"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "function": {
+          "type": "string",
+          "enum": [
+            "structure",
+            "insulation",
+            "finish",
+            "membrane",
+            "air_gap",
+            "other"
+          ]
+        }
+      },
+      "required": [
+        "index",
+        "material",
+        "material_raw",
+        "thickness",
+        "area",
+        "volume"
+      ],
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "string",
+      "enum": [
+        "reported",
+        "geometry",
+        "derived",
+        "user"
+      ]
+    }
+  }
+}

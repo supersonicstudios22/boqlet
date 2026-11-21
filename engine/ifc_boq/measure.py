@@ -317,7 +317,11 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 elif abs(diff) > TOLERANCE:
                     notes.append(f"geometry volume differs from reported by {diff:+.1%}; reported used")
                     log.warn("measure", f"{el.get('name') or el['id']}: geometry volume {fmt(round(geo_vol, 3))} m3 vs reported "
-                             f"{fmt(round(net_volume, 3))} m3 ({diff:+.1%}). Using reported (join-aware).", guid=el["id"])
+                             f"{fmt(round(net_volume, 3))} m3 ({diff:+.1%}). Using reported (join-aware).", guid=el["id"],
+                        code="log.measure.volume_conflict", params=dict(
+                            name=el.get('name') or el['id'], geometry=geo_vol, reported=net_volume,
+                            difference=diff,
+                        ))
                     if sure and answers.get(qid) != "reported":
                         _ask(asked, qid, "volume", cls, type_name or el.get("name"), el["id"], net_volume, geo_vol,
                              rep["volume"][1])
@@ -488,7 +492,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             bits.append(f"{len(ops)} opening(s) {fmt(round(open_area, 3))} m2 -> gross {fmt(round(gross_area or 0, 3))} m2")
         if nmpl:
             bits.append(f"profile {profile}: {fmt(nmpl)} kg/m")
-        log.detail("measure", f"{el.get('name') or el['id']}: " + "; ".join(bits), guid=el["id"])
+        log.detail("measure", f"{el.get('name') or el['id']}: " + "; ".join(bits), guid=el["id"],
+            code="log.measure.adopted", params=dict(name=el.get('name') or el['id'], quantities=bits))
     roll_up_parts(out, {e["id"] for e in parsed["elements"] if e["quantities"]["geometry"].get("hasBody")}, log)
     measured = {m["guid"]: m for m in out}
     for m in out:
@@ -497,7 +502,11 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 add_embedded(m, measured[x["elementId"]], x["volume"])
         if m.get("embedded"):
             log.detail("measure", f"{m.get('name') or m['guid']}: {len(m['embedded'])} element(s) pass through it, "
-                                  f"{fmt(round(sum(x['volume'] for x in m['embedded']), 4))} m3 shared", guid=m["guid"])
+                                  f"{fmt(round(sum(x['volume'] for x in m['embedded']), 4))} m3 shared", guid=m["guid"],
+                code="log.measure.embedded", params=dict(
+                    name=m.get('name') or m['guid'], count=len(m['embedded']),
+                    volume=sum(x['volume'] for x in m['embedded']),
+                ))
     out += measure_rooms(parsed, rooms, out, model_id, model_discipline, log)
     if questions is not None:
         questions += [public_question(q) for q in asked.values()]
@@ -521,6 +530,9 @@ def _ask(asked: dict, qid: str, what: str, cls: str, type_name: str | None, guid
     unit = "m3" if what == "volume" else "m"
     st, ge, src = q["_example"]
     spread = f"{lo:+.0%}" if abs(hi - lo) < 0.005 else f"{lo:+.0%} to {hi:+.0%}"
+    q["code"] = "question.contradiction"
+    q["params"] = {"count": q["occurrences"], "ifcClass": cls, "typeName": type_name, "quantity": what,
+                   "minDifference": lo, "maxDifference": hi, "reported": st, "geometry": ge, "source": src, "unit": unit}
     q["message"] = (f"{q['occurrences']} x {cls} '{type_name or ''}': the {what} stated in the file and the geometry "
                     f"disagree by {spread} (e.g. {fmt(round(st, 3))} {unit} from {src} vs {fmt(round(ge, 3))} {unit} measured). "
                     + ("The stated value is used; it usually allows for joins. " if what == "volume" else "The stated value is used. ")
@@ -656,7 +668,8 @@ def measure_rooms(parsed: dict, rooms: dict, elements: list[dict], model_id: str
                         f"{fmt(round(sum(x.get('area') or 0 for x in m['embedded']), 3))} m2 of floor")
         out.append(m)
         label = f"{s.get('name') or sid} (room" + (f", {raw}" if raw and raw != s.get("name") else "") + (f" -> {term}" if term else "") + ")"
-        log.detail("measure", label + ": " + "; ".join(bits) + f"; bounded by {len(m['bounded_by'])} element(s)", guid=sid)
+        log.detail("measure", label + ": " + "; ".join(bits) + f"; bounded by {len(m['bounded_by'])} element(s)", guid=sid,
+            code="log.measure.room", params=dict(name=label, quantities=bits, boundedBy=len(m['bounded_by'])))
     return out
 
 
@@ -727,7 +740,8 @@ def roll_up_parts(out: list[dict], has_body: set[str], log: CalcLog, only: set[s
             bits.append(f"area = sum of {len(planar)} planar part(s) = "
                         f"{' + '.join(fmt(round(p['net_area'], 3)) for p in planar)} = {fmt(round(m['net_area'], 3))} m2")
         if bits:
-            log.detail("measure", f"{m.get('name') or m['guid']}: no body of its own; " + "; ".join(bits), guid=m["guid"])
+            log.detail("measure", f"{m.get('name') or m['guid']}: no body of its own; " + "; ".join(bits), guid=m["guid"],
+                code="log.measure.aggregate", params=dict(name=m.get('name') or m['guid'], quantities=bits))
 
 
 # ------------------------------------------------------------------------ building values
@@ -813,7 +827,9 @@ def building_measures(elements: list[dict], parsed_models: list[dict], log: Calc
         if isinstance(out[k], float):
             out[k] = round(out[k], 6)
     shown = ", ".join(f"{k} {fmt(round(out[k], 2))} ({out['provenance'][k]})" for k in out if k not in ("provenance", "notes"))
-    log.info("measure", f"building values for formulas: {shown or 'none'}")
+    log.info("measure", f"building values for formulas: {shown or 'none'}",
+        code="log.measure.building", params=dict(quantities=shown))
     for n in out["notes"]:
-        log.detail("measure", f"building: {n}")
+        log.detail("measure", f"building: {n}",
+            code="log.measure.building_note", params=dict(note=n))
     return out

@@ -26,6 +26,8 @@ what is built, what is not, and the open questions.
 | 15 | [15-classifications-guide.md](15-classifications-guide.md) | You use the app and want to make or change a classification: how a line gets its code, the tabs, importing a code list, common tasks, what to do when something looks wrong. |
 | 16 | [16-dictionaries-guide.md](16-dictionaries-guide.md) | You use the app and want to teach it what names in models mean: layers, Names in the model, patterns, meanings, values read from names, common tasks. |
 | 17 | [17-deploying-a-demo.md](17-deploying-a-demo.md) | You want to put the dev build on Vercel for an internal demo: what is deployed, how, and what the demo cannot do. |
+| 18 | [18-contabo-pilot.md](18-contabo-pilot.md) | You operate the real invited-pilot stack on the shared Contabo host. |
+| 19 | [19-native-auth-and-cd.md](19-native-auth-and-cd.md) | You enroll pilot users or manage GitHub deployments. |
 
 ## Reference material (`reference/`)
 
@@ -42,6 +44,6 @@ organise them; when they disagree, the numbered docs are newer.
 ## Conventions in these docs
 
 - "Engine" means the Python package in `engine/ifc_boq`. "Contract" means `packages/types`.
-- Code paths are relative to the repository root.
+- Code paths are relative to the repository root, where every command runs too.
 - Values in presets and examples are illustrative placeholders, never taken from a licensed standard.
 - Prices, market shares and licence terms were checked in early October 2026 and will age.

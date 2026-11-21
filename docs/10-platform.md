@@ -58,8 +58,8 @@ never changes past BoQs. Comparisons come almost free: same model under preset A
 v3 under one preset. Earlier planning also called for a three-tier preset ownership: system
 (shipped), org (shared in a company), user/project (custom).
 
-In the dev build these map to: modelId (sha256) = model version; runId = run; presets folder =
-presets; decisions sent with each run = decision rows. See 03-architecture.md.
+In the product these are the Java backend's model versions (keyed by the file's sha256), runs,
+Library presets and decision rows (`plan/07-backend/db-schema.md`). See 03-architecture.md.
 
 ## Several models in one BoQ (federation)
 

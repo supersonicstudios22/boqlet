@@ -15,10 +15,11 @@ The owner starts every session with this prompt, unchanged:
 
 ```text
 You are building boqlet in this repository, and the owner has said go.
-Read CLAUDE.md at the repository root and follow it to the plan's "Start here",
-plan/08-delivery/sessions.md and plan/10-build-log.md "Current position".
+Work on the branch v_1: git switch v_1 && git pull. Then read CLAUDE.md at the
+repository root and follow it to the plan's "Start here", plan/08-delivery/sessions.md
+and plan/10-build-log.md "Current position".
 Continue the build from the current position, in the role of the current phase:
-take the next task, build it, test it, commit and push to main, record it, and go
+take the next task, build it, test it, commit and push to v_1, record it, and go
 on to the next one. Work on your own; stop only where sessions.md says to stop.
 ```
 
@@ -27,13 +28,13 @@ The owner may add one line:
 - `Only do <task id>.` (one task)
 - An answer to a question the previous session asked (`Qnn: yes, as recommended.`)
 
-`CLAUDE.md` at the repository root always points to the right place. Until FE-000 that is
-`plan/`; from FE-000 the plan lives in `boqlet_v1/plan/` and the root `CLAUDE.md` is a pointer
-to `boqlet_v1/CLAUDE.md`; after FE-046 it is `plan/` at the repository root again (P44).
+`CLAUDE.md` at the repository root always points to the right place: since FE-046 the repository
+root is the product root, and the plan is `plan/` (P44).
 
 ## Starting a session
 
-1. `git pull`. Then `git status`:
+1. `git switch v_1 && git pull` (the build branch, P46; never commit to `main` before FE-047).
+   Then `git status`:
    - clean: go on;
    - not clean: read "In progress" in the build log's Current position. If it explains the
      changes, continue from them. If it doesn't, `git stash push -m "unexplained changes found
@@ -52,7 +53,7 @@ to `boqlet_v1/CLAUDE.md`; after FE-046 it is `plan/` at the repository root agai
 - **One task at a time, in order** (the task file and `milestones.md`). Build what the task and
   its specs say, nothing more. A task is done when its acceptance criteria hold and the
   definition of done in `testing.md` is met.
-- **Commit small, straight to `main`** (P40). Every commit message starts with the task id
+- **Commit small, straight to `v_1`** (P40, P46). Every commit message starts with the task id
   (`FE-009: group-by switch`). Never commit red: build, typecheck and the affected tests pass
   before each commit. Push at least after every task.
 - **After every task:** a row in `docs/11-roadmap-and-open-questions.md` "Done" (with the commit
@@ -76,6 +77,12 @@ to `boqlet_v1/CLAUDE.md`; after FE-046 it is `plan/` at the repository root agai
 | The order of steps inside a task | Anything needing an account, a secret or money (auth provider, hosting, email, billing) |
 | Fixing a bug found in earlier work (with a test, noted in docs/11) | Deleting or rewriting something outside the task's scope |
 
+**In phase 2, backend matters belong to the backend owner** (P47), the person who ran BE-000.
+Their answers are in `07-backend/decisions.md`. Ask them, not the product owner, about anything
+in the right-hand column that only concerns the backend (accounts and money included), and
+about contract changes, which follow `05-api/contract-changes.md`. Product behaviour (what users
+can do or see) stays with the product owner.
+
 When a question blocks a task: add it to `09-open-questions.md` (with "Blocks: <task>"), ask the
 owner in the session, and **go on with the next task that doesn't depend on it**. Note the
 skipped task under "Waiting for the owner" in Current position and come back when it's answered.
@@ -84,6 +91,7 @@ skipped task under "Waiting for the owner" in Current position and come back whe
 
 Stop and wait for the owner only when:
 1. an owner decision is needed and no other task of the phase can go ahead (for example BE-000,
+   which always waits for the backend owner's answers,
    FE-043 before D1, BE-032 and FE-047 without hosting accounts);
 2. the phase is done;
 3. the baseline is red for a reason outside your role and you can't fix it within it;
@@ -112,7 +120,7 @@ stopped and what you need.
 | Docker | recent | phase 2: Postgres and MinIO for Testcontainers and local runs |
 | Playwright | pinned in `apps/app` | `npx playwright install chromium` |
 | Operating systems | Windows 11 (the owner's machine, PowerShell), Linux in CI | scripts in Node or Python, never bash-only; paths built with `path.join` |
-| CI | GitHub Actions | `.github/workflows/` at the repository root; until FE-046 the product jobs run with `working-directory: boqlet_v1` |
+| CI | GitHub Actions | `.github/workflows/` at the repository root, triggered on `v_1` and `main` |
 
 ## Local ports
 
@@ -122,12 +130,10 @@ Defaults; each can be changed by environment variable.
 |---|---|---|
 | 3000 | Next.js app (`apps/app`) | — |
 | 4010 | Mock API (`apps/mock-api`) | — |
-| 8787 | Proof-of-concept engine API (`engine/ifc_boq/api.py`, `IFC_BOQ_ENGINE_PORT`) | FE-046 |
 | 8788 | Engine worker HTTP transport (`ENGINE_URL`, EN-001) | — |
 | 8080 | Java API (`services/api`) | — |
 | 5432 | Postgres | — |
 | 9000, 9001 | MinIO (S3 API, console) | — |
-| 5173 | Proof-of-concept web UI (`apps/web`) | FE-046 |
 
 ## Where things are written down
 

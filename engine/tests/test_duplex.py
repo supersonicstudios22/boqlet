@@ -66,6 +66,9 @@ def test_complete_and_covered(result):
     assert s["unmatchedElements"] == 0
     assert s["excludedElements"] == 61 + 21     # loose furniture (61) and the 21 rooms: room finishes are off by default
     assert not [w for w in result["warnings"] if w["code"] == "rule_set"]
+    for entry in result["questions"] + result["warnings"] + result["log"]:
+        assert entry["code"]
+        assert isinstance(entry["params"], dict)
 
 
 @pytest.mark.parametrize("rule_id,contains,expected,unit", HAND_BOQ)
@@ -83,6 +86,12 @@ def test_every_line_is_explained(result):
         if l["ruleKind"] != "manual":
             assert l["trace"]["elements"], l["key"]
             assert all(e.get("note") for e in l["trace"]["elements"]), l["key"]
+        steps = l["trace"]["steps"]
+        assert steps[-1]["kind"] == "result" and steps[-1]["value"] == l["quantity"], l["key"]
+        if l["quantity"] is not None:
+            assert sum(step["value"] or 0 for step in steps[:-1]) == pytest.approx(l["quantity"], abs=1e-6), l["key"]
+        if l["ruleKind"] == "derived":
+            assert next(step for step in steps if step["kind"] == "derive")["params"]["sourceLine"] == l["trace"]["sourceLine"]
 
 
 def test_every_line_has_a_company_code(result):
@@ -100,6 +109,11 @@ def test_slot_change_changes_numbers(duplex_parsed):
     small_windows = 12 * 0.819 * 0.759
     assert q(r, "walls", "Exterior - Brick on Block") == pytest.approx(267.162 + small_windows, abs=0.02)
     assert [l for l in r["lines"] if l["ruleId"] == "windows"][0]["unit"] == "m2"
+    brick = next(l for l in r["lines"] if l["ruleId"] == "walls" and "Exterior - Brick on Block" in l["description"])
+    steps = brick["trace"]["steps"]
+    assert steps[0]["kind"] == "start" and steps[-1]["kind"] == "result"
+    deduction = next(s for s in steps if s["kind"] == "deduct")
+    assert deduction["param"] == "wall_opening_threshold" and deduction["value"] < 0
 
 
 def test_custom_rules_and_classification(duplex_parsed):

@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: boqlet-api
+  datasource:
+    url: ${BOQLET_JDBC_URL}
+    username: ${BOQLET_DB_USER}
+    password: ${BOQLET_DB_PASSWORD}
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: true
+  main:
+    keep-alive: true
+  mail:
+    host: ${BOQLET_SMTP_HOST:}
+    port: ${BOQLET_SMTP_PORT:587}
+    username: ${BOQLET_SMTP_USERNAME:}
+    password: ${BOQLET_SMTP_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${BOQLET_SMTP_AUTH:true}
+      "[mail.smtp.starttls.enable]": ${BOQLET_SMTP_STARTTLS:true}
+      "[mail.smtp.starttls.required]": ${BOQLET_SMTP_STARTTLS:true}
+      "[mail.smtp.ssl.checkserveridentity]": true
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
+server:
+  forward-headers-strategy: ${BOQLET_FORWARD_HEADERS_STRATEGY:none}
+  port: ${BOQLET_API_PORT:8080}
+  error:
+    include-message: never
+logging:
+  structured:
+    format:
+      console: ${BOQLET_LOG_FORMAT:}
+management:
+  tracing:
+    sampling:
+      probability: ${BOQLET_TRACING_SAMPLING:1.0}
+  server:
+    port: ${BOQLET_MANAGEMENT_PORT:${server.port}}
+  endpoints:
+    web:
+      exposure:
+        include: ${BOQLET_MANAGEMENT_ENDPOINTS:health}
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+boqlet:
+  auth:
+    issuer: ${BOQLET_OIDC_ISSUER:}
+    audience: ${BOQLET_OIDC_AUDIENCE:boqlet-api}
+    pilot-emails: ${BOQLET_PILOT_EMAILS:}
+    invitation-secret: ${BOQLET_INVITATION_SECRET:}
+    secure-cookie: ${BOQLET_SECURE_COOKIE:true}
+  storage:
+    bucket: ${BOQLET_S3_BUCKET:}
+    region: ${BOQLET_S3_REGION:eu-central-1}
+    endpoint: ${BOQLET_S3_ENDPOINT:}
+    public-endpoint: ${BOQLET_S3_PUBLIC_ENDPOINT:}
+  worker:
+    url: ${BOQLET_ENGINE_HTTP_URL:http://127.0.0.1:8788}
+    concurrency: ${BOQLET_ENGINE_HTTP_CONCURRENCY:1}
+    job-timeout: ${BOQLET_ENGINE_JOB_TIMEOUT:PT30M}
+    max-upload-mib: ${BOQLET_MAX_UPLOAD_MIB:1024}

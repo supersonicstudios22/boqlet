@@ -1,59 +1,42 @@
 # 03 Architecture
 
-Two pictures: what runs today (a dev build on one machine) and what the platform is meant to
-become. The engine and the contract are designed to move from the first to the second
+Two pictures: what runs today and what the platform is meant to become. The engine and the contract are designed to move from the first to the second
 without being rewritten.
 
-## Today: the development build
+## Today: the product
 
 ```
- Browser  http://localhost:5173
-   │  React 18 + Vite (apps/web)
-   │  fetch("/api/...")
-   ▼
- Vite dev server ── proxy /api ──►  FastAPI  127.0.0.1:8787   (engine/ifc_boq/api.py)
+ Browser ── https://booqlet.com ──► Next.js app (apps/app)        same origin: /api/v1 proxied
                                         │
-                                        ├─ service.py   preset ids -> get_boq -> stored run
-                                        ├─ pipeline.py  get_boq (names, measure, rules, classify, questions, log)
-                                        ├─ parse.py     IFC -> ParsedModel (ifcopenshell, trimesh, manifold3d)
-                                        ├─ geometry.py  mesh measurements shared by parse and federation
-                                        ├─ presets.py   reads /presets/*.json on every run, validates vs schemas
-                                        ├─ export_xlsx.py
-                                        └─ store.py     engine/.cache/  (stand-in for storage + DB)
-                                              models/<sha256>/model.ifc, parsed.json, geometry.glb, meshes.npz
-                                              runs/<runId>.json, runs/<runId>.xlsx
+                                        ▼
+                                    Java API (services/api)   users, orgs, projects, model versions,
+                                        │                     BoQs, runs, Library, exports, sharing
+                    ┌───────────────────┼──────────────────────┐
+                    ▼                   ▼                      ▼
+                Postgres          object storage          engine worker (engine/ifc_boq)
+         (data, job queue)   (uploads, parse and run    worker_queue.py claims jobs from Postgres;
+                              artifacts, exports)       worker_http.py serves the same jobs over HTTP
+                                                        worker.py: parse, run, preview, diff, exports
+                                                              │
+                                                              ├─ pipeline.py  get_boq (names, measure, rules, classify, questions, log)
+                                                              ├─ parse.py     IFC -> ParsedModel (ifcopenshell, trimesh, manifold3d)
+                                                              ├─ geometry.py  mesh measurements and repair
+                                                              ├─ presets.py   flattening and checks of presets, validated vs schemas
+                                                              └─ export_xlsx.py, sheets/
 ```
 
 - `npm install` runs `scripts/setup-engine.mjs`: finds Python 3.10-3.13, creates `engine/.venv`,
   installs `engine/requirements.txt` and the engine package (editable). It writes a hash stamp
   and only reinstalls when `requirements.txt` or `pyproject.toml` change. It never fails the npm
   install; if Python is missing it prints instructions.
-- `npm run dev` runs `scripts/run-engine.mjs serve` (uvicorn with reload on `engine/ifc_boq`)
-  and Vite together via `concurrently`.
-- The API is **synchronous on purpose**: upload parses in the request; a run executes in the
-  request. Fine for files up to tens of MB. Uploads are capped by `IFC_BOQ_MAX_UPLOAD_MB` (300).
-- Models are keyed by the **SHA-256 of the file content** (`modelId`). Uploading the same file
-  again returns the cached parse instantly. This is the "model version" of the platform.
-- Runs are immutable: `runs/<runId>.json` holds the request and the full `BoqResult`.
-- Presets are read from disk on every run, so editing a JSON file in `presets/` and pressing
-  Generate shows the effect immediately (no restart).
-
-### Request flow
-
-| Step | Web | HTTP | Engine |
-|---|---|---|---|
-| Load presets | on start | `GET /api/presets` | lists `presets/` with names, descriptions, availability (Uniclass shows "not installed" until imported) |
-| Drop IFC | `uploadModel(file)` | `POST /api/models` (multipart `file`) | hash, parse once, verify, store; returns `ModelSummary` |
-| Generate | `run(request)` | `POST /api/runs` (`RunRequest`: modelId, ruleSet, dictionaries, classifications, decisions) | flatten rule set, `get_boq`, export xlsx, store; returns `RunResponse` (runId, full `BoqResult`, xlsxUrl) |
-| Answer questions | merges answers into decisions, generates again | `POST /api/runs` | decisions applied by question id |
-| Show preset JSON | Inputs tab | `GET /api/presets/{kind}/{id}` | raw file content |
-| Download | link | `GET /api/runs/{runId}/boq.xlsx` | stored file |
-| Names in a model (Library, dictionaries) | names tab | `POST /api/models/{modelId}/names` | `pipeline.names_in_model` over the cached parse; nothing is stored |
-| Check a draft preset (Library) | Check button, patch parents | `POST /api/presets/{kind}/check` | `presets.check` + `presets.flattened`; nothing is stored |
-| Save / delete a preset (Library) | Save, Save as new, Delete saved | `PUT` / `DELETE /api/presets/{kind}/{id}` | `presets.save` (same checks, then writes to `presets/user/`) / `presets.delete`; dev-build stand-in for the backend's preset storage |
-
-The full result (lines, log, questions) is returned with every run. For the Duplex that is a few
-hundred KB; for large models the platform should page lines and logs instead.
+- In development `npm run dev:app` runs the engine worker (HTTP, 8788), the mock API (4010, the
+  backend's executable specification and the e2e test double) and the app (3000).
+- Jobs are asynchronous: an upload completes, the API queues a parse job, a worker claims it, and
+  the app follows progress over SSE. Models are keyed by the SHA-256 of their content, so the same
+  file is parsed once (BR-08).
+- The deployed environment and its rollout: `docs/18-contabo-pilot.md`, `docs/19-native-auth-and-cd.md`.
+- The proof of concept (a React dev UI and a synchronous FastAPI engine API on one machine) was
+  removed in FE-046; it is the git tag `poc-final`.
 
 ### Code boundaries inside the engine
 
@@ -67,12 +50,11 @@ hundred KB; for large models the platform should page lines and logs instead.
 | `classify.py` | Codes per line per system | Change quantities |
 | `federation.py` | Combining several models' measured elements: storeys, same GlobalId, ownership, overlaps, aggregates, links across models (fillings, rooms, embedded) | Read files or know about rules |
 | `pipeline.py` | Order of stages, coverage, questions, stats | Contain stage logic |
-| `service.py`, `api.py`, `cli.py`, `store.py`, `corpus.py` | Wiring: preset ids, storage, HTTP, terminal | Contain engine logic |
+| `service.py`, `worker.py`, `worker_http.py`, `worker_queue.py`, `cli.py`, `corpus.py` | Wiring: job envelopes, storage, HTTP and queue transport, terminal | Contain engine logic |
 
-**Temporary versus lasting.** `api.py`, `store.py` and the request shapes in `api.ts` are a
-**temporary demo backend**: store an upload, list it, run it. The production backend (Java, D-series
-in 02) will own users, projects, storage and jobs and replace them; keep them thin CRUD and never put
-a decision in them. Everything that decides something is engine code: plain functions over the
+**Engine versus backend.** The Java backend owns users, projects, storage and jobs; the PoC's
+temporary demo backend (`api.py`, `store.py`) it replaced is gone (FE-046). Everything that decides
+something is engine code: plain functions over the
 contract types in `packages/types`, data in and data out, no HTTP, no file paths, no storage. The
 Python engine stays as a worker for now; it may move to Java later, so engine code should stay
 easy to translate (no reliance on Python-only tricks where a plain loop would do).

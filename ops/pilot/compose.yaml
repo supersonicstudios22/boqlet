@@ -1,0 +1,171 @@
+name: boqlet-pilot
+
+x-engine-environment: &engine-environment
+  AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?}
+  AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?}
+  AWS_DEFAULT_REGION: us-east-1
+  ENGINE_STORAGE: s3://boqlet-pilot
+  ENGINE_S3_ENDPOINT: http://storage:8333
+  ENGINE_MAX_MODEL_MB: ${MAX_UPLOAD_MIB:-512}
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: [no-new-privileges:true]
+
+services:
+  db:
+    <<: *service
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: boqlet_admin
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:?}
+      BOQLET_DB_PASSWORD: ${DB_PASSWORD:?}
+      BOQLET_QUEUE_PASSWORD: ${QUEUE_PASSWORD:?}
+      BOQLET_IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/01-boqlet.sh:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "boqlet_admin"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [database]
+    mem_limit: 1g
+
+  storage:
+    <<: *service
+    image: chrislusf/seaweedfs:4.53
+    environment:
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?}
+      S3_BUCKET: boqlet-pilot
+    volumes:
+      - objects:/data
+    networks:
+      backend:
+      ingress:
+        aliases: [boqlet-storage]
+    mem_limit: 1g
+
+  identity:
+    <<: *service
+    profiles: [legacy-identity]
+    image: quay.io/keycloak/keycloak:26.8.2
+    command: ["start", "--import-realm"]
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/boqlet_identity
+      KC_DB_USERNAME: boqlet_identity
+      KC_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: https://auth.booqlet.com
+      KC_PROXY_HEADERS: xforwarded
+      KC_BOOTSTRAP_ADMIN_USERNAME: pilot-operator
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${IDENTITY_ADMIN_PASSWORD:?}
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ${PILOT_STATE_DIR:?}/boqlet-realm.json:/opt/keycloak/data/import/boqlet-realm.json:ro
+    networks:
+      database:
+      backend:
+      outbound:
+      ingress:
+        aliases: [boqlet-identity]
+    mem_limit: 2g
+    cpus: 2
+
+  boqlet-web:
+    <<: *service
+    image: boqlet-web:${PILOT_RELEASE:?}
+    networks:
+      ingress:
+        aliases: [boqlet-web]
+    mem_limit: 768m
+
+  api:
+    <<: *service
+    image: boqlet-api:${PILOT_RELEASE:?}
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65"
+      BOQLET_JDBC_URL: jdbc:postgresql://db:5432/boqlet
+      BOQLET_DB_USER: boqlet_app
+      BOQLET_DB_PASSWORD: ${DB_PASSWORD:?}
+      BOQLET_NATIVE_AUTH: "true"
+      BOQLET_FORWARD_HEADERS_STRATEGY: native
+      BOQLET_INVITATION_SECRET: ${INVITATION_SECRET:?}
+      BOQLET_APP_URL: https://booqlet.com
+      BOQLET_SMTP_HOST: ${SMTP_HOST:-}
+      BOQLET_SMTP_PORT: ${SMTP_PORT:-587}
+      BOQLET_SMTP_FROM: ${SMTP_FROM:-}
+      BOQLET_SMTP_USERNAME: ${SMTP_USERNAME:-}
+      BOQLET_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      BOQLET_S3_BUCKET: boqlet-pilot
+      BOQLET_S3_REGION: us-east-1
+      BOQLET_S3_ENDPOINT: http://storage:8333
+      BOQLET_S3_PUBLIC_ENDPOINT: https://files.booqlet.com
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?}
+      BOQLET_ENGINE_HTTP_URL: http://engine:8788
+      BOQLET_ENGINE_TRANSPORT: postgres
+      BOQLET_ENGINE_MODEL_POOL: ${ENGINE_QUEUE_POOL:-default}
+      BOQLET_ENGINE_GENERAL_POOL: ${ENGINE_QUEUE_POOL:-default}
+      BOQLET_ENGINE_HTTP_CONCURRENCY: ${ENGINE_HTTP_CONCURRENCY:-1}
+      BOQLET_ENGINE_JOB_TIMEOUT: PT${ENGINE_QUEUE_JOB_TIMEOUT_SECONDS:-1800}S
+      BOQLET_MAX_UPLOAD_MIB: ${MAX_UPLOAD_MIB:-512}
+      # BE-025: JSON logs (requestId, userId, orgId, jobId, trace ids) and Prometheus metrics on the
+      # internal network (the ingress routes /api/v1 only). Alerts are log lines (alert.firing).
+      BOQLET_LOG_FORMAT: ecs
+      BOQLET_MANAGEMENT_ENDPOINTS: health,prometheus
+    networks:
+      database:
+      backend:
+      outbound:
+      ingress:
+        aliases: [boqlet-api]
+    mem_limit: 1536m
+    cpus: 2
+
+  engine:
+    <<: *service
+    image: boqlet-engine:${PILOT_RELEASE:?}
+    environment: *engine-environment
+    networks: [backend]
+    mem_limit: ${ENGINE_HTTP_MEMORY:-1536m}
+    cpus: ${ENGINE_HTTP_CPUS:-1.0}
+    pids_limit: 128
+
+  queue:
+    <<: *service
+    image: boqlet-engine:${PILOT_RELEASE:?}
+    command: ["boqlet-worker"]
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      <<: *engine-environment
+      ENGINE_QUEUE_DSN: postgresql://boqlet_queue:${QUEUE_PASSWORD:?}@db:5432/boqlet
+      ENGINE_QUEUE_CONCURRENCY: ${ENGINE_QUEUE_CONCURRENCY:-1}
+      ENGINE_QUEUE_POOL: ${ENGINE_QUEUE_POOL:-default}
+      ENGINE_QUEUE_JOB_TIMEOUT_SECONDS: ${ENGINE_QUEUE_JOB_TIMEOUT_SECONDS:-1800}
+      ENGINE_QUEUE_POLL_SECONDS: ${ENGINE_QUEUE_POLL_SECONDS:-1}
+      ENGINE_LOG_FORMAT: json
+    networks: [backend, database]
+    mem_limit: ${ENGINE_QUEUE_MEMORY:-4g}
+    cpus: ${ENGINE_QUEUE_CPUS:-2.0}
+    pids_limit: 256
+
+networks:
+  database: {internal: true}
+  backend: {internal: true}
+  outbound: {}
+  ingress:
+    external: true
+    name: boqlet-pilot-ingress
+
+volumes:
+  db:
+  objects:

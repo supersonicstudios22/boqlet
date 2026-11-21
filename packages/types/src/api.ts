@@ -1,16 +1,14 @@
 /**
- * HTTP contract between the web app and the engine service (engine/ifc_boq/api.py).
- *
- * Today the engine service is a small local FastAPI app. The planned backend is
- * Java; it will own projects, users and storage and call the engine as a worker.
- * Keep this contract small and job-shaped so that move is easy:
+ * Shapes the engine reports about models and runs (the model summary and scene, run requests),
+ * first the proof of concept's HTTP contract (its server, engine/ifc_boq/api.py, was removed in
+ * FE-046); the product's HTTP contract is packages/api/openapi.yaml. Job-shaped:
  *   upload a model  -> modelId (content hash)    = "model version"
  *   run             -> runId + BoqResult         = "run" (immutable)
  *   export          -> xlsx of a run
  */
 
 import type { BoqResult, Decision, ModelScope } from "./engine";
-import type { RuleSet } from "./rules";
+import type { ManualItem, RuleSet } from "./rules";
 import type { DictField, Dictionary, Resolution } from "./dictionary";
 import type { Code } from "./classification";
 import type { CheckCode } from "./parsed";
@@ -204,6 +202,7 @@ export interface RunRequest {
   dictionaries: string[];          // preset ids, any layer order
   classifications: string[];       // preset ids
   decisions: Decision[];
+  manualItems?: ManualItem[];
 }
 
 export interface RunResponse {

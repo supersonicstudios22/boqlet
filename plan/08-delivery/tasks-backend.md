@@ -2,17 +2,81 @@
 
 **Owner: the backend agent, in phase 2** (`milestones.md`), after the frontend agent's phase 1
 on the mock. Order: BE-000 → the engine tasks (`tasks-engine.md`, milestone ME) → M5 → M6 → M7
-(ending with BE-032, staging) → MP2 (optional). Paths are relative to the product root
-`boqlet_v1/` (P44); FE-000 already moved the engine there. The contract and scenario suites written in phase 1 are the specification:
+(ending with BE-032, staging) (MP2, the pricing module, is for a later phase, P48). Paths are relative to the repository root
+(the product root since FE-046, P44). The contract and scenario suites written in phase 1 are the specification:
 make them pass against Java without changing them; a suite that looks wrong goes to the owner.
 
-Start with **BE-000**. Every task is done when the contract suite passes for its endpoints
+Start with **BE-000**. In it the backend owner (P47) reviews this whole plan, contracts
+included (`05-api/contract-changes.md`): the tasks below
+are the default, and BE-000 may change them. After BE-000 the backend owner's answers in
+`07-backend/decisions.md` win over this file. Every task is done when the contract suite passes for its endpoints
 (08-delivery/testing.md), and when its Policy and state-machine unit tests cover every row of
 `03-domain/permissions.md` and `state-machines.md` that it touches.
 
-### BE-000 Decisions (stop and ask)
-Present `07-backend/decisions-to-make.md` D1–D9 to the owner and record the answers (README
-decisions table, docs/02). **No code before this.**
+### BE-000 Backend review and decisions (the backend owner's entry point, P47)
+The backend is owned by whoever runs this phase: the backend owner. BE-000 hands it over. The
+agent analyses the backend plan and puts **every** backend decision to the backend owner,
+including the ones the plan has already made. The backend owner decides. **No backend code
+before this task is done.**
+1. **Read:**
+   - the build log (the phase-1 summary and every entry: what the mock does, what was faked,
+     what was learnt);
+   - `04-architecture/`, `05-api/conventions.md` and `07-backend/`;
+   - `03-domain/`, this file and `tasks-engine.md`;
+   - `testing.md`, `06-frontend/mock-api.md`;
+   - the shared suites, and the contracts by tag.
+2. **Ask the backend owner first** how they want to go through it:
+   - every item in depth;
+   - or the open items in depth, and the already-made ones one by one with a short summary.
+
+   Either way, every item gets their answer; none is assumed.
+3. **Write the analysis** in `07-backend/review.md`. For each item in `decisions-to-make.md`
+   (open D1–D18, already made B1–B20) give:
+   - what the plan says and why;
+   - what phase 1 showed;
+   - the alternatives, with risks, costs and effort;
+   - a recommendation;
+   - which tasks and documents change with each answer.
+
+   Add the items the analysis finds: gaps, contradictions, risks (for example data volumes from
+   nfr.md, GDPR, costs). Each becomes a D-item if open, a B-item if the plan already decided it.
+4. **Put the items to the backend owner**, one area at a time:
+   - budget and scale first: D10;
+   - then accounts and money: D1 auth, D8 hosting, D6 email, D7 billing;
+   - then risk: D11 compute, D12 untrusted uploads, D13 abuse, D17 data protection;
+   - then the shape: B1–B5, B16, D18 (contract changes);
+   - then the rest.
+
+   For each item the answer is "confirm", "change to …" or "defer until <task>, because …".
+   Deferring is allowed only when no task before that point depends on the item.
+5. **Keep the boundary.** The backend owner may change the contracts, by the rules in
+   `05-api/contract-changes.md`: contract first, suites, mock and the smallest app fix in one
+   commit, every change listed for phase 3. A choice that changes product behaviour (a P-decision
+   about the product, a BR rule, what users can do or see) goes to the product owner, with its
+   cost.
+6. **Record:**
+   - every answer in `07-backend/decisions.md`;
+   - platform-level ones also as P-numbers in `plan/README.md` and in `docs/02-decisions.md`.
+7. **Apply** the answers to the plan before any code:
+   - `07-backend/architecture.md`, `db-schema.md` and the `04-architecture/` files they touch;
+   - this file and `tasks-engine.md` (tasks may be rewritten, split, merged, reordered or
+     added; keep the ids of tasks that stay, and give new ones new ids);
+   - `milestones.md`, if the order changed;
+   - FE-043, if D1 changes what the auth adapter must do;
+   - `sessions.md` "Tooling", if the stack changed.
+
+   Then check the cross-references (task ids, P, D and B numbers) and lint the contracts.
+8. **Write the BE-000 entry** in the build log: the decisions in short, and what changed in the
+   plan. Then set Current position to the first task of the (possibly new) order.
+
+- **Accept:**
+  - `07-backend/review.md` exists;
+  - every D- and B-item, including the added ones, has a recorded answer from the backend owner
+    in `07-backend/decisions.md`;
+  - the backend plan and task lists agree with the answers;
+  - every contract change made so far is listed in `05-api/contract-changes.md`, and every
+    product-behaviour change has the product owner's approval;
+  - no backend code was written before this.
 
 ### BE-001 Service skeleton
 Spring Boot (or the chosen framework) project in `services/api`; OpenAPI generator
@@ -129,16 +193,19 @@ Org deletion job (BR-52), old-run row pruning with rehydration from `result_key`
 retention, audit retention per plan.
 
 ### BE-032 Staging environment (D8, deployment.md)
+**Future todo (P51, 2026-11-20).** Not built in phases 2 and 3: the pilot deployment is the only
+deployed environment. When the owner schedules it, build it as below and switch the "on staging"
+checks back to it.
 - Needs from the owner: the hosting account in the provider and region chosen in D8, with
   credentials the agent can use (`09-open-questions.md` "Needed by").
 - Set up staging as code (the tool chosen in D8; recorded in the build log):
   - the services and configuration of deployment.md, with managed Postgres and object storage;
   - the engine worker pools and rpc.
-- CI deploys `main` to staging after the suites pass. Seed staging with the corpus reference
+- CI deploys `v_1` to staging after the suites pass (`main` after the release, P46). Seed staging with the corpus reference
   projects.
 - Leave BE-025 and BE-026 ready to run, so phase 3 can use them.
 **Accept:**
-- staging runs Java + worker + web from `main`;
+- staging runs Java + worker + web from `v_1`;
 - the contract and scenario suites pass against staging;
 - a Duplex BoQ is generated on staging.
 
@@ -146,12 +213,12 @@ retention, audit retention per plan.
 Structured logs, OpenTelemetry, metrics and alerts from deployment.md, backups and restore test.
 
 ### BE-026 Staging acceptance
-Run all v1 acceptance criteria on staging; record results in `plan/README.md` status.
+Until BE-032 is built, on the pilot deployment with synthetic accounts (P51). Run all v1 acceptance criteria on staging; record results in `plan/README.md` status.
 
 ## Pricing module (removable, P36): backend module `pricing`
 
-A separate Gradle/Maven module and Flyway location (schema `pricing`). Start after M7 or in
-parallel once BE-031 exists. Implements `openapi-pricing.yaml`.
+**For a later phase (P48):** MP2 is not built in phase 2; skip BE-P1…BE-P4 until the owner
+schedules them. A separate Gradle/Maven module and Flyway location (schema `pricing`), after M7. Implements `openapi-pricing.yaml`.
 
 ### BE-P1 Vendors (F17)
 Vendor profiles, links with invitations, accept, leave, shared price list per link, module

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.boqlet</groupId>
+    <artifactId>boqlet-api</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <properties>
+        <java.version>21</java.version>
+        <openapi-generator.version>7.19.0</openapi-generator.version>
+        <aws-sdk.version>2.58.0</aws-sdk.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws-sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.83</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <!-- BE-025: OpenTelemetry traces through Micrometer; spans export over OTLP only when
+             MANAGEMENT_OTLP_TRACING_ENDPOINT is set, otherwise trace ids still reach the logs. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.5.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>boqlet-api</finalName>
+        <resources>
+            <resource><directory>src/main/resources</directory></resource>
+            <resource>
+                <directory>../../presets</directory>
+                <targetPath>system-presets</targetPath>
+                <includes><include>**/*.json</include></includes>
+            </resource>
+            <resource>
+                <directory>../../fixtures/ifc</directory>
+                <targetPath>samples</targetPath>
+                <includes><include>Ifc2x3_Duplex_Architecture.ifc</include></includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-java-contract</id>
+                        <phase>initialize</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.basedir}/../../packages/api/openapi.yaml"
+                                      todir="${project.build.directory}/contract/api" overwrite="true"/>
+                                <copy todir="${project.build.directory}/contract/types/schema">
+                                    <fileset dir="${project.basedir}/../../packages/types/schema"/>
+                                </copy>
+                                <!-- Keep forwarded engine documents opaque to Java. The worker validates their schema. -->
+                                <replace file="${project.build.directory}/contract/api/openapi.yaml">
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/run-request.schema.json#/definitions/ModelScope&quot;"
+                                            value="type: object, additionalProperties: true"/>
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/dictionary.schema.json#/definitions/Dictionary&quot;"
+                                            value="type: object, additionalProperties: true"/>
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/boq-result.schema.json#/definitions/Question/properties/suggestion&quot;"
+                                            value="description: Engine suggestion"/>
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/boq-result.schema.json#/definitions/Question/properties/answer&quot;"
+                                            value="type: object, additionalProperties: true"/>
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/boq-result.schema.json#/definitions/AnswerType&quot;"
+                                            value="type: object"/>
+                                    <replacefilter
+                                            token="$ref: &quot;../types/schema/rule-set.schema.json#/definitions/ManualItem&quot;"
+                                            value="type: object, additionalProperties: true"/>
+                                    <!-- Spring generator emits an invalid string enum for a boolean const. -->
+                                    <replacefilter token="const: true"
+                                                   value="x-field-extra-annotation: '@jakarta.validation.constraints.AssertTrue'"/>
+                                    <!-- Preserve omitted settings so PATCH merges only provided fields. -->
+                                    <replacefilter token="publicLinksAllowed: { type: boolean, default: true }"
+                                                   value="publicLinksAllowed: { type: boolean }"/>
+                                    <replacefilter token="lineDetail: { type: boolean, default: true }"
+                                                   value="lineDetail: { type: boolean }"/>
+                                    <replacefilter token="viewer: { type: boolean, default: true }"
+                                                   value="viewer: { type: boolean }"/>
+                                    <replacefilter token="log: { type: boolean, default: false }"
+                                                   value="log: { type: boolean }"/>
+                                    <replacefilter token="excel: { type: boolean, default: false }"
+                                                   value="excel: { type: boolean }"/>
+                                    <replacefilter token="approvalRequired: { type: boolean, default: false,"
+                                                   value="approvalRequired: { type: boolean,"/>
+                                    <replacefilter token="defaultLanguage: { type: string, default: en }"
+                                                   value="defaultLanguage: { type: string }"/>
+                                    <replacefilter token="type: [string, number, boolean, &quot;null&quot;]"
+                                                   value="description: Scalar decision answer"/>
+                                    <replacefilter token="$ref: &quot;../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/keys&quot;"
+                                                   value="type: object, additionalProperties: true"/>
+                                </replace>
+                                <!-- The unit union contains an unrestricted string, which subsumes its enum. -->
+                                <replaceregexp
+                                        match="(?ms)&quot;Unit&quot;: \{\s*&quot;anyOf&quot;: \[.*?^ {6}\]\s*\}"
+                                        replace="&quot;Unit&quot;: {&quot;type&quot;: &quot;string&quot;}"
+                                        flags="g">
+                                    <fileset dir="${project.build.directory}/contract/types/schema" includes="*.schema.json"/>
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>preserve-omitted-revision-inputs</id>
+                        <phase>process-sources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <!-- An omitted array in a partial request must not clear a saved selection. -->
+                                <replaceregexp match="(private List&lt;[^;]+&gt; (models|classificationVersionIds|dictionaryVersionIds)) = new ArrayList&lt;&gt;\(\);"
+                                               replace="\1;" flags="g" byline="true">
+                                    <fileset dir="${project.build.directory}/generated-sources/openapi/src/main/java/com/boqlet/contract/model"
+                                             includes="RevisionInputsPartial.java"/>
+                                </replaceregexp>
+                                <!-- A required answer may be JSON null (dismiss, F05 §3): the generator's @NotNull
+                                     on the JsonNullable refuses it. Decisions checks that the answer is present. -->
+                                <replaceregexp match="@NotNull\s+(@JsonProperty\(&quot;answer&quot;\))" replace="\1" flags="g">
+                                    <fileset dir="${project.build.directory}/generated-sources/openapi/src/main/java/com/boqlet/contract/model"
+                                             includes="DecisionInput.java"/>
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <goals><goal>generate</goal></goals>
+                        <configuration>
+                            <inputSpec>${project.build.directory}/contract/api/openapi.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <apiPackage>com.boqlet.contract.api</apiPackage>
+                            <modelPackage>com.boqlet.contract.model</modelPackage>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useTags>true</useTags>
+                                <requestMappingMode>api_interface</requestMappingMode>
+                                <annotationLibrary>none</annotationLibrary>
+                                <documentationProvider>none</documentationProvider>
+                                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

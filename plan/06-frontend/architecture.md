@@ -8,7 +8,7 @@ quantity computation (BR-01), no direct engine access. It talks to the API in `o
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Framework | **Next.js (App Router)**, React 19, TypeScript strict | Pin the current stable version in FE-001. `output: "standalone"` for containers |
+| Framework | **Next.js (App Router)**, React 19, TypeScript strict | Next.js **16.4.6**, React **19.3.1** (pinned in FE-001). `output: "standalone"` for containers |
 | Data fetching | **TanStack Query v5** + `openapi-fetch` client generated with `openapi-typescript` | Server state lives only in the query cache |
 | Realtime | SSE via `@microsoft/fetch-event-source` (sends auth headers) | One connection per tab, in the app layout |
 | Tables | **TanStack Table v8 + TanStack Virtual** | BoQ sheet, comparison, decisions, audit |
@@ -21,6 +21,42 @@ quantity computation (BR-01), no direct engine access. It talks to the API in `o
 | Decimals | `big.js` | Pricing module amount display only; the backend computes the stored amounts (BR-47) |
 | Tests | Vitest + Testing Library; Playwright e2e against mock API + engine | 08-delivery/testing.md |
 | Lint | ESLint (next, typescript, `react/jsx-no-literals` or `i18next/no-literal-string` for UI text), Prettier | No literal UI strings (F15) |
+
+### Pinned versions
+
+Set in FE-001; change them deliberately and update this table.
+
+| Package | Version | Where |
+|---|---|---|
+| `next` | 16.4.6 | `apps/app` |
+| `react`, `react-dom` | 19.3.1 | `apps/app` (the PoC `apps/web` stays on React 18 until FE-046) |
+| `tailwindcss`, `@tailwindcss/postcss` | 4.3.5 | `apps/app` |
+| `@base-ui/react` | 1.9.0 | `apps/app` (shadcn/ui style `base-mira`, preset `b38miVKzY`) |
+| `shadcn` | 4.23.0 | `apps/app` (only for `shadcn/tailwind.css`; components are added with `npm run ui:add -w @ifc-boq/app -- <name>`, see below) |
+| `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css`, `lucide-react` | 0.7.1, 2.1.1, 3.7.0, 1.4.0, 1.72.0 | `apps/app` |
+| `openapi-typescript` | 7.13.0 | product root (`npm run api:gen`) |
+| `openapi-fetch` | 0.17.0 | `packages/api`, `packages/pricing-api` |
+| `@redocly/cli` | 2.77.0 | product root (`npm run api:lint`) |
+| `next-intl` | 4.15.1 | `apps/app` (no locale in the URL; the cookie `boqlet-locale` carries the user's language) |
+| `@tanstack/react-query` | 5.107.1 | `apps/app` |
+| `@tanstack/react-table`, `@tanstack/react-virtual` | 8.21.3, 3.13.12 | `apps/app` (the BoQ sheet, FE-009: Table owns the columns and their visibility, Virtual the rows; both are skipped by the React Compiler, see the `incompatible-library` comments) |
+| `three`, `@types/three` | 0.169.0 | `apps/app` (the 3D viewer, FE-016; the PoC's version, loaded on demand when a viewer opens) |
+| `next-themes`, `sonner` | 0.4.6, 2.0.8 | `apps/app` (theme class on `<html>`, default "system"; toasts) |
+| `@fontsource-variable/jetbrains-mono`, `@fontsource-variable/inter-tight` | 5.3.0 | `apps/app` (self-hosted, every subset incl. Latin Extended and Cyrillic) |
+| `eslint`, `eslint-config-next` | 9.39.5, 16.4.6 | `apps/app` (ESLint 10 is not supported by `eslint-plugin-react` yet) |
+| `vitest`, `@vitejs/plugin-react`, `@testing-library/react`, `jsdom` | 5.1.0, 6.3.0, 16.3.3, 31.0.0 | `apps/app` (`npm run test` goes through `scripts/vitest.mjs`, which upper-cases a Windows drive letter in the cwd; Git Bash otherwise makes Vitest load itself twice) |
+| `@playwright/test` | 1.65.0 | `apps/app` (`npx playwright install chromium` once per machine) |
+| `@axe-core/playwright` | 4.14.0 | `apps/app` dev dependency: the accessibility suite `e2e/a11y.spec.ts` (TS-003, FE-044) |
+| TypeScript | 5.x (5.9 installed) | every workspace; `apps/app/tsconfig.json` maps `react` to its own `@types/react` 19 (the PoC hoists 18) |
+
+**shadcn components.** The registry's `base-mira` components import `cn` from an npm package
+named `cn`; this repo doesn't take that dependency. `apps/app/scripts/ui-add.mjs` fetches a
+component (and its registry dependencies) from `https://ui.shadcn.com/r/styles/base-mira/`,
+points `cn` at `src/lib/utils.ts` (the classic clsx + tailwind-merge helper) and prints any npm
+dependency still to add. Don't run `npx shadcn add` directly: it tries to install `cn`.
+Local changes to added components (re-applied by hand after `ui:add --overwrite`): `dialog.tsx`
+translates its "Close" text (`common.close`); `button.tsx` default and icon sizes are 32 px with
+13 px text (the guidelines' control density).
 
 ## Rendering model
 
@@ -123,7 +159,9 @@ export interface AuthAdapter {
 }
 ```
 - `mock` adapter: a sign-in page listing seeded users. The token is `mock:<userId>`, kept in
-  `sessionStorage`.
+  `localStorage` (the tabs of one browser share one sign-in and one session, F01 §10). After sign-in
+  the auth gate opens the app's session (`POST /sessions`) and binds it to the sign-in
+  (`AuthAdapter.bindAppSession`): the mock's token becomes `mock:<userId>:<sessionId>` (FE-012).
 - The real adapter is written after the auth decision (07-backend/decisions-to-make.md). No
   component imports a provider SDK directly.
 
@@ -174,3 +212,16 @@ build flag `MODULE_PRICING` is set. Core code never imports from a module; modul
 components, hooks and the generated core client. A lint rule (`no-restricted-imports`) forbids
 `@ifc-boq/pricing-ui` anywhere but `src/modules.ts`. CI builds the app with and without the
 module.
+
+The extension points (FE-039) are typed registries in `src/extensions/registry.ts`, read through
+`@/extensions` (importing it runs `src/modules.ts` first): `nav.orgItems` (left navigation, after
+the core's items), `boq.workspaceTabs` (`?tab=<id>`, after the core's tabs, not on a saved version
+opened read-only), `sheet.selectionActions` (in the sheet's bulk bar), `sheet.lineBadges` (a hook
+per module, called once per sheet; badges after the line's description), `settings.orgSections`
+(`/{org}/settings/{path}`, served by `settings/[section]`), `project.overviewCards`, `area.routes`
+(a first URL segment outside any org: next.config rewrites `/{area}/…` to `/areas/{area}/…`, before the
+`[org]` segment, for the areas of the modules in the build; `AreaHost` renders the area), `notifications.kinds` (text from the module's namespace). Labels and panels are
+components, so a module renders its own namespace and queries. Registering one key twice throws.
+`src/extensions/testing/test-module.tsx` registers one entry on every point for the unit tests;
+the app never imports it. The build flag `MODULE_PRICING=1` stops the build until the module exists
+(P48).

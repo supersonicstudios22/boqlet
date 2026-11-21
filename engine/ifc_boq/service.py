@@ -1,11 +1,11 @@
 """
-service.py - preset ids -> get_boq -> stored run. Shared by the API and the CLI.
+service.py - preset ids -> get_boq, and the model summary and scene index the worker writes. Shared by the worker, the CLI and the corpus run.
 """
 from __future__ import annotations
 
 from datetime import datetime
 
-from . import presets, store
+from . import presets
 from .export_xlsx import export
 from .pipeline import get_boq
 
@@ -41,7 +41,9 @@ def model_summary(model_id: str, parsed: dict, cached: bool) -> dict:
         "modelId": model_id, "fileName": h["source"]["fileName"], "sizeBytes": h["source"]["sizeBytes"],
         "ifcSchema": h["ifcSchema"], "authoringApp": (h.get("authoringApp") or {}).get("fullName"),
         "disciplineGuess": h.get("disciplineGuess"),
-        "storeys": sorted(({"name": s.get("name"), "elevation": s.get("elevation")} for s in parsed["spatial"] if s["kind"] == "storey"),
+        # Name and elevation are optional in IFC and in the contract (absent, never null: api.ts).
+        "storeys": sorted(({k: v for k, v in (("name", s.get("name")), ("elevation", s.get("elevation"))) if v is not None}
+                           for s in parsed["spatial"] if s["kind"] == "storey"),
                           key=lambda s: s.get("elevation") or 0),
         "elementCount": st["elementCount"], "openingCount": st["openingCount"], "spaceCount": st["spaceCount"],
         "byClass": st["byClass"], "checks": parsed["verification"]["summary"], "parseMs": h["parse"]["durationMs"],
@@ -56,7 +58,7 @@ def run(models, request: dict) -> tuple[dict, dict]:
     dicts = [presets.load_dictionary(d) for d in (request.get("dictionaries") or presets.DEFAULTS["dictionaries"])]
     systems = [presets.load_classification(c) for c in (request.get("classifications") or [])]
     result = get_boq(models, rule_set, systems, dicts, presets.resolution(), request.get("decisions") or [], lib,
-                     federation=presets.federation())
+                     federation=presets.federation(), manual_items=request.get("manualItems"))
     parsed_list = [models] if isinstance(models, dict) else [m["parsed"] for m in models]
     meta = {
         "modelName": " + ".join(p["header"]["source"]["fileName"] for p in parsed_list),
@@ -69,15 +71,3 @@ def run(models, request: dict) -> tuple[dict, dict]:
     return result, meta
 
 
-def run_and_store(request: dict) -> tuple[str, dict]:
-    """Dev server: the stored models a RunRequest names (`models`, or the single `modelId`)."""
-    wanted = request.get("models") or ([{"modelId": request["modelId"]}] if request.get("modelId") else [])
-    if not wanted:
-        raise ValueError("No model in the request: give modelId or models.")
-    models = [{"id": m["modelId"], "parsed": store.get_parsed(m["modelId"]), "meshes": store.get_meshes(m["modelId"]),
-               **({"discipline": m["discipline"]} if m.get("discipline") else {}),
-               **({"scope": m["scope"]} if m.get("scope") else {})} for m in wanted]
-    result, meta = run(models, request)
-    run_id = store.save_run(request, result)
-    store.run_path(run_id, "xlsx").write_bytes(export(result, meta))
-    return run_id, result

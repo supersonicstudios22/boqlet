@@ -26,6 +26,7 @@ import type { OurRuleType, RuleSet, Selector } from "./rules";
 import type { ClassificationInput, LineCode } from "./classification";
 import type { DictionaryInput } from "./dictionary";
 import type { Check } from "./parsed";
+import type { LogCode, MessageParams, QuestionCode, WarningCode } from "./messages";
 
 /* ============================================================================
  * Inputs
@@ -100,10 +101,20 @@ export interface Decision {
   /** Question.id. Ids are deterministic (built from content), so they stay stable across runs. */
   questionId: string;
   scope: "project" | "company";
-  answer: string | number | boolean | null;   // null = "leave it" (dismiss without answering)
+  answer: string | number | boolean | null | LineOverrideEdit;
   note?: string;
   decidedBy?: string;
   decidedAt?: string;
+}
+
+/** An engine decision with a questionId of `override:{lineKey}`. */
+export interface LineOverrideEdit {
+  quantity?: number | null;
+  description?: string;
+  unit?: Unit;
+  codes?: Record<string, string>;
+  excluded?: boolean;
+  reason?: string;
 }
 
 /* ============================================================================
@@ -112,6 +123,34 @@ export interface Decision {
 
 /** Where a line's quantity comes from. */
 export type LineSource = "measured" | "derived" | "manual" | "flagged";
+
+/**
+ * One step of a line's "How it is calculated" (P25, F06 §5, EN-013), in the order they apply:
+ * start (gross, or the elements' sum), add, deduct, factor, round, derive (a derived line's source),
+ * edit (a person's quantity edit), result. The UI writes each step as a sentence from `code`.
+ */
+export interface TraceStep {
+  kind: "start" | "add" | "deduct" | "factor" | "round" | "derive" | "edit" | "result";
+  /**
+   * Message code (EN-004) of the step's sentence: `trace.start.area|volume|length|count|mass|perimeter|value|missing`,
+   * `trace.add.reveals|minimum`, `trace.deduct.all|over_threshold|excess`, `trace.factor`, `trace.round`,
+   * `trace.derive`, `trace.derive.missing`, `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`,
+   * `trace.result`.
+   */
+  code: string;
+  /** Values the sentence names (count, surface, what, mode, threshold, formula, sourceLine, by, reason…). */
+  params: Record<string, unknown>;
+  /**
+   * The step's contribution in `unit` (deductions negative); for `result`, the line quantity.
+   * The values of the steps before `result` add up to it (within rounding). null: no value (to confirm).
+   */
+  value: number | null;
+  unit?: Unit;
+  /** GlobalIds of the elements the step covers (to expand the step). */
+  elements?: string[];
+  /** The rule-set slot (Settings question) a value of this step came from, e.g. `wall_opening_threshold`. */
+  param?: string;
+}
 
 export interface BoqLine {
   key: string;                     // stable within a run: rule id + line key values
@@ -130,11 +169,23 @@ export interface BoqLine {
     params: Record<string, unknown>;
     elements: { guid: string; name?: string; quantity: number | null; note?: string; model?: string }[];
     sourceLine?: string;           // derived lines: the line they were derived from
+    /** "How it is calculated" in steps (P25, F06 §5, EN-013): the values of the steps before `result` add up to it. */
+    steps?: TraceStep[];
   };
   codes: Record<string, LineCode>; // keyed by CodeList.id
   location?: { storey?: string; storeys?: string[] };
   tags: string[];
   notes: string[];
+  overridden?: {
+    fields: ("quantity" | "description" | "unit" | "codes" | "excluded" | "order")[];
+    engineQuantity?: number | null;
+    quantity?: number | null;
+    engineDescription?: string;
+    engineUnit?: Unit;
+    engineCodes?: Record<string, string | null>;
+    reason?: string;
+  };
+  excluded?: boolean;
 }
 
 export type QuestionKind =
@@ -144,6 +195,7 @@ export type QuestionKind =
   | "double_claim"            // two rules claim the same element for the same purpose
   | "unclassified"            // a line no map rule codes (onUnmapped: "ask")
   | "classification_conflict"
+  | "orphan_override"        // a previously edited line no longer exists
   | "contradiction"           // file contradicts itself (reported vs geometry etc.)
   | "overlap";
 
@@ -161,6 +213,9 @@ export interface Question {
   /** Blocking questions stop the BoQ from being "complete"; others are informative. */
   blocking: boolean;
   message: string;
+  /** Structured message fields may be absent on saved runs from older engines. */
+  code?: QuestionCode;
+  params?: MessageParams;
   answer: AnswerType;
   guids?: string[];
   /** For unknown_name: the field and raw text. */
@@ -172,8 +227,9 @@ export interface Question {
 }
 
 export interface Warning {
-  code: string;
+  code: WarningCode;
   message: string;
+  params?: MessageParams;
   guids?: string[];
   ruleId?: string;
 }
@@ -199,6 +255,8 @@ export interface LogEntry {
   stage: LogStage;
   level: "info" | "detail" | "warning";
   message: string;
+  code?: LogCode;
+  params?: MessageParams;
   ruleId?: string;
   lineKey?: string;
   guid?: string;

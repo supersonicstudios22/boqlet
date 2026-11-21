@@ -41,25 +41,19 @@ international: no country's standard is the default.
 
 ## What this repository does today
 
-A development build that proves the engine on a real file and lets developers poke at it.
+The product: a Next.js app (`apps/app`), a Java backend (`services/api`), the Python engine
+(`engine/ifc_boq`) as its worker, the contract (`packages/types`, `packages/api`) and the presets
+(`presets/`), specified in `plan/` and running as an invite-only pilot (`docs/18`). This document
+describes the engine and how it measures; the development UI and local engine API it started with
+(the proof of concept) were removed in FE-046 and remain reachable as the git tag `poc-final`.
 
-- **Web app** (`apps/web`, React 18 + Vite): drop an IFC, choose a rule set, classifications
-  and dictionaries, generate, then inspect: the BoQ as a ruled sheet, each line's formula and
-  element contributions, the full calculation log, questions with answer controls, the inputs
-  as JSON, and a side-by-side comparison of two runs. Download the Excel BoQ. A **Library** mode
-  shows and edits rule sets, classifications and dictionaries as forms (drafts checked by the
-  engine, saved to `presets/user/` and then usable in the BoQ; shipped presets are never
-  overwritten). Rule sets open on **Settings** (the questions a standard answers), with **BoQ
-  items** and **Advanced** beside it; formulas are shown with readable names. A **3D view** beside the BoQ (three.js over
-  the engine's own geometry) highlights a line's elements and lists the lines of a clicked element.
-- **Engine** (`engine/ifc_boq`, Python): parse IFC to a cached `ParsedModel`, verify it,
-  resolve names, measure, run rules, classify, ask questions, log every step, export Excel.
-  Served locally by FastAPI on port 8787, and usable from the command line.
+- **Engine** (`engine/ifc_boq`, Python): parse IFC to a `ParsedModel`, verify it, resolve names,
+  measure, run rules, classify, ask questions, log every step, export Excel. Runs as the backend's
+  worker (HTTP and a Postgres queue) and from the command line.
 - **Contract** (`packages/types`): every data shape as TypeScript, with JSON Schemas generated
   from it that the engine validates against.
-- **Presets** (`presets/`): five rule sets, three dictionaries, three classifications
-  (one needs a one-command download), resolution settings.
-- **Tests**: 83 engine tests including the Duplex acceptance test, which checks that the
+- **Presets** (`presets/`): rule sets, dictionaries, classifications, resolution settings.
+- **Tests**: engine tests including the Duplex acceptance test, which checks that the
   "as modelled" rule set reproduces the hand-made BoQ exactly.
 
 ### Measured on the Duplex (2.4 MB, 218 elements)
@@ -72,15 +66,12 @@ A development build that proves the engine on a real file and lets developers po
 
 ## How to run
 
-See the root `README.md` (people) and `CLAUDE.md` (agents). Short version:
+See `README.md` (people) and `CLAUDE.md` (agents) at the repository root:
 
 ```bash
-npm install && npm run dev      # http://localhost:5173
-npm run test                    # typecheck + engine tests
+npm install && npm run dev:app  # http://localhost:3000
+npm run test                    # typecheck, lint, suites, engine tests
 ```
-
-Ports: web 5173 (Vite, proxies `/api`), engine 127.0.0.1:8787 (FastAPI, auto-reload).
-Engine data: uploaded models and runs are stored in `engine/.cache/` (safe to delete).
 
 ## Status
 

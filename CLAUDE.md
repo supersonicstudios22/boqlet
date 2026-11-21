@@ -1,7 +1,8 @@
 # CLAUDE.md
 
-Guidance for AI agents (and people) working in this repository. Read this first, then
-`docs/README.md` for the full map.
+Guidance for AI agents (and people) working on boqlet. The repository root is the product root:
+every path below and in `plan/` is relative to it, and every command runs in it. Read this first,
+then `docs/README.md` (the engine) and `plan/README.md` (the product being built).
 
 ## What this is
 
@@ -14,27 +15,34 @@ values used and the elements that contributed.
 getBoq(models, rules, classifications, dictionaries, decisions) -> BoqResult
 ```
 
-This repository is a **development build and the seed of a larger monorepo**. Today it is
-a React app plus a local Python engine. The planned production backend is **Java** (owns
-users, projects, storage, jobs). The Python engine stays as a worker for now (it may move to Java
-later, undecided). Nothing for the Java backend has been written yet; do not start it unless asked.
-`api.py`, `store.py` and the request shapes in `api.ts` are a **temporary demo backend**: keep them
-thin CRUD. Anything that decides something belongs in the engine as plain functions over the
-contract types (see `docs/03-architecture.md`, code boundaries).
+The product is the monorepo specified in `plan/`: a Next.js app, a mock API (the e2e test double),
+a **Java** backend (owns users, projects, storage, jobs) and the Python engine as its worker.
+Anything that decides something belongs in the engine as plain functions over the contract types
+(see `docs/03-architecture.md`, code boundaries); the backend stores, permits and schedules. The
+proof of concept it grew from (a React dev UI and a local engine API) was removed in FE-046; it
+stays reachable as the git tag `poc-final`.
 
 ## Run it
 
 ```bash
 npm install          # also creates engine/.venv and installs the Python engine (Python 3.10-3.13)
-npm run dev          # engine on 127.0.0.1:8787 + web on http://localhost:5173
+npm run dev:app      # engine worker + mock API + app on http://localhost:3000
 ```
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Both servers (concurrently). Vite proxies `/api` to the engine. |
-| `npm run test` | Typecheck all workspaces, then the engine tests (pytest). |
+| `npm run dev:app` | The product in development: engine worker (8788) + mock API (`apps/mock-api`, 4010) + app (`apps/app`, Next.js, http://localhost:3000; `/api/v1` proxied to the mock). Sign in as a seeded user (`/_dev/users` on 4010). |
+| `npm run dev:engine-worker` | Engine worker on port 8788. Uses the mock's blob folder by default. `ENGINE_WORKER_PORT`, `ENGINE_STORAGE`, `ENGINE_HTTP_CONCURRENCY`, and `ENGINE_MAX_MODEL_MB` configure local runs. |
+| `npm run dev:mock` / `npm run mock:seed` / `npm run mock:reset` | The mock API alone / seed `apps/mock-api/.data` if empty / wipe and reseed. |
+| `npm run test` | Typecheck all workspaces, lint the app, the app's and the mock's tests, the contract and scenario suites against a fresh mock, then the engine tests (pytest). The mock's Duplex test runs only when the engine worker is up (`npm run dev:engine-worker`). |
+| `npm run test:contract:mock` / `npm run test:scenarios:mock` | The shared suites (`tests/contract`, `tests/scenarios`) against a fresh mock they start themselves. Without `:mock` they run against `API_URL` (a running mock, or Java in phase 2). |
+| `npm run lint` / `npm run test:app` / `npm run e2e:app` | The app's ESLint (no literal UI strings, F15) / Vitest unit tests / Playwright end-to-end tests (starts the app if it isn't running). |
 | `npm run test:engine` | Engine tests only. Includes the Duplex acceptance test. |
-| `npm run typecheck` / `npm run build` | Web + types typecheck / production build of the web app. |
+| `npm run typecheck` | Typecheck all workspaces. |
+| `npm run api:lint` | Lint both HTTP contracts (`packages/api/openapi.yaml`, `packages/pricing-api/openapi-pricing.yaml`). |
+| `npm run api:gen` / `npm run api:check` | Regenerate the clients' types from the contracts / fail if they are out of date (CI). Run `api:gen` after editing a contract. |
+| `npm run build:app` | Production build of the product app (`apps/app`, Next.js). |
+| `npm run ui:add -w @ifc-boq/app -- <name>` | Add a shadcn/ui component (style base-mira); never `npx shadcn add` (`plan/06-frontend/architecture.md`). |
 | `npm run boq -- <file.ifc> --out boq.xlsx` | Command-line run, no UI. `--help` for options. |
 | `npm run corpus -- <folder>` | Run every IFC in a folder; one summary row per file, schema-validated. Use before adding fixtures. |
 | `npm run catalogue` | Regenerate `docs/12-ifc-corpus-catalogue.md` from `fixtures/corpus/catalogue.json` (every IFC looked at, tagged). |
@@ -43,23 +51,29 @@ npm run dev          # engine on 127.0.0.1:8787 + web on http://localhost:5173
 | `npm run import:uniclass` | Download Uniclass 2015 EF into `presets/classifications/uniclass2015-ef/codelist.json`. |
 
 Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
-`IFC_BOQ_ENGINE_PORT` (default 8787), `IFC_BOQ_USER_PRESETS` (where the Library saves, default `presets/user`).
+`IFC_BOQ_USER_PRESETS` (the engine's user preset folder, default `presets/user`).
 
 ## Repo map
 
 | Path | What lives there |
 |---|---|
-| `packages/types/src` | **The contract.** Every shape as TypeScript: rules, parsed model, measured element, dictionary, classification, BoQ result, HTTP API. Source of truth. |
+| `apps/app` | The product frontend, Next.js (phase 1; wired to Java in phase 3). |
+| `apps/mock-api` | Mock backend implementing both contracts, computing through the engine worker; the e2e test double. |
+| `packages/api` | `openapi.yaml` (the core HTTP contract) and its generated client (`@ifc-boq/api`). |
+| `packages/pricing-api`, `packages/pricing-ui` | The optional, removable pricing module's contract, client and frontend (P36). |
+| `packages/types/src` | **The engine contract.** Every shape as TypeScript: rules, parsed model, measured element, dictionary, classification, BoQ result, HTTP API. Source of truth. |
 | `packages/types/schema` | JSON Schemas generated from the types (`npm run codegen`). The Python engine validates presets and its own output against them. Do not edit by hand. |
-| `engine/ifc_boq` | The Python engine: parse, names, measure, rules, classify, pipeline, export, API, CLI. |
+| `services/api` | The Java backend. |
+| `engine/ifc_boq` | The Python engine: parse, names, measure, rules, classify, pipeline, export, worker (HTTP and Postgres queue), CLI. |
 | `engine/tests` | pytest. `test_duplex.py` is the acceptance test against the hand-made BoQ. |
 | `presets/` | Rule sets, dictionaries, classifications, resolution settings, as JSON. Loaded from disk on every run, so edits apply without restarting. `presets/user/` (git-ignored) holds what the Library saves; shipped presets are never written. |
-| `apps/web` | React 18 + Vite dev UI: drop IFC, choose presets, generate, inspect lines, log, questions, compare, download Excel. |
 | `fixtures/` | The NIBS Duplex IFC and the hand-made reference BoQ; buildingSMART certification samples (CC BY 4.0) in `ifc/buildingsmart/`. |
 | `scripts/` | Node helpers that set up and run the Python engine from npm. |
-| `docs/` | Everything decided so far, written for the next developer or agent. |
-| `boqlet_v1/` | The product root (P44). Empty until the build starts; task FE-000 moves everything above into it, and FE-046 finally makes it the repository root. |
-| `vercel.json`, `api/index.py`, `requirements.txt` | Demo deployment on Vercel only (docs/17): the web build plus the engine as one Python function. Keep the root `requirements.txt` in sync with `engine/requirements.txt`. |
+| `tests/contract`, `tests/scenarios`, `tests/perf` | Shared contract and behaviour suites (run against the mock and against Java), performance suite. |
+| `plan/` | The product specification, with `10-build-log.md` (where the build stands). |
+| `ops/pilot` | The deployed environment on Contabo: Compose, Dockerfiles, deploy receiver, checks, backups (`docs/18`, `docs/19`). |
+| `docs/` | The engine and everything decided so far, written for the next developer or agent. |
+| `.github/workflows/` | CI and the automatic rollout (`docs/19`). |
 
 ## Rules of the road
 
@@ -96,7 +110,7 @@ Environment: `IFC_BOQ_PYTHON` (python to use), `IFC_BOQ_SKIP_ENGINE_SETUP=1`,
 | Use the Library to manage rule sets (user guide) | `docs/14-rules-guide.md` |
 | Use the Library to manage classifications (user guide) | `docs/15-classifications-guide.md` |
 | Use the Library to manage dictionaries (user guide) | `docs/16-dictionaries-guide.md` |
-| Deploy a demo on Vercel | `docs/17-deploying-a-demo.md` |
+| Operate the deployed environment | `docs/18-contabo-pilot.md`, `docs/19-native-auth-and-cd.md` |
 | Dictionaries and code lists | `docs/07-dictionaries-and-classification.md` |
 | What is not built yet, open questions | `docs/11-roadmap-and-open-questions.md` |
 | Build the product (Next.js frontend, mock API, Java backend, engine worker): specs, API contract, phases, tasks | `plan/README.md` "Start here", then `plan/08-delivery/sessions.md` and `plan/10-build-log.md` |
@@ -111,14 +125,17 @@ into any number of code lists, questions and answers, calculation log, Excel exp
 UI, plus real wall faces with the rooms on them and room-by-room finishes. The engine reproduces the
 hand-made Duplex BoQ exactly. Across federated models the engine links doors to openings, rooms to walls
 and columns through slabs (with the `meshes.npz` sidecar), and it asks about contradictions and double claims.
-Not yet built: coordinate alignment between models, AI name suggestions, model revisions, background jobs, users and projects, the
-Java backend. Also run on 309 public IFC files from 30 authoring tools (buildingSMART samples,
+Since phase 2 the engine also runs as a worker for the Java backend (users, orgs, projects, model
+revisions and their change reports, background jobs, Library, exports, sharing). Not yet built:
+coordinate alignment between models, AI name suggestions. Also run on 309 public IFC files from 30 authoring tools (buildingSMART samples,
 DURAARK, the Auckland OpenIFC repository, Schependomlaan): no engine errors, output valid
 against the contract; quantities checked only for the Duplex and the buildingSMART samples.
 What was run and what is still uncovered: `docs/12-ifc-corpus-catalogue.md`.
 
-The product to build on top of this is fully specified in `plan/` (decisions P01–P45, phases,
-milestones, tasks). **The build has not started; wait for the owner's go-ahead**, then follow
-`plan/README.md` "Start here" and `plan/08-delivery/sessions.md`. Where the build stands, and
-what agents decided along the way, is in `plan/10-build-log.md`. Every session starts with the
-prompt in `sessions.md`.
+The product built on top of this is specified in `plan/` (decisions P01–P52, phases,
+milestones, tasks). Phases 1 and 2 are done; in phase 3 M8a (the app on Java) is done and M8
+(hardening, new root, release) is ending with FE-047. The invite-only pilot runs on one deployed
+environment (P51), deployed by GitHub Actions (`docs/18`, `docs/19`); a separate staging environment
+is a future todo. Every build session starts with the prompt in `plan/08-delivery/sessions.md` and
+works by that file. **Where the build stands** (phase, role, next task, what agents decided along
+the way) is in `plan/10-build-log.md`.

@@ -149,7 +149,10 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
     solids = _Solids(models)
     if federated:
         log.info("match", "federation: " + "; ".join(f"{m['fileName']} as {m['discipline']} ({len(m['elements'])} elements)"
-                                                     for m in models))
+                                                     for m in models),
+            code="log.federation.models", params=dict(
+                models=[{'name': m['fileName'], 'discipline': m['discipline'], 'elements': len(m['elements'])} for m in models],
+            ))
         _storeys(models, settings, log, warnings)
         _coordinates(models, log, warnings)
 
@@ -172,7 +175,11 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
         for m in dropped:
             reports[m["id"]]["duplicates"] += 1
         log.detail("match", f"{best[1].get('name') or g}: same GlobalId in {len(cs)} models; kept from "
-                            f"{best[0]['fileName']}, dropped from {', '.join(m['fileName'] for m in dropped)}", guid=g)
+                            f"{best[0]['fileName']}, dropped from {', '.join(m['fileName'] for m in dropped)}", guid=g,
+            code="log.federation.duplicate", params=dict(
+                name=best[1].get('name') or g, count=len(cs), kept=best[0]['fileName'],
+                dropped=[m['fileName'] for m in dropped],
+            ))
 
     # 4. ownership ------------------------------------------------------------------------
     index: dict[tuple, _Index] = {}
@@ -208,7 +215,8 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
                 continue
             if any(select(s, e, x) for s in scope.get("exclude", [])):
                 reports[m["id"]]["excludedByScope"] += 1
-                log.detail("match", f"{e.get('name') or g}: excluded by the scope of {m['fileName']}", guid=g)
+                log.detail("match", f"{e.get('name') or g}: excluded by the scope of {m['fileName']}", guid=g,
+                    code="log.federation.scope", params=dict(name=e.get('name') or g, fileName=m['fileName']))
                 continue
             own = owned_by_discipline(settings, m["discipline"], e, x) or any(select(s, e, x) for s in scope.get("include", []))
             if own or g in keep_copy or not federated:
@@ -220,19 +228,25 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
             if hit:
                 reports[m["id"]]["leftToOthers"] += 1
                 log.detail("match", f"{e.get('name') or g} ({e['ifc_class']}): left to {hit[0]['fileName']} "
-                                    f"({hit[0]['discipline']}), which has it as {hit[1]}", guid=g)
+                                    f"({hit[0]['discipline']}), which has it as {hit[1]}", guid=g,
+                    code="log.federation.owner", params=dict(
+                        name=e.get('name') or g, ifcClass=e['ifc_class'], fileName=hit[0]['fileName'],
+                        discipline=hit[0]['discipline'], match=hit[1],
+                    ))
                 continue
             taken.append((m, e))
             if owners and whole_owned(e):
-                log.detail("match", f"{e.get('name') or g} ({e['ifc_class']}): taken with the aggregate it is part of", guid=g)
+                log.detail("match", f"{e.get('name') or g} ({e['ifc_class']}): taken with the aggregate it is part of", guid=g,
+                    code="log.federation.aggregate_part", params=dict(name=e.get('name') or g, ifcClass=e['ifc_class']))
             elif owners:
                 reports[m["id"]]["takenWithoutOwner"] += 1
                 holes[(m["id"], e["ifc_class"], tuple(o["discipline"] for o in owners))].append(g)
     for (mid, cls, owner_discs), guids in sorted(holes.items()):
         msg = (f"{len(guids)} {cls} taken from {by_id[mid]['fileName']} ({by_id[mid]['discipline']}): "
                f"{' / '.join(owner_discs)} owns them, but its model has nothing in their place.")
-        warnings.append({"code": "federation_hole", "message": msg, "guids": guids})
-        log.warn("match", msg)
+        warnings.append({"code": "federation_hole", "message": msg, "guids": guids, "params": {"count": len(guids)}})
+        log.warn("match", msg,
+            code="log.federation.missing_owner", params=dict(count=len(guids)))
 
     # parts of a dropped copy have no parent in the combined set: measure them on their own
     kept_guids = {e["guid"] for _, e in taken}
@@ -240,7 +254,10 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
         p = e.get("parent_guid")
         if p and p in keep_copy and keep_copy[p] != m["id"]:
             log.detail("match", f"{e.get('name') or e['guid']}: its parent {p} was kept from "
-                                f"{by_id[keep_copy[p]]['fileName']}; measured on its own", guid=e["guid"])
+                                f"{by_id[keep_copy[p]]['fileName']}; measured on its own", guid=e["guid"],
+                code="log.federation.detached_part", params=dict(
+                    name=e.get('name') or e['guid'], parent=p, fileName=by_id[keep_copy[p]]['fileName'],
+                ))
             e["parent_guid"] = None
         elif p and p not in kept_guids:
             e["parent_guid"] = None
@@ -250,7 +267,8 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
         taken = _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, solids)
         if solids.by_mesh or solids.by_box:
             log.info("match", f"overlap tests between models: {solids.by_mesh} by solid intersection"
-                              + (f", {solids.by_box} by bounding boxes (no closed mesh)" if solids.by_box else ""))
+                              + (f", {solids.by_box} by bounding boxes (no closed mesh)" if solids.by_box else ""),
+                code="log.federation.overlap_method", params=dict(byMesh=solids.by_mesh, byBox=solids.by_box))
 
     # 6. aggregates that lost parts ------------------------------------------------------------
     if federated:
@@ -265,7 +283,12 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
                               + "".join(f", {n} {label}" for n, label in (
                                   (r["leftToOthers"], "left to other models"), (r["duplicates"], "duplicate GlobalIds"),
                                   (r["excludedByScope"], "excluded by scope"),
-                                  (r["takenWithoutOwner"], "taken although another discipline owns them")) if n))
+                                  (r["takenWithoutOwner"], "taken although another discipline owns them")) if n),
+                code="log.federation.model_report", params=dict(
+                    fileName=r['fileName'], discipline=r['discipline'], taken=r['taken'],
+                    elements=r['elements'], leftToOthers=r['leftToOthers'], duplicates=r['duplicates'],
+                    excludedByScope=r['excludedByScope'], takenWithoutOwner=r['takenWithoutOwner'],
+                ))
     return [e for _, e in taken], [reports[m["id"]] for m in models], questions, warnings
 
 
@@ -295,15 +318,20 @@ def _storeys(models, settings, log, warnings):
         for lv in c:
             rename[(lv[2]["id"], lv[1])] = (name, z)
             if lv[1] != name:
-                log.info("match", f"storey '{lv[1]}' ({fmt(lv[0])} m) of {lv[2]['fileName']} is '{name}' ({fmt(z)} m)")
+                log.info("match", f"storey '{lv[1]}' ({fmt(lv[0])} m) of {lv[2]['fileName']} is '{name}' ({fmt(z)} m)",
+                    code="log.federation.aligned_storey", params=dict(
+                        source=lv[1], sourceElevation=lv[0], fileName=lv[2]['fileName'], target=name,
+                        targetElevation=z,
+                    ))
     names = defaultdict(set)
     for (mid, n), (canon, _) in rename.items():
         names[n].add(canon)
     for n, canon in names.items():
         if len(canon) > 1:
             msg = f"storey name '{n}' is used at different levels in different models ({', '.join(sorted(canon))})"
-            warnings.append({"code": "federation_storeys", "message": msg})
-            log.warn("match", msg)
+            warnings.append({"code": "federation_storeys", "message": msg, "params": {"name": n, "levels": sorted(canon)}})
+            log.warn("match", msg,
+                code="log.federation.storey_warning", params=dict(name=n, levels=sorted(canon)))
     for m in models:
         for e in m["elements"]:
             r = rename.get((m["id"], e.get("storey")))
@@ -326,8 +354,10 @@ def _coordinates(models, log, warnings):
                 mb = next(m for m in models if m["id"] == b)
                 msg = (f"{ma['fileName']} and {mb['fileName']} do not overlap in space: different coordinate systems? "
                        f"Duplicates and overlaps between them cannot be found.")
-                warnings.append({"code": "federation_coordinates", "message": msg})
-                log.warn("match", msg)
+                warnings.append({"code": "federation_coordinates", "message": msg,
+                                 "params": {"first": ma["fileName"], "second": mb["fileName"]}})
+                log.warn("match", msg,
+                    code="log.federation.coordinate_warning", params=dict(first=ma["fileName"], second=mb["fileName"]))
 
 
 def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, solids):
@@ -356,21 +386,28 @@ def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, s
         if ans in (ka, kb):
             lose = 1 if ans == ka else 0
             drop |= {p[lose]["guid"] for p in ps}
-            log.info("decision", f"overlap {ka} / {kb} on {len(ps)} {cls}: kept from {ans}")
+            log.info("decision", f"overlap {ka} / {kb} on {len(ps)} {cls}: kept from {ans}",
+                code="log.decision.overlap_owner", params=dict(first=ka, second=kb, count=len(ps), ifcClass=cls, model=ans))
             continue
         if ans == "both":
-            log.info("decision", f"overlap {ka} / {kb} on {len(ps)} {cls}: both kept (answer)")
+            log.info("decision", f"overlap {ka} / {kb} on {len(ps)} {cls}: both kept (answer)",
+                code="log.decision.overlap_both", params=dict(first=ka, second=kb, count=len(ps), ifcClass=cls))
             continue
         msg = (f"{len(ps)} {cls} appear in both the {ka} and the {kb} model (overlapping by {int(thr * 100)}% or more). "
                f"Which model should provide them?")
         questions.append({"id": qid, "kind": "overlap", "blocking": False, "guids": guids, "occurrences": len(ps),
+                          "code": "question.overlap", "params": {"first": ka, "second": kb, "count": len(ps), "ifcClass": cls,
+                                                               "percent": int(thr * 100)},
                           "message": msg, "suggestion": "both",
                           "answer": {"kind": "choice", "options": [
                               {"value": ka, "label": f"Take them from {ka}"}, {"value": kb, "label": f"Take them from {kb}"},
                               {"value": "both", "label": "Keep both (they are different objects)"}]}})
         warnings.append({"code": "federation_overlap", "message": f"{len(ps)} {cls} may be counted twice ({ka} and {kb}).",
-                         "guids": guids})
-        log.warn("match", msg)
+                         "guids": guids, "params": {"first": ka, "second": kb, "count": len(ps), "ifcClass": cls}})
+        log.warn("match", msg,
+            code="log.federation.overlap", params=dict(
+                first=ka, second=kb, count=len(ps), ifcClass=cls, percent=int(thr * 100),
+            ))
     return [(m, e) for m, e in taken if e["guid"] not in drop]
 
 
@@ -392,7 +429,10 @@ def _reroll(taken, models, reports, log):
             emptied.add(e["guid"])
             reports[m["id"]]["leftToOthers"] += 1
             log.detail("match", f"{e.get('name') or e['guid']} ({e['ifc_class']}): all {len(gone)} of its parts are measured "
-                                f"elsewhere or excluded; left to the other models", guid=e["guid"])
+                                f"elsewhere or excluded; left to the other models", guid=e["guid"],
+                code="log.federation.aggregate_excluded", params=dict(
+                    name=e.get('name') or e['guid'], ifcClass=e['ifc_class'], omitted=len(gone),
+                ))
             continue
         changed.add(e["guid"])
         if e["provenance"].get("net_volume") == "derived":
@@ -402,10 +442,15 @@ def _reroll(taken, models, reports, log):
             e["faces"] = []
         log.detail("match", f"{e.get('name') or e['guid']} ({e['ifc_class']}): {len(gone)} of its parts are measured "
                             f"elsewhere or excluded; its quantities are summed again from the {len(e['child_guids'])} kept",
-                   guid=e["guid"])
+                   guid=e["guid"],
+            code="log.federation.aggregate_resummed", params=dict(
+                name=e.get('name') or e['guid'], ifcClass=e['ifc_class'], omitted=len(gone),
+                kept=len(e['child_guids']),
+            ))
     if changed:
         roll_up_parts([e for _, e in taken], has_body, log, only=changed)
-        log.info("match", f"{len(changed)} aggregate(s) re-summed from the parts kept after federation")
+        log.info("match", f"{len(changed)} aggregate(s) re-summed from the parts kept after federation",
+            code="log.federation.aggregate_summary", params=dict(count=len(changed)))
     return [(m, e) for m, e in taken if e["guid"] not in emptied]
 
 
@@ -425,7 +470,8 @@ def link(taken: list[dict], models: list[dict], log: CalcLog, warnings: list[dic
     no_mesh = [m["fileName"] for m in models if not m.get("meshes")]
     if no_mesh:
         log.warn("match", f"no meshes for {', '.join(no_mesh)}: rooms on other models' walls and elements passing "
-                          f"through other models' elements are not linked")
+                          f"through other models' elements are not linked",
+            code="log.federation.missing_meshes", params=dict(models=no_mesh))
     _rooms_across(taken, tk, model_of, fills, log)
     _embedded_across(taken, tk, model_of, log)
 
@@ -466,14 +512,22 @@ def _fill_openings(taken, tk, model_of, models, log, warnings) -> dict[str, dict
         matched += 1
         log.detail("match", f"{d.get('name') or d['guid']} ({d['ifc_class']}, {model_of[d['guid']]['fileName']}) fills opening "
                             f"{o['id']} of {h.get('name') or h['guid']} ({model_of[h['guid']]['fileName']})"
-                            + (f"; its own host {old} is not taken" if old else ""), guid=d["guid"])
+                            + (f"; its own host {old} is not taken" if old else ""), guid=d["guid"],
+            code="log.federation.linked_opening", params=dict(
+                name=d.get('name') or d['guid'], ifcClass=d['ifc_class'],
+                fileName=model_of[d['guid']]['fileName'], opening=o['id'], host=h.get('name') or h['guid'],
+                hostFileName=model_of[h['guid']]['fileName'], oldHost=old,
+            ))
     if matched:
-        log.info("match", f"{matched} door(s) / window(s) placed in openings of another model's elements")
+        log.info("match", f"{matched} door(s) / window(s) placed in openings of another model's elements",
+            code="log.federation.opening_summary", params=dict(count=matched))
     if unhosted:
         msg = (f"{len(unhosted)} door(s) / window(s) lost their host to another model, which has no opening in "
                f"their place (the wall may be uncut in the model that provides it)")
-        warnings.append({"code": "federation_unhosted", "message": msg, "guids": unhosted})
-        log.warn("match", msg)
+        warnings.append({"code": "federation_unhosted", "message": msg, "guids": unhosted,
+                         "params": {"count": len(unhosted)}})
+        log.warn("match", msg,
+            code="log.federation.unhosted", params=dict(count=len(unhosted)))
     return fills
 
 
@@ -512,9 +566,13 @@ def _rooms_across(taken, tk, model_of, fills, log):
             linked += 1
             log.detail("match", f"{e.get('name') or e['guid']} ({m['fileName']}): "
                                 + ", ".join(f"{names[c['spaceId']][0] or c['spaceId']} on side {c['side']} {fmt(round(c['area'], 3))} m2"
-                                            for c in new), guid=e["guid"])
+                                            for c in new), guid=e["guid"],
+                code="log.federation.room_contact", params=dict(
+                    name=e.get('name') or e['guid'], fileName=m['fileName'], contacts=new,
+                ))
     if linked:
-        log.info("match", f"{linked} element(s) bound rooms of another model")
+        log.info("match", f"{linked} element(s) bound rooms of another model",
+            code="log.federation.room_summary", params=dict(count=linked))
     # every room: bounded by the elements taken, openings in those elements
     bounding = defaultdict(set)
     for e in taken:
@@ -562,6 +620,12 @@ def _embedded_across(taken, tk, model_of, log):
                 found += 1
                 log.detail("match", f"{r.get('name') or r['guid']} ({r['ifc_class']}, {model_of[r['guid']]['fileName']}) passes "
                                     f"through {h.get('name') or h['guid']} ({model_of[h['guid']]['fileName']}): "
-                                    f"{fmt(round(v, 4))} m3 shared", guid=h["guid"])
+                                    f"{fmt(round(v, 4))} m3 shared", guid=h["guid"],
+                    code="log.federation.embedded", params=dict(
+                        name=r.get('name') or r['guid'], ifcClass=r['ifc_class'],
+                        fileName=model_of[r['guid']]['fileName'], host=h.get('name') or h['guid'],
+                        hostFileName=model_of[h['guid']]['fileName'], volume=v,
+                    ))
     if found:
-        log.info("match", f"{found} element(s) pass through elements of another model (embedded)")
+        log.info("match", f"{found} element(s) pass through elements of another model (embedded)",
+            code="log.federation.embedded_summary", params=dict(count=found))

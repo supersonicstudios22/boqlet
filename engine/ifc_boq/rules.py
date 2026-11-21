@@ -19,6 +19,8 @@ from collections import Counter, defaultdict
 
 from .expr import Expr, fmt
 from .log import CalcLog
+from .templates import render as render_template
+from .trace_steps import collect, quantity_delta, slot, step
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
 UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
@@ -44,6 +46,8 @@ def flatten(target: dict, library: dict[str, dict]) -> dict:
         base["params"][name] = {**base["params"].get(name, {}), **p}
     if "scope" in target:
         base["scope"] = target["scope"]
+    if "setupSteps" in target:
+        base["setupSteps"] = target["setupSteps"]
     if target.get("sections"):
         sections = {s["id"]: s for s in base.get("sections", [])}
         for s in target["sections"]:
@@ -209,7 +213,7 @@ class RuleEngine:
         return select(sel, el, self.x, self.val, self.ctx(el))
 
     # ---------------------------------------------------------------- quantities
-    def deductions(self, gross: float, rules: list[dict], part: dict, per: str) -> tuple[float, list[str]]:
+    def deductions(self, gross: float, rules: list[dict], part: dict, per: str, trace=None, faces=1) -> tuple[float, list[str]]:
         """Apply DeductionRule[] to a gross value. per = 'area' | 'volume' | 'length'."""
         notes, total = [], 0.0
         thickness = part.get("thickness") or 0
@@ -274,10 +278,20 @@ class RuleEngine:
                 msg += f", threshold {fmt(t)} by {by}"
             msg += f"{'; ' + str(kept) + ' kept' if kept else ''})"
             notes.append(msg)
+            if trace is not None:
+                data = dict(what=what, count=len(chosen) * faces, kept=kept * faces, mode=mode)
+                if mode != "all":
+                    data.update(threshold=t, compareBy=by)
+                if mode_slot := slot(d.get("mode")):
+                    data["modeParam"] = mode_slot
+                code = {"all": "all", "excess_only": "excess"}.get(mode, "over_threshold")
+                trace.append(step("deduct", f"deduct.{code}", -ded * faces, data, slot(d.get("threshold"))))
             if self.val(d.get("addReveals")) and per == "area" and chosen and what != "embedded":
                 rev = sum((2 * (o["height"] or 0) + (o["width"] or 0)) * (o.get("depth") or thickness) for o in chosen)
                 total -= rev
                 notes.append(f"+ {fmt(round(rev, 4))} reveals")
+                if trace is not None:
+                    trace.append(step("add", "add.reveals", rev * faces))
         return gross - total, notes
 
     def surface_values(self, part: dict, surface: str) -> tuple[float | None, float | None, str]:
@@ -313,10 +327,14 @@ class RuleEngine:
             return v, v, "edges (perimeter x thickness)"
         return g, n, surface
 
-    def quantity(self, spec: dict, part: dict) -> tuple[float | None, str, str]:
+    def quantity(self, spec: dict, part: dict, trace=None) -> tuple[float | None, str, str]:
         """(value in SI or None, unit, explanation)."""
         k = spec["kind"]
         unit = spec.get("unit") or UNIT_DEFAULT.get(k, "nr")
+
+        def gross(value, **params):
+            if trace is not None:
+                trace.append(step("start", f"start.{k}", value, {"count": 1, **params}))
         if k == "count":
             return 1.0, unit, "count = 1"
         if k == "perimeter":
@@ -328,8 +346,9 @@ class RuleEngine:
             v = part.get(field)
             if v is None:
                 return None, unit, f"length ({basis}) missing"
+            gross(v, basis=basis)
             if spec.get("deductions"):
-                v, notes = self.deductions(v, spec["deductions"], part, "length")
+                v, notes = self.deductions(v, spec["deductions"], part, "length", trace)
                 return v, unit, f"length ({basis}) {fmt(part.get(field))} " + " ".join(notes)
             return v, unit, f"length ({basis}) = {fmt(round(v, 4))}"
         if k == "area":
@@ -339,15 +358,18 @@ class RuleEngine:
             if spec.get("deductions"):
                 if g is None:
                     return None, unit, f"area ({label}) missing"
+                gross(g, surface=surface, start="gross")
                 if surface == "both":                      # deduct openings from each face
-                    one, notes = self.deductions(g / 2, spec["deductions"], part, "area")
+                    one, notes = self.deductions(g / 2, spec["deductions"], part, "area", trace, faces=2)
                     v = 2 * one
                     notes = [n + " per face" for n in notes]
                 else:
-                    v, notes = self.deductions(g, spec["deductions"], part, "area")
+                    v, notes = self.deductions(g, spec["deductions"], part, "area", trace)
                 return v, unit, (f"area ({label}, gross {fmt(round(g, 4))}) {' '.join(notes)} = {fmt(round(v, 4))}" if notes
                                  else f"area ({label}) = {fmt(round(v, 4))} (no openings to deduct)")
             v = g if start == "gross" else n
+            if v is not None:
+                gross(v, surface=surface, start=start)
             return v, unit, f"area ({label}, {start}) = {fmt(round(v, 4)) if v is not None else 'missing'}"
         if k == "volume":
             start = self.val(spec.get("start")) or "net"
@@ -355,10 +377,13 @@ class RuleEngine:
                 g = part.get("gross_volume")
                 if g is None:
                     return None, unit, "volume missing"
-                v, notes = self.deductions(g, spec["deductions"], part, "volume")
+                gross(g, start="gross")
+                v, notes = self.deductions(g, spec["deductions"], part, "volume", trace)
                 return v, unit, (f"volume (gross {fmt(round(g, 4))}) {' '.join(notes)} = {fmt(round(v, 4))}" if notes
                                  else f"volume = {fmt(round(v, 4))} (no openings to deduct)")
             v = part.get("gross_volume" if start == "gross" else "net_volume")
+            if v is not None:
+                gross(v, start=start)
             return v, unit, f"volume ({start}) = {fmt(round(v, 4)) if v is not None else 'missing'}"
         if k == "mass":
             basis = self.val(spec.get("basis")) or "volume_density"
@@ -383,12 +408,12 @@ class RuleEngine:
             pick = self.val(spec["pick"])
             if pick not in spec["options"]:
                 return None, "nr", f"choose: option '{pick}' not defined"
-            v, u, expl = self.quantity(spec["options"][pick], part)
+            v, u, expl = self.quantity(spec["options"][pick], part, trace)
             return v, u, f"[{pick}] {expl}"
         if k == "when":
             cond_val, cond_txt = self.x.explain(spec["if"], self.ctx(part))
             branch = "then" if cond_val else "else"
-            v, u, expl = self.quantity(spec[branch], part)
+            v, u, expl = self.quantity(spec[branch], part, trace)
             return v, u, f"when {cond_txt} -> {branch}: {expl}"
         if k == "formula":
             v, txt = self.x.explain(self.val(spec["expr"]) or "", self.ctx(part))
@@ -443,23 +468,7 @@ class RuleEngine:
 
     # ---------------------------------------------------------------- template
     def render(self, tpl, part: dict, extra: dict | None = None) -> str:
-        tpl = self.val(tpl) or ""
-        ctx = {**self.ctx(part), **(extra or {})}
-
-        def sub(m):
-            src = m.group(1).strip()
-            if src.startswith("expr:"):
-                src = src[5:]
-            try:
-                v = self.x.evaluate(src, ctx)
-            except Exception:
-                return "{" + m.group(1) + "}"
-            if v is None:
-                return "-"
-            if isinstance(v, str):
-                return v
-            return fmt(round(v, 3) if isinstance(v, float) else v)
-        return re.sub(r"\{([^{}]+)\}", sub, tpl)
+        return render_template(self.val(tpl) or "", self.x, {**self.ctx(part), **(extra or {})})
 
     # ---------------------------------------------------------------- items
     def run_items(self):
@@ -477,7 +486,8 @@ class RuleEngine:
             self.out_of_scope |= {e["guid"] for e in self.el if self.select(sel, e)}
         if self.out_of_scope:
             self.log.info("match", f"{len(self.out_of_scope)} element(s) left out of this BoQ by the rule set's scope",
-                          data={"guids": sorted(self.out_of_scope)})
+                          data={"guids": sorted(self.out_of_scope)},
+                code="log.match.out_of_scope", params=dict(count=len(self.out_of_scope)))
         # pass 1: plain matches
         matches = {}
         for i in items:
@@ -505,7 +515,10 @@ class RuleEngine:
         for g in sorted(self.through_parts):
             p = self.by_guid[g]
             self.log.info("match", f"{p.get('name') or g} ({p['ifc_class']}): no rule gets a quantity for the whole; "
-                                   f"measured through its {len(p.get('child_guids', []))} part(s)", guid=g)
+                                   f"measured through its {len(p.get('child_guids', []))} part(s)", guid=g,
+                code="log.match.measured_by_parts", params=dict(
+                    name=p.get('name') or g, ifcClass=p['ifc_class'], parts=len(p.get('child_guids', [])),
+                ))
         # pass 2: per enabled rule, skip aggregate parts whose parent is measured
         takes = {}
         for i in enabled:
@@ -533,7 +546,8 @@ class RuleEngine:
             self.log.info("match", f"rule '{i['id']}' ({i.get('label', '')}) takes {len(take)} element(s)"
                           + (f"; {len([e for e in matches[i['id']] if e['guid'] in self.skipped_parts])} aggregate part(s) skipped (parent measured)"
                              if any(e['guid'] in self.skipped_parts for e in matches[i['id']]) else ""),
-                          ruleId=i["id"], data={"guids": [e["guid"] for e in take]})
+                          ruleId=i["id"], data={"guids": [e["guid"] for e in take]},
+                code="log.match.rule_selected", params=dict(ruleId=i['id'], label=i.get('label', ''), count=len(take)))
             for e in take:
                 self.matched.add(e["guid"])
                 for part in self.parts_of(i, e):
@@ -548,11 +562,13 @@ class RuleEngine:
                         self.excluded.add(e["guid"])
                 if matches[i["id"]]:
                     self.log.info("match", f"rule '{i['id']}' is disabled: {len(matches[i['id']])} element(s) excluded",
-                                  ruleId=i["id"])
+                                  ruleId=i["id"],
+                        code="log.match.rule_disabled", params=dict(ruleId=i['id'], count=len(matches[i['id']])))
         self.excluded |= self.out_of_scope
         self.excluded -= self.matched
         if decided_out:
-            self.log.info("decision", f"{len(decided_out)} element(s) excluded by user answers")
+            self.log.info("decision", f"{len(decided_out)} element(s) excluded by user answers",
+                code="log.decision.excluded", params=dict(count=len(decided_out)))
 
     def double_claims(self) -> set[tuple[str, str]]:
         """Elements two or more rules claim for the same purpose ("body", "finish"...): one
@@ -570,10 +586,14 @@ class RuleEngine:
             if ans in rids:
                 dropped |= {(r, g) for r in rids if r != ans for g in guids}
                 self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: "
-                                          f"measured by '{ans}' only (answer)")
+                                          f"measured by '{ans}' only (answer)",
+                    code="log.decision.claim_selected", params=dict(
+                        count=len(guids), claim=claim, rules=list(rids), selected=ans,
+                    ))
                 continue
             if ans == "both":
-                self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: all kept (answer)")
+                self.log.info("decision", f"{len(guids)} element(s) claimed for '{claim}' by {', '.join(rids)}: all kept (answer)",
+                    code="log.decision.claim_all", params=dict(count=len(guids), claim=claim, rules=list(rids)))
                 continue
             e0 = self.by_guid[guids[0]]
             msg = (f"{len(guids)} element(s) (e.g. {e0['ifc_class']} '{e0.get('type_name') or e0.get('name') or ''}') are "
@@ -581,16 +601,21 @@ class RuleEngine:
                    f"{len(rids)} times. Which rule should measure them?")
             self.questions.append({
                 "id": qid, "kind": "double_claim", "blocking": False, "guids": guids, "occurrences": len(guids),
+                "code": "question.double_claim",
+                "params": {"count": len(guids), "ifcClass": e0["ifc_class"], "name": e0.get("type_name") or e0.get("name"),
+                           "claim": claim, "rules": [labels[r] for r in rids]},
                 "message": msg, "suggestion": "both",
                 "answer": {"kind": "choice", "options": [{"value": r, "label": f"Only '{labels[r]}'"} for r in rids]
                            + [{"value": "both", "label": "All of them (they measure different things)"}]}})
             self.warnings.append({"code": "double_claim", "guids": guids,
+                                  "params": {"count": len(guids), "claim": claim, "rules": list(rids)},
                                   "message": f"{len(guids)} element(s): rules {', '.join(rids)} all claim '{claim}' (possible double count)"})
         return dropped
 
     def add_part(self, item: dict, el: dict, part: dict):
         rid = item["id"]
-        v, unit, expl = self.quantity(item["quantity"], part)
+        part_steps = []
+        v, unit, expl = self.quantity(item["quantity"], part, part_steps)
         note = None
         source = "measured"
         if v is None:
@@ -604,30 +629,43 @@ class RuleEngine:
                 v = float(self.val(on["default"]))
                 note = f"default {fmt(v)} used ({expl})"
             elif on == "skip":
-                self.log.warn("quantity", f"{el.get('name')}: {expl}; skipped (onMissing skip)", ruleId=rid, guid=el["guid"])
+                self.log.warn("quantity", f"{el.get('name')}: {expl}; skipped (onMissing skip)", ruleId=rid, guid=el["guid"],
+                    code="log.quantity.skipped", params=dict(name=el.get('name'), reason=expl))
                 return
             elif on == "ask":
                 self.questions.append({
                     "id": qid, "kind": "missing_data", "blocking": True, "guids": [el["guid"]],
+                    "code": "question.missing_data",
+                    "params": {"rule": item.get("label", rid), "name": el.get("name"), "reason": expl, "unit": unit},
                     "message": f"Rule '{item.get('label', rid)}' needs a quantity for {el.get('name')}: {expl}. Enter it in {unit}.",
                     "answer": {"kind": "number", "unit": unit}})
                 note = "waiting for user input"
             else:
                 note = f"missing: {expl}"
+        if not part_steps:
+            kind = item["quantity"]["kind"]
+            code = kind if kind in UNIT_DEFAULT else "value"
+            part_steps.append(step("start", f"start.{code if v is not None else 'missing'}", v, {"count": 1}))
         factor = self.val(item.get("factor"))
         if v is not None and factor not in (None, 1):
             expl += f"; x factor {fmt(factor)}"
+            part_steps.extend(quantity_delta(v, v * factor, "factor", "factor", {"factor": factor}, slot(item.get("factor"))))
             v *= factor
         mn = item.get("minimum")
         if v is not None and mn and self.val(mn.get("per")) == "element":
             m = self.val(mn["value"])
             if v < m:
                 expl += f"; raised to minimum {fmt(m)}"
+                part_steps.extend(quantity_delta(v, m, "add", "add.minimum", {"minimum": self.convert(m, unit)}, slot(mn["value"])))
                 v = m
+        for item_step in part_steps:
+            item_step["value"] = self.convert(item_step["value"], unit)
         v = self.convert(v, unit)
         rnd = item.get("rounding") or self.defaults.get("rounding")
         if rnd and self.val(rnd.get("at")) == "element":
-            v = self.round_(v, rnd)
+            rounded = self.round_(v, rnd)
+            part_steps.extend(quantity_delta(v, rounded, "round", "round", param=slot(rnd["step"])))
+            v = rounded
         # line key
         keys = {}
         for k in item.get("lineKey", []):
@@ -657,6 +695,7 @@ class RuleEngine:
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
                                           "name": (el.get("name") or "") + (f" [{part['_part']}]" if part.get("_part") else ""),
                                           "quantity": None if v is None else round(v, 6), "note": note or expl})
+        collect(line, part_steps, el["guid"])
         line["_parts"].append(part)
         if v is None:
             line["_missing"] += 1
@@ -666,7 +705,11 @@ class RuleEngine:
             line["notes"].append(f"{el.get('name')}: user-supplied value")
         self.log.detail("quantity", f"{el.get('name') or el['guid']}{' [' + part['_part'] + ']' if part.get('_part') else ''}: "
                         f"{expl} -> {fmt(round(v, 4)) if v is not None else 'MISSING'} {unit}",
-                        ruleId=rid, lineKey=key, guid=el["guid"])
+                        ruleId=rid, lineKey=key, guid=el["guid"],
+            code="log.quantity.element", params=dict(
+                name=el.get('name') or el['guid'], part=part.get('_part'), calculation=expl, quantity=v,
+                unit=unit,
+            ))
 
     def params_used(self, item) -> dict:
         blob = json.dumps(item)
@@ -694,10 +737,13 @@ class RuleEngine:
                 m = self.convert(self.val(mn["value"]), line["unit"])
                 if line["quantity"] < m:
                     line["notes"].append(f"raised to line minimum {fmt(m)}")
+                    collect(line, quantity_delta(line["quantity"], m, "add", "add.minimum", {"minimum": m}, slot(mn["value"])))
                     line["quantity"] = m
             rnd = item.get("rounding") or self.defaults.get("rounding")
             if rnd and self.val(rnd.get("at", "line")) == "line":
-                line["quantity"] = self.round_(line["quantity"], rnd)
+                rounded = self.round_(line["quantity"], rnd)
+                collect(line, quantity_delta(line["quantity"], rounded, "round", "round", param=slot(rnd["step"])))
+                line["quantity"] = rounded
             # summary fields for classification / grouping
             vals = {f: Counter(_key(p.get(f)) for p in parts) for f in MIXABLE}
             line["_fields"] = {f: _unkey(c.most_common(1)[0][0]) for f, c in vals.items()}
@@ -706,14 +752,18 @@ class RuleEngine:
             line["location"] = {"storey": storeys[0]} if len(storeys) == 1 else ({"storeys": storeys} if storeys else {})
             line["_parts"] = parts
             self.log.info("quantity", f"line '{line['description']}' = {fmt(line['quantity']) if line['quantity'] is not None else 'FLAGGED'} "
-                          f"{line['unit']} from {n} element(s)", ruleId=line["ruleId"], lineKey=line["key"])
+                          f"{line['unit']} from {n} element(s)", ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.quantity.line", params=dict(
+                    description=line['description'], quantity=line['quantity'], unit=line['unit'], elements=n,
+                ))
 
     # ---------------------------------------------------------------- derived
     def run_derived(self) -> list[dict]:
         out: dict[tuple, dict] = {}
         for d in self.rules.get("derived", []):
             if not self.enabled(d):
-                self.log.info("derived", f"derived rule '{d['id']}' disabled", ruleId=d["id"])
+                self.log.info("derived", f"derived rule '{d['id']}' disabled", ruleId=d["id"],
+                    code="log.derived.disabled", params=dict(ruleId=d['id']))
                 continue
             unit = d["unit"]
             n_lines = 0
@@ -730,6 +780,16 @@ class RuleEngine:
                             continue
                         v, txt = self.x.explain(self.val(d["quantity"]) or "", ctx)
                         v = float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+                        if (override := srcline.get("overridden")) and "quantity" in override:
+                            txt += f"; source quantity edited to {fmt(srcline['quantity'])}"
+                            if d["scope"] == "element" and v is not None:
+                                original = override["engineQuantity"]
+                                if srcline["quantity"] is None:
+                                    v = None
+                                elif original:
+                                    v *= srcline["quantity"] / original
+                                else:
+                                    txt += "; no measured total to distribute the edit across elements"
                         factor = self.val(d.get("factor"))
                         if v is not None and factor not in (None, 1):
                             txt += f" x factor {fmt(factor)}"
@@ -754,20 +814,34 @@ class RuleEngine:
                                                             "elements": [], "sourceLine": srcline["key"]},
                                     "tags": d.get("tags", []), "notes": [], "_fields": dict(srcline["_fields"]),
                                     "_mixed": list(srcline["_mixed"]), "location": srcline.get("location", {}),
-                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0}
+                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0,
+                                    "_text_context": {**sctx, "src": sctx}}
                             out[lk] = line
                             n_lines += 1
                         line["_count"] += 1
-                        line["trace"]["elements"].append({"guid": guid or "", "name": (sctx.get("name") or "") if guid else f"line {srcline['description']}",
-                                                          "quantity": None if v is None else round(v, 6), "note": txt})
+                        trace = {"guid": guid or "", "name": (sctx.get("name") or "") if guid else f"line {srcline['description']}",
+                                 "quantity": None if v is None else round(v, 6), "note": txt}
+                        if model_id := sctx.get("model_id"):
+                            trace["model"] = model_id
+                        line["trace"]["elements"].append(trace)
+                        collect(line, [step("derive", "derive.missing" if v is None else "derive", v, {
+                            "formula": self.val(d["quantity"]), "sourceLine": srcline["key"],
+                            "sourceDescription": srcline["description"], "sourceLines": [srcline["key"]],
+                            "lines": 1, "count": 1,
+                        }, slot(d["quantity"]))], guid)
                         if v is None:
                             line["_missing"] += 1
                         else:
                             line["quantity"] += v
                         self.log.detail("derived", f"{d['id']} from {'element ' + str(sctx.get('name')) if guid else 'line ' + srcline['description']}: {txt}",
-                                        ruleId=d["id"], lineKey=line["key"], guid=guid)
+                                        ruleId=d["id"], lineKey=line["key"], guid=guid,
+                            code="log.derived.source", params=dict(
+                                ruleId=d['id'], source=sctx.get('name') if guid else srcline['description'],
+                                calculation=txt,
+                            ))
             if n_lines == 0:
-                self.log.info("derived", f"derived rule '{d['id']}' produced no lines (no matching sources)", ruleId=d["id"])
+                self.log.info("derived", f"derived rule '{d['id']}' produced no lines (no matching sources)", ruleId=d["id"],
+                    code="log.derived.no_sources", params=dict(ruleId=d['id']))
         lines = []
         for line in out.values():
             if line["_missing"] == line["_count"]:
@@ -776,16 +850,21 @@ class RuleEngine:
                 line["notes"].append(f"{line['_missing']} source(s) had no value")
             rnd = next((x.get("rounding") for x in self.rules.get("derived", []) if x["id"] == line["ruleId"]), None) \
                 or self.defaults.get("rounding")
-            line["quantity"] = self.round_(line["quantity"], rnd)
+            rounded = self.round_(line["quantity"], rnd)
+            collect(line, quantity_delta(line["quantity"], rounded, "round", "round", param=slot(rnd["step"]) if rnd else None))
+            line["quantity"] = rounded
             for k in ("_missing", "_count"):
                 line.pop(k)
             self.log.info("derived", f"line '{line['description']}' = {fmt(line['quantity']) if line['quantity'] is not None else 'FLAGGED'} {line['unit']}",
-                          ruleId=line["ruleId"], lineKey=line["key"])
+                          ruleId=line["ruleId"], lineKey=line["key"],
+                code="log.derived.line", params=dict(
+                    description=line['description'], quantity=line['quantity'], unit=line['unit'],
+                ))
             lines.append(line)
         return lines
 
     # ---------------------------------------------------------------- manual
-    def run_manual(self) -> list[dict]:
+    def run_manual(self, keys: dict[str, str]) -> list[dict]:
         lines = []
         for m in self.rules.get("manual", []):
             if not self.enabled(m):
@@ -797,17 +876,24 @@ class RuleEngine:
                 v, txt = self.x.explain(self.val(m["formula"]) or "", self.ctx({}))
                 q = float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
                 formula = self.formula_text(m["formula"]) + f"   ->   {txt}"
-            line = {"key": m["id"], "ruleId": m["id"], "ruleKind": "manual", "description": self.render(m["description"], {}),
+            line = {"key": keys.get(m["id"], m["id"]), "ruleId": m["id"], "ruleKind": "manual", "description": self.render(m["description"], {}),
                     "unit": m["unit"], "quantity": float(q) if q is not None else None,
                     "source": "manual" if q is not None else "flagged", "keys": {},
                     "trace": {"formula": formula, "params": self.params_used(m) if m.get("formula") else {}, "elements": []},
                     "tags": m.get("tags", []), "notes": [f"amount {fmt(amount)}"] if amount is not None else
                     ([] if q is not None else ["no model behind this line: quantity to be entered"]),
-                    "_fields": {"manual_kind": m["kind"]}, "_mixed": [], "_manual_kind": m["kind"], "location": {}}
+                    "_fields": {"manual_kind": m["kind"]}, "_mixed": [], "_manual_kind": m["kind"],
+                    "_manual_codes": m.get("codes", {}), "location": {}}
+            collect(line, [step("start", "manual" if q is not None else "manual.missing", line["quantity"],
+                                {"formula": formula} if m.get("formula") else {})])
             lines.append(line)
             self.log.info("manual", f"manual item '{line['description']}' ({m['kind']}): "
                           f"{fmt(line['quantity']) + ' ' + line['unit'] if q is not None else 'quantity to be entered'}",
-                          ruleId=m["id"], lineKey=line["key"])
+                          ruleId=m["id"], lineKey=line["key"],
+                code="log.manual.line", params=dict(
+                    description=line['description'], kind=m['kind'], quantity=line['quantity'],
+                    unit=line['unit'],
+                ))
         return lines
 
 

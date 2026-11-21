@@ -1,0 +1,28 @@
+{
+  "toasts": "Notifications",
+  "loading": "Loading…",
+  "retry": "Try again",
+  "close": "Close",
+  "cancel": "Cancel",
+  "ok": "OK",
+  "notFound": {
+    "code": "404",
+    "title": "Not found",
+    "body": "This page doesn't exist, or you don't have access to it.",
+    "home": "Go to the start page"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "The page could not be shown. Try again; if it keeps happening, reload the page."
+  },
+  "home": {
+    "title": "IFC → BoQ",
+    "noOrg": "You are not in an organisation yet."
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "library_editor": "Library editor",
+    "member": "Member"
+  }
+}

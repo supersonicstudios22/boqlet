@@ -138,7 +138,7 @@ Trace elements carry `model` (the model id) so a line can be followed back to it
 `Decision` = `{ questionId, scope: "project" | "company", answer, note?, decidedBy?, decidedAt? }`.
 `answer: null` means "leave it" (dismiss without answering).
 
-## HTTP contract (`api.ts`, served by `engine/ifc_boq/api.py`)
+## HTTP contract of the proof of concept (`api.ts`; its server `engine/ifc_boq/api.py` was removed in FE-046)
 
 | Method and path | Request | Response |
 |---|---|---|

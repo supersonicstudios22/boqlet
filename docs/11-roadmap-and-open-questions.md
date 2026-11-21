@@ -10,6 +10,7 @@ add a row here before you finish, even if nobody asked: this page is how nothing
 
 | Area | Limitation | Consequence | Where to fix |
 |---|---|---|---|
+| Worker transport | HTTP cancellation is checked between engine stages. Local verification used file storage. | A long native geometry call can finish before cancellation is observed. Live S3 compatibility remains to be verified. | EN-009 and deployment validation |
 | Validation | Quantities checked only for the Duplex (hand-made BoQ) and the buildingSMART samples; no professional BoQ to compare with; the NBU federations were checked by inspection | Accuracy on real projects unknown: the biggest open question | Reference projects with IFC + professional BoQ (product steps below) |
 | Test coverage | 309 files from 30 tools run without engine errors (12); missing: IFC4.3 from real tools, Bonsai / FreeCAD, Revit 2022+, Archicad 24+, files over 60 MB, ifcXML. Federation run only on two Revit 2011 architecture + structure pairs; no MEP model federated | Other tools and big files will surface new quirks | Corpus (09, `npm run corpus`), 12 "Still uncovered" |
 | Multi-language names | The seed dictionary resolves English plus a few languages entry by entry. Real projects block on local material names: Dutch (`Kalkzandsteen`, `Staal`, `Metselwerk`, `spaanplaat` in Schependomlaan), Norwegian (`tegl`, `gipsplate` in DURAARK; a few added ad hoc), German (`Leer`) | Most "needs input" results on real files are a name, not an engine problem | Decide a general approach (per-language seed packs, a public term source such as bSDD, or AI suggestions with confirmation) instead of adding languages one at a time |
@@ -72,7 +73,7 @@ add a row here before you finish, even if nobody asked: this page is how nothing
   them), and Library saves are temporary.
 - `engine/.cache` grows with every upload and run; delete it freely.
 - On Windows, uvicorn's auto-reload stops the old engine worker with a Ctrl+C console event. When
-  `npm run dev` runs without a console window (started by an IDE task or a background tool rather than a
+  `npm run dev:poc` runs without a console window (started by an IDE task or a background tool rather than a
   terminal), the event never arrives: the reload hangs and the old worker keeps serving the old code
   (new endpoints answer "Not Found"). Run it in a terminal, or restart it after engine changes and end
   any leftover `python.exe ... spawn_main` processes.
@@ -81,6 +82,220 @@ add a row here before you finish, even if nobody asked: this page is how nothing
 - The UI loads the Archivo font from Google Fonts; offline it falls back to the system font.
 - `npm audit` reports a moderate advisory in Vite 5's bundled esbuild that affects only the dev
   server; upgrading to Vite 6+ is a breaking change left for later.
+
+## Known limitations of the product build (phase 1, `apps/app` + `apps/mock-api`)
+
+Things the product build didn't do at the end of phase 1, on the mock, with the task that deals
+with each. Phase 2 closed many of them (the real engine, Java, sign-in, the sample project);
+FE-041 and FE-042 re-check each item against Java and the real engine and strike what is fixed.
+
+- The limit dialog (402) says which limit was reached but offers no upgrade path yet (FE-019, FE-035).
+- Deleting an org hides it at once; the 30-day removal of its data (BR-52) is not simulated by the
+  mock.
+- Sign-up in phase 1 is the mock's: any name and email, no verification (the real provider comes
+  after BE-000, FE-043).
+- Unknown fields are rejected only at the top level of a request body in the mock (nested objects
+  pass); Java should reject them at every level.
+- The sample project (FL-1 step 5) is created empty: its Duplex model, BoQ and answered questions need
+  a parse and a run when the sample is created. Questions exist since FE-010; filling the sample is
+  still open (with the seed's Duplex BoQ, mock-api.md "Seed data").
+- The dashboard's "Needs you" list (filled at the end of phase 1, after FE-040; it had stayed empty): reviews
+  assigned to me, changes requested on what I submitted, my runs that need input, newer model versions for
+  BoQs I created, my jobs failed in the last 7 days. Computed by the mock on each request; refreshed on the
+  realtime events of reviews, runs, BoQs, model versions, jobs and notifications. Modules add no kinds yet.
+- Project cards count reviews as 0 until those exist (FE-031).
+- Project default presets can't be chosen in the project's settings yet. A new project starts with the
+  org's starred presets (FE-021, F02 §2), else As modelled and the global seed dictionary; per-BoQ
+  pickers exist since FE-008; the wizard's "Publish all" sets defaults (FE-028).
+- Models: scope rules can't be edited in the app yet (they need the Library's selector UI, ported with
+  the rule-set editor in FE-022; no task names the model setting itself);
+  check rows don't open the viewer yet (FE-016, F03-AC5); multipart uploads over 100 MB and resuming an
+  interrupted upload are not built; abandoned `awaiting_upload` versions are not cleaned up after 24 h
+  (the mock's scheduler, M6); processing minutes are counted for runs only, not parses (FE-019).
+- BoQs (FE-008): Save version calls `POST /revisions/{id}/issue`, which the mock answers
+  `501 not_implemented` until FE-031 (the button's blocking rule, BR-22, works); the Questions tab shows
+  an old run can't be opened or compared from the run history yet (FE-030); a BoQ's model scope is shown, not editable (with the selector UI, FE-022); "Generate a BoQ" is offered on
+  the model version page, not yet in the ready notification (FE-018).
+- Sheet (FE-009): no position numbers in the No. column (FE-040); Description shows the rule set's line
+  text, not item texts (FE-027, EN-010); "Show in 3D" opens the Viewer tab; on
+  screens 1280 px and wider the sheet shows the model beside it (FE-014); the app loads up to 20,000 lines at once and doesn't yet switch to the
+  server-side grouping above that (the mock serves it; FE-045).
+- Sign-out (fixed at the end of M1, FE-012's work): a late 401 or the auth gate could overtake the
+  redirect of a tab signed out with a reason; `src/auth/leaving.ts` lets the first redirect win.
+- Entitlements (FE-019): the mock bills through the `manual` adapter only (no provider, no webhooks,
+  no subscription status other than active; overrides per org come with the backend); the portal just
+  returns. The free-plan banner about export watermarks waits for the real export (EN-006, F12). Usage
+  before FE-019 has no project and isn't in "by project".
+- Notifications (FE-018): the kinds the mock sends so far are a model version ready, a run that needs
+  input, and job results for runs and exports; the others arrive with their features (versions,
+  reviews, membership, limits, the pricing module's). `model_version.ready` is never emailed (F13: only
+  when parsing took over 2 min); offer batching comes with MP1. Email preferences hold the core
+  categories only. The bell's count refreshes on new notifications and on this tab's reads, not on reads
+  in another tab.
+- Run Excel (FE-017): written by the engine worker since EN-006 (cover, positioning, WORKING and plan
+  watermarks, locked hidden line keys, "Excluded lines" and "Calculation" sheets); checked with openpyxl,
+  not yet opened in Excel or LibreOffice by hand. The export job's toast is the sheet's own; the bell and
+  job notifications are FE-018.
+- Viewer (FE-016, FE-014): the *Changes* colour mode and F07-AC6 come with the change report (FE-030,
+  EN-002). The shared filter bar has the sheet's filters plus code group and "only these lines": IFC
+  class, type and material aren't on a line (they would need the element's properties, F07 §9) and
+  "changed since a revision" needs FE-030. In the Viewer tab, *Source* and *Edited* use the run's edits;
+  beside the sheet they use its current edits. The split layout and its width aren't remembered. Coverage's "excluded" is every element neither measured,
+  unmatched nor covered by a parent (the PoC result doesn't say why an element was left out). Picking
+  needs a click on a visible element; above 200,000 elements the merged meshes and id-buffer picking of
+  architecture.md are not built (FE-045). "Show in 3D" from a question carries at most 300 GlobalIds in
+  its URL.
+- Not in the models (FE-015): collapsing the notice is remembered per user in this browser (`localStorage`,
+  keyed by user id), not across devices: there is no user-preference endpoint in the contract. The sheet
+  builds groups only from lines, so a group with no lines never shows; the paragraph is the empty state of a
+  sheet with no lines and the help of the "Add line" dialog. The save-version tick comes with FE-031 (M3).
+- How it is calculated (FE-013): the steps are the engine's own (EN-013), recorded where it calculates;
+  the mock and Java add the edit's author. Runs made before EN-013 have no steps ("Generate again"). The edit
+  step shows the edit the run applied; an edit made since shows in the line's edits, not in the steps, until
+  the next run.
+- Sessions (FE-012): the mock knows no place for a session (no IP lookup), so the takeover question
+  names the device and the last activity only; a platform admin can't end a session yet (F19, FE-038);
+  tokens without a session id (the shared suites, e2e helpers, dev tools) skip the one-session check in
+  the mock: Java needs its own test-token strategy (`tests/support/users.ts`, BE-000).
+- Line edits and manual lines (FE-011): the engine applies edits (EN-003: derived lines follow an edited
+  quantity, an edit whose line is gone raises an `orphan_override` question) and a manual line's chosen codes
+  (EN-007); a manual line has no notes (`ManualItem` has no field for them); undo keeps the last 20 edits of
+  the open sheet only (not across reloads). The engine's check doesn't
+  syntax-check a manual item's `formula` key (`presets.py` EXPR_KEYS): the app sends the formula as a
+  formula slot the item points to, which it does check (EN-007 should add `formula` to the checked keys).
+- Questions and decisions (FE-010): no "Show in 3D" or element properties from a question (F05 §9,
+  FE-016); no model filter (questions carry no model; FE-016 with the element index); promoting needs an
+  org dictionary: they can be created since FE-021 (Studio Demo has "Studio names"), and F05-AC5 is
+  checked end to end with the dictionary editor (FE-024);
+  F05-AC2 (a new model version asks nothing again) is checked with new model versions (FE-029);
+  clearing a name answer keeps the entry it added to the project dictionary (edit it in the Library,
+  FE-024); on the decisions page, rule and code answers are edited as text (the lists come from a run);
+  the BR-23 dry run is skipped when no BoQ of the project is in review or approved, so answering stays one
+  request; "used by latest runs" is approximate in the mock (mock-api.md "Decisions").
+- Phase-1 interim (FE-008): federation and resolution settings are stored with the inputs but not sent
+  to the engine (the PoC API takes neither; EN-001). A rule-set patch on an org or project version is run
+  and checked with its parents saved or passed under `mock-<versionId>` (FE-021).
+- Library (FE-021…FE-028): the three editors are the PoC's, ported (FE-022 rule sets, FE-023
+  classifications, FE-024 dictionaries); federation and resolution settings are edited as JSON. Guided
+  mode (FE-026) is the wizard's "How you measure" step for a rule set; for a classification it is the
+  full classification editor with a short intro. Not yet: "rebase on latest" for a patch whose parent is
+  archived, renaming an item id across classification maps (the PoC's `onItemRenamed`), and the import's
+  "keep other columns" (`CodeListBuildRequest` has no `extra`). The "bring your own licence" notice is
+  remembered per browser. An item text's "Reads as" sample needs a preview run in the panel beside the
+  editor, and codes that only some lines of an item get (split by a condition) show no sample (conditions
+  are never evaluated in the browser). Comparing two versions is a line diff of the JSON with sorted keys
+  (F10 §5: a structured diff later). Archive can't be undone (the contract has no unarchive). Draft saves
+  aren't audited (autosave); creating, renaming, starring, archiving, discarding and publishing are. The
+  version list names who published a version, not who last saved a draft.
+- Setup wizard (FE-028): steps 0, 1 (1a checklist, 1b details, 1c the six measuring screens, from the
+  rule set's data and its setup markers, EN-011), 2, 3 and 4 work, with resume, the dashboard gate (P18),
+  the Library's Guided setup button, the members' "not finished yet" notice and the sheet hint. Simpler
+  than F16 for now: step 2 is the full classification editor (import, Codes per line with all the rule
+  set's items, not only those switched on, no "Suggest codes" by name), step 3 the full dictionary editor
+  (its Names tab, not filtered to "worth asking"); the review summarises in counts, not the editors' story
+  sentences; the sample Duplex isn't offered as a model (the sample project is still created empty);
+  "Setup in progress by {name}" for a second admin and "Start separately" aren't built (both work on the
+  same drafts); a wall line measured in m³ shows in the preview as a new line and the m² one as removed
+  (the unit is part of a line's key). v1 criterion 12 and F16-AC1 (a person new to the app, under 15
+  minutes) are not checked by a person; the flows are automated in `e2e/setup.spec.ts`.
+- Library drafts: a patch's draft follows its parent's latest published version when saved (F10 §2
+  "Based on it"); a published version keeps the exact parent it was made on (data-model.md). Read-only
+  users (members, and everyone on a system preset) see the editors inside a disabled fieldset: tabs,
+  list rows and links work, but the filter boxes and pickers used only for looking (the dictionary's
+  model-version picker, the classification's rule-set picker and code filter) are disabled too.
+- Library preview (FE-025): a worker preview job since EN-005 (draft against published); one project's model
+  versions at a time; no BoQ data changes, and the time counts as processing.
+- Item texts (FE-027): filled by the engine since EN-010 with the rule template evaluator; an item
+  text shows on one line in the sheet (rows are 32 px for the virtualised sheet; F06 §2's three-line
+  clamp is not built), in full as a tooltip and in the line detail with "Measured as".
+- Excel templates (FE-026): worker RPC since EN-012; a classification's Codes per line round-trips only
+  single-item map rules (complex rules stay unchanged); the empty template on the create page is the kind's master preset's layout.
+- Component tests: Testing Library and next-intl resolve the workspace root's React 18 while the app
+  uses React 19, so render tests need the in-file workaround in
+  `src/features/library/rule-set/rule-set-editor.test.tsx` (FE-046 removes the PoC and its React 18).
+- New model versions (FE-029): "Reopen to update" is checked in the mock's unit tests only; a confirmed
+  BoQ can't be reached in the UI until Confirm lands (FE-031), which adds it to the e2e flow. A BoQ that
+  is in review or approved shows the badge without "Use vN" until FE-031 builds the warning that sends it
+  back to the working state (BR-23). One notification per BoQ and person: three BoQs on one model give
+  three.
+- Change report (FE-030): computed by the engine worker since EN-002 (elements by GlobalId per model,
+  parsed material references, causes from the run snapshots); F08-AC1 runs on the Duplex v1/v2 pair (EN-008).
+  The default comparison is the last saved version's run. Lines are listed in full (no paging in the table)
+  and the elements table shows 100 at a time.
+- Versions (FE-031): a saved version opened read-only shows its frozen run's lines, but the line edits panel
+  lists the BoQ's current edits (the frozen copy is kept, not shown yet). Position numbers aren't frozen
+  (they come with FE-040). The review's warning before an edit is the Withdraw review button (the working
+  version is read-only while in review); answering a question that a version in review used warns through
+  the decisions dry run (FE-010) and withdraws it. Confirming with nothing new closes the working version
+  (kept, hidden from the version list) and reopening takes it up again. Approval switched on for an org whose
+  plan lacks `approvalWorkflow` is refused with `402`; the settings toggle doesn't say so before trying.
+  The Excel export of the working version right after a save shares the saved version's run.
+- Exports (FE-032): the Excel is still the PoC layout (no cover sheet, the WORKING mark is in the title line, not
+  a watermark) until EN-006; F12-AC1 (opens without repair prompts) and AC2 are checked only through openpyxl;
+  importing edits is FE-037. The audit CSV is the project's only (the org audit page and its CSV come with
+  FE-033); its data column is the event's JSON.
+- Audit (FE-033): the action filter offers a fixed list (F09's minimum set and the actions the build writes; the API has no list of the actions used); details show the event data's plain values. Retention hides older events in lists and CSVs; nothing is deleted in the mock.
+- Notifications (FE-034): `limit.near` / `limit.reached` cover the org-wide usage limits; per-action limits (models per BoQ, file size) only answer `402`. The email categories are F13's five core ones (FE-018); modules add theirs with MP1.
+- Versions e2e (FE-035): v1 criterion 3 runs on a v2 that renames one wall (no deleted or changed element, so no line changes) until EN-008's Duplex v1/v2 pair; criterion 4 is checked for one click to the formula, parameters, shares and the 3D view, not walked through by a person (M).
+- Share links (FE-036): no rate limiting in the mock (the backend's, BE-030); the public page's sheet is a plain grouped table (no virtualisation, no filters beyond search), its line detail shows settings by their slot names (the rule set isn't public) and its viewer colours by element type only (no coverage). Models in the public viewer are named "Model 1, 2…" (file names aren't shared).
+- Edits import (FE-037): read by the engine worker since EN-006 against the export's locked hidden keys and
+  its stored snapshot; clearing a keyed row proposes an exclusion; a new row without a quantity and unit reads
+  as a section heading. Rows are proposals only: applying needs the reasons F06 §6 asks for. Formatting and
+  the Rate/Amount columns are ignored.
+- Platform admin (FE-038): the console has no Vendors section (the pricing module's, P48: a later phase) and no links to ops dashboards (none exist before BE-025). The overview and funnel are computed live by the mock; the funnel follows the records, not audit events (the backend may use either, F19 "Data"); share-link views count on the day a link was last opened (no per-view log). Revenue is empty (no billing provider). A suspended org's writes answer `409 org_suspended`; the app shows a banner but doesn't hide the buttons. Users have no sign-up date before FE-038 (seeded users count from the seed). Tags need a reason, as the contract asks for every `PATCH /admin/orgs/{id}`.
+- Extension registries (FE-039): no module is registered (the pricing module is for a later phase, P48), so every point is checked only by the unit tests' test module, not end to end. Module i18n namespaces aren't loaded yet (`src/i18n/request.ts` loads the core's list; FE-P1 adds a module's). Selection actions show only in the bulk bar, which appears to people who can edit; a module badge map is merged anew on each render when two modules add badges. `admin.metrics`, `audit.actions`, `entitlements.keys`, `me.extensions` and `account.kinds` (modules.md) aren't frontend registries yet: the core reads unknown audit actions, entitlements and `me` keys as plain data. Org slugs now refuse the app's own route names (`admin`, `account`, `notifications`, …; a bug until FE-039, an org there was unreachable); a module's area path must be reserved by its backend. A module's area is served at `/areas/{area}` behind a rewrite of `/{area}` (next.config, from the modules in the build), so `areas` is reserved too. Fixed on the way: the notification bell's times now use the shared relative-time hook (next-intl's `ENVIRONMENT_FALLBACK` warning filled the e2e logs).
+- Co-editing (FE-040): the sheet numbers what it shows (the backend's rule, `positionNo` from the run for everything else); the Excel (PoC layout until EN-006) and the public share page don't show position numbers yet. Presence lives in the mock process's memory; the marker shows while someone has a cell editor open, not while they only look at a line; a closed tab drops out after 45 s (a page left inside the app leaves at once). The notice after someone else changed my line offers "Keep mine" (my value saved again, as the later edit); undo is per tab. Fixed on the way: a saved version opened read-only overlaid the working version's edits (it now shows `frozen.adjustments`, BR-25), and re-editing a quantity with Enter submitted the reason dialog with the old reason at once.
+- Phase-1 interim: the mock reads check details from the PoC engine's cache on the same machine, and
+  drops the `null` optional fields the PoC sends in names (the worker should omit them, EN-001).
+
+## Known limitations of the product build (phase 2: Java, worker, pilot)
+
+What phase 2 left open, with the task that deals with each. Phase 3 starts with FE-041.
+
+- **No staging environment** (P51): the Contabo pilot is the only deployed environment and every
+  green push to `v_1` deploys to it. A separate staging environment is a future todo (BE-032);
+  until then "on staging" checks run on the pilot with synthetic accounts, and load, performance
+  and restore tests run against the local native stack.
+- Pilot operations (docs/18): enrolling the first real owner and email delivery to outside
+  addresses are not qualified yet. Since BE-025 the pilot has JSON logs, metrics and alerts as log
+  lines; still missing: an alert destination (log only, the owner's choice for now), error tracking
+  (needs an account), an exported trace store (needs a collector), and backups actually running:
+  `ops/pilot/backup.sh` is written and its restore is tested in CI, but it is not installed on the
+  host and has no off-host destination yet (`BACKUP_REMOTE`).
+- Billing is manual for pilots; a billing provider waits for paid self-service (BE-021, D7).
+- Local Windows runs of the native queue worker occasionally hang one parse for minutes (seen once in
+  the scenario run against Java; CI on Linux hasn't shown it). Investigate if it recurs.
+- Tests still to add: multipart upload integration (BE-006); comparison output and full schema
+  checks for federation and resolution previews (BE-008); native coverage of approval, every
+  decision type, batching and grouping edge cases (BE-009 to BE-012).
+- Workbooks are checked with openpyxl only; opening them in Excel and LibreOffice by hand is still
+  to do (EN-006, EN-012, FE-044).
+- Load and performance targets are not measured (TS-002, FE-045).
+
+## Known limitations of the product build (phase 3)
+
+- Engine log entries are shown in the engine's English: the `engine` catalogue has entries for every
+  question code and nearly every warning code, but none for log codes yet. Many log params are
+  English fragments the engine composes (`calculation`, `quantities`, `reason`), so they need
+  structured params before a translation is worth writing. The warnings `rule_set` (English problem
+  text) and `federation_hole` (params without the class, file and owner) use the fallback too
+  (`apps/app/src/i18n/engine-message.ts`). This matters only once a second language is added (P07).
+  The same holds for the answer options of engine questions ("Use the volume stated in the file")
+  and line notes from the engine ("no model behind this line…"): they come from the engine as
+  English text without a code.
+- **A medium model parses in 9 minutes, not 5** (nfr.md, TS-002): the NBU Medical Clinic MEP model
+  (207 MB, 16,012 elements) took 11 min; TS-002 replaced trimesh's per-face winding repair and
+  networkx components with numpy (`engine/ifc_boq/geometry.py`), which brought it to 9 min. The
+  geometry kernel alone (ifcopenshell building solids from the file's 4.7 million faceted
+  triangles) takes 7 min on 12 cores, so 5 min cannot be reached without changing the kernel: a
+  coarser tessellation does not help (the geometry is already triangles), the per-element Python
+  already runs while the kernel works. Left to try, with care for the quantities: another geometry
+  library or kernel settings; and, apart from the kernel, the JSON-schema check of the parsed model
+  (about 2 min single-core; a compiled validator, or only the envelope for large models). The
+  pilot's worker has two CPUs, so there the kernel takes far longer.
+- The accessibility suite (TS-003) runs axe on the main screens; a manual keyboard and
+  screen-reader pass has not been done, and the pricing-module screens of TS-003 (S15c, S29) wait
+  for the module (P48).
 
 ## Suggested next steps
 
@@ -147,6 +362,95 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | 7a79db3 | FE-046: the product root `boqlet_v1/` is the repository root; the proof of concept (apps/web, the engine's dev API, the Vercel demo) is removed. CI runs at the root; docs and plan point at the new layout. The duplex scenario no longer needs pytest in the API job's Python. |
+| 2026-11-21 | 7d4f790 | TS-004, BE-026: the v1 acceptance run (results in `plan/README.md`): 13 criteria green through the suites on the local native stack and the mock, criterion 10 misses the medium parse, 4/7/12 need a person, 6/14 not in v1. New scenarios `duplex` (criterion 1 on Java) and `federation` (criterion 2 through the API). Fixed: the model summary's storeys had null name or elevation (the mock answered 500 for the IFC4X3 sample). |
+| 2026-11-21 | 4a34fd8 | BE-025: JSON logs with requestId, userId, orgId, jobId and an access line per request; worker JSON logs with the job fields; metrics for job duration, ingestion, live-update streams and limit hits; alerts (queue wait, job failures, API 5xx, DB connections, storage probe) as log lines, the owner's choice for now; OpenTelemetry traces exported when an OTLP endpoint is set; `ops/pilot/backup.sh` and `restore-check.sh`, the restore tested in CI (`BackupRestoreTest`). Not yet: alert destination, error tracking, backups installed on the host with an off-host copy (docs/18). |
+| 2026-11-21 | 47d299d | FE-045 (segment 2b): the viewer builds edge outlines after the first frame; a 16,012-element model is interactive in 4.3–4.9 s instead of 15.9 s (target 15 s at 50k), picking 30 ms. The medium parse stays at 9 min: the geometry kernel alone takes 7 min on that model (docs/11 phase 3). |
+| 2026-11-21 | 7ae13e8 | TS-002, FE-045: performance suite (engine timing, API latency against the mock and Java, 50k-line ingestion, UI on a production build) with the results in nfr.md; per-route bundle budgets in CI. Engine: numpy winding repair and components (a 207 MB MEP model parses in 9.0 instead of 11.0 min, engine tests 3× faster, Duplex unchanged); geometry progress every 10 s (a parse with over 5 min of silent geometry failed in the mock). Misses left: medium parse 9 min (target 5), large-model viewer 15.9 s (target 15 s at 50k elements). |
+| 2026-11-21 | 5e9fa2c | FE-044, TS-003: accessibility suite (`e2e/a11y.spec.ts`, axe, WCAG 2.2 AA, no serious or critical violation on sign-in, S05, S10, S12a–c, S20, S35) and the v1 criterion 11 check in en-XA (`e2e/pseudo-locale.spec.ts`). Fixed: menu buttons named by their visible text; archive, discard-draft and restore-version buttons were empty since FE-021; the sheet is a treegrid; 3D legend target size; "Show in 3D" underlined; units from the catalogue (F15 §7); the toast area label. |
+| 2026-11-21 | (this commit) | Bug fixes found by CI: the scenario `admin` compared a trial end as a string, and Java writes `…55.140Z` as `…55.14Z` (failed whenever the milliseconds ended in 0); it compares instants now. Presence: leaving on unmount is deferred by a second and cancelled by a remount for the same BoQ, so a remount (React's development double mount) no longer sends PUT, DELETE, PUT with the DELETE arriving last; the likely cause of `e2e/co-editing.spec.ts` F06-AC10 failing at "each sees the other" in 7 of 20 CI runs (never reproduced locally; CI decides). |
+| 2026-11-21 | a48496c | FE-041: engine messages render from their codes (contract change C01, F15 §4): questions, warnings, the run log and line detail show `engine.{code}` with the params, else the engine's English; every Duplex question renders from its key (F15-AC3, `e2e/questions.spec.ts`). Line detail names the code source `item` (C03); `item_text_blank` renders from its key (C04). |
+| 2026-11-20 | 56984aa | FE-041, FE-043: browser smoke against Java with native sign-in (P52), 13 Playwright tests in `apps/app/e2e-java`, in CI's API job: F01-AC1..AC6, native cookie and origin rules, reset links, FL-1's sample BoQ, upload through share link, live co-editing. |
+| 2026-11-20 | 6a7abee | FE-041: live updates work under native sign-in (`/events` answered 401: no realtime and no takeover sign-out on the pilot since 06ffd99); `model_version.ready` carries model and version; the sign-in page's signed-out notice shows once. |
+| 2026-11-20 | 2056b05 | FE-042: the mock's engine fakes and its proof-of-concept engine path are gone: the mock always uses the engine worker (diffs, change-report and BoQ workbooks, edits import, trace steps); it keeps its own line display order and adds edit authors to the engine's steps. The phase-1 limitations above that named fakes now describe the real engine. |
+| 2026-11-20 | 67e46c0 | FE-041: the shared scenario suite runs against Java in CI and passes unchanged (169 passed, 2 todo, as on the mock; was 99 of 171). Java test support (test sources only): sign-up, browsers per person, a database test clock, a mail-settle endpoint, and the part of the mock seed the scenarios read. |
+| 2026-11-20 | f1779fd | FE-041: Java fixes found by the scenarios: archive is the lead's and PATCH restores; a null answer dismisses; identical files are parsed once (BR-08); a saved version's export is its frozen file (BR-25); revision list order and the closed working version; server-side group lines; F12 file names and audit CSV columns; admin CSV; limit-event actions (V16); invalid_inputs, groupBy, presence 45 s, the engine's code-list reason. |
+| 2026-11-20 | c5ee763 | FE-041: contract change C06, checkout answers 409 checkout_unavailable without self-service billing (D7); the billing page says why. |
+| 2026-11-20 | ececd45 | FE-041: Java places manual lines after their sortHint line and sortAfter null first in the section. |
+| 2026-11-20 | e9eadfb | FE-041: contract change C05, native sign-in routes in openapi.yaml; 404 native_auth_disabled from the mock and from Java without native sign-in. |
+| 2026-11-20 | c538394 | FE-041: engine/requirements.txt gains psycopg (the local engine setup could not start the queue workers). |
+| 2026-11-20 | (this commit) | Phase 2 closed; ready for phase 3 (FE-041). The owner kept one deployed environment, the Contabo pilot, and made staging (BE-032) a future todo (P51); native sign-in recorded as P50 and contract change C05. Plan, milestones, tasks, build log and this file brought up to date. |
+| 2026-11-19 | 605cdd2 | Fixed manual rows mapped wrongly after regeneration, and updated the browser checks to the native export and derivation behaviour; first automatic GitHub Actions rollout to the pilot passed (recorded in 6aa365c, docs/19). |
+| 2026-11-18 | 61596c9 | The deploy gate's Java worker integration suite runs on the same SeaweedFS release as the pilot. |
+| 2026-11-18 | 06ffd99 | Native email and password sign-in (Argon2id, opaque HttpOnly cookie, exact-origin checks, setup and reset links) replaces Keycloak (P50); CI builds the three images and deploys `v_1` to Contabo (docs/19). 82258a9 keeps the cookie on session reopen. |
+| 2026-11-16 | ec91916 | Invited pilot packaged and live on Contabo at booqlet.com: own Postgres and SeaweedFS, Traefik TLS, restricted queue role (docs/18); a3edf0c fixes frontend DNS on the shared proxy. |
+| 2026-11-16 | 02bd5c1 | BE-013 to BE-015, BE-020, BE-022 to BE-024, BE-027 to BE-031: PostgreSQL queue with isolated worker claims, SSE journal and notifications, SMTP invitations, scheduler, retention and deletion, public share links, platform admin, extension events; the sample project gets a real Duplex model and BoQ. e184cf6 closes SSE streams on shutdown. |
+| 2026-11-16 | 6c90008 | FE-043: pilot sign-in through hosted Keycloak with a same-origin API cookie (superseded by native sign-in, P50). |
+| 2026-11-16 | d0580b8 | EN-013: structured quantity trace steps recorded where the engine calculates; Excel Calculation sheet. |
+| 2026-11-16 | 776e7da | BE-009 to BE-012: Java BoQ and revision lifecycle, decisions and adjustments, run ingestion with COPY, paged lines and diffs, coverage, Excel and CSV exports. |
+| 2026-11-16 | 419400d | BE-008: Library presets in Java with draft ETags, published parents, worker previews, workbook import and export. |
+| 2026-11-16 | bb40eba | EN-006: BoQ and change workbooks rendered by the worker, with cover, watermarks, locked keys and edit import. |
+| 2026-11-16 | 84e6649 | BE-006, BE-007: signed S3 uploads, model versions, GLB and scene reads, durable HTTP jobs with retry, cancellation and usage. |
+| 2026-11-16 | ca60c41 | BE-004, BE-005: plans, entitlements and usage, projects, memberships, defaults and audit; built-in Library seeded by Flyway. |
+| 2026-11-16 | 8639b0c | BE-003: organisations, memberships, invitations with a transactional outbox, setup and audit. |
+| 2026-11-16 | 58b5cfd | BE-002, BE-027: OIDC identity, invite-only admission, one active session with takeover. |
+| 2026-11-16 | f9fd8e3 | BE-001: Java 21 Spring Boot API with Flyway, generated HTTP interfaces, audit, idempotency and health. |
+| 2026-11-16 | 4600534 | EN-002, EN-005, EN-008: worker previews, revision diffs with material references, reproducible Duplex v2 fixture. |
+| 2026-11-16 | 5f9c631 | EN-007, EN-010, EN-011, EN-012: manual item codes, item texts, setup markers, preset workbook templates; the matching mock fakes removed. |
+| 2026-11-16 | 106de54 | EN-003: engine line overrides, recomputation of derived quantities, orphan questions and excluded-line workbooks. Private edit reasons are excluded from public share responses and workbooks. |
+| 2026-11-16 | cab98f3 | EN-004: structured message codes and params for questions, warnings and logs, generated schemas, and pass-through to the app. |
+| 2026-11-16 | 0d14b8a | EN-001: engine parse/run jobs, file and S3 artifact storage, streaming HTTP and RPC; worker-backed mock verified with the Duplex, contract and scenario suites. |
+| 2026-11-16 | 34f470c | BE-000: confirmed the backend stack, invite-only pilots and configurable worker sizing. Deployment deferred to a separate session (P49). |
+| 2026-11-14 | 89bdaa9 | Phase 1 close: the dashboard's "Needs you" filled (reviews, changes requested, runs needing input, new model versions, failed jobs; live; F02-AC5 in e2e); `scenarios/isolation.test.ts` (BR-50, BR-52 and the core operations no suite called). **M4 and phase 1 done** |
+| 2026-11-14 | 2662a36 | FE-040: position numbers (F06 §13: a No. column, section code + running number in the Group-by system, renumbered at once, frozen in saved versions; `positionNo` from the mock) and live co-editing (F06 §14: presence with avatars and line markers through `PUT /boqs/{id}/presence`, `boq.line_edited` applied without a reload, the later edit wins and the earlier editor is told with "Keep mine", per-person undo). Saved versions now show their frozen edits (`frozen.adjustments`). F06-AC9 and AC10 in `e2e/co-editing.spec.ts`; 3 scenarios |
+| 2026-11-14 | 23ab381 | FE-039: extension registries (P36): typed registries for `nav.orgItems`, `boq.workspaceTabs`, `sheet.selectionActions`, `sheet.lineBadges`, `settings.orgSections`, `project.overviewCards`, `area.routes`, `notifications.kinds`, wired into the core screens; `src/modules.ts` as the only module import (none registered, P48; `MODULE_PRICING=1` stops the build); a test module registering one of each in unit tests; org slugs refuse the app's own route names. The app builds and the e2e suite passes with no module |
+| 2026-11-14 | 280ee74 | FE-038: platform admin console (F19, S36): `/admin` with its own layout (overview tiles with trends and a period, activation funnel with cohorts and "stuck here", orgs table with filters, signals, search, sort and CSV, org detail with entitlements and overrides, members, counts, usage, limit events, setup, notes and tags, and actions with a required reason: plan, trial, override, suspend/reactivate; users with ending a session; health). Mock: `/admin/*` for platform admins only (404 otherwise), limit events for every 402, overrides on top of the plan, `409 org_suspended` for a suspended org's writes, admin actions audited as `platform_admin`. Contract: `Org.status`, orgs filters `country` and `stuckAt`, CSV with the same filters. 3 contract tests, 11 scenarios (F19-AC1…AC5, FL-12), 6 e2e flows |
+| 2026-11-14 | 26d3b13 | Plan: P48, the pricing module (MP1, MP2) is for a later phase (the owner) |
+| 2026-11-13 | 4e284ad | FE-037: Excel edits import (F12, P20): every BoQ Excel carries hidden line keys and a snapshot of what was exported; Import edits in the Exports tab reads an edited file in an `import_boq_edits` job (quantity, text, unit, moves, deleted rows as exclusions, new rows as manual lines, unreadable cells), the review list with ticks and reasons, apply in one batch; another BoQ's file is refused. 3 scenarios (F12-AC4), 1 e2e flow (v1 criterion 13's Excel part). 151e16e: the e2e setup moves Studio Demo to Enterprise (a full run made more than 50 projects there) |
+| 2026-11-13 | 2f2d757 | FE-036: share links (F18): Share in the BoQ header (pinned or following the latest saved version, includes, expiry, label; the link shown once; list with views, edit, revoke), org settings › Share links, the public page `/s/{token}` with the sheet, line detail, 3D view and Excel as included, WORKING mark, "Made with" footer, noindex and no-referrer. Mock: links with hashed tokens and computed status, the public endpoints (404 for anything not active; no names, edits' authors or reasons). 10 scenarios (F18-AC1…AC4, BR-56 over every public response), 2 e2e flows |
+| 2026-11-13 | 0e73150 | FE-035: FL-3 end to end (`e2e/versions-flow.spec.ts`): answers, save A, v2 (v1 with a wall renamed, parsed for real), Use v2, no question asked again, the change report against A lists exactly that element, a line's explanation and 3D one click away, save B, confirm, reopen; v1 criteria 3, 4 (automated part) and 5 on the mock (approval in `e2e/versions.spec.ts`) |
+| 2026-11-13 | 94b079d | FE-034: every core notification kind of F13 is sent by the mock and rendered from the catalogue: new `project_member.added`, `limit.near` (80 %) and `limit.reached` to owners and admins (seats, active projects, company presets, processing minutes; once per org and limit per period). A test renders every kind the mock knows; 2 scenarios; 1 e2e check in the bell |
+| 2026-11-13 | 8029dcb | FE-033: activity and audit: S18 (project, leads and approvers) and S25 (org settings › Audit, owners and admins) share one view with filters by who, action, entity and date, paging, details, the project link (org), and CSV with the same filters. Mock: shared filtering with the plan's audit retention, the project audit's date filter, the org audit CSV. Contract: `from`/`to` on the project audit and its CSV, `exportOrgAuditCsv`. 5 scenarios, 1 mock test, 1 e2e flow |
+| 2026-11-13 | 8d49e51 | FE-032: the Exports tab (S12g): the working version's Excel on demand, every file of the BoQ's versions with download (working, saved, change reports); a saved version's export is always its frozen file (BR-25), downloads of it are audited; the project audit as CSV with the page's filters, from the activity page. Decisions CSV was there since FE-010. 3 scenarios, 1 e2e flow (F12-AC3) |
+| 2026-11-13 | f7e9428 | FE-031: versions, confirmation and optional approval (F09): Save version with label, note, open questions and the not-in-the-models tick; the next working version; frozen run, edits and Excel; saved versions read-only (`?version=`), their Excel, compare; Confirm and Reopen; with `approvalRequired`: submit with reviewers, the review strip and Review tab (comments overall or on a line, the change report first), request changes, approve, save the approved version, four-eyes, withdraw; edits during review withdraw it (BR-23). Mock: the version workflow, the plan check on approval. 14 scenarios, 4 e2e flows |
+| 2026-11-13 | 8444b84 | FE-030: the change report (F08 §3–7): the Changes tab (compare with the last saved version's run, an earlier run or another BoQ's; summary with inputs that differ and elements per model, lines grouped like the sheet with change, \|Δ%\| and group filters, causes, elements, the viewer's "changes" colour mode with removed elements as a red ghost, Excel export); Compare from the run history. Mock: compare, diffs, lines, elements, export; the "Change report" fake. Contract: `DiffSummary.byModel`. 8 scenarios, 3 e2e flows, unit tests |
+| 2026-11-13 | 966a5b7 | FE-029: new model versions (F08 §1–2): the header names each model with a newer ready version, "Use vN" (and "Use all") swaps it into the working version as a pending change, a confirmed BoQ offers "Reopen to update" with the reopen dialog; badges in the BoQ list and the project overview. Mock: `boq.new_version_available` to the project's leads and estimators and a refreshed BoQ when a version becomes ready; `POST /boqs/{boqId}/reopen` (F09 §6). 2 scenarios, 4 mock tests, 2 e2e flows |
+| 2026-11-13 | 210e7fa | FE-028: the setup wizard (F16): start, how you measure (checklist, details, the six measuring screens from the rule set's data), item numbers and texts, names, review with Publish all (publish, star, project defaults); progress in `Org.setup` with resume; the dashboard gate for a new org's owner, onboarding into the wizard, Guided setup in the Library, the sheet hint. Mock: `GET/PUT /orgs/{orgId}/setup`, the "Setup markers" fake; previews share the run queue. 1 scenario, 2 e2e flows, step derivation tests |
+| 2026-11-13 | 210e7fa | FE-027 (code list): the item-text box with insert buttons and Reads as (sample from the preview model), the sample text under Codes per line |
+| 2026-11-13 | 210e7fa | FE-026 (guided mode): new rule sets and classifications open in guided mode; reopen on any draft; the one-time "bring your own licence" notice |
+| 2026-11-13 | 5551323 | FE-027 (sheet, detail, Excel, run): item texts on lines (the "Item texts filled" fake), Description from the Group-by system's item text, the line detail's "Measured as", the run Excel's Description; types `LineCode.text`. The code list's item-text box follows with FE-028 |
+| 2026-11-13 | 5551323 | FE-026 (clone, templates): Clone with "Independent copy" / "Based on it"; Excel templates (download, empty template on Create, upload with the changes and problems by sheet, row and column, apply to the draft; the "Preset Excel templates" fake). Guided mode follows with FE-028 |
+| 2026-11-13 | 5551323 | FE-025: publish (change note, no problems, version n+1, BR-07) and the preview panel beside the editor (draft vs published on a model version, follows each save; the "Preview" fake; contract `PreviewResult`) |
+| 2026-11-13 | 5551323 | FE-024: dictionary editor port (Names in the model against a chosen model version, Names it explains, Meanings, Advanced) |
+| 2026-11-13 | 5551323 | FE-023: classification editor port (Codes per line, paged Code list, import via `/codelists/read` and `/build` (mock endpoints added), map rules, JSON) |
+| 2026-11-13 | 5551323 | FE-022: rule-set editor port (Settings, BoQ items with their stories, Advanced) on the shared Library base, with autosave (1 s, ETag, conflict dialog), problems inline and the `?question=` deep link |
+| 2026-11-13 | 829d61e | FE-021: Library shell (F10 §1, 2, 5, 9, 10, 11): the Library (a tab per kind, layer filter, archived, New, Make a copy), a project's own presets, create (empty / a copy of a version / changes on a rule set), the preset page (details, star, copy, archive; Edit with the draft read-only until the editors; Versions with view, JSON compare and restore as draft; Where used). Mock: create, update, archive, usage, draft save with ETag and check, discard; org patch parents for checks and runs; new projects' defaults from starred presets; Studio Demo's seeded presets. 10 scenarios, 3 mock tests, 8 e2e flows |
+| 2026-11-13 | d7ace66 | FE-020: the Duplex end-to-end test (v1 criterion 1): in the app, a new project, the Duplex uploaded (parse job), a BoQ with As modelled + ACME cost codes generated (run job); the lines API gives every line and count of the engine's `HAND_BOQ` / `COUNTS` (read from `engine/tests/test_duplex.py`, same tolerance), and the sheet shows every line. Fix: a tab signed out with a reason no longer loses it to a second redirect (late 401s, the auth gate); the limit dialog asks `GET /me` only when it opens |
+| 2026-11-13 | b27d039 | FE-019: entitlement UX (F14 part): the limit dialog with "Upgrade" (owner → billing) or "Ask your owner"; Billing (S23: plan, status, limits with usage bars, plan cards → checkout, Manage billing) and Usage (S24: minutes by project and kind, seats, active projects) in the org settings. Mock: entitlements, usage, billing, checkout and portal (manual adapter), usage per parse and run with its project. 2 scenarios, 3 e2e flows |
+| 2026-11-13 | 94026ce | FE-018: notifications (F13 part): bell with unread count and the newest items, `/notifications` (S26), email preferences per category on `/account`; toasts for one's own job results (run generated / failed, export ready / failed) without a second toast for an export this tab shows. Mock: the notification and preference endpoints, one `notify()` that also emails the kinds F13 emails. 2 unit tests, 3 scenarios, 3 e2e flows (F13-AC1) |
+| 2026-11-13 | da07e51 | FE-017: the run's Excel (F12 part): "Excel" in the sheet toolbar starts `export_xlsx` (grouped as the sheet), a toast while it runs, then the download (`{project}_{boq}_Rev{label}_{date}.xlsx`). Mock: the engine's exporter over the run's edited result (excluded lines out, edits with reason in the notes), Export records, revision list, signed download. 2 unit tests, 2 scenarios, 1 e2e flow (F12-AC1, F06-AC3 export part) |
+| 2026-11-13 | 4a372cd | FE-014: sheet and model together (F07 §9): split Sheet tab at ≥ 1280 px (resizable, collapsible), the sheet's filters (plus code group, "only these lines") scope the model, a selected line or group row highlights its elements, Shift-drag box selection → "N lines from M elements" with the bulk actions, *Edited* colour mode, Esc / F / H / I. 4 unit tests, 3 e2e flows (F07-AC5); F07-AC6 waits for FE-030 |
+| 2026-11-13 | 2b39f98 | FE-016: the 3D viewer (F07): a Viewer tab with every model of the run (toggle per model), colour modes type / coverage / code group / source / model with a clickable legend, storey filter, section box, isolate, hide, reset; line → its elements (a roof line → its slabs), element → the lines it feeds with its share → the sheet; "Show in 3D" from the line detail, questions and input checks (a run-less viewer on the model version page). Mock: geometry (302, cached), scene, element lines, coverage. Contract fix: `Run.snapshotVersions.models`. 15 unit tests, 4 scenarios, 7 e2e flows (F07-AC1–4, AC7) |
+| 2026-11-13 | 7cee885 | Plan: more BE-000 decisions (D10–D18 open: budget and scale, engine compute and fairness, untrusted uploads, sign-up abuse, engine upgrades, environments, operations, data protection, contract changes; B17–B20 to confirm); the backend owner may change the contracts by `plan/05-api/contract-changes.md`, which FE-041 adapts in phase 3. Written by the owner's other session, committed here |
+| 2026-11-13 | 9454773 | Plan: BE-000 becomes the backend owner's review and decisions (P47): the agent analyses the backend plan (`07-backend/review.md`) and puts every backend decision to the backend owner, the open ones (D1–D9) and the ones the plan already made (B1–B16); answers go to `07-backend/decisions.md`. Written by the owner's other session, committed here |
+| 2026-11-13 | bf3c48b | FE-015: "not in the models" (F06 §12, P15, BR-12): a notice at the top of every sheet with the counts by source and "Add line", collapsible to the counts line (remembered per user), never removed; the same paragraph as the empty state of a sheet without lines and in the "Add line" dialog. 1 unit test (counts), 1 e2e flow (F06-AC8). The save-version tick comes with FE-031 |
+| 2026-11-13 | 04f24c7 | FE-013: "How it is calculated" (F06 §5, P25) at the top of the line detail: plain-words steps from `trace.steps` (start, deductions, reveals, factor, minimum, rounding, derive, edit, result), each expandable to its elements, each rule-set value linked to its Settings question (`/{org}/library/rule_set/{presetId}?question=<slot>`), a derived line's source lines clickable, an edited line with the engine's value, who and why. `BoqLine.trace.steps` (`TraceStep`) added to the types as EN-013 specifies; the mock's "Trace steps" fake builds them from the PoC trace. 8 unit tests of the fake, 3 F06-AC5 scenarios on the Duplex (fake), 3 e2e flows |
+| 2026-11-13 | 924857e | FE-012: one active session per account (F01 §10, BR-54) on the mock and in the app: sessions opened after sign-in, `409 session_active` with the other device, takeover (audited `session.replaced`, `session.revoked` over SSE), `401 session_replaced` / `session_expired` (12 h idle on the mock clock), sign-out ends the session, `GET /me` carries it; the S31 takeover screen; signed-out reasons on the sign-in page (from the SSE event, any 401, or the event stream's 401); the mock sign-in shared by the tabs of a browser. Fix: the mock removes the presets it saved for a run after the run (the engine's user folder had grown to ~100 dictionaries and slowed runs). 2 session scenarios (the state-machine todos), 2 e2e flows (F01-AC5) |
+| 2026-11-13 | fb0a50c, 55d8bc2 | FE-011: F06 §6–7 on the mock and in the app: line edits (one override per line key; replace, restore, batch all or nothing; `unit_needs_quantity`, `reason_required`, `unknown_code`) and manual lines per BoQ, sent with every run (manual lines as a rule-set patch through the PoC engine) and put on the result's lines by the "Line edits applied" / "Manual items with codes" fakes; pending change `adjustments`; `POST /presets/check`. The sheet shows edits at once over the run's lines: in-place description, unit, quantity (with reason) and Item edits, edit markers with the engine's value, exclusions, Edited / Excluded filters, drag to reorder or move, bulk move / exclude / restore, Ctrl+Z (20 edits), Restore per field, manual lines with codes and an engine-checked formula. Contract: `RunLine.excluded` and a fuller `overridden`; runs list classifications under the engine's system id. 2 mock tests, 7 scenarios (F06-AC3 without the Excel part, AC4's refusal, AC6), 2 e2e flows |
+| 2026-11-13 | fa27738, 8e0d40f, 5050aea | FE-010: F05 on the mock and in the app: runs send the project's decisions and remember them and the questions they asked; questions joined with decisions (`answeredAfterRun`), answering one or many with a dry run listing the versions BR-23 would reopen, name answers added to the project dictionary, clear, promote to an org dictionary, terms for the picker, CSV; pending changes and the header's "N answers not applied yet – Regenerate"; the Questions tab (answer controls per `AnswerType`, suggestion preselected, leave it, bulk answers of one kind and control) and the Decisions page (edit, clear, promote, export); project cards count open blocking questions; contract fix for `QuestionWithDecision`, `Decision.answerType` added; 13 mock tests, 6 scenarios on the Duplex (F05-AC1, AC3), 2 e2e flows |
+| 2026-11-12 | e7bdf31 | Fix (FE-008): a Setup change (e.g. unticking a model) now shows at once even while the BoQ is being refetched (the optimistic update waited for the refetch to be cancelled first; CI caught it in `e2e/boqs.spec.ts`); the 20,000-line perf test warms up for a second before measuring (a cold CI runner measured 44 fps) |
+| 2026-11-12 | 94c6cc4 | FE-009: F06 sheet on the mock and in the app: lines, line detail, warnings and the paged log served from the run's stored result (with server-side grouping for large runs); the Sheet tab, virtualised and grouped by any attached classification with subtotals, filters, toggleable columns and keyboard; the line detail with the formula in words (PoC `readable.ts` ported), settings, element shares and their total, codes, notes and log; the warnings bar and the Log tab; contract fix for `RunLine`; 10 sheet scenarios, 5 e2e flows, the 20,000-line perf test (60 fps scrolling, Group by switch 27 ms on a production build) |
+| 2026-11-12 | c5d3b33 | FE-008: F04 on the mock and in the app: BoQs with their working version, inputs prefilled from the project defaults and every model's latest ready version, the Setup tab (models with version pickers and the newer-version hint, rule set with versions, ordered classifications and dictionary layers with the project dictionary last, advanced settings), runs as jobs through the PoC engine with live stages, complete / needs input / failed / cancelled, run history, pending changes blocking Save version (BR-22), archive and restore, "Generate a BoQ" from a ready model version; fixes the mock router checking inline query parameters against the wrong schema; 11 F04 scenarios (incl. BR-02), 3 e2e flows |
+| 2026-11-12 | dc24b65 | FE-007: F03 on the mock and in the app: models, versions uploaded straight to signed URLs with progress, header check (`not_ifc` fails without a job), content dedupe across the org, the parse job through the PoC engine with live stages over SSE, failure and retry, the input-check report (counts by class, checks with their elements, storeys), names preview, the ready notification as a toast; 6 shared F03 scenarios through mock + engine, 4 e2e flows; CI installs the engine for e2e and suites |
+| 2026-11-12 | 2500f97 | FE-006: F02 on the mock and in the app: dashboard (needs-you list, project cards with generated compositions, empty state with the sample project), projects list, new project with the `activeProjects` limit, project overview, settings (members from the org only, archive and restore), activity; project visibility and the `permissions` keys (now listed in 03-domain/permissions.md); archived projects refuse writes with `409 project_archived`; 7 shared F02 scenarios, 6 e2e flows |
+| 2026-11-12 | 8d00621 | FE-005: F01 on the mock and in the app: onboarding (create org), invitations (send, resend, withdraw, accept with email check, 14-day expiry), members (roles, remove, leave, last-owner rule), account page, org settings (general, members), org switcher, start-page routing; seat limit answered with 402 and the limit dialog; audit events; 13 shared F01 scenarios and 8 e2e flows |
+| 2026-11-12 | dfa66f0 | TS-001: `tests/contract` and `tests/scenarios` (Vitest over the generated client, `API_URL` selects the backend, `npm run test:contract:mock` starts a fresh mock): every tag's operations refuse requests without credentials, `GET /me` per seeded user, plans, validation codes, event-stream headers (171 tests); one scenario group per state machine (clock scenario runs, transitions listed as todos with their tasks); CI runs both suites and the mock's Duplex run through the PoC engine. **M0 done.** |
+| 2026-11-12 | 6888ec2 | FE-004: auth adapter interface and the mock adapter (sign-in page listing seeded users, token `mock:<userId>`), auth gate, user menu from `GET /me`; one SSE connection per tab with backoff and `Last-Event-ID`, the invalidation map; the mock's event stream sent with `no-transform` so the Next dev proxy doesn't buffer it |
+| 2026-11-12 | 2edb4ae | FE-003: `apps/mock-api` skeleton (Hono, port 4010): every request validated against `openapi.yaml` (400 `invalid_param`, `invalid_body`, `unknown_field`; 501 for operations not built yet; responses checked in dev), JSON store with the seed (plans, Studio Demo, Small Firm, six users, every shipped preset as a system preset), signed blob URLs, SSE bus with `Last-Event-ID`, outbox, clock, `/_dev/*` endpoints, the `Engine` interface with `PocEngine`; `npm run dev:app` starts engine + mock + app |
+| 2026-11-12 | 60a71fc | FE-002: `apps/app` skeleton: route groups, app shell (wordmark, left nav, theme switch; light default, dark following the OS), next-intl with `en` and the pseudo-locale `en-XA`, TanStack Query with global error handling (401/402/404/409), `ApiError`, `can()`, dev rewrite to the mock; ESLint blocks literal UI strings; Vitest and Playwright set up (`npm run test:app`, `npm run e2e:app`) |
+| 2026-11-12 | 2e9c848 | FE-001: the HTTP contracts moved to `packages/api/openapi.yaml` and `packages/pricing-api/openapi-pricing.yaml` with generated clients (`@ifc-boq/api`, `@ifc-boq/pricing-api`; `npm run api:lint`, `api:gen`, `api:check`); `apps/app` started (Next.js 16.4.6, shadcn/ui preset `b38miVKzY` with the design guidelines' tokens, light and dark); CI at the repository root (contract lint and drift, typecheck, app build, engine tests) |
+| 2026-11-12 | 0921ea9 | FE-000: the repository consolidated into the product root `boqlet_v1/` (P44) with `git mv`; the root keeps `.claude/`, a pointer `CLAUDE.md` and the demo deployment (`vercel.json`, `api/index.py`, `requirements.txt`) pointed into `boqlet_v1/`; scripts `dev` → `dev:poc`, `build` → `build:poc`; package name `boqlet` |
+| 2026-11-12 | 717bdbf | The build happens on the branch `v_1` (P46): sessions switch to it and push there, CI runs on `v_1` and `main`, staging deploys from `v_1`; `main` keeps the proof of concept and its live demo until FE-047 tags it `poc-final` and merges `v_1` into it |
 | 2026-11-12 | 157f495 | Plan ready for an unattended build: one product root `boqlet_v1/` (P44): FE-000 moves the PoC in (demo kept pointed into it), FE-046 removes the PoC (tag `poc-final`) and makes it the repository root; `plan/08-delivery/sessions.md` (P45): one prompt for every session, start/stop/handover rules, what agents decide vs ask, tooling and ports; `plan/10-build-log.md` with Current position and milestone entries; new BE-032 (staging) and FE-047 (production release); FE-043…FE-045 specified; owner inputs per step in 09 "Needed by" |
 | 2026-11-12 | ac7d5c9 | Design guidelines decided with the owner (P43), `plan/06-frontend/design-guidelines.md`: product name boqlet; shadcn preset `b38miVKzY` (Base UI, base-mira) as the starting point with its colours replaced; warm paper `#F2EDE3` and ink `#151515`, light default plus dark; ink primary buttons, blue `#1E4FB8` accent; status colour only for exceptions (derived blue, manual yellow, to confirm orange, errors red, no green); data palette of the poster hues in three strengths; JetBrains Mono UI (13 px data, 14 px prose) and Inter Tight display; uppercase tracked labels; 2 px corners, 3 px on shapes and swatches (no sharp corners; confirmed by the owner as "Guidelines v1" in an interactive look lab); poster compositions only in wizard, onboarding, sign-in, share page and dashboard cards; dimension line as a recurring device; Lucide sparingly; thousands with a narrow no-break space by default; restrained motion. Contrast checked against WCAG AA. Design system, frontend architecture, FE-001/002, F08 viewer colours, F15 and data model number default, README (P23, P41, P43), open questions (Q31 closed, wordmark SVG pending) updated |
 | 2026-11-12 | ac7d5c9 | Frontend tasks renumbered without the gaps left by dropped tendering: FE-001…FE-045 in build order (M0 FE-001…004, M1 FE-005…020, M2 FE-021…028, M3 FE-029…037, M4 FE-038…040, phase 3 FE-041…045; pricing FE-P1…P7 unchanged). Task-file sections now match the milestones (share links and Excel edits import under M3, real auth under M8a). Old → new (for earlier rows here): 043→012, 044→013, 045→014, 042→015, 012→016, 013→017, 014→018, 015→019, 016→020, 017→021, 018→022, 019→023, 020→024, 021→025, 046→026, 040→027, 041→028, 022→029, 023→030, 024→031, 025→032, 026→033, 027→034, 028→035, 048→036, 049→037, 050→038, 051→039, 052→040, 053→041, 054→042, 037→043, 038→044, 039→045. Remaining product statements about tendering in docs/00, docs/10 and the open questions above updated (P34) |

@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "linesAdded": 0,
+    "linesRemoved": 0,
+    "linesChanged": 5,
+    "elementsAdded": 1,
+    "elementsRemoved": 1,
+    "elementsChanged": 1
+  },
+  "lines": {
+    "walls | Interior - Partition (92mm Stud) | False |  | m2": [-10.02, "elements_removed"],
+    "paint-walls | m2": [-20.03, "elements_removed"],
+    "doors | M_Single-Flush | 0762 x 2032mm | False |  | nr": [-1, "elements_changed"],
+    "doors | M_Single-Flush | 0864 x 2032mm | False |  | nr": [1, "elements_changed"],
+    "windows | M_Fixed | 819mm x 759mm |  | nr": [1, "elements_added"]
+  },
+  "elements": {
+    "1FM6kRbt1Q98O7nMvcxWi0": "added",
+    "1hOSvn6df7F8_7GcBWlS8Z": "changed",
+    "2O2Fr$t4X7Zf8NOew3FNld": "removed"
+  }
+}

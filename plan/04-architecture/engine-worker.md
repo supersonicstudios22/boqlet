@@ -1,8 +1,8 @@
 # Engine worker contract
 
 The engine (`engine/ifc_boq`) becomes a worker with a fixed JSON contract. The mock API and
-the Java backend both use exactly this contract. Today's FastAPI (`engine/ifc_boq/api.py`)
-stays as the PoC's dev API. The worker is new code: `engine/ifc_boq/worker.py` (job
+the Java backend both use exactly this contract. The PoC's dev API (`engine/ifc_boq/api.py`)
+was removed in FE-046. The worker is: `engine/ifc_boq/worker.py` (job
 execution), `engine/ifc_boq/rpc.py` (quick calls), `engine/ifc_boq/storage.py` (local folder
 or S3), `engine/ifc_boq/sheets/` (core workbooks: BoQ edits import, preset templates) and
 `engine/ifc_boq/sheets/pricing/` (the pricing module's workbooks, loaded only when present,
@@ -87,28 +87,46 @@ Output:
 validated by the worker before writing. Stages: `load`, `names`, `measure`, `federate`,
 `rules`, `classify`, `export`.
 
+An `override:{lineKey}` decision carries the edited fields as its answer object. Line-scope
+derived formulas consume the edited source quantity. For element-scope formulas the worker
+scales the source line's derived contributions by the ratio of edited to measured quantity.
+If the original quantity is zero or missing, the calculation trace records that no ratio is
+available. A flag-to-confirm edit clears the affected quantities. The API owns line order.
+
+Inline manual items are snapshotted as rules under `boq.` IDs. Their result line keys keep the
+submitted item IDs for compatibility with existing line edits and sort hints. The namespaced ID
+is used as the line key if an existing rule-set manual line has the same key. Codes supplied on
+the item take precedence over map assignment and are reported with source `item`.
+
 ### preview
-Same input as `run` (with `runId` null), plus optional `compareWith` (a second rule-set doc,
-usually the published version). Output: `{resultKey, compareResultKey?, diffKey?}`. Outputs
-under `previews/` with a 7-day lifecycle.
+Same input as `run` with no workbook export. Optional `compareWith` can supply either a second
+rule-set document or alternate preset IDs and documents for one or more input roles.
+The worker stores the results and a line comparison under `previews/` for the configured
+7-day storage lifecycle. Output is `{resultKey, compareResultKey?, diffKey?}`.
 
 ### diff (EN-002)
 Input: `{ "fromResultKey": "…", "toResultKey": "…", "fromLabel": "A", "toLabel": "Working" }`.
 Output: `{ "diffKey": "…/diff.json.gz", "summary": { "linesAdded": 2, "linesRemoved": 1, "linesChanged": 7, "elementsAdded": 3, "elementsRemoved": 1, "elementsChanged": 4, "questionsNew": 2, "questionsResolved": 0 } }`.
-`diff.json.gz` follows `RunDiff` (data model). It will be added to `packages/types` as
-`diff.ts` with a generated schema.
+`diff.json.gz` follows `packages/types/src/diff.ts` and is validated against the generated
+schema. Run inputs include a model manifest with logical model ID, version ID, trace ID, and
+parsed artifact key. The worker compares parsed fields and material references only for changed
+model versions. Line causes use version snapshots, element links, rule and parameter changes,
+edits, and decision snapshots with question GlobalIds when available.
 
 ### export_xlsx
-Input: `{ "resultKey": "…", "diffKey": null, "meta": { …as run.export.meta…, "issuedBy": "…", "issuedAt": "…", "issueNote": "…" }, "fileName": "…" }`.
-Output: `{ "xlsxKey": "…", "sizeBytes": 123 }`. With `diffKey` it writes the change report
-instead.
+Input: `{ "resultKey": "…", "diffKey": null, "meta": { …as run.export.meta…, "issuedBy": "…", "issuedAt": "…", "issueNote": "…" } }`.
+Output: `{ "xlsxKey": "…", "sizeBytes": 123 }`. With `diffKey` the worker writes the change report.
+BoQ exports can carry project and issue metadata, grouping, position numbers and a plan watermark.
+A supplied `boqId` enables round-trip metadata and protects the line-key column.
 
 ### import_boq_edits (EN-006, F12)
 
-Input: the uploaded workbook's storage key, the revision's current run (lines with keys, codes
-and the groupBy system used at export). Output: `EditsImportReport` (openapi): proposed line
-edits by line key, proposed manual lines for rows without a key (with the group they sit
-under), and problems by sheet, row and column. Read-only, data-only openpyxl. Applies nothing.
+Input includes `fileKey`, `boqId` and `resultKey`. The mock can send its current projected lines
+as `currentLines`. Output includes `reportKey` for the gzipped `EditsImportReport` and proposal
+counts. The engine reads the original grouping from the workbook and checks proposed edits
+against the current lines. It treats an absent keyed row or a cleared keyed row as an exclusion.
+The visible data cells are editable under sheet protection. Excel may require unprotecting the
+sheet to move or physically delete rows containing a locked key.
 
 ### pricing.* (module jobs, EN-P1)
 
@@ -142,6 +160,9 @@ The rpc service caches parsed models by key (LRU, memory-bounded) for `names`.
   cancels the job.
 - `POST {ENGINE_URL}/rpc/{op}`.
 - Storage: `ENGINE_STORAGE=file://C:/…/data` (local folder shared with the mock API) or `s3://bucket`.
+- `ENGINE_HTTP_CONCURRENCY` sets simultaneous jobs per HTTP process (default 1).
+  `ENGINE_MAX_MODEL_MB` caps input IFC bytes and expanded IFCZIP bytes (default 1024).
+  The HTTP transport checks for cancellation between engine stages.
 
 ### Queue transport (phase 2)
 - Table `jobs` (see `07-backend/db-schema.md`). The worker loop:
