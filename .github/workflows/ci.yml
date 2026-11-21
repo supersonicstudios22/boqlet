@@ -186,7 +186,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS" && test -n "$DEPLOY_TARGET"
-          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/v_1" --jq .object.sha)
+          # Skip only when a newer push to main supersedes this one (TF-001: this compared with v_1).
+          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
           if [[ "$head" != "$GITHUB_SHA" ]]; then
             printf 'Skipped superseded revision %s\n' "$GITHUB_SHA"
             exit 0

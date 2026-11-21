@@ -22,10 +22,10 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **Released: v1.0.0** (2026-11-21). Phases 1–3 done. Nothing is scheduled; the owner sets what comes next. |
 | Role | — (the next phase's role, once the owner names it) |
-| Latest verified | CI on `main` at `8977990` (the `v1.0.0` tag, 2026-11-21): all seven jobs green, deployed to booqlet.com; outside smoke checks green (app, sign-in, public API, 401 for a wrong password, 404 for an unknown share link, Actuator not exposed). |
+| Latest verified | CI on `main` at `8977990` (the `v1.0.0` tag, 2026-11-21): all seven jobs green, but the `deploy` job skipped the rollout (TF-001: its guard compared with `v_1`; booqlet.com ran `af92da4`, the same application code, until the fix); outside smoke checks green (app, sign-in, public API, 401 for a wrong password, 404 for an unknown share link, Actuator not exposed). |
 | Next task | None scheduled. Candidates, in `docs/11` "Known limitations … phase 3" and below: the medium-model parse (9 min, target 5), a live acceptance run on booqlet.com, alert destination, backups installed on the host, error tracking. |
 | Waiting for the owner | Remove or repoint the Vercel demo project (`main` no longer has it; the PoC is the tag `poc-final`). The person checks of v1 criteria 4, 7 and 12, and opening exported workbooks in Excel and LibreOffice. On the host (operator): apply `ops/pilot/compose.yaml` (JSON logs, metrics) and install `ops/pilot/backup.sh` with an off-host destination. Later: an alert destination, error tracking. |
-| In progress | Nothing. |
+| In progress | The test campaign (`plan/08-delivery/test-plan.md`, log in `test-findings.md`), stage by stage with the owner's go after each. |
 | Notes for the next session | Work on `main` (since FE-047; `v_1` is kept as it was and no longer deploys). Every green push to `main` deploys to booqlet.com (P51, `docs/19`); keep it green. Sign-in is native (P50). Browser tests against Java are the smoke set (P52). Pricing stays deferred (P48). Compose changes on the host are operator tasks (`docs/19`). |
 
 ## Entry template

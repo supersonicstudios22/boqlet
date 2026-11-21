@@ -4,7 +4,9 @@ The working record of the test campaign in [`test-plan.md`](test-plan.md). Each 
 while the campaign runs. A session that stops half-way leaves this file up to date. The next session
 reads the run log and resumes from the first stage not marked done.
 
-**Not started.** Prepared 2026-11-21; nothing has been run yet.
+**In progress.** Prepared 2026-11-21. The plan was checked against the code on 2026-11-21 (after the
+v1.0.0 release) and corrected: work on `main`, PoC removed, `tests/perf` exists, counts, tooling.
+The campaign stops at every stage end for the owner's go (`test-plan.md`, top).
 
 ## Summary
 
@@ -18,7 +20,7 @@ Filled in at Stage 7.
 | Deferred to a task | | | | | |
 | Known limitation | | | | | |
 
-- Commit under test (start): ``
+- Commit under test (start): `3d68ffc` (main, the v1.0.0 release record), plus the plan corrections (uncommitted)
 - Commit after the fixes (end): ``
 - CI on the end commit: 
 - Pilot rollout and `verify-live.sh`: 
@@ -30,7 +32,7 @@ One row per stage or lane, updated when it starts and ends.
 
 | Stage / lane | Status | Started | Ended | Stack | Result, log path | Findings |
 |---|---|---|---|---|---|---|
-| 0 Preflight (tools, `npm install`, latest CI) | not started | | | | | |
+| 0 Preflight (tools, `npm install`, latest CI) | done | 2026-11-21 | 2026-11-21 | local | Windows 11 Pro 10.0.26300; Node 22.23.4, npm 10.9.9; Python 3.10.7 (venv, `ifc_boq` editable from `engine/`); Docker 29.8.2 (15.4 GB, 12 CPUs); JDK 22 locally, Maven + JDK 21 through the `maven:3.9-eclipse-temurin-21` image; Playwright Chromium + Firefox + WebKit; Excel present; LibreOffice missing; no SSH host for the pilot; `gh` logged in. `npm install` clean (12 moderate `npm audit` items, for §9.3). CI on `main`: `3d68ffc` run 44926299190 and `8977990` run 44924953402, all 7 jobs green, but both `deploy` jobs skipped the rollout (TF-001). Last `v_1` runs: `4b9a07c` e2e red (F06-AC10 co-editing failed, `sheet.perf` flaky), `7d4f790`-era run red (`ModuleNotFoundError: pytest` in the Java job's scenarios); later runs green on the same trees (for lane 1G). Other session `ifc-boq-1f`: read-only, no ports, no pushes. | TF-001 |
 | 1A Static | not started | | | | | |
 | 1B Unit | not started | | | | | |
 | 1C Engine, CLI, corpus | not started | | | | | |
@@ -72,7 +74,7 @@ One row per stage or lane, updated when it starts and ends.
 | 4.4 Resilience and operations | not started | | | J | | |
 | 4.5 Compatibility | not started | | | M | | |
 | 4.6 Pricing boundary | not started | | | — | | |
-| 4.7 PoC smoke | not started | | | — | | |
+| 4.7 PoC smoke | n/a | | | — | Removed by FE-046 (tag `poc-final`); only the leftover-references check in §9.7 | |
 | 5 Triage | not started | | | | | |
 | 6 Fix and retest | not started | | | | | |
 | 7 Regression, push, CI, pilot, records | not started | | | | | |
@@ -81,13 +83,21 @@ One row per stage or lane, updated when it starts and ends.
 
 These aren't findings yet. R7 confirms or drops each one and files the confirmed ones as findings.
 
-- `CLAUDE.md`'s repo map lists `tests/perf` and `packages/pricing-ui`, and neither exists (TS-002 and
-  P48 explain why; the map doesn't say so).
+- `CLAUDE.md`'s repo map lists `packages/pricing-ui`, which doesn't exist (P48 explains why; the map
+  doesn't say so). (`tests/perf` exists since TS-002, so that half is dropped.)
 - There is no script or compose file for a local native Java stack outside `NativeWorkerTest`;
   manual and performance testing against Java has no documented way to start it.
-- Test counts in `testing.md` (engine "194 tests"; `docs/11` says 206) differ from a plain count of
-  test functions (~110, parametrised tests counted once). Check what each number counts.
-- Tooling on the owner's machine: JDK 22 instead of 21; no Maven and no `mvnw`; no LibreOffice.
+- Test counts in `testing.md` (engine "194 tests"; `docs/11` says 206) differ from pytest's count
+  (211 collected on 2026-11-21; 115 test functions). `testing.md` also says "the 106 browser tests";
+  CI's last runs report ~113 with the `perf` project. Check what each number counts.
+- `services/api/README.md` still describes Keycloak sign-in (`NEXT_PUBLIC_AUTH_ADAPTER=keycloak`, the
+  Keycloak clients); native sign-in replaced it (P50, `docs/19`). (Noted by session `ifc-boq-1f`.)
+- `plan/README.md` still tells sessions to commit to `v_1` (Start here, step 4) and P51 says the
+  pilot deploys from `v_1`; `sessions.md` and the build log already say `main`.
+- The build log's Current position says CI at `8977990` "deployed to booqlet.com". The `deploy` job's
+  log on that run (and on `3d68ffc`) says "Skipped superseded revision": see TF-001.
+- Tooling on the owner's machine: JDK 22 instead of 21; no Maven and no `mvnw`; no LibreOffice;
+  Playwright Chromium only; Excel present; no SSH host entry for the pilot.
 - The federated pair for v1 criterion 2 and the nfr.md timings is not in `fixtures/` (download per
   `docs/12`).
 
@@ -110,7 +120,7 @@ replaces them with the exact file and test name.
 | v1-7 | Library: create, change, preview, publish (M) | K1–K3 | `e2e/library-editors.spec.ts` | |
 | v1-8 | Isolation (A) | S1, 1F | scenarios `isolation`, contract `admin`, `NativeWorkerTest.verifyTenantIsolation` | |
 | v1-9 | Limits: `402 limit_reached` and the UI (A) | O1 | scenarios `billing`, `e2e/billing.spec.ts` | |
-| v1-10 | Performance: nfr.md targets (A) | §9.1 | `e2e/*.perf.spec.ts`; `tests/perf` missing (TS-002) | |
+| v1-10 | Performance: nfr.md targets (A) | §9.1 | `e2e/*.perf.spec.ts`, `tests/perf/api.test.ts`, `tests/perf/engine_timing.py`, `NativeWorkerTest#apiPerformanceAgainstJava` | |
 | v1-11 | i18n pseudo-locale (A) | P1 | `e2e/pseudo-locale.spec.ts` | |
 | v1-12 | First setup in < 15 min by a new person (M) | L10 | `e2e/setup.spec.ts` (flow only) | owner |
 | v1-13 | Editing: live co-editing; edits survive versions; Excel round trip (A) | G3, G9, M4 | `e2e/co-editing.spec.ts`, `e2e-java/live.spec.ts`, scenarios `line-edits`, `edits-import` | |
@@ -263,4 +273,13 @@ Severity: S1 blocker · S2 major · S3 minor · S4 trivial. Type: bug · gap · 
 test-gap · question. Status: open · fixing · fixed · verified · duplicate · known limitation ·
 deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 
-_No findings yet._
+### TF-001 · S2 · bug · ops · fixed
+- **Found by:** Stage 0 · baseline (latest CI on `main`) · P · `3d68ffc`
+- **Spec:** `CLAUDE.md` "Every green push [to `main`] deploys"; `docs/19` (automatic rollout); sessions.md "Every green push to `main` deploys"
+- **Steps:** 1. Push to `main`. 2. Read the `deploy` job's log in `ci.yml`.
+- **Expected:** the verified revision is rolled out to booqlet.com.
+- **Actual:** the job runs on `main` (`if: github.ref == 'refs/heads/main'`), but its "superseded" guard compares `GITHUB_SHA` with the head of **`v_1`** (`gh api …/git/ref/heads/v_1`). `v_1` is frozen at `4b9a07c`, so every `main` push prints "Skipped superseded revision" and exits 0: the job is green and nothing deploys. Both `main` pushes since FE-047 (`8977990`, `3d68ffc`) were skipped. The pilot still runs `af92da4` (the last `v_1` deploy, "Narudzbe and Boqlet API routing passed"); its application code matches `main`, only `ci.yml` and docs differ. The build log's "deployed to booqlet.com" at `8977990` is therefore wrong.
+- **Evidence:** run 44926299190, job "Deploy Boqlet pilot", 16:58:39Z `Skipped superseded revision 3d68ffccf89d0eb38aebc40a8d112b2aa6456b6a`; run 44924953402, 16:43:44Z `Skipped superseded revision 897799012713…`; `.github/workflows/ci.yml` line 189.
+- **Route:** fix now (one line: `heads/main`), plus the build log correction. Not a blocker for Stages 1–4 (the pilot's code matches `main`), but Stage 7 can't finish without it. Fixed before triage on the owner's word (2026-11-21).
+- **Fix:** `ci.yml` compares with `heads/main`; build log Current position and `docs/11` Done corrected. Test: the CI run of the fix commit itself (a workflow has no lower layer); its `deploy` log must show a rollout.
+- **Retest:**

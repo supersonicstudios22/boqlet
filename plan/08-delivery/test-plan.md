@@ -2,10 +2,12 @@
 
 The plan for one complete test campaign of boqlet: backend, frontend, engine, every flow, role and
 use, done by coding-agent sessions. It finds bugs, gaps and inconsistencies (in the code and in
-the product), writes them down, fixes them, retests, and pushes the fixes to `v_1`.
+the product), writes them down, fixes them, retests, and pushes the fixes to `main`.
 
 **How to start it.** The owner says: *"Look at the test plan and execute it."* The agent reads this
-file from the top and goes stage by stage. The findings log is
+file from the top and goes stage by stage. **It stops at the end of every stage** (0 to 7), reports
+what the stage found, and waits for the owner's go before starting the next one (the owner,
+2026-11-21). The findings log is
 [`test-findings.md`](test-findings.md). If a session ends half-way, the next session resumes from
 that log's run log; nothing is lost.
 
@@ -23,7 +25,7 @@ wins for the campaign. All paths are relative to the repository root (the produc
 | Settled decisions stay settled | P01–P52 and BR-xx are not reopened. A test that disagrees with one is a finding about the code, or a question to the owner. |
 | Pricing is out of scope | The pricing module is deferred (P48): `packages/pricing-ui` doesn't exist, and Java and the mock have no pricing code. Test only the module boundary (§9.6). v1 criteria 6 and 14, F11, F17 and F20 are **not applicable** and recorded as such. |
 | Where tests run | **Local mock stack** for most UI and flow work. **Local native Java stack** for backend behaviour, load, performance, restore and anything destructive. **The pilot (booqlet.com)** is the only deployed environment and counts as development (P51, owner 2026-11-20), so functional checks may run there with synthetic accounts (`ops/pilot/verify-live.sh`). Load and destructive tests still run locally (build log, Current position). |
-| Branch and pushes | Work on `v_1` only, no other branches and no worktrees (P46; the owner's standing rule). Every green push to `v_1` deploys to the pilot, so never push red. |
+| Branch and pushes | Work on `main` only, no other branches and no worktrees (since the v1 release, FE-047; `v_1` was the build branch until then, P46, and is kept as it was). Every green push to `main` deploys to the pilot, so never push red. |
 | Other sessions | Before Stage 0 and before every push, run `ListAgents`. If another session works in this repository, tell it what this campaign will touch (ports, files, pushes) and agree who uses ports 3000, 4010, 8788, 3100 and 8080. Never stage its files; stage by file name. |
 | Parallel work | Asking to execute this plan is the owner's request for parallel subagents (asked for when this plan was written, 2026-11-21). Use them where this plan says a stage is parallel, and keep each stage under 10 agents. Read-only reviewers may run side by side. Agents that edit files must have disjoint file sets. Only the main session commits and pushes. |
 
@@ -33,19 +35,22 @@ wins for the campaign. All paths are relative to the repository root (the produc
 
 | Part | Where | Notes |
 |---|---|---|
-| Engine (Python) | `engine/ifc_boq`, `engine/tests` (~110 tests, Duplex acceptance) | Also the worker (`worker_http`, `worker_queue`), CLI (`npm run boq`), corpus runner |
-| Java API | `services/api` (Spring Boot 3.5, Java 21, Maven, Flyway 15 migrations, 20 controllers) | Native sign-in (P50), queue workers, SSE, the shared suites through `NativeWorkerTest` |
+| Engine (Python) | `engine/ifc_boq`, `engine/tests` (115 test functions, 211 collected with parametrisation; Duplex acceptance) | Also the worker (`worker_http`, `worker_queue`), CLI (`npm run boq`), corpus runner |
+| Java API | `services/api` (Spring Boot 3.5, Java 21, Maven, Flyway 15 migrations, 22 controllers) | Native sign-in (P50), queue workers, SSE, the shared suites through `NativeWorkerTest` |
 | Mock API | `apps/mock-api` | The executable spec, and the e2e test double. It must behave the same as Java on every contract operation |
-| Product app | `apps/app` (Next.js, 41 pages) | Auth adapters `mock` and `native`. `e2e/` (31 specs) runs on the mock, `e2e-java/` (13 tests) on Java |
+| Product app | `apps/app` (Next.js, 41 pages) | Auth adapters `mock` and `native`. `e2e/` (31 specs, ~113 tests with the `perf` project) runs on the mock, `e2e-java/` (13 tests) on Java |
 | Contracts | `packages/api/openapi.yaml`, `packages/pricing-api/openapi-pricing.yaml`, `packages/types` | Lint, codegen drift, both implementations against them |
-| Shared suites | `tests/contract` (15 tests), `tests/scenarios` (~169 tests) | Against the mock (`--mock`) and Java (`SUITE_TARGET=java`, through JUnit) |
+| Shared suites | `tests/contract` (15 tests), `tests/scenarios` (24 files, 174 tests + 2 todo), `tests/perf` (TS-002: `api.test.ts`, `engine_timing.py`) | Against the mock (`--mock`) and Java (`SUITE_TARGET=java`, through JUnit) |
 | Deployment | `ops/pilot`, `.github/workflows/ci.yml` (7 jobs incl. `deploy`) | Rollout, rollback, health, smoke on the pilot |
-| PoC | `apps/web`, `engine/ifc_boq/api.py`, Vercel demo | Smoke only; FE-046 deletes it |
+| PoC | — | Removed by FE-046; reachable only as the tag `poc-final`. Not tested (§9.7) |
 
 Known before the campaign starts, so not re-discovered as "new":
-- `tests/perf` didn't exist on 2026-11-21, when TS-002 (the next M8 segment) was being built. If it
-  exists at the campaign's start, use it in §9.1. If not, the perf checks are the Playwright `perf`
-  project (`sheet.perf.spec.ts`, `ui.perf.spec.ts`).
+- `tests/perf` exists (TS-002, `7ae13e8`): `api.test.ts` (CRUD p95 and the 500-line page, run by
+  `npm run perf:mock -w @ifc-boq/tests`, or on Java by `NativeWorkerTest#apiPerformanceAgainstJava`
+  with `BOQLET_API_PERF=1`) and `engine_timing.py` (parse and run times). The UI targets are the
+  Playwright `perf` project (`sheet.perf.spec.ts`, `ui.perf.spec.ts`). The release run's results are
+  in `04-architecture/nfr.md` "Measured"; the medium-model parse (9 min, target 5) is a known miss
+  (`docs/11`, phase 3).
 - There is no local docker-compose for Java. The "local native stack" is either `NativeWorkerTest`'s
   Testcontainers or the manual stack in §4.3.
 - `docs/11` "Known limitations" (phases 1, 2 and 3) lists accepted limits. A test that hits one of
@@ -88,20 +93,22 @@ which findings it added.
 | Docker | Java tests (Testcontainers), local native stack | 29.8 present |
 | JDK 21 | Java build | **JDK 22 found.** Install JDK 21 (the CI version), or check that the build passes on 22 and note it |
 | Maven 3.9 | Java build | **Not on PATH**, and the repo has no `mvnw`. Install it, or run Maven in Docker (`maven:3.9-eclipse-temurin-21`) |
-| Playwright Chromium, Firefox, WebKit | e2e, compatibility | `npx playwright install chromium firefox webkit` |
+| Playwright Chromium, Firefox, WebKit | e2e, compatibility | **Chromium only.** `npx playwright install firefox webkit` for §9.5 |
 | LibreOffice | opening the exported workbooks (F12-AC1, `docs/11`) | **Not installed.** Install it for Stage 4, or record F12-AC1 as "openpyxl only, LibreOffice pending" |
-| Excel | F12-AC1 | Owner's machine, if present; otherwise the owner checks by hand at the end |
+| Excel | F12-AC1 | **Present** (`Office16\EXCEL.EXE`): open the workbooks with it in Stage 3, M1 |
+| `gh` | latest CI runs, `gh run watch` | Logged in |
 | Federated pair (NBU office architecture and structure) | v1 criterion 2, nfr.md | Not in `fixtures/` (only `catalogue.json` in `fixtures/corpus`). Download per `docs/12`, outside git |
-| SSH to the pilot | `verify-live.sh`, `issue-setup-link.sh` | Ask the owner if it isn't set up. Without it, pilot checks are limited to public sign-in with accounts the owner gives |
+| SSH to the pilot | `verify-live.sh`, `issue-setup-link.sh` (both run **on the host**: they `docker exec` into the pilot's database) | **No host entry in `~/.ssh/config`.** Ask the owner. Without it, pilot checks are limited to public sign-in with accounts the owner gives |
 
 ### 4.2 Baseline (sequential)
 
-1. `git switch v_1 && git pull`, then `git status`. Follow sessions.md "Starting a session" for
+1. `git switch main && git pull`, then `git status`. Follow sessions.md "Starting a session" for
    anything unclean.
 2. `ListAgents`, and coordinate with any other session (§1).
 3. `npm install` (also sets up the engine venv).
 4. Write in the run log: the commit under test, the date, the OS, the tool versions, and the
-   latest CI run on `v_1` with its result (`gh run list --branch v_1 -L 5`).
+   latest CI run on `main` with its result (`gh run list --branch main -L 5`). Read the `deploy`
+   job's log too: a green job that printed "Skipped superseded revision" did not deploy.
 5. The baseline is the latest CI run plus Stage 1. Anything red before the campaign changes
    anything is filed as a finding with "found in: baseline".
 
@@ -111,7 +118,7 @@ which findings it added.
 |---|---|---|---|
 | **Mock** (M) | `npm run dev:app` (worker 8788, mock 4010, app 3000). `npm run mock:reset` for a clean seed | Seeded: `olivia` (owner of Studio Demo, team plan, and of Small Firm, free plan), `ivana` (library_editor), `marko`, `ana`, `victor` (members; estimator, approver and viewer on the seeded project), `pat` (platform admin), all `@example.com`. Sign in at `/sign-in` (lists `/_dev/users`). Test-only: `/_dev/clock`, `/_test/clock`, `/_dev/outbox`, `/_dev/checkout`, `/_dev/emit`, `/_dev/reset` | Stages 3, 4 |
 | **Native Java** (J) | No compose exists. Copy the setup in `services/api/src/test/java/.../NativeWorkerTest.java`: Postgres 16, SeaweedFS (S3), MailHog containers; `mvn -f services/api/pom.xml package -DskipTests`; `java -jar services/api/target/boqlet-api.jar` with `BOQLET_JDBC_URL`, `BOQLET_DB_USER`, `BOQLET_DB_PASSWORD`, `BOQLET_NATIVE_AUTH=true`, `BOQLET_SECURE_COOKIE=false`, `BOQLET_APP_URL`, `BOQLET_S3_*`, `BOQLET_SMTP_*`, `BOQLET_INVITATION_SECRET`, `BOQLET_ENGINE_HTTP_URL`; the engine worker; the app with `NEXT_PUBLIC_AUTH_ADAPTER=native`, `API_PROXY_TARGET=http://127.0.0.1:8080` and `NEXT_DIST_DIR=.next-java` on port 3100. Put the start script in the session's scratchpad, not in the repo. **A missing local stack script is itself finding TF-xxx (test-gap)**: propose adding it, but add it only in Stage 6 | First owner by setup link (`/_test/setup-link` in the test build, or the operator recovery in `docs/19`). Platform admin: `users.platform_role='admin'` set in the DB (`docs/19`) | Stages 3 (backend parity), 4 (perf, resilience, security) |
-| **Pilot** (P) | https://booqlet.com, deployed from `v_1` | Synthetic `pilot-smoke-*@example.invalid` accounts through `ops/pilot/verify-live.sh` and `issue-setup-link.sh`; cleaned up afterwards | Stage 3 (acceptance walk, J-series smoke), Stage 7 |
+| **Pilot** (P) | https://booqlet.com, deployed from `main` | Synthetic `pilot-smoke-*@example.invalid` accounts through `ops/pilot/verify-live.sh` and `issue-setup-link.sh`; cleaned up afterwards | Stage 3 (acceptance walk, J-series smoke), Stage 7 |
 
 Ports that clash: `npm run e2e:app` reuses 3000, 4010 and 8788 when they are already up, unless `CI`
 is set. Never run it while another lane or session uses the dev stack on those ports. The
@@ -133,7 +140,7 @@ it once, and record "flaky" with both outcomes if the result changes.
 | **1D Shared suites on the mock** | `npm run test:contract:mock`; `npm run test:scenarios:mock` | free ports (own mock and worker) | all |
 | **1E Browser on the mock** | `npm run e2e:app` (chromium plus the `perf` project; 2 workers) | **3000, 4010, 8788, exclusive** | 1A–1D, not 1F's app |
 | **1F Java** | `mvn -f services/api/pom.xml verify` with `BOQLET_NATIVE_WORKER_PYTHON=<venv python>`, `BOQLET_NATIVE_NODE=<node>`, `BOQLET_NATIVE_QUEUE_TEST=1`, `BOQLET_NATIVE_SCENARIOS=1`, `BOQLET_BROWSER_SMOKE=1`, and the S3 test keys as in `ci.yml`. This runs the unit, ArchUnit and integration tests, the contract and scenario suites against Java, isolation, SSE across two instances and the 13-test browser smoke (port 3100) | Docker, ~4 GB, 5–25 min on Windows | 1A–1D. Run it beside 1E only with ≥ 16 GB free memory, otherwise after 1E |
-| **1G CI parity** | Read the latest `ci.yml` run on `v_1`: every job green? Does anything run locally but not in CI, or the reverse (for example the Firefox and WebKit projects, the core-only build in testing.md "Core without modules")? | none | all |
+| **1G CI parity** | Read the latest `ci.yml` runs on `main` (and the last ones on `v_1`, for flaky tests): every job green? Does anything run locally but not in CI, or the reverse (for example the Firefox and WebKit projects, the core-only build in testing.md "Core without modules")? | none | all |
 
 Lane 1F on Windows: the queue worker has hung one parse once (`docs/11`, phase 2). If it hangs,
 record it with the log, kill it, and re-run the scenarios once with `BOQLET_SCENARIO_FILTER`.
@@ -436,8 +443,9 @@ The complete list the campaign must close. Each criterion ends with a status in
 
 ### 9.1 Performance (TS-002, nfr.md), local native stack only
 
-If TS-002 has landed by then (`tests/perf`), run it. If not, measure without building the whole
-suite, and file "TS-002 not built" as a known gap, not a new finding.
+TS-002 has landed (`tests/perf`, §2): run `api.test.ts` against Java (`BOQLET_API_PERF=1` in lane 1F,
+or the manual stack in §4.3 with `API_URL`) and `engine_timing.py`, and compare with
+`04-architecture/nfr.md` "Measured". The medium-model parse is a known miss, not a new finding.
 - Parse and run times: Duplex (≤ 30 s parse, ≤ 5 s run), the federated pair (≤ 3 min parsing both
   in parallel, ≤ 60 s run), a medium corpus file if there is one.
 - API: p95 of the CRUD paths ≤ 300 ms and the lines page (500 lines) ≤ 500 ms, with a small load
@@ -501,9 +509,11 @@ suite, and file "TS-002 not built" as a known gap, not a new finding.
 - `openapi-pricing.yaml` lints; the core contract never references it.
 - No pricing screen, nav entry or string leaks into the core UI.
 
-### 9.7 The PoC (until FE-046)
+### 9.7 The PoC
 
-- `npm run dev:poc` starts, the Duplex runs, Excel downloads; `npm run build:poc` builds. Smoke only.
+Removed by FE-046 (the tag `poc-final` keeps it). Nothing to run. Check only that nothing in the repo
+still points at it (`dev:poc`, `build:poc`, `apps/web`, `engine/ifc_boq/api.py`); the Vercel demo is
+the owner's item (build log, "Waiting for the owner").
 
 ---
 
@@ -544,7 +554,7 @@ Every finding goes into `test-findings.md` §F at the moment it is found, in the
 - **Group the fixes by area and file set**: engine; Java; mock; app (by screen); contract (with mock,
   Java and app in one commit, per `05-api/contract-changes.md`); suites and tests; docs.
 - Up to three fix agents work at once, each on its own area with **disjoint files**, in the same
-  working tree on `v_1`. Before giving out the work, check that no two agents edit the same file.
+  working tree on `main`. Before giving out the work, check that no two agents edit the same file.
   Agents don't commit.
 - **Every fix comes with a test** that fails before the fix and passes after, at the lowest layer
   that can show it (engine pytest, JUnit, scenario, Vitest, Playwright).
@@ -569,11 +579,11 @@ Every finding goes into `test-findings.md` §F at the moment it is found, in the
 
 1. Re-run all of Stage 1 (lanes 1A–1F) on the final tree. Everything green, or every red item
    explained by a finding with the status `owner` or `deferred`.
-2. `ListAgents`; coordinate. `git pull --rebase` on `v_1`. If anything came in, re-run the lanes
+2. `ListAgents`; coordinate. `git pull --rebase` on `main`. If anything came in, re-run the lanes
    it touches.
-3. Push to `v_1` (pushes may come in batches during Stage 6, each one green).
-4. Watch CI (`gh run watch`): all seven jobs green, including `deploy`. A red job is a finding
-   to fix before anything else.
+3. Push to `main` (pushes may come in batches during Stage 6, each one green).
+4. Watch CI (`gh run watch`): all seven jobs green, including `deploy`, and the `deploy` log shows a
+   rollout, not "Skipped superseded revision". A red job is a finding to fix before anything else.
 5. After the rollout: `ops/pilot/verify-live.sh` in a verification window, and the pilot walk
    in §7.4 for the fixed findings that touch the deployed app.
 6. Record:
