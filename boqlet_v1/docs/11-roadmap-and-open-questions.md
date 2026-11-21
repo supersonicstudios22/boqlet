@@ -269,6 +269,15 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   to do (EN-006, EN-012, FE-044).
 - Load and performance targets are not measured (TS-002, FE-045).
 
+## Known limitations of the product build (phase 3)
+
+- Engine log entries are shown in the engine's English: the `engine` catalogue has entries for every
+  question code and nearly every warning code, but none for log codes yet. Many log params are
+  English fragments the engine composes (`calculation`, `quantities`, `reason`), so they need
+  structured params before a translation is worth writing. The warnings `rule_set` (English problem
+  text) and `federation_hole` (params without the class, file and owner) use the fallback too
+  (`apps/app/src/i18n/engine-message.ts`). This matters only once a second language is added (P07).
+
 ## Suggested next steps
 
 Engineering, roughly in order of value:
@@ -334,6 +343,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | a48496c | FE-041: engine messages render from their codes (contract change C01, F15 §4): questions, warnings, the run log and line detail show `engine.{code}` with the params, else the engine's English; every Duplex question renders from its key (F15-AC3, `e2e/questions.spec.ts`). Line detail names the code source `item` (C03); `item_text_blank` renders from its key (C04). |
 | 2026-11-20 | 56984aa | FE-041, FE-043: browser smoke against Java with native sign-in (P52), 13 Playwright tests in `apps/app/e2e-java`, in CI's API job: F01-AC1..AC6, native cookie and origin rules, reset links, FL-1's sample BoQ, upload through share link, live co-editing. |
 | 2026-11-20 | 6a7abee | FE-041: live updates work under native sign-in (`/events` answered 401: no realtime and no takeover sign-out on the pilot since 06ffd99); `model_version.ready` carries model and version; the sign-in page's signed-out notice shows once. |
 | 2026-11-20 | 2056b05 | FE-042: the mock's engine fakes and its proof-of-concept engine path are gone: the mock always uses the engine worker (diffs, change-report and BoQ workbooks, edits import, trace steps); it keeps its own line display order and adds edit authors to the engine's steps. The phase-1 limitations above that named fakes now describe the real engine. |

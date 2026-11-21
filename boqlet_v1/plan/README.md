@@ -13,7 +13,7 @@ product to build. When they disagree about the *product*, `plan/` wins. When the
 
 **Build status.** Phases 1 and 2 are done. The Java API, the Python workers and the Next.js
 app run as an invite-only pilot on one deployed environment (P51), deployed from `v_1` by
-GitHub Actions. **Phase 3 (frontend role) is next, starting with FE-041.** Every session
+GitHub Actions. **Phase 3 (frontend role) is under way: M8a is done, M8 (starting with FE-044) waits for the owner's approval.** Every session
 starts with the prompt in `08-delivery/sessions.md` and works by that file: it says how to
 start, what to decide yourself and what to ask, when to stop and how to hand over.
 
@@ -193,4 +193,4 @@ merges `v_1` into it.
 | Frontend, backend specs (06–07) | Written; backend decisions open on purpose |
 | Delivery (08) | Phases, milestones, task lists, session rules and build log written (P37–P40, P44, P45); the pricing module (MP1, MP2) is for a later phase (P48) |
 | Design (06) | Design guidelines decided (P43); wordmark SVG still to come from the owner |
-| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51; staging BE-032 deferred; carried-over checks listed in the phase-2 summary). **Phase 3 next:** FE-041. Live position: `10-build-log.md` |
+| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51; staging BE-032 deferred; carried-over checks listed in the phase-2 summary). Phase 3: **M8a completed 2026-11-21** (FE-041…FE-043: the app on Java with native sign-in, engine fakes gone, every contract change adapted). **Next: M8** (FE-044), after the owner's approval. Live position: `10-build-log.md` |

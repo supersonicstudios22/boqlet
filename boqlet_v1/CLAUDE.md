@@ -141,8 +141,8 @@ DURAARK, the Auckland OpenIFC repository, Schependomlaan): no engine errors, out
 against the contract; quantities checked only for the Duplex and the buildingSMART samples.
 What was run and what is still uncovered: `docs/12-ifc-corpus-catalogue.md`.
 
-The product built on top of this is specified in `plan/` (decisions P01–P51, phases,
-milestones, tasks). Phases 1 and 2 are done; phase 3 (wire up, harden, release) is next. The
+The product built on top of this is specified in `plan/` (decisions P01–P52, phases,
+milestones, tasks). Phases 1 and 2 are done; in phase 3 (wire up, harden, release) M8a (the app on Java) is done and M8 is next. The
 invite-only pilot runs on one deployed environment (P51), deployed from `v_1` by GitHub Actions
 (`docs/18`, `docs/19`); a separate staging environment is a future todo. Every build session starts with the prompt in `plan/08-delivery/sessions.md`
 and works by that file. **Where the build stands** (phase, role, next task, what agents decided

@@ -20,13 +20,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **Phase 3**, integration and release (M8a, then M8) |
+| Phase | **Phase 3**, integration and release (M8a done; M8 next) |
 | Role | **Frontend agent** |
-| Latest verified | CI on `605cdd2` (2026-11-19): all six jobs green, including 106 browser tests and nine Java integration and architecture tests; the automatic rollout to the pilot passed its synthetic sign-in, upload, parse and sample BoQ smoke (`docs/19`). |
-| Next task | **FE-041** Point the app at Java: adapt contract changes C01–C05 (C05 adds the native sign-in routes to `openapi.yaml`), run the shared scenario suite (with `isolation.test.ts`) against Java, test live updates across two API instances, and run the Playwright suite against Java. Then FE-042, FE-043 (re-check against native sign-in, P50). |
-| Waiting for the owner | **Approval before M8** (the owner, 2026-11-20: finish M8a, then stop). Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. |
-| In progress | **M8a implementation done; not yet recorded as a milestone.** FE-041 (`e9eadfb`..`56984aa`), FE-042 (`2056b05`, CI green incl. all 106 browser tests) and FE-043 (native adapter live; its F01 and FL-1 checks are in the Java browser smoke, 13 passed locally). Next session: (1) check CI for `56984aa` and the records commit after it (the first CI run of the browser smoke; `api` job); (2) write the M8a milestone entry: each exit criterion and how it was checked, and the phase-1 "(fake)" criteria now on the real engine (v1-3: `e2e/versions-flow.spec.ts`, scenarios `versions`, `changes` on Java; v1-12: `e2e/setup.spec.ts`, the person test is M8; v1-13: `e2e/co-editing.spec.ts`, `e2e-java/live.spec.ts`; F06-AC3: scenarios `line-edits` on Java and mock, `e2e/exports.spec.ts`; F06-AC5: `e2e/sheet.spec.ts`, scenarios `sheet`, engine trace tests; F10-AC5: `e2e/library-editors.spec.ts` FE-027 (the "Opis" column import isn't covered); F10-AC7: scenarios `library-publish`, `e2e/library-editors.spec.ts`; F10-AC8: scenarios `templates`; F12-AC4: scenarios `edits-import`, `e2e/exports.spec.ts`); (3) update the plan's status table and `08-delivery/testing.md` (the Java browser smoke); then stop for the owner's approval of M8. |
-| Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Phase-2 checks carried into phase 3 are listed in the phase-2 summary and `docs/11` "Known limitations … phase 2". Pricing stays deferred (P48). |
+| Latest verified | CI on `103665c` (2026-11-20): all seven jobs green, including the 106 browser tests on the mock, the scenario suite against Java (169 passed, 2 todo) and the Java browser smoke (`NativeWorkerTest`, 4 tests, none skipped); the rollout to the pilot passed. `a48496c` (engine messages) and the M8a records commit after it: check their CI first. |
+| Next task | **FE-044** Accessibility and pseudo-locale pass (TS-003, v1 criterion 11), then the rest of M8 in `milestones.md` order: FE-045, BE-025, BE-026, TS-002…TS-004, FE-046, FE-047. |
+| Waiting for the owner | **Approval to start M8** (the owner, 2026-11-20: finish M8a, then stop). Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. |
+| In progress | Nothing. |
+| Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Browser tests against Java are the smoke set in `apps/app/e2e-java` (P52, `08-delivery/testing.md`). Phase-2 checks still open are in `docs/11` "Known limitations … phase 2"; phase-3 ones under "… phase 3". Pricing stays deferred (P48). |
 
 ## Entry template
 
@@ -44,6 +44,49 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-21 — M8a Wire up (frontend agent)
+- **Built:** FE-041 (`c538394`..`67e46c0`, `e9eadfb`, `ececd45`, `c5ee763`, `f1779fd`, `a8ff18b`, `6a7abee`,
+  `56984aa`, `a48496c`), FE-042 (`2056b05`), FE-043 (native adapter `06ffd99` from the deployment session; its
+  checks in `56984aa`).
+- **Exit criteria:**
+  - *The app runs against Java on staging with the real auth adapter:* under P51 staging is the pilot. Its web
+    image is built with `NEXT_PUBLIC_AUTH_ADAPTER=native` (`ops/pilot/web.Dockerfile`), and every green push runs
+    the rollout's synthetic smoke there (password setup, sign-in, signed upload, queue parse, sample BoQ;
+    `docs/19`), green on `103665c`. Under P52 the flows are checked against a local Java stack in CI: the browser
+    smoke (13 tests, `apps/app/e2e-java`, F01-AC1..AC6, FL-1 to the sample BoQ, upload through a share link, live
+    co-editing), the scenario suite (169 passed, 2 todo, as on the mock) with `isolation.test.ts`, and the
+    contract suite. Live updates across two API instances: `NativeWorkerTest` (`a8ff18b`).
+  - *Every phase-1 "(fake)" criterion green on the real engine:* the mock has computed through the engine
+    worker only since FE-042 (fakes table: only the deferred pricing row, P48), and CI on `2056b05` and later
+    ran all 106 browser tests on it. v1-3: `e2e/versions-flow.spec.ts`, scenarios `versions`, `changes` on Java;
+    v1-12: `e2e/setup.spec.ts` (the person test is M8, TS-004); v1-13: `e2e/co-editing.spec.ts`,
+    `e2e-java/live.spec.ts`; F06-AC3: scenarios `line-edits` on Java and the mock, `e2e/exports.spec.ts`;
+    F06-AC5: `e2e/sheet.spec.ts`, scenarios `sheet`, engine trace tests; F10-AC5: `e2e/library-editors.spec.ts`
+    (the "Opis" column import isn't covered); F10-AC7: scenarios `library-publish`,
+    `e2e/library-editors.spec.ts`; F10-AC8: scenarios `templates`; F12-AC4: scenarios `edits-import`,
+    `e2e/exports.spec.ts`.
+  - *UI adjusted where real behaviour differs:* live updates under native sign-in and the model-ready
+    notification (`6a7abee`), the checkout reason (`c5ee763`), Java fixes found by the scenarios (`f1779fd`,
+    `ececd45`), engine messages from their codes (`a48496c`).
+  - *Every phase-2 contract change adapted:* C01–C06 each say "Adapted" with a commit or "Nothing more to
+    adapt" (`05-api/contract-changes.md`); `git grep contract-change: apps/app` is empty. C01 and C03 still
+    needed work when this session checked them (`a48496c`).
+- **Decisions taken:** engine messages render through one function, `apps/app/src/i18n/engine-message.ts`:
+  `engine.{code}` from the new `engine` namespace with the params made ICU-ready (lists in the user's language,
+  booleans as `select` values, units with superscripts, a few values computed per code), else the engine's
+  English `message`; a missing param also falls back. The catalogue covers every question code and every warning
+  code except `rule_set` and `federation_hole`; log codes have no entries yet (`docs/11`, phase 3). Question rows
+  carry `data-message="key|fallback"`, which `e2e/questions.spec.ts` uses for F15-AC3.
+- **Deviations from the spec:** none. P52 (owner, 2026-11-20) narrowed "every M1–M4 flow against Java" to the
+  browser smoke set plus the shared suites; `08-delivery/testing.md` now says so.
+- **Fakes:** the trace-step, workbook, edits-import and change-report rows were removed (FE-042); only the
+  pricing row remains (P48).
+- **Known issues and debt:** engine log entries in English only (`docs/11`, phase 3; matters with a second
+  language); the "Opis" column import of F10-AC5 isn't covered by a test (FE-044 or TS-004); the v1-12 person
+  test (TS-004); the phase-2 list in `docs/11` (BE-025, BE-026, TS-002, FE-045 and the pilot operations items).
+- **For the next agent:** M8 starts with FE-044 only after the owner approves. The 106 browser tests stay on the
+  mock; add a Java browser test only for behaviour the shared suites can't reach (P52).
 
 ### 2026-11-20 — FE-041 decisions: the shared suites against Java (frontend agent)
 - **Built:** `c538394`..`67e46c0`. `tests/scenarios` passes against Java unchanged and runs in CI's API job.

@@ -8,7 +8,8 @@
 | Contract | Schemathesis or a hand-written suite over the generated client | `tests/contract` | Every operation in `openapi.yaml`: status codes, schemas, error codes; runs against the **mock** (phase 1) and **Java** (phase 2, unchanged) |
 | Behaviour scenarios | Vitest (TS) over the generated client | `tests/scenarios` | Domain rules through the API: state machines, permissions, limits, versions and confirmation, BR-xx. Same suite against mock and Java |
 | Frontend unit | Vitest + Testing Library | `apps/app` | Components with logic: grouping, readable formulas, comparison flags display, decimal display, permission gating |
-| End-to-end | Playwright | `apps/app/e2e` | Flows FL-1…FL-8 against mock + real engine (CI) and against Java on staging (nightly) |
+| End-to-end | Playwright | `apps/app/e2e` | Flows FL-1…FL-8 against mock + real engine (CI, the 106 browser tests) |
+| Browser smoke against Java (P52) | Playwright | `apps/app/e2e-java` (`playwright.java.config.ts`) | 13 tests with native sign-in against a local Java API, worker, Postgres, MinIO and MailHog: F01 criteria, native cookie and origin rules, reset links, FL-1 to the sample BoQ, upload through a share link, live co-editing. Run by `NativeWorkerTest#browserSmokeAgainstJava` when `BOQLET_BROWSER_SMOKE=1` (CI's API job); `BOQLET_BROWSER_SMOKE_FILTER` narrows it locally |
 | Backend unit/integration | JUnit 5 + Testcontainers | `services/api` | Policies, state machines, repositories, ingestion, fake worker |
 | Performance | k6 (API), Playwright traces (UI), engine timing script | `tests/perf` | NFR targets (nfr.md) |
 | Accessibility | axe-core in Playwright | `apps/app/e2e` | Main screens, no serious/critical violations |
@@ -49,8 +50,8 @@ run on the owner's Windows machine (`sessions.md`).
 3. Engine tests (`npm run test:engine`).
 4. Codegen drift check: regenerate schemas/clients, fail on diff.
 5. Mock + engine up → contract + scenario suites → Playwright smoke (FL-2 Duplex).
-6. Java build + unit/integration (from M5) → contract + scenario suites against Java.
-7. Nightly: full Playwright on Java staging, federated pair, performance, accessibility.
+6. Java build + unit/integration (from M5) → contract + scenario suites against Java → the browser smoke against Java (P52), all in the API job's `mvn verify`.
+7. Nightly: federated pair, performance, accessibility. The full Playwright suite stays on the mock; Java gets the smoke set in step 6 (P52).
 
 ## Test tasks
 
