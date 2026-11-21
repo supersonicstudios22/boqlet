@@ -161,7 +161,8 @@ jobs:
 
   deploy:
     name: Deploy Boqlet pilot
-    if: github.event_name == 'push' && github.ref == 'refs/heads/v_1'
+    # Since the v1 release (FE-047) the one environment (P51) deploys from main; v_1 is kept as it was.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [api, contract, typecheck, e2e, engine, suites]
     runs-on: ubuntu-latest
     timeout-minutes: 35
