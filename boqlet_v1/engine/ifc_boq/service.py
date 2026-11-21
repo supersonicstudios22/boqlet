@@ -41,7 +41,9 @@ def model_summary(model_id: str, parsed: dict, cached: bool) -> dict:
         "modelId": model_id, "fileName": h["source"]["fileName"], "sizeBytes": h["source"]["sizeBytes"],
         "ifcSchema": h["ifcSchema"], "authoringApp": (h.get("authoringApp") or {}).get("fullName"),
         "disciplineGuess": h.get("disciplineGuess"),
-        "storeys": sorted(({"name": s.get("name"), "elevation": s.get("elevation")} for s in parsed["spatial"] if s["kind"] == "storey"),
+        # Name and elevation are optional in IFC and in the contract (absent, never null: api.ts).
+        "storeys": sorted(({k: v for k, v in (("name", s.get("name")), ("elevation", s.get("elevation"))) if v is not None}
+                           for s in parsed["spatial"] if s["kind"] == "storey"),
                           key=lambda s: s.get("elevation") or 0),
         "elementCount": st["elementCount"], "openingCount": st["openingCount"], "spaceCount": st["spaceCount"],
         "byClass": st["byClass"], "checks": parsed["verification"]["summary"], "parseMs": h["parse"]["durationMs"],
