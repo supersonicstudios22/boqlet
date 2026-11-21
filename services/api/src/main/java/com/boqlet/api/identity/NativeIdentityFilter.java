@@ -34,7 +34,7 @@ public final class NativeIdentityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = com.boqlet.api.http.RequestPaths.of(request);
         String method = request.getMethod();
         if (path.startsWith("/api/v1/") && !path.startsWith("/api/v1/webhooks/billing/")) {
             boolean admin = path.startsWith("/api/v1/admin/");

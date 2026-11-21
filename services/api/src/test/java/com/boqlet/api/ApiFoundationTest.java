@@ -266,6 +266,13 @@ class ApiFoundationTest {
         http.perform(auth(get("/api/v1/admin/orgs"), "owner", owner)).andExpect(status().isNotFound());
         http.perform(auth(patch("/api/v1/admin/orgs/" + org), "owner", owner).content("{}"))
                 .andExpect(status().isNotFound());
+        // TF-011: Spring routes on the decoded path, so the gate must hold for encoded spellings of /admin/ too.
+        for (String spelling : java.util.List.of("/api/v1/%61dmin/orgs", "/api/v1/adm%69n/overview", "/api/v1/%61dmin/orgs/" + org)) {
+            http.perform(auth(get(java.net.URI.create(spelling)), "owner", owner)).andExpect(status().isNotFound());
+        }
+        http.perform(auth(patch(java.net.URI.create("/api/v1/%61dmin/orgs/" + org)), "owner", owner)
+                .content("{\"status\":\"suspended\",\"reason\":\"probe\"}")).andExpect(status().isNotFound());
+        http.perform(get(java.net.URI.create("/api/v1/%61dmin/overview"))).andExpect(status().isUnauthorized());
 
         var platform = session("platform");
         database.update("UPDATE users SET platform_role = 'admin' WHERE auth_subject = 'platform'");

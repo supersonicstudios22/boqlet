@@ -10,9 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +90,20 @@ class NativeAuthTest {
         http.perform(signIn(PASSWORD, false).header("Origin", ORIGIN)).andExpect(status().isUnauthorized());
         Cookie third = http.perform(signIn(newPassword, false).header("Origin", ORIGIN)).andExpect(status().isCreated())
                 .andReturn().getResponse().getCookie("boqlet_session");
+
+        // TF-011: Spring routes on the decoded path, so the platform-admin gate must hold for every spelling of /admin/.
+        for (String admin : List.of("/api/v1/admin/orgs", "/api/v1/%61dmin/orgs", "/api/v1/adm%69n/overview", "/api/v1/%61dmin/users")) {
+            http.perform(get(URI.create(admin)).cookie(third)).andExpect(status().isNotFound());
+        }
+        String self = db.queryForObject("SELECT id::text FROM users WHERE email = ?", String.class, EMAIL);
+        http.perform(delete(URI.create("/api/v1/%61dmin/users/" + self + "/session")).header("Origin", ORIGIN).cookie(third))
+                .andExpect(status().isNotFound());
+        http.perform(get("/api/v1/me").cookie(third)).andExpect(status().isOk());
+        db.update("UPDATE users SET platform_role = 'admin' WHERE email = ?", EMAIL);
+        http.perform(get("/api/v1/admin/orgs").cookie(third)).andExpect(status().isOk());
+        http.perform(get(URI.create("/api/v1/%61dmin/orgs")).cookie(third)).andExpect(status().isOk());
+        db.update("UPDATE users SET platform_role = NULL WHERE email = ?", EMAIL);
+
         http.perform(delete("/api/v1/sessions/current").header("Origin", ORIGIN).cookie(third)).andExpect(status().isNoContent());
         http.perform(get("/api/v1/me").cookie(third)).andExpect(status().isUnauthorized());
     }

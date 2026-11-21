@@ -61,7 +61,7 @@ class SecurityConfiguration {
             var bearer = new DefaultBearerTokenResolver();
             security.oauth2ResourceServer(oauth -> oauth.authenticationEntryPoint(unauthenticated)
                     .bearerTokenResolver(request -> {
-                        String path = request.getRequestURI().substring(request.getContextPath().length());
+                        String path = com.boqlet.api.http.RequestPaths.of(request);
                         boolean publicRoute = request.getMethod().equals("GET") && (path.equals("/api/v1/plans")
                                 || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/"))
                                 || request.getMethod().equals("POST") && path.startsWith("/api/v1/webhooks/billing/");

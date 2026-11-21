@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { client } from "../support/env";
+import { API_URL, ROOT_URL, authentication, client } from "../support/env";
 import { user } from "../support/users";
 
 /**
@@ -34,6 +34,26 @@ describe("F19 /admin/* isolation", () => {
         const { response } = await call();
         expect({ who, url: response.url, status: response.status }).toEqual({ who, url: response.url, status: 404 });
       }
+    }
+  });
+
+  it("answers 404 on encoded spellings of /admin/, reads and writes alike (TF-011)", async () => {
+    // Spring routes on the decoded path, so "/%61dmin/orgs" reaches the admin handlers: the
+    // platform-role check must hold for every spelling, not only for the literal prefix.
+    const headers = { ...(await authentication((await user("olivia")).token)), "Content-Type": "application/json", Origin: ROOT_URL };
+    const requests: [string, string, unknown?][] = [
+      ["GET", "/%61dmin/orgs"],
+      ["GET", "/adm%69n/overview"],
+      ["GET", "/%61dmin/users"],
+      ["GET", "/%61dmin/orgs.csv"],
+      ["GET", `/%61dmin/orgs/${ORG}`],
+      ["PATCH", `/%61dmin/orgs/${ORG}`, { status: "suspended", reason: "test" }],
+      ["PUT", `/%61dmin/orgs/${ORG}/subscription`, { planId: "team", reason: "test" }],
+      ["DELETE", `/%61dmin/users/${USER}/session`],
+    ];
+    for (const [method, path, body] of requests) {
+      const response = await fetch(`${API_URL}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+      expect({ method, path, status: response.status }).toEqual({ method, path, status: 404 });
     }
   });
 
