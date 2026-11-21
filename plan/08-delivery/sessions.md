@@ -11,15 +11,16 @@ role (`milestones.md`). `10-build-log.md` "Current position" says which phase it
 
 ## The prompt (any session, any phase)
 
-The owner starts every session with this prompt, unchanged:
+The owner starts every session with this prompt, unchanged. Since the v1 release (FE-047) the
+branch is `main`; until then it was the build branch `v_1` (P46), which is kept as it was.
 
 ```text
 You are building boqlet in this repository, and the owner has said go.
-Work on the branch v_1: git switch v_1 && git pull. Then read CLAUDE.md at the
+Work on the branch main: git switch main && git pull. Then read CLAUDE.md at the
 repository root and follow it to the plan's "Start here", plan/08-delivery/sessions.md
 and plan/10-build-log.md "Current position".
 Continue the build from the current position, in the role of the current phase:
-take the next task, build it, test it, commit and push to v_1, record it, and go
+take the next task, build it, test it, commit and push to main, record it, and go
 on to the next one. Work on your own; stop only where sessions.md says to stop.
 ```
 
@@ -33,7 +34,7 @@ root is the product root, and the plan is `plan/` (P44).
 
 ## Starting a session
 
-1. `git switch v_1 && git pull` (the build branch, P46; never commit to `main` before FE-047).
+1. `git switch main && git pull` (since FE-047; before the release the build ran on `v_1`, P46).
    Then `git status`:
    - clean: go on;
    - not clean: read "In progress" in the build log's Current position. If it explains the
@@ -53,7 +54,8 @@ root is the product root, and the plan is `plan/` (P44).
 - **One task at a time, in order** (the task file and `milestones.md`). Build what the task and
   its specs say, nothing more. A task is done when its acceptance criteria hold and the
   definition of done in `testing.md` is met.
-- **Commit small, straight to `v_1`** (P40, P46). Every commit message starts with the task id
+- **Commit small, straight to `main`** (P40; `v_1` until FE-047, P46). Every green push to `main`
+  deploys to booqlet.com, so keep it green. Every commit message starts with the task id
   (`FE-009: group-by switch`). Never commit red: build, typecheck and the affected tests pass
   before each commit. Push at least after every task.
 - **After every task:** a row in `docs/11-roadmap-and-open-questions.md` "Done" (with the commit

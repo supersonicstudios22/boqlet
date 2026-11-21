@@ -20,13 +20,13 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **Phase 3**, integration and release (M8a done; M8 under way) |
-| Role | **Frontend agent** |
-| Latest verified | CI on `5f10fe5` (2026-11-21): all seven jobs green, the 106 browser tests on the mock (F06-AC10 presence passed on its first try), the scenario suite and the browser smoke against Java; the rollout to the pilot passed. |
-| Next task | M8 in segments; **the owner (2026-11-21): do not stop until M8 is complete** (report after each segment). (1)–(4) **done** (`5e9fa2c`, `7ae13e8`, `47d299d`, `4a34fd8`, `7d4f790`). (5) FE-046 **done** (`7a79db3`): the repository root is the product root. **Next: (6) FE-047** the release: tag `main` `poc-final`, merge `v_1` into `main` (the owner gave the go), deploy from `main` to the same host, tag `v1.0.0`; email and billing stay as they are. |
-| Waiting for the owner | Nothing blocks M8. Needs a person, prepared but not done by the agent: v1 criterion 12 (a new user runs the setup wizard), opening exported workbooks in Excel and LibreOffice. Later, the owner's: an alert destination, error tracking, installing `ops/pilot/backup.sh` with an off-host copy, removing the Vercel demo after FE-047. |
+| Phase | **Released: v1.0.0** (2026-11-21). Phases 1–3 done. Nothing is scheduled; the owner sets what comes next. |
+| Role | — (the next phase's role, once the owner names it) |
+| Latest verified | CI on `main` at `8977990` (the `v1.0.0` tag, 2026-11-21): all seven jobs green, deployed to booqlet.com; outside smoke checks green (app, sign-in, public API, 401 for a wrong password, 404 for an unknown share link, Actuator not exposed). |
+| Next task | None scheduled. Candidates, in `docs/11` "Known limitations … phase 3" and below: the medium-model parse (9 min, target 5), a live acceptance run on booqlet.com, alert destination, backups installed on the host, error tracking. |
+| Waiting for the owner | Remove or repoint the Vercel demo project (`main` no longer has it; the PoC is the tag `poc-final`). The person checks of v1 criteria 4, 7 and 12, and opening exported workbooks in Excel and LibreOffice. On the host (operator): apply `ops/pilot/compose.yaml` (JSON logs, metrics) and install `ops/pilot/backup.sh` with an off-host destination. Later: an alert destination, error tracking. |
 | In progress | Nothing. |
-| Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Browser tests against Java are the smoke set in `apps/app/e2e-java` (P52, `08-delivery/testing.md`). Phase-2 checks still open are in `docs/11` "Known limitations … phase 2"; phase-3 ones under "… phase 3". Pricing stays deferred (P48). |
+| Notes for the next session | Work on `main` (since FE-047; `v_1` is kept as it was and no longer deploys). Every green push to `main` deploys to booqlet.com (P51, `docs/19`); keep it green. Sign-in is native (P50). Browser tests against Java are the smoke set (P52). Pricing stays deferred (P48). Compose changes on the host are operator tasks (`docs/19`). |
 
 ## Entry template
 
@@ -44,6 +44,40 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-21 — Phase 3 summary and v1.0.0 release notes (frontend agent)
+- **Built:** M8a (FE-041…FE-043, `e9eadfb`..`a48496c`) and M8 in owner-approved segments: FE-044 + TS-003
+  (`5e9fa2c`), TS-002 + FE-045 (`7ae13e8`, `47d299d`), BE-025 (`4a34fd8`), BE-026 + TS-004 (`7d4f790`), FE-046
+  (`7a79db3`), FE-047 (`4b9a07c`, merge `8977990`, tags `poc-final` and `v1.0.0`).
+- **M8 exit criteria:**
+  - *All v1 acceptance criteria pass on staging:* 13 green, 2 not in v1 (pricing, P48); criterion 10 misses one
+    target (the medium-model parse); criteria 4, 7 and 12 need a person (4 and 7 pass as automated checks).
+    Checked through the shared suites on CI's local native stack and the mock with the real engine, not live on
+    booqlet.com (synthetic accounts need host access). Results: `plan/README.md` "v1 acceptance".
+  - *NFR targets measured:* `04-architecture/nfr.md` "Measured"; every target met except the medium parse.
+  - *`boqlet_v1/` is the repository root, nothing of the PoC left:* FE-046.
+  - *`v_1` merged into `main`, production deployed from `main` and tagged `v1.0.0`:* FE-047, on the same host
+    (booqlet.com, P51); production smoke from outside green, the signed-in smoke needs host access.
+- **Decisions taken (the owner, 2026-11-21):** M8 in segments, then to the end without stopping; email and billing
+  stay as the pilot has them; alerts are log lines for now; the release goes to the one environment.
+- **Release notes, v1.0.0.** The product replaces the proof of concept: a Next.js app with native sign-in, a Java
+  API (orgs, projects, model versions, BoQs, runs, Library, exports, sharing, admin console, plans and limits)
+  and the Python engine as its worker (Postgres queue), on booqlet.com, invite-only. Since phase 2: engine
+  messages rendered from their codes; WCAG 2.2 AA checks on the main screens and their fixes; per-route bundle
+  budgets; a large model's viewer interactive in under 5 s; a faster parse of large models (mesh repair in
+  numpy); JSON logs, metrics, alerts in the log, OpenTelemetry traces; backup scripts with a tested restore.
+  Known limits: `docs/11` "Known limitations … phase 3".
+- **For the next agent:** the plan's phases are complete. Start from the owner's next instruction; `docs/11`
+  lists what is open.
+
+### 2026-11-21 — M8 Hardening, new root, release (frontend agent)
+- **Built:** see the phase 3 summary above (segments 1–6).
+- **Exit criteria:** see the phase 3 summary above; each criterion with how it was checked.
+- **Deviations from the spec:** TS-004 ran on the local native stack and the mock, not live on staging (P51 makes
+  booqlet.com staging; its synthetic accounts need host access the agent did not use). FE-047's production
+  smoke ran from outside only.
+- **Known issues and debt:** the medium parse (geometry kernel); the person checks; operator tasks on the host
+  (Compose, backups); alert destination; error tracking. All in `docs/11`.
 
 ### 2026-11-21 — FE-046 the new repository root (frontend agent)
 - **Built:** `7a79db3`. `git mv` of every product entry to the root; the PoC, its dev API and the Vercel demo deleted.

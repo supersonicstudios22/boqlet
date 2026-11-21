@@ -133,9 +133,8 @@ against the contract; quantities checked only for the Duplex and the buildingSMA
 What was run and what is still uncovered: `docs/12-ifc-corpus-catalogue.md`.
 
 The product built on top of this is specified in `plan/` (decisions P01–P52, phases,
-milestones, tasks). Phases 1 and 2 are done; in phase 3 M8a (the app on Java) is done and M8
-(hardening, new root, release) is ending with FE-047. The invite-only pilot runs on one deployed
-environment (P51), deployed by GitHub Actions (`docs/18`, `docs/19`); a separate staging environment
-is a future todo. Every build session starts with the prompt in `plan/08-delivery/sessions.md` and
+milestones, tasks). **Released as v1.0.0 (2026-11-21)**: phases 1–3 are done. The invite-only
+pilot runs on one deployed environment (P51), deployed from `main` by GitHub Actions (`docs/18`,
+`docs/19`); a separate staging environment is a future todo. Work on `main`; every green push deploys. Every build session starts with the prompt in `plan/08-delivery/sessions.md` and
 works by that file. **Where the build stands** (phase, role, next task, what agents decided along
 the way) is in `plan/10-build-log.md`.
