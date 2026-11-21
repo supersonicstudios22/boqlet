@@ -102,8 +102,13 @@ describe("F19 actions", () => {
 
     const trialEndsAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
     const trial = await admin().PUT("/admin/orgs/{orgId}/subscription", { params: { path: { orgId: org.id } }, body: { trialEndsAt, reason: "Asked for more time" } });
-    expect(trial.data).toMatchObject({ trialEndsAt, subscriptionStatus: "trialing" });
-    expect((await client(owner.token).GET("/orgs/{orgId}/billing", { params: { path: { orgId: org.id } } })).data).toMatchObject({ status: "trialing", trialEndsAt });
+    // Compared as instants: Java writes "…55.140Z" as "…55.14Z", the same time.
+    const instant = (v: unknown) => new Date(String(v)).getTime();
+    expect(trial.data).toMatchObject({ subscriptionStatus: "trialing" });
+    expect(instant(trial.data!.trialEndsAt)).toBe(instant(trialEndsAt));
+    const billing = (await client(owner.token).GET("/orgs/{orgId}/billing", { params: { path: { orgId: org.id } } })).data;
+    expect(billing).toMatchObject({ status: "trialing" });
+    expect(instant(billing!.trialEndsAt)).toBe(instant(trialEndsAt));
 
     const log = (await client(owner.token).GET("/orgs/{orgId}/audit", { params: { path: { orgId: org.id } } })).data!.items;
     expect(log.map((e) => e.action)).toContain("org.trial_changed");

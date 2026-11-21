@@ -12,6 +12,13 @@ import { authAdapter } from "@/auth";
 
 export type BoqPresence = Schemas["BoqPresence"];
 const HEARTBEAT_MS = 20_000;
+/**
+ * An unmount leaves after this delay, and a provider mounted for the same BoQ in the meantime
+ * cancels it. Without it a remount (React's development double mount, a re-keyed workspace) sends
+ * PUT, DELETE, PUT, and a DELETE that arrives last takes me out until the next heartbeat.
+ */
+const LEAVE_DELAY_MS = 1_000;
+const pendingLeave = new Map<string, ReturnType<typeof setTimeout>>();
 
 interface PresenceScope {
   /** The others in this BoQ (not me), with the line each is editing. */
@@ -42,6 +49,11 @@ export function BoqPresenceProvider({ boqId, children }: { boqId: string; childr
 
   useEffect(() => {
     let alive = true;
+    const pending = pendingLeave.get(boqId);
+    if (pending !== undefined) {
+      clearTimeout(pending);
+      pendingLeave.delete(boqId);
+    }
     const beat = async () => {
       try {
         const { data } = await api.PUT("/boqs/{boqId}/presence", { params: { path: { boqId } }, body: { lineKey: lineRef.current } });
@@ -63,7 +75,13 @@ export function BoqPresenceProvider({ boqId, children }: { boqId: string; childr
       alive = false;
       clearInterval(timer);
       window.removeEventListener("pagehide", leave);
-      leave();
+      pendingLeave.set(
+        boqId,
+        setTimeout(() => {
+          pendingLeave.delete(boqId);
+          leave();
+        }, LEAVE_DELAY_MS),
+      );
     };
   }, [boqId, client]);
 

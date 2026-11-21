@@ -22,7 +22,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 |---|---|
 | Phase | **Phase 3**, integration and release (M8a done; M8 next) |
 | Role | **Frontend agent** |
-| Latest verified | CI on `103665c` (2026-11-20): all seven jobs green, including the 106 browser tests on the mock, the scenario suite against Java (169 passed, 2 todo) and the Java browser smoke (`NativeWorkerTest`, 4 tests, none skipped); the rollout to the pilot passed. `a48496c` (engine messages) and the M8a records commit after it: check their CI first. |
+| Latest verified | CI on `103665c` (2026-11-20): all seven jobs green, including the 106 browser tests on the mock, the scenario suite against Java (169 passed, 2 todo) and the Java browser smoke (`NativeWorkerTest`, 4 tests, none skipped); the rollout to the pilot passed. CI on `a48496c` and `5c9bd6f` was red on two pre-existing flakes (the `admin` scenario's trial-end string, co-editing presence), fixed in the commit after them: check its CI first, and if F06-AC10 still fails at presence, the cause is elsewhere (`docs/11` Done). |
 | Next task | **FE-044** Accessibility and pseudo-locale pass (TS-003, v1 criterion 11), then the rest of M8 in `milestones.md` order: FE-045, BE-025, BE-026, TS-002…TS-004, FE-046, FE-047. |
 | Waiting for the owner | **Approval to start M8** (the owner, 2026-11-20: finish M8a, then stop). Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. |
 | In progress | Nothing. |
