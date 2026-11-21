@@ -20,11 +20,11 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 
 | | |
 |---|---|
-| Phase | **Phase 3**, integration and release (M8a done; M8 next) |
+| Phase | **Phase 3**, integration and release (M8a done; M8 under way) |
 | Role | **Frontend agent** |
-| Latest verified | CI on `103665c` (2026-11-20): all seven jobs green, including the 106 browser tests on the mock, the scenario suite against Java (169 passed, 2 todo) and the Java browser smoke (`NativeWorkerTest`, 4 tests, none skipped); the rollout to the pilot passed. CI on `a48496c` and `5c9bd6f` was red on two pre-existing flakes (the `admin` scenario's trial-end string, co-editing presence), fixed in the commit after them: check its CI first, and if F06-AC10 still fails at presence, the cause is elsewhere (`docs/11` Done). |
-| Next task | **FE-044** Accessibility and pseudo-locale pass (TS-003, v1 criterion 11), then the rest of M8 in `milestones.md` order: FE-045, BE-025, BE-026, TS-002…TS-004, FE-046, FE-047. |
-| Waiting for the owner | **Approval to start M8** (the owner, 2026-11-20: finish M8a, then stop). Before FE-047: confirm the pilot host becomes production (P51), and the email and billing settings. |
+| Latest verified | CI on `5f10fe5` (2026-11-21): all seven jobs green, the 106 browser tests on the mock (F06-AC10 presence passed on its first try), the scenario suite and the browser smoke against Java; the rollout to the pilot passed. |
+| Next task | M8 in segments: the owner says go for one, the agent does it, reports and stops until "continue". (1) FE-044 + TS-003 accessibility and pseudo-locale (**go given 2026-11-21**); (2) TS-002 + FE-045 performance, measured on the local native stack, then fixed; (3) BE-025 observability and ops; (4) BE-026 + TS-004 the v1 acceptance run on the pilot; (5) FE-046 the new repository root; (6) FE-047 the release. |
+| Waiting for the owner | A go for each segment after the current one. The owner approved M8 on 2026-11-21. For FE-047 (2026-11-21): email and billing stay as the pilot has them; the go to merge `v_1` into `main` is still the owner's. |
 | In progress | Nothing. |
 | Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Browser tests against Java are the smoke set in `apps/app/e2e-java` (P52, `08-delivery/testing.md`). Phase-2 checks still open are in `docs/11` "Known limitations … phase 2"; phase-3 ones under "… phase 3". Pricing stays deferred (P48). |
 
