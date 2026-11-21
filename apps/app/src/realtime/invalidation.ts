@@ -3,7 +3,7 @@ import { keys } from "@/api/keys";
 
 /**
  * Realtime events → the queries to refetch (architecture.md, data layer rule 4; payloads in
- * 04-architecture/storage-jobs-realtime.md). Events are hints: correctness never depends on them.
+ * docs/architecture/storage-jobs-realtime.md). Events are hints: correctness never depends on them.
  * Query keys are prefixes, so `["projects"]` refetches every projects list.
  */
 export interface RealtimeEvent {

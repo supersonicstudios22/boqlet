@@ -9,7 +9,7 @@ import { nativeAuthAdapter } from "./adapters/native";
 import { isLeaving, startLeaving } from "./leaving";
 
 const adapters: Record<string, AuthAdapter> = { native: nativeAuthAdapter, keycloak: keycloakAuthAdapter };
-/** Native sign-in (P50) unless `NEXT_PUBLIC_AUTH_ADAPTER=keycloak` (the retained rollback, docs/19). */
+/** Native sign-in (P50) unless `NEXT_PUBLIC_AUTH_ADAPTER=keycloak` (the retained rollback, docs/operations/auth-and-deploys.md). */
 export const authAdapter: AuthAdapter = adapters[process.env.NEXT_PUBLIC_AUTH_ADAPTER ?? "native"] ?? nativeAuthAdapter;
 
 // The API client asks the adapter for the token on every request.

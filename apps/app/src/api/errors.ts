@@ -2,7 +2,7 @@ import type { Middleware } from "openapi-fetch";
 import type { ApiErrorBody } from "@ifc-boq/api";
 
 /**
- * Every failed API call becomes one `ApiError` (06-frontend/architecture.md, data layer rule 6).
+ * Every failed API call becomes one `ApiError` (docs/architecture/frontend.md, data layer rule 6).
  * `status` 0 means the request never got an answer (network down, server not running).
  */
 export class ApiError extends Error {

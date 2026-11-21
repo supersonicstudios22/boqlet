@@ -4,13 +4,15 @@ info:
   version: 1.0.0-draft
   description: |
     The HTTP contract between the Next.js app and the Java backend.
-    Conventions (auth, errors, pagination, idempotency, SSE) are in `plan/05-api/conventions.md`.
+    Conventions (auth, errors, pagination, idempotency, SSE) are in `docs/architecture/api-conventions.md`.
     Engine shapes are referenced from `packages/types/schema/*.schema.json` (generated from
     `packages/types/src`), never redefined here.
 servers:
   - url: /api/v1
 security:
-  - bearer: []
+  - session: []
+  - session: []
+    bearer: []
 tags:
   - name: me
   - name: orgs
@@ -1969,10 +1971,21 @@ paths:
 
 components:
   securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: boqlet_session
+      description: >-
+        The opaque application session (P50). Native sign-in (`POST /auth/sign-in`) sets it as an
+        HttpOnly, SameSite=Lax cookie on `/api/v1`; state-changing requests must also carry the
+        exact app `Origin`. One active session per account (`POST /sessions`, BR-54).
     bearer:
       type: http
       scheme: bearer
-      description: Token from the auth adapter (provider to be decided, P10). Cookie sessions are equally acceptable; see conventions.md.
+      description: >-
+        OIDC access token, only when Java runs with an OIDC issuer (the Keycloak rollback, and the
+        test harness's token decoder); it is sent together with the session cookie. Refused under
+        native sign-in.
 
   parameters:
     OrgId: { name: orgId, in: path, required: true, schema: { type: string, format: uuid } }

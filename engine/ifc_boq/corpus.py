@@ -8,7 +8,7 @@ For each file: parse, run the presets, validate the ParsedModel and the BoqResul
 the contract schemas, and print one row (schema, tool, discipline, measured / unmatched /
 excluded elements, flagged lines, blocking questions, parse checks). With --out, also writes
 per-file parsed.json, result.json and a summary.json, so runs can be compared after an engine
-change. Used to read new exporters before adding fixtures (docs/09).
+change. Used to read new exporters before adding fixtures (docs/testing/engine-validation.md).
 """
 from __future__ import annotations
 

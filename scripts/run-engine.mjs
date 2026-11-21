@@ -5,7 +5,7 @@
  *   node scripts/run-engine.mjs test             -> pytest
  *   node scripts/run-engine.mjs cli <args>       -> python -m ifc_boq.cli <args>
  *   node scripts/run-engine.mjs corpus <folder>  -> python -m ifc_boq.corpus <folder> (summary per IFC)
- *   node scripts/run-engine.mjs catalogue        -> render fixtures/corpus/catalogue.json as docs/12
+ *   node scripts/run-engine.mjs catalogue        -> render fixtures/corpus/catalogue.json as docs/testing/ifc-corpus-catalogue.md
  *   node scripts/run-engine.mjs import-uniclass  -> fetch + import Uniclass 2015 EF code list
  */
 import { spawn } from "node:child_process";

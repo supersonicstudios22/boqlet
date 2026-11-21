@@ -1,4 +1,4 @@
-# The backend on one machine, for development (docs/20-local-backend.md).
+# The backend on one machine, for development (docs/development/local-setup.md).
 # Started by `npm run local:up` (scripts/local.mjs), which also waits for the API.
 # The app runs on the host (`npm run dev:app`, http://localhost:3000) and proxies /api/v1 here.
 # Every secret below is a fixed local-only value; nothing here is used by the pilot (ops/pilot).

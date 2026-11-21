@@ -3,7 +3,7 @@ import { client } from "../support/env";
 import { expectSchema } from "../support/contract";
 
 describe("billing: GET /plans", () => {
-  it("is public and lists the plans of 00-product/05 in the contract's shape", async () => {
+  it("is public and lists the plans of docs/product/plans-and-limits.md in the contract's shape", async () => {
     const { data, response } = await client(null).GET("/plans");
     expect(response.status).toBe(200);
     expect(data!.map((p) => p.id)).toEqual(["free", "professional", "team", "enterprise"]);

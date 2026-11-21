@@ -3,7 +3,7 @@ buildingSMART certification samples (fixtures/ifc/buildingsmart, CC BY 4.0).
 
 Each test pins something the samples exposed. Expected values come from the files themselves
 (profile dimensions, IFC quantity sets) or from geometry worked out by hand, never from the
-engine's own output. See docs/09-validation-and-test-corpus.md.
+engine's own output. See docs/testing/engine-validation.md.
 """
 from __future__ import annotations
 

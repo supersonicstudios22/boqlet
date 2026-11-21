@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /**
  * Where `/api/v1` goes outside production: the Java backend, by default the local one
- * (`npm run local:up`, docs/20-local-backend.md). In production the ingress routes `/api/v1` to the
+ * (`npm run local:up`, docs/development/local-setup.md). In production the ingress routes `/api/v1` to the
  * API on the same domain (architecture.md).
  */
 const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";

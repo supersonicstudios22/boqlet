@@ -2,7 +2,7 @@
 Acceptance test: the engine with the 'as-modelled' rule set must reproduce the BoQ
 that was produced by hand for the NIBS Duplex (fixtures/reference/duplex-hand-boq.xlsx).
 Those numbers were checked line by line against Revit's reported quantities and the
-geometry; see docs/09-validation-and-test-corpus.md.
+geometry; see docs/testing/engine-validation.md.
 """
 import pytest
 

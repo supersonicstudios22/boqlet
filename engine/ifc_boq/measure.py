@@ -4,7 +4,7 @@ measure.py - ParsedModel + dictionaries -> MeasuredElement[]  (packages/types/sr
 This is where the engine decides WHICH number to trust for each element. It never
 looks at rules. Rules only consume what is measured here.
 
-Adoption policy (v0, constants below; documented in docs/05-engine.md):
+Adoption policy (v0, constants below; documented in docs/architecture/engine.md):
   volume      reported (IFC BaseQuantities, then authoring-tool sets, see
               data/quantity_sources.json) when present, else geometry. If both exist and
               differ beyond TOLERANCE the reported value is still used (it is usually

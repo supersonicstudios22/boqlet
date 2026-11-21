@@ -3,7 +3,7 @@ import type { Schemas } from "@ifc-boq/api";
 import type { OrgAction, OrgRole } from "@/lib/permissions";
 
 /**
- * The core's extension points (P36, 04-architecture/modules.md): small typed registries that a
+ * The core's extension points (P36, docs/architecture/modules.md): small typed registries that a
  * module fills once at startup, from `src/modules.ts`. They are generic: no module concept appears
  * in their names. An empty registry is valid; the core renders and works with no module.
  *

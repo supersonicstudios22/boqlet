@@ -13,7 +13,7 @@ export function can(permissions: Permissions | null | undefined, action: string)
 
 /**
  * Org-level actions from the caller's org role (`GET /me` memberships), per
- * 03-domain/permissions.md "Org roles". The only place roles are turned into permissions.
+ * docs/domain/permissions.md "Org roles". The only place roles are turned into permissions.
  */
 export const ORG_ACTIONS = {
   editOrgSettings: ["owner", "admin"],

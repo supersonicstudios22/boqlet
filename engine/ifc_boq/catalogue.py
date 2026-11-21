@@ -1,12 +1,12 @@
 """
 catalogue.py - render the IFC corpus catalogue (fixtures/corpus/catalogue.json) as Markdown.
 
-    npm run catalogue            # writes docs/12-ifc-corpus-catalogue.md
+    npm run catalogue            # writes docs/testing/ifc-corpus-catalogue.md
     python -m ifc_boq.catalogue [catalogue.json] [out.md]
 
 The catalogue lists every public IFC file looked at so far, tagged from its STEP header
 (schema, view definition, exporting tool and version, export date) and, where it was run, with
-what the engine made of it. Add entries to the JSON (see docs/12 for the fields) and re-render.
+what the engine made of it. Add entries to the JSON (see docs/testing/ifc-corpus-catalogue.md for the fields) and re-render.
 """
 from __future__ import annotations
 
@@ -35,12 +35,12 @@ def schema_label(s: str | None) -> str:
 def render(cat: dict) -> str:
     E = cat["entries"]
     out = [
-        "# 12 IFC corpus catalogue",
+        "# IFC corpus catalogue",
         "",
         "Every public IFC file looked at so far, grouped by source and project, tagged from its STEP",
         "header and, where it was run, with what the engine made of it. Generated from",
         "`fixtures/corpus/catalogue.json` by `npm run catalogue`; edit the JSON, not this page.",
-        f"Last update: {cat.get('generated')}. How the corpus is used: `09-validation-and-test-corpus.md`.",
+        f"Last update: {cat.get('generated')}. How the corpus is used: `docs/testing/engine-validation.md`.",
         "",
         "**Tags.** `schema` from FILE_SCHEMA; `view` from the ViewDefinition in FILE_DESCRIPTION; `tool` and",
         "`version` from IFCAPPLICATION, else FILE_NAME (file names are not trusted: the Lakeside file named",
@@ -161,7 +161,7 @@ def render(cat: dict) -> str:
 def main(argv=None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
     src = Path(argv[0]) if argv else FIXTURES / "corpus" / "catalogue.json"
-    dst = Path(argv[1]) if len(argv) > 1 else ROOT / "docs" / "12-ifc-corpus-catalogue.md"
+    dst = Path(argv[1]) if len(argv) > 1 else ROOT / "docs" / "testing" / "ifc-corpus-catalogue.md"
     dst.write_text(render(json.loads(src.read_text(encoding="utf-8"))), encoding="utf-8")
     print(f"wrote {dst}")
     return 0

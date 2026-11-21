@@ -6,12 +6,14 @@ info:
     The optional, removable pricing module (P32–P36): vendors (F17), pricebooks and estimates
     (F20), offer requests and offers (F11). Every path is under `/pricing/`. This file may
     reference core components in `packages/api/openapi.yaml` (as `../api/openapi.yaml#…`); the core file never references this one
-    (04-architecture/modules.md). With the module off for an org, every endpoint answers
+    (docs/architecture/modules.md). With the module off for an org, every endpoint answers
     `404` for that org. Conventions are those of `conventions.md`.
 servers:
   - url: /api/v1
 security:
-  - bearer: []
+  - session: []
+  - session: []
+    bearer: []
 tags:
   - name: pricing-vendors
   - name: pricing-pricebooks
@@ -780,6 +782,11 @@ paths:
 
 components:
   securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: boqlet_session
+      description: Same as the core API.
     bearer:
       type: http
       scheme: bearer

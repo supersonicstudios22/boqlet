@@ -2,7 +2,7 @@
   "name": "@ifc-boq/tests",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared contract and behaviour suites (08-delivery/testing.md): run against the Java backend through the generated client (NativeWorkerTest sets API_URL).",
+  "description": "Shared contract and behaviour suites (docs/testing/README.md): run against the Java backend through the generated client (NativeWorkerTest sets API_URL).",
   "type": "module",
   "scripts": {
     "contract": "node run.mjs contract",

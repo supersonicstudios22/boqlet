@@ -18,7 +18,7 @@ Readiness includes PostgreSQL. The API binds its generated routes under `/api/v1
 To run the whole backend locally, use `npm run local:up` from the product root: it builds
 this service's image (`Dockerfile`, Maven inside Docker) and starts it with native sign-in,
 PostgreSQL, object storage, MailHog and the engine worker (`ops/local/compose.yaml`,
-`docs/20-local-backend.md`). Its `api` service lists every variable a local run needs; to run
+`docs/development/local-setup.md`). Its `api` service lists every variable a local run needs; to run
 your own jar instead, stop that container and start the jar with the same variables pointed at
 the published ports. Select the engine transport in the API and add the queue workers when
 using PostgreSQL dispatch.
@@ -32,7 +32,7 @@ using PostgreSQL dispatch.
 
 The pilot and the local stack use native sign-in (P50): set `BOQLET_NATIVE_AUTH=true`; the
 first owner gets a one-hour setup link (`ops/pilot/issue-setup-link.sh`, locally
-`npm run local:user`). Runbook: `docs/19-native-auth-and-cd.md`. The OIDC settings below are
+`npm run local:user`). Runbook: `docs/operations/auth-and-deploys.md`. The OIDC settings below are
 kept for the Keycloak rollback.
 
 Set `BOQLET_OIDC_ISSUER` and `BOQLET_OIDC_AUDIENCE` to enable OIDC authentication.
@@ -122,10 +122,14 @@ database connection and schema usage as needed, then only these function grants
 to the worker role. The API owns ingestion and tenant data.
 
 ```sql
-GRANT EXECUTE ON FUNCTION public.queue_claim(uuid,text,text[]) TO boqlet_worker;
-GRANT EXECUTE ON FUNCTION public.queue_renew(uuid,uuid,integer,jsonb) TO boqlet_worker;
-GRANT EXECUTE ON FUNCTION public.queue_finish(uuid,uuid,integer,jsonb) TO boqlet_worker;
+GRANT EXECUTE ON FUNCTION public.queue_claim(uuid,text,text[]) TO boqlet_queue;
+GRANT EXECUTE ON FUNCTION public.queue_renew(uuid,uuid,integer,jsonb) TO boqlet_queue;
+GRANT EXECUTE ON FUNCTION public.queue_finish(uuid,uuid,integer,jsonb) TO boqlet_queue;
 ```
+
+`boqlet_queue` is the worker role's name on the pilot (`ops/pilot/queue-grants.sql`); use your
+own role name elsewhere. The local stack (`ops/local`) uses the HTTP transport and needs no
+queue role.
 
 The API continues to use the separate HTTP engine endpoint for small synchronous
 RPCs such as names and workbook templates, and for first-time public workbook
@@ -145,7 +149,9 @@ ingested on `LISTEN job_finished` with one-second polling as fallback.
   per-address, per-API-instance limit.
 - Platform admin access requires the database role flag on a verified pilot login.
   Grant `users.platform_role='admin'` to a specific enrolled account through
-  database administration. Configure MFA for the admin identity in Keycloak.
+  database administration (locally: `npm run local:admin -- <email>`). Native sign-in has
+  no MFA yet, for admins included (`docs/architecture/security.md`); with the Keycloak
+  rollback, configure MFA for the admin identity there.
   Admin views use account metadata and counts. App permissions remain tied to
   organisation and project memberships.
 - Scheduled maintenance keeps the live replay window bounded, expires idle
@@ -165,16 +171,21 @@ ingested on `LISTEN job_finished` with one-second polling as fallback.
 To include the native integration test in Maven `verify`, install the engine Python
 dependencies and set `BOQLET_NATIVE_WORKER_PYTHON` to the interpreter's absolute path,
 `AWS_ACCESS_KEY_ID=boqlet-test` and `AWS_SECRET_ACCESS_KEY=boqlet-local-test-only` in
-the test process. The suite starts PostgreSQL, MinIO and MailHog in temporary
-containers and runs its own Python workers. Set `BOQLET_NATIVE_QUEUE_TEST=1` to
+the test process. The suite starts PostgreSQL 16, SeaweedFS (the S3 server the pilot
+runs) and MailHog in temporary containers and runs its own Python workers. Set `BOQLET_NATIVE_QUEUE_TEST=1` to
 run it against PostgreSQL job delivery with a restricted worker login.
 The integration flow covers the Duplex upload, Library preview and workbook,
 BoQ versions, comparison, public sharing, sample provisioning, mail and SSE.
 It also checks cross-tenant paths, idempotent requests, old-run restoration,
 metadata-only administration, and live database and storage deletion.
 Set `BOQLET_NATIVE_NODE` to the absolute Node interpreter path after `npm ci`
-to run the shared HTTP contract suite against that same temporary Java API.
-The test JWT decoder and fixtures live in the test sources.
+to run the shared HTTP contract suite against that same temporary Java API; add
+`BOQLET_NATIVE_SCENARIOS=1` for the scenario suite (`BOQLET_SCENARIO_FILTER` narrows it),
+`BOQLET_BROWSER_SMOKE=1` for the browser smoke (`BOQLET_BROWSER_SMOKE_FILTER`) and
+`BOQLET_API_PERF=1` for the API performance suite. The test JWT decoder, the test-only routes
+(`com.boqlet.suite.SuiteSupport`: users, clock, mail settle, setup links) and fixtures live in
+the test sources, so these suites cannot run against the local Docker stack
+(`docs/testing/README.md`).
 
 ## Modules and monitoring
 

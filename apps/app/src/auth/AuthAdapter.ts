@@ -1,8 +1,8 @@
 import type { ComponentType } from "react";
 
 /**
- * How the app signs people in, independent of the provider (P10, 06-frontend/architecture.md
- * "Auth adapter"). Native sign-in (P50) by default, Keycloak kept for rollback (docs/19); no
+ * How the app signs people in, independent of the provider (P10, docs/architecture/frontend.md
+ * "Auth adapter"). Native sign-in (P50) by default, Keycloak kept for rollback (docs/operations/auth-and-deploys.md); no
  * component imports a provider SDK directly.
  */
 export interface Session {

@@ -10,7 +10,7 @@ describe("can", () => {
   });
 });
 
-describe("orgCan (03-domain/permissions.md, org roles)", () => {
+describe("orgCan (docs/domain/permissions.md, org roles)", () => {
   it("lets only the owner handle billing and make owners", () => {
     expect(orgCan("owner", "manageBilling")).toBe(true);
     expect(orgCan("admin", "manageBilling")).toBe(false);

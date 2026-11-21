@@ -8,7 +8,7 @@ as presets/classifications/uniclass2015-ef/codelist.json, so the bundled map can
 Source: NBS publishes Uniclass free of charge at https://uniclass.thenbs.com/ (Excel).
 By default this script uses the CSV mirror at github.com/buildig/uniclass-2015 (2022-01 data).
 For production, download the current tables from NBS and pass --csv. Uniclass is NBS's work:
-the code list is NOT committed to this repo (see docs/08-knowledge-gaps-and-sourcing.md).
+the code list is NOT committed to this repo (see docs/domain/sourcing-and-licensing.md).
 """
 from __future__ import annotations
 

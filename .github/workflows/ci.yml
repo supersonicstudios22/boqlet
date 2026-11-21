@@ -1,4 +1,4 @@
-# CI for boqlet (plan/08-delivery/testing.md "CI pipeline").
+# CI for boqlet (docs/testing/README.md "CI").
 name: ci
 
 permissions:
@@ -109,7 +109,7 @@ jobs:
       - run: npm run test:engine
 
   local:
-    # The local backend (ops/local, docs/20-local-backend.md) builds, starts and works end to end:
+    # The local backend (ops/local, docs/development/local-setup.md) builds, starts and works end to end:
     # sign-up, upload to object storage, engine parse, BoQ run. Not a deploy gate.
     name: Local backend stack (Docker Compose)
     runs-on: ubuntu-latest

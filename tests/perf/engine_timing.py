@@ -2,14 +2,14 @@
 
 Runs the worker's own jobs (`ifc_boq.worker.execute`: parse with geometry, meshes and GLB, then a
 run with As modelled, ACME cost codes, the global dictionary and federation) on local storage, and
-prints one JSON line per measurement. The NFR table in plan/04-architecture/nfr.md records them.
+prints one JSON line per measurement. The NFR table in docs/architecture/nfr.md records them.
 
     engine/.venv/Scripts/python tests/perf/engine_timing.py fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc
     engine/.venv/Scripts/python tests/perf/engine_timing.py --federated ARCH.ifc STRUCT.ifc
 
 `--federated` parses the models in parallel (as two workers would) and runs them as one BoQ. Each
 measurement is the median of `--repeat` runs (default 1); the run is measured on the cached parse.
-The medium reference files are downloads (docs/12), not in the repository.
+The medium reference files are downloads (docs/testing/ifc-corpus-catalogue.md), not in the repository.
 """
 import argparse
 import json

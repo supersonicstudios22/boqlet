@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The local backend (ops/local/compose.yaml, docs/20-local-backend.md): Java API, engine worker,
+ * The local backend (ops/local/compose.yaml, docs/development/local-setup.md): Java API, engine worker,
  * PostgreSQL, object storage and a mail catcher in Docker.
  *   node scripts/local.mjs up             build and start, wait until the API is ready
  *   node scripts/local.mjs down           stop (data is kept)

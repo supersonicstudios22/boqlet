@@ -4,7 +4,7 @@ import messages from "../../../messages/en/notifications.json";
 
 /**
  * F13 (FE-034): every core notification kind is rendered through the catalogue, never shown as its
- * code. The kinds are F13's "Events" table (plan/02-features), as the Java backend sends them.
+ * code. The kinds are F13's "Events" table (docs/product/features/F13-notifications.md), as the Java backend sends them.
  */
 const kinds = [
   "job.succeeded", "job.failed", "model_version.ready", "run.needs_input",

@@ -1,0 +1,87 @@
+# F07 3D viewer
+
+> **Status (2026-11-21):** Built. three.js viewer over the engine's `geometry.glb` (`apps/app/src/features/viewer`): highlight, element to lines, colour modes, section box, storey filter, isolate/hide, box select.
+> **Not built / differs:**
+> - The shared filter bar lacks IFC class, type, material and "changed since a revision".
+> - No merged-mesh / id-buffer picking for models over 200k elements; "Show in 3D" from a question carries at most 300 GlobalIds.
+> - That Open Engine (D66) is not used; it stays a later option.
+
+## Purpose
+
+Show where a number comes from. Click a line and see its elements. Click an element and see
+which lines it feeds. Spot what is not measured.
+
+## Behaviour
+
+1. **Source of geometry:** the engine's per-version `geometry.glb` (one mesh node per GlobalId,
+   float32, for display) and `scene.json` (engine `SceneIndex`: per element IFC class, name,
+   type, storey, parent, the mesh nodes that draw it; spaces; openings). Fetched by
+   `GET /model-versions/{id}/geometry` (302 to a signed URL, cached by the browser:
+   immutable) and `GET /model-versions/{id}/scene`.
+2. **Several models:** the viewer loads every model version in the run's inputs into one
+   scene, with a toggle per model (and its discipline colour). Shared coordinates are assumed
+   (BR-32).
+3. **Line → elements:** selecting a line (sheet or detail) highlights `trace.elements[].guid`,
+   mapping through `scene.elements[guid].parts` for aggregates (roofs, stairs), and frames
+   them. Everything else is ghosted (setting: ghost / hide / normal).
+4. **Element → lines:** clicking an element shows a panel: IFC class, name, type, storey,
+   model, key properties, and **the lines it contributes to** (`GET /runs/{runId}/elements/{guid}`
+   → `{element, lines: [{lineKey, description, quantity share}]}`). Each line is clickable back
+   to the sheet.
+5. **Colour modes:**
+   - *Coverage*: measured (in at least one line), excluded (by scope or rule), unmatched
+     (question), covered by parent. Built from `RunLineElement` + run questions.
+   - *Code group*: colour by top-level group of the chosen classification.
+   - *Source*: measured / derived-from / overridden.
+   - *Model*: colour per discipline.
+   - *Changes* (revisions, F08): added, changed and unchanged elements against the compared
+     run; removed elements drawn as ghosts from the earlier version when its geometry is
+     available.
+   - *Edited*: elements whose lines carry an edit (F06 §6).
+6. **Tools (v1):** orbit/pan/zoom, fit to selection, storey filter (show one storey), section
+   box (one box, axis-aligned), isolate selection, hide selection, reset. No measuring tools in v1.
+7. **Entry points:** the Viewer tab in the BoQ workspace (split with the sheet on wide screens),
+   "Show in 3D" from line detail, questions and input-check rows, and the model version page
+   (no run: coverage mode unavailable, only checks).
+8. **Performance:** load glb progressively per model. Show element count and load progress.
+   Above 200k elements, merge meshes per material for display and keep picking by an id
+   buffer (see `docs/architecture/frontend.md`).
+
+9. **Editing with the model** (P25). The 3D view is part of the work, not a separate tab:
+   - On screens 1280 px and wider, the BoQ workspace opens **sheet and model side by side**
+     (resizable; the model can be collapsed). Selection is shared both ways.
+   - **One filter bar drives both**: storey, model, IFC class, type, material (dictionary
+     term), code group, source, edited, excluded, changed since a revision. Filtering narrows
+     the sheet's lines and shows only their elements in the model (others ghosted).
+   - **Groups:** selecting a section row highlights all elements of its lines; the legend of
+     the *Code group* mode is clickable the same way.
+   - **Pick in the model:** click, shift-click or box-select elements → a panel lists "N
+     lines from M elements" with the bulk actions of F06 §6 (move, exclude, request prices)
+     and a filter "only these lines".
+   - **Revisions:** in the Changes tab (F08) the model opens in *Changes* mode; clicking a
+     changed element shows its lines before and after with Δ.
+   - Keyboard: Esc clears the selection, F frames it, H hides it, I isolates it.
+
+## Implementation
+
+The viewer (`apps/app/src/features/viewer/scene-view.ts`, `links.ts`, `model-viewer.tsx`; ported from
+the proof of concept, tag `poc-final`) does line ↔ element linking with three.js over `geometry.glb`.
+It keeps the GlobalId-named node convention and the `SceneIndex.parts` mapping. D66 (That Open Engine) stays
+an option for later sections/plans/measuring; v1 keeps the engine-produced glb so there is one
+geometry source of truth.
+
+## API
+
+`GET /model-versions/{versionId}/geometry`, `GET /model-versions/{versionId}/scene`,
+`GET /runs/{runId}/elements/{guid}`, `GET /runs/{runId}/coverage` (per GlobalId status for
+colour mode; compact arrays).
+
+## Acceptance criteria
+
+- [ ] Selecting a Duplex line highlights exactly its trace elements (roof lines highlight the roof slab parts).
+- [ ] Clicking any element lists every line it contributes to, with its share.
+- [ ] Coverage mode shows unmatched elements in a distinct colour, and their count equals the `unmatched` question occurrences.
+- [ ] A two-model run shows both models, each toggleable.
+- [ ] Filtering the sheet by storey and code group shows only those lines and only their elements in the model; box-selecting elements lists their lines with the bulk actions.
+- [ ] In the Changes tab, the Duplex v1 → v2 elements are coloured added / changed, and clicking one shows its lines before and after.
+- [ ] The Duplex viewer is interactive within 3 s of opening the tab on a warm cache.

@@ -1,0 +1,186 @@
+# Decisions
+
+Every decision taken so far, in one register. **Settled decisions are not reopened without the
+owner.** A new decision gets the next id of its series, is added here, and is linked from the docs
+it changes.
+
+| Series | Scope | Where below |
+|---|---|---|
+| **P01–P53** | Product, platform and process decisions of the product owner (Nov 2026). Win over the D-series where they overlap | [Product decisions](#product-decisions-p01p53) |
+| **D01–D70** | Engine, licensing, early platform and stack decisions (Aug–Nov 2026) | [Engine and platform decisions](#engine-and-platform-decisions-d01d70) |
+| **BE-D1–BE-D18, BE-B1–BE-B20** | The backend owner's answers at BE-000 (16 Nov 2026). Called D1–D18 / B1–B20 in older docs; renamed here so they don't collide with D01–D18 | [Backend decisions](#backend-decisions-be-000) |
+
+Contract changes (C01–C07) are listed in [development/contract-changes.md](development/contract-changes.md).
+
+## Engine and platform decisions (D01–D70)
+
+Oldest first within each theme. Status is one of:
+**Active**, **Revised** (still holds, with changes noted), **Superseded** (replaced; kept so
+nobody re-proposes it without knowing why it changed), **Open** (direction agreed, details not).
+
+Sources: two earlier planning chats (1 Aug and 9 Sep 2026) and the main conversation
+(3-9 Oct 2026, `docs/archive/reference/conversation/`). Where a later decision changed an earlier one, the
+later one wins.
+
+### Product and scope
+
+| ID | Date | Decision | Why | Status |
+|---|---|---|---|---|
+| D01 | Aug 2026 | Input is **IFC only**. No native Revit/Archicad files, no other BIM formats. | IFC is the open ISO standard every tool exports; one parser, no vendor SDKs. | Active |
+| D02 | Aug 2026 | The output must be **flexible**: users can play with, change and select data in the result, not just download a fixed report. | Professionals adjust BoQs; the value is in control, not a black box. | Active |
+| D03 | Aug 2026 | Users choose from **presets** (rules, classifications, dictionaries) or create and edit their own. | Every market, client and firm measures differently. | Active |
+| D04 | Oct 2026 | The product is **international**. No country's standard is the default; regional practices are examples, not the target. | Owner instruction ("do not focus on Bosnian/Serbian/Croatian, it was an example"). | Active |
+| D05 | Oct 2026 | The engine **cannot calculate what is not in the model**. It derives proxies where possible, flags the rest, and moves on; the user may supply the information or not. | Agreed realistic expectation; magic is not a requirement. | Active |
+| D06 | Oct 2026 | Four quantity sources: **measured, derived, manual, flagged**. Nothing is silently dropped. | A silently missing line is the worst possible outcome in a BoQ. | Active |
+| D07 | Oct 2026 | Output is a **draft for professional approval**, never a certified BoQ. | Liability sits with the qualified person who signs it. | Active |
+
+### Engine design
+
+| ID | Date | Decision | Why | Status |
+|---|---|---|---|---|
+| D10 | Aug 2026 | A **Python** step turns raw IFC into a unified JSON holding everything later steps need. | ifcopenshell (the mature IFC library) is Python. | Active, now `ParsedModel` (D16) |
+| D11 | Aug 2026 | **Rules are data**, interpreted by a generic engine. v1 = parameterised templates (fixed structures, editable values); v2 = full rule builder. The data model must allow v2 without a rewrite. | New standards must not need code changes. | Revised by D13-D15: the rule type already supports formulas, so the v2 builder is a UI question, not a data-model change |
+| D12 | Sep 2026 | Classification is a prerequisite step and **measurement rule sets are keyed by classification codes**, so a rule set targets one classification system. | Seemed natural at the time. | **Superseded** by D14. Rules now select elements by IFC class, dictionary terms and properties; classification labels lines afterwards. A rule set works with any code list, and any number of code lists apply at once. |
+| D13 | Oct 2026 | The engine **measures every element once** into a rich set of primitives (`MeasuredElement`); rules only select, combine and label those primitives. Rules contain no measuring logic. | Lets any rule set, from any source, run on the same measurements; makes re-runs cheap. | Active |
+| D14 | Oct 2026 | Four independent inputs plus decisions: `getBoq(models, rules, classifications, dictionaries, decisions)`. **Rules change numbers; classification never does.** Classification is a list (zero, one or many systems). | Separates "how to measure" from "how to label"; lets the same quantities pivot into any code structure. | Active |
+| D15 | Oct 2026 | One universal rule type (`OurRuleType`) with **slots**: number, choice, boolean, text. Structural differences between standards via `choose` and `when`; `formula` as the safety valve. Rule sets **extend** a base and state only differences (`RuleSetPatch`), flattened at run time; the flattened snapshot is stored with the result. | Standards differ in values and in choices of method; both fit one shape. Any standard becomes a filled-in copy. | Active |
+| D16 | Oct 2026 | Two data layers: **ParsedModel** (faithful snapshot of one IFC, no decisions, expensive, cached per file hash) and **MeasuredElement** (dictionary applied, quantities adopted, cheap to recompute). | The parsed model stays reusable when dictionaries or engine logic change. | Active |
+| D17 | Oct 2026 | Dictionaries turn raw names into **canonical terms with a hierarchy** (`concrete.in_situ` under `concrete`). Rules match on terms (`material under "concrete"`), not raw names. Layers: project, company, global; most specific wins. | One rule set works on any model in any language. | Active |
+| D18 | Oct 2026 | **Decisions** are every answer a user gave (names, missing data, unmatched elements, codes). They are a project-level patch layer beside inputs 1-4, never written into the IFC, the company rule set or an official code list. Name answers can be **promoted** to the company dictionary (a permission). | You do not edit the architect's model or the company standard because of one project. | Active |
+| D19 | Oct 2026 | **Question ids are deterministic**, built from content (`name:{field}:{raw}`, `missing:{rule}:{guid}`, `unmatched:{class}:{type}`, `unclassified:{system}:{lineKey}`), so stored decisions re-apply on every run and model version. | The user must never answer the same question twice. | Active |
+| D20 | Oct 2026 | Only **blocking** questions stop a BoQ from being complete. Informative ones (unmatched elements, unclassified lines with a default) do not. | A demo rule set that ignores most of the model must still produce a BoQ. | Active |
+| D21 | Oct 2026 | **A safe expression language**, parsed to an AST and evaluated by the engine only. Never Python `eval`; never a second evaluator in the browser (preview goes through the engine). | Users write formulas; two evaluators drift apart. | Active |
+| D22 | Oct 2026 | Rule language levels: **parameters** (slots) + **formulas**. Scripts as an escape hatch only if ever needed (security and support cost). | Parameters and formulas cover the vast majority of real rules. | Active (no scripts) |
+| D23 | Oct 2026 | The engine **runs any rules but does not judge them**. It catches mechanical problems (integrity, missing fields, unmatched or double-claimed elements); whether a rule matches a standard is the author's responsibility. Shipped presets are examples, not the product. | Source-agnostic engine; the product is engine + rule language + editor. | Active |
+| D24 | Oct 2026 | Adoption policy: trust **reported quantities** (IFC quantity sets, then authoring-tool sets) over geometry when both exist, log mismatches; wall area = volume / thickness; steel by nominal kg/m from the section name. | The Duplex showed reported values are join-aware while geometry double counts junctions; Revit wall Area was inconsistent with Volume. Details in docs/architecture/engine.md and 09. | Active (v0, revisit with more files) |
+| D25 | Oct 2026 | Aggregates: measure the **parent** (roof, stair) and skip its parts by default; a rule can opt parts back in (`parts: "include"`, used for stair railings). | Avoids double counting while keeping railings measurable. | Active |
+| D26 | Oct 2026 | Every line carries a **trace** (formula, parameter values, each element's share, source line for derived lines) and the run carries an ordered **calculation log**. | Professionals do not trust untraceable numbers; it is also how developers debug rules. | Active |
+
+### Licensing and content
+
+| ID | Date | Decision | Why | Status |
+|---|---|---|---|---|
+| D30 | Oct 2026 | **Bring your own licence.** The platform ships no DIN/VOB (or other restricted) content. Users build presets from their own licensed copies inside their company account; those presets stay **company-private** (no public marketplace of standard-derived presets). | DIN's reproduction conditions prohibit using content for software development and reserve it against text and data mining; CSI requires licences for software use. | Active |
+| D31 | Oct 2026 | **Never ingest standards documents**, by upload or AI extraction. Users type rules into the editor. | Exactly the use DIN reserves; also removes the platform from the distribution chain. | Active |
+| D32 | Oct 2026 | Market presets factually: "supports custom presets, e.g. for VOB/C" or "based on our reading of NRM2"; never "compliant" or "certified". | Implying endorsement needs the publisher's permission. | Active |
+| D33 | Oct 2026 | First shipped presets build on **friendly sources**: NRM 1/2 (free to read; written in our own words), Uniclass, ICMS, CCI, bSDD. Uniclass code lists are **downloaded by the user**, not committed. | Lowest licensing risk. | Active |
+| D34 | Oct 2026 | Middle ground for German-speaking markets later: **GAEB import** of client tender BoQs as templates (the client supplies VOB-structured items). License or partner if Germany becomes a real market. | German users expect VOB out of the box; BYO is friction there. | Open |
+
+### Platform
+
+| ID | Date | Decision | Why | Status |
+|---|---|---|---|---|
+| D40 | Sep 2026 | Hierarchy: **User** (global, can belong to several orgs) -> **Org** (billing unit) -> Project -> IFC -> Run (versioned, immutable) -> BoQ. | Firms own the work; freelancers work for several firms. | Revised by D41-D43 |
+| D41 | Oct 2026 | IFCs are **versions of a model**: Project > Model (Architecture, Structure...) > Versions. | Change tracking and carrying decisions over to a new upload. | Active |
+| D42 | Oct 2026 | **A BoQ belongs to the project**, not to one IFC, and references the model versions and the preset snapshot it used. | One BoQ is often built from several discipline models. | Active (replaces "BoQ under IFC" from D40) |
+| D43 | Sep 2026 -> Oct 2026 | Sep: a separate **merge action** combines BoQs of several runs (auto or line by line). Oct: combining finished BoQs is wrong where scopes overlap; instead **federate**: load selected model versions, align, de-duplicate by discipline ownership and scope rules, link across models, **measure once**. Simple merging survives only as a narrow "combine BoQs" feature for non-overlapping scopes with the same preset. | Double counting, cross-model items (structural wall gets architectural plaster), rooms only in architecture, disagreeing levels. | **Superseded** (merge) by federation |
+| D44 | Oct 2026 | **Scope rules per model**: tag each model's discipline (defaults follow), adjust with include/exclude filters, and the engine checks for overlaps (claimed twice) and holes (claimed by none). Saved per project, re-applied to new versions; companies can save templates. | "Take concrete from this model, electrics from that one." | Active; **built** (`federation.py`, ownership table `presets/settings/federation.json`, include/exclude per model, same-GlobalId merge, overlap questions incl. solid overlaps from the mesh sidecar, holes reported). Scope is stored with model versions and BoQs; the UI shows it but can't edit it yet; no templates |
+| D45 | Sep 2026 | The review queue is a **blocking step mid-run**: a run pauses in a needs-input state until questions are answered, then completes. | Ambiguity must be resolved by a person, not guessed. | Active (status `needs_input`, D20 narrows what blocks) |
+| D46 | Sep 2026 | BoQ structure (grouping, layout) is a **display layer** applied after calculation. | Same numbers, many presentations. | Active |
+| D47 | Oct 2026 | BoQ lifecycle: draft -> in review -> approved -> issued. **Issued is locked** (not even admins edit); changes create a revision. Exports are frozen files. | Issued BoQs go into contracts. | **Superseded** by P29 (working version, Save version, Confirm and reopen; review and approval optional per org); built |
+| D48 | Sep/Oct 2026 | **The organisation owns everything** (projects, models, BoQs, presets, dictionaries). Project membership is the access boundary; the creator is recorded for audit. Fixed roles first; custom roles later on demand. | Nothing leaves when an employee does. | Active; **built** (org roles owner / admin / library_editor / member, project roles lead / estimator / approver / viewer; `docs/domain/permissions.md`) |
+| D49 | Oct 2026 | Every run is a **background job** with states queued -> processing -> needs input -> completed / failed / cancelled, with notifications. | First processing of large models takes minutes; users upload and leave. | Active, **refined by P13** (needs input is a run state, a job always ends); **built** (Postgres `jobs` table, SSE progress) |
+| D50 | Oct 2026 | Pricing shape: seats + active projects + processing, pay-per-project as entry point, rulebook packs as add-ons. **Never price per BoQ generated.** Regional price levels. | Comparing presets is a key strength; don't tax it. | Open (numbers untested); D51 is the earlier shape |
+| D51 | Sep 2026 | Org-level seats plus a monthly IFC-processing quota; custom rule/classification creation gated by tier; projects, BoQs and storage unlimited. | Earlier version of D50. | Revised by D50 |
+
+### Stack
+
+| ID | Date | Decision | Why | Status |
+|---|---|---|---|---|
+| D60 | Oct 2026 | Frontend: **TypeScript + React**. | Owner's stack. | Active; **refined by P12** (Next.js) |
+| D61 | Oct 2026 | Engine stays **Python** (ifcopenshell, numpy, trimesh, manifold3d, openpyxl) and runs as a worker, never inside the web app. | Only mature IFC geometry stack; heavy jobs must not slow the app. | Active |
+| D62 | 16 Nov 2026 | Production backend is Java 21 with Spring Boot and PostgreSQL. It owns users, orgs, projects, storage and jobs and calls the Python engine worker. Keycloak provides OIDC sign-in for invite-only pilots. | Owner confirmed the backend defaults. See P49 and `docs/decisions.md`. | Active; sign-in revised by D69 |
+| D63 | 9 Oct 2026 | Dev build = "option B": React UI + local Python engine behind a small HTTP API, one `npm install` sets up both. Option A (rewrite the engine in TypeScript on web-ifc) was rejected. | Keep the tested Python engine; match the worker architecture. | **Superseded**: the dev build was removed in FE-046 (git tag `poc-final`); the mock API that replaced it in the product build was removed by P53 |
+| D64 | Oct 2026 | **One schema, both languages.** Shapes are written in TypeScript; JSON Schemas are generated from them; the Python engine validates its inputs and outputs against those schemas. | The rule editor and the engine must agree exactly. The Java backend can generate its classes from the same schemas. | Active |
+| D65 | Oct 2026 | Big data in object storage (IFC, geometry cache, parsed JSON), queryable data in a relational DB (runs, decisions, lines, element-to-line links). | Postgres-class databases handle 100k+ element rows per model fine. | Active; **built** (PostgreSQL rows for runs, lines, element links; S3-compatible storage, SeaweedFS in every environment) |
+| D66 | Oct 2026 | 3D viewer: That Open Engine (web-ifc + Fragments, MIT/MPL). Avoid xeokit unless its commercial licence is bought (AGPL). | Licence fit for a commercial product. | **Revised**: v1's viewer is plain three.js over the engine's `geometry.glb` (`apps/app/src/features/viewer`); That Open Engine stays an option for sections, plans and measuring (F07) |
+| D68 | 13 Oct 2026 | Meshes travel beside the ParsedModel as an engine **mesh sidecar** (`meshes.npz`, float64, world coordinates), not inside the JSON contract. Federation uses it for solid overlaps, rooms on other models' walls and elements passing through other models' elements; without it those steps are skipped and logged. | Cross-model geometry needs meshes after parse; the JSON stays small and language-neutral; `geometry.glb` is float32 (loses precision on georeferenced coordinates) and meant for viewers. | Active |
+| D67 | Oct 2026 | The HTTP contract stays small and **job-shaped**: upload a model -> modelId (content hash) = model version; run -> runId + result (immutable); export -> file of a run. | Easy to move behind the Java backend and a queue. | Active |
+| D69 | 18 Nov 2026 | **Native sign-in** replaces Keycloak for the pilot: email and password on the boqlet domain, Argon2id hashes in PostgreSQL, an opaque Secure, HttpOnly session cookie, exact-origin checks on state-changing requests; the one-active-session rule stays. | One less service to run and secure for an invite-only pilot. See P50 and `docs/operations/auth-and-deploys.md`. | Active |
+| D70 | 20 Nov 2026 | **One deployed environment**: the Contabo invited pilot (`docs/operations/pilot.md`), deployed from `v_1` by GitHub Actions. A separate staging environment is a future todo; until then "staging" in the plan means the pilot, with synthetic accounts, and disruptive tests run locally. | Owner: one deployment is enough for the pilot. See P51. | Active; deploys from `main` since the v1 release (FE-047, TF-001) |
+### Planning frame
+
+Earlier planning used phases, still a useful map: Phase 0 Foundations, 1 System Architecture,
+2 Data Model, 3 Core Engine Design, 4 UI/UX Flow, 5 Non-Functional/Product Concerns, 6 MVP
+Scope Definition. The engine (phase 3) is now furthest along; v1 scope (phase 6) is still open.
+
+## Product decisions (P01–P53)
+
+The product owner's decisions (Nov 2026). Earlier D-decisions still hold unless changed here.
+Phase, branch and mock details in P11, P38–P40, P44–P46, P52 are history now: the build is done
+(v1.0.0), work happens on `main`, and the mock API is gone (P53).
+
+| ID | Decision |
+|---|---|
+| P01 | **Primary tenant: the firm that produces the BoQ.** Design studios and engineering firms first (in design-led markets they author the model and the tender BoQ). QS / cost consultant firms use the same flows. Per-seat subscription. |
+| P02 | *(Superseded by P28, P33, P34.)* **Bidders are contractors and subcontractors**, invited per tender package. One global bidder identity can receive invitations from many tenants. Bidders see only what they were sent. |
+| P03 | **v1 is federated and versioned**: several discipline models per project; new model versions carry decisions over; change report per line between revisions. |
+| P04 | *(Superseded by P33, P34.)* **No rate database.** Pricing happens through **tendering**: an issued BoQ is split into packages, bidders price lines, the firm compares offers side by side and awards per package. |
+| P05 | **Full Library in v1**: org rule sets, classifications and dictionaries, versioned, with preview against a project model. |
+| P06 | *(Workflow refined by P29.)* **v1 includes** the 3D viewer, review → approve → issue with an audit log, and an i18n-ready UI. **BCF is out.** |
+| P07 | *(Refined by P35.)* **English only at launch**; every UI string goes through i18n from day one; engine messages get codes and parameters. |
+| P08 | **Invite-only pilots first, then public sign-up with a limited free plan.** Billing is provider-agnostic. Pilots use manual billing; Paddle is deferred until paid self-service. |
+| P09 | **Cloud-neutral deployment**: containers, Postgres, S3-compatible storage. The provider is chosen at deploy time. |
+| P10 | **Authentication is not decided.** The agent that starts the backend asks the owner (options in `docs/archive/plan/backend-decisions-to-make.md`). The frontend codes against an auth adapter. |
+| P11 | *(Refined by P38, P39: phases; in phase 1 the mock uses the PoC engine API plus fakes. Superseded by P53: the mock was removed.)* **Frontend first, against a mock API** that implements `openapi.yaml`, keeps CRUD state itself and uses the **real Python engine** for computation. The Java backend replaces the mock by changing a base URL. |
+| P12 | Frontend: **React + Next.js**. Backend: **Java** (D62). Engine: **Python workers** (D61). |
+| P13 | "Needs input" is a state of a **run and its BoQ revision**, not of a job. A job always ends (succeeded, failed or cancelled); answering questions starts a new run. (Refines doc 10.) |
+| P14 | **Item texts live on the classification's codes.** A firm's BoQ item is a number plus a written description that is priced. The text is the code's `description`, a template with blanks the engine fills per line; the line shows it instead of the rule set's short line text. Classification still never changes a number (BR-02, BR-11). |
+| P15 | **What isn't in the models is the user's to add.** The engine does not guess missing work. The app says so plainly on the sheet, when a version is saved and in exports, and makes manual lines easy (BR-12). |
+| P16 | **A setup wizard in v1** for a new org's first rule set, classification and dictionary (F16). "Start from your last BoQ" comes after v1. |
+| P17 | **Sign-up lands in a default tier.** Paid tiers are levels by active projects, seats, or both; the commercial model is undecided, so entitlements stay data (refines P08). |
+| P18 | **The setup wizard is required on first start** of a new org, for its rule set and classification (and names). It must be finishable in minutes with suggested answers (refines P16). |
+| P19 | **Presets per BoQ.** A project has default presets; any BoQ may use others, chosen when it is created or later. Any preset can be cloned: independent copy, or based on it (a patch). |
+| P20 | **The BoQ is fully editable**: overwrite quantity, text and unit, move lines between sections, reorder, exclude, add lines anywhere. Edits are kept across regenerations and model versions and always shown as edits. The BoQ Excel can be edited and imported back. |
+| P21 | *(Refined by P33, P34, P36: price requests became offer requests in the pricing module.)* **Vendors are accounts linked to orgs by invitation** (one vendor, many orgs, always free). Anyone working on a project can send the whole BoQ or a part to vendors for prices (price request); the formal tender stays as the advanced path. Any revision can be sent, frozen at sending, unless the org requires issued ones (refines P02, BR-40). |
+| P22 | **One active session per account.** Signing in elsewhere shows where the account is open and asks to end that session first. Discourages account sharing. |
+| P23 | **UI: shadcn/ui** (Tailwind + Base UI, from preset `b38miVKzY`; Radix would also do) with a monospace face for the UI; very clean, no visual noise, modern. Look in `docs/development/design-guidelines.md` (P43). |
+| P24 | **Guided preset editing and Excel templates.** New rule sets and classifications start in guided mode; every preset can be downloaded as an Excel template and uploaded back. |
+| P25 | **"How it is calculated" and the 3D model are central.** Every line explains its number in plain words; the model sits beside the sheet while editing and in revisions, with filters shared by both. |
+| P26 | **Public read-only share links** for BoQ versions, revocable, with expiry. |
+| P27 | **Platform admin console** for the operator: all orgs, users, seats, usage and activation, metadata only (no project content); support messages later. |
+| P28 | **No logged-in guests.** Three kinds of access: org users, vendor users (pricing module) and public share links (plus platform admins). |
+| P29 | **A BoQ is a living document until confirmed.** An always-editable working version; "Save version" locks labelled snapshots and work continues; "Confirm" marks the BoQ done (reopenable). Review and approval are optional per org, off by default. Archiving the project is separate. |
+| P30 | **Position numbers per section,** automatic (5.1, 5.2…), renumbered while working, frozen in saved versions. Item numbers (codes) stay a separate column. |
+| P31 | **Live co-editing per line.** Everyone in a BoQ sees others' edits within a second; on the same line the later edit wins and the other person is told. |
+| P32 | **Pricing is an optional module** (vendors, pricebooks, estimates, offer requests) behind a platform flag and a plan entitlement. The product's lifecycle ends at a confirmed BoQ: no construction-phase features. |
+| P33 | **Pricebooks are the core of pricing.** Firms and vendors keep their own; a vendor chooses which list each linked firm sees; a firm prices its BoQ on a separate Pricing tab from its own and shared lists. Matching pricebook items to lines is manual, and remembered. No market price database from us. |
+| P34 | **No formal tendering.** Offer requests only: the whole BoQ or a part to vendors, offers filled from their pricebooks, side-by-side comparison. No packages, sealed bids, addenda or award. |
+| P35 | **International by design.** No market built in; the wizard and rules are generic. Orgs set currency, units, number and date formats; English is the default UI language and more are added as translations. |
+| P36 | **The pricing module is separate and removable.** The core never depends on it: own API file under `/pricing/`, own DB schema, own frontend package, own backend module; it plugs in through generic extension points and core events. Removing it changes no core code (docs/architecture/modules.md). |
+| P37 | **Release 1 is the full v1**: every v1 acceptance criterion (00-product/03). The pricing module stays optional inside it. |
+| P38 | **Three sequential phases by two agents.** Phase 1: the frontend agent builds the whole app and the mock API (the backend's executable spec). Phase 2: the backend agent makes the platform decisions (BE-000), builds the real engine changes and the Java backend against the same contract and scenario suites. Phase 3: the frontend agent wires the app to Java, removes the fakes, hardens and releases. Refines P11. |
+| P39 | **Engine (Python) work belongs to the backend agent, in phase 2.** In phase 1 the mock runs the proof-of-concept engine API and fakes the engine features that don't exist yet, never measuring; each fake names the task that replaces it (`docs/archive/plan/mock-api.md`). |
+| P40 | *(Branch refined by P46.)* **Everyone commits straight to the build branch**, small commits, no feature branches; the phases don't overlap. |
+| P41 | **The owner sets the visual direction**; it is recorded in `docs/development/design-guidelines.md` (P43), which overrides `design-system.md`. |
+| P42 | **The setup wizard's questions come from the rule set's data.** Every yes/no question that switches BoQ items on or off forms one checklist, with the follow-ups of what was switched on; the measuring questions for walls, openings, roofs, windows and doors and line splitting are marked in the rule set (`setupSteps`, six screens for "As modelled"). Step 2 lists only the BoQ items the answers switch on. F16. |
+| P43 | **The product is called boqlet** (always lowercase). **Visual direction:** warm paper and ink, JetBrains Mono for the UI and Inter Tight for display, 2 px corners, colour only where it means something (blue accent and "derived", orange "to confirm", yellow "manual" and selection, red errors, no green), poster compositions only in the wizard, onboarding, sign-in, share page and dashboard cards, the dimension line as a recurring device, light theme default plus dark. Details and tokens in `docs/development/design-guidelines.md`. |
+| P44 | **One product root: `boqlet_v1/`.** All product code is built there, as one npm workspace. The first task (FE-000) moves the proof of concept (engine, contract types, presets, fixtures, scripts, PoC UI, docs, this plan) into it, so nothing ever refers across two roots; the PoC demo deployment stays pointed into it. The last structural task (FE-046) removes the PoC leftovers and makes `boqlet_v1/` the repository root. Paths in `plan/` are relative to the product root. |
+| P45 | **Agents work on their own from task to task and milestone to milestone**, by `docs/archive/plan/sessions.md`. They stop only for an owner decision that blocks every remaining task, at the end of a phase, or before an irreversible step. Implementation decisions and deviations are written in `docs/archive/build-log.md`, which, with its "Current position", is the handover between sessions and agents. |
+| P46 | **The build happens on the branch `v_1`**, made from `main`. `main` keeps the proof of concept and its live demo untouched until the release: FE-047 tags `main` as `poc-final` and merges `v_1` into it. CI runs on both branches; staging deploys from `v_1` until the release, production from `main` after it. *(Until staging exists, the pilot deploys from `v_1`: P51.)* |
+| P47 | **The backend belongs to its backend owner**: the person who runs phase 2 (the product owner or a backend developer they choose). BE-000 is their entry point: the agent analyses the backend plan and asks them about every backend decision, the open ones and the ones the plan already made (`docs/archive/plan/backend-decisions-to-make.md`). The plan's backend choices are defaults. Their answers win over the backend plan, which BE-000 rewrites to match. They may change the HTTP contracts when the backend needs it, by `docs/development/contract-changes.md`: contract, suites, mock and the smallest app fix in one commit, every change listed, and the frontend adapted in phase 3 (FE-041). Not theirs alone: product behaviour (the product decisions and business rules, what users can do or see) and the engine rules; changes there go to the product owner. |
+| P48 | **The pricing module is for a later phase** (2026-11-14). MP1 (pricing on the mock, FE-P1…FE-P7) and MP2 (EN-P1, BE-P1…BE-P4) are not built in phases 1 and 2; the owner schedules them later. Phase 1 ends after M4, phase 2 after M7. The module boundary (P36) stays: the extension points (FE-039), `openapi-pricing.yaml`, the core-only build and the module-removed checks are still built and kept green. v1 criterion 6 ("only if the module ships in v1") is not part of release 1 unless the owner brings the module forward. |
+| P49 | **Backend defaults confirmed for invite-only pilots** (2026-11-16). Java 21 with Spring Boot, PostgreSQL, Keycloak OIDC, and the Python engine worker. Keep worker sizing configurable. Hosting and staging deployment are deferred to a separate session. See [BE-000 decisions](#backend-decisions-be-000). *(Sign-in refined by P50; staging by P51.)* |
+| P50 | **Native sign-in instead of Keycloak** (2026-11-18, the deployment session). Users sign in with email and password on the boqlet domain; the Java API checks Argon2id password hashes and issues an opaque Secure, HttpOnly session cookie. Requests that change state must come from the exact boqlet origin. The single active session and takeover (BR-54) stay. The first owner and assisted resets use a one-hour setup link issued on the server. Refines D1 in `docs/decisions.md`. Runbook: `docs/operations/auth-and-deploys.md`. |
+| P51 | **One deployed environment until further notice** (2026-11-20, the owner). The invited pilot on Contabo (`docs/operations/pilot.md`, booqlet.com) is the only deployed environment; GitHub Actions deploys every green push to `v_1` there. A separate staging environment (BE-032) is a **future todo**, not part of phases 2 and 3. Wherever the plan says "staging", read the pilot deployment: acceptance there uses synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`), and load, performance and restore tests that would disturb pilot users run against the local native stack instead. At the release (FE-047) the same host becomes production, deployed from `main`. Refines P46 and D8. *2026-11-20, the owner: it stays the only environment and is development for now (no real users), so checks may run there.* |
+| P52 | *(Superseded by P53: the mock and its 106 browser tests were removed; the Java smoke set is the browser suite.)* **Browser tests against Java are a focused smoke set** (2026-11-20, the owner). The 106 Playwright tests keep running on the mock; a separate set of about 15–20 browser tests runs against Java with native sign-in (F01 criteria, FL-1 to the sample BoQ, upload to share link, live co-editing), in CI. The shared contract and scenario suites cover every operation on Java. Refines FE-041 and FE-043 acceptance ("every M1–M4 flow against Java"). |
+| P53 | **The mock API is removed; Java is the only backend** (2026-11-21, the owner). `apps/mock-api`, the app's mock sign-in adapter, the 106 Playwright tests that ran only on the mock (`apps/app/e2e`) and every `:mock` script are deleted. Development runs the real backend locally in Docker (`ops/local`, `npm run dev:app`, `docs/development/local-setup.md`): Java with native sign-in, the engine worker, PostgreSQL, SeaweedFS, MailHog. The shared contract and scenario suites and the browser smoke (`apps/app/e2e-java`) run against Java through `NativeWorkerTest` (CI's `api` job); CI's `local` job checks the local stack end to end. Browser coverage the mock suite had beyond the Java smoke set is a todo (docs/product/known-limitations.md). Supersedes P11 and P52; P38's phase history stays as written. |
+
+## Backend decisions (BE-000)
+
+The backend owner confirmed the backend plan and its defaults on 2026-11-16 (the questions they
+answered: [archive/plan/backend-decisions-to-make.md](archive/plan/backend-decisions-to-make.md)).
+
+| ID | Answer |
+|---|---|
+| BE-D1 | Keycloak-hosted OIDC sign-in and verified email. PostgreSQL owns the single active Boqlet session. Use a same-origin HttpOnly app session cookie and bind it to the authenticated identity. Defer vendor sign-in to the pricing phase. *Refined 2026-11-18 by P50: native email and password sign-in in the Java API replaced Keycloak; the session cookie and one-session rule stay.* |
+| BE-D2–BE-D5 | Java 21 and Spring Boot, Spring JDBC and Flyway, a PostgreSQL job queue and `LISTEN/NOTIFY` for SSE fan-out. |
+| BE-D6–BE-D7 | SMTP adapter and a local mail catcher. Manual billing for pilots. Defer Paddle until paid self-service. |
+| BE-D8, BE-D15–BE-D16 | Defer hosting, region, deployment tooling, and hosted monitoring choices to the deployment session. Keep local tests and configuration provider-neutral. *The deployment session chose Contabo for the invited pilot (`docs/operations/pilot.md`) with GitHub Actions rollout (`docs/operations/auth-and-deploys.md`); on 2026-11-20 the owner kept that as the only deployed environment and deferred staging (P51).* |
+| BE-D9 | Excel I/O belongs in the Python worker. |
+| BE-D10–BE-D11 | Pilot load and model sizes are unknown. Keep pool sizes, size routing, per-org concurrency, and job limits configurable. Use the documented performance targets for local benchmarking. |
+| BE-D12–BE-D13 | Invite-only initial rollout. Require verified email before uploads and validate type and size. Isolate parsing with CPU, memory, and time limits. The transport retains access to its storage and queue. Decide public registration bot protection before enabling public signup. |
+| BE-D14 | Use the new engine on the next Generate and preserve saved results. Keep engine and parse format versions on job results. Any UI notice follows the frontend integration phase. |
+| BE-D17 | Keep data export and deletion, encryption, and backup controls in the backend and deployment plan. Confirm residency, subprocessors, and backup configuration with the deployment environment. |
+| BE-D18 | Use the phase 1 contract as the baseline. Record any necessary changes following `docs/development/contract-changes.md`. |
+| BE-B1–BE-B20 | Retain the handoff defaults for the backend structure, engine and storage, tenant isolation, sessions, tests, and delivery order. Deployment validation moves to the separate deployment session. Pricing stays deferred under P48. |

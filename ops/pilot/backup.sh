@@ -1,5 +1,5 @@
 #!/bin/bash
-# Backup of the pilot (BE-025, deployment.md "Backups and recovery", docs/18). Run on the host as
+# Backup of the pilot (BE-025, deployment.md "Backups and recovery", docs/operations/pilot.md). Run on the host as
 # root, e.g. hourly from a systemd timer (RPO 1 h); it is not installed by the deploy.
 #   - Postgres: `pg_dump -Fc` of the boqlet database (the same command as the restore test,
 #     services/api BackupRestoreTest), plus the roles (`pg_dumpall --roles-only`).
@@ -7,7 +7,7 @@
 #     once and parse artifacts can be recomputed from them.
 #   - Keeps BACKUP_KEEP_DAYS (default 14) days. With BACKUP_REMOTE set (an rclone remote, e.g.
 #     `offsite:boqlet`), each new file is also copied off the host; without it, backups stay on the
-#     host, which is not yet an off-host backup (docs/11).
+#     host, which is not yet an off-host backup (docs/product/known-limitations.md).
 # Check a dump with restore-check.sh.
 set -euo pipefail
 umask 077

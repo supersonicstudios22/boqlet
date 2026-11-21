@@ -7,7 +7,7 @@ import { setPlan } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
- * F09 versions (FE-031) and the BoqRevision and Boq state machines (03-domain/state-machines.md):
+ * F09 versions (FE-031) and the BoqRevision and Boq state machines (docs/domain/state-machines.md):
  * save version with the next working version, BR-20…BR-27, confirm and reopen, and the optional review
  * (submit, request changes, approve, four-eyes, withdraw, edits during review). One org on a plan with
  * `approvalWorkflow`, through the API only.

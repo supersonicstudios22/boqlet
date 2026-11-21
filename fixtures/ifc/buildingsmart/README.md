@@ -19,5 +19,5 @@ the same element can be compared across IFC2x3 (faceted Brep), IFC4 and IFC4.3 (
 face sets). The ISO files are small hand-written examples from the IFC4 Reference View.
 
 What the engine learned from them, and the tests that pin it, are in
-`docs/09-validation-and-test-corpus.md` and `engine/tests/test_certification_samples.py`.
+`docs/testing/engine-validation.md` and `engine/tests/test_certification_samples.py`.
 To run the whole dataset (35 files), clone it and use `npm run corpus -- <folder>`.
