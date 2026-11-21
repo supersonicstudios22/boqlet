@@ -181,7 +181,7 @@ and its Vercel demo) is the git tag `poc-final` (FE-047).
 | Frontend, backend specs (06–07) | Written; backend decisions open on purpose |
 | Delivery (08) | Phases, milestones, task lists, session rules and build log written (P37–P40, P44, P45); the pricing module (MP1, MP2) is for a later phase (P48) |
 | Design (06) | Design guidelines decided (P43); wordmark SVG still to come from the owner |
-| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51; staging BE-032 deferred; carried-over checks listed in the phase-2 summary). Phase 3: **M8a completed 2026-11-21** (FE-041…FE-043: the app on Java with native sign-in, engine fakes gone, every contract change adapted). **Next: M8** (FE-044), after the owner's approval. Live position: `10-build-log.md` |
+| **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51). Phase 3: M8a completed 2026-11-21; M8 2026-11-21: FE-044, TS-002/003, FE-045, BE-025, BE-026/TS-004 (see "v1 acceptance" below) and FE-046 done; FE-047 (the release) next. Live position: `10-build-log.md` |
 
 ## v1 acceptance (TS-004, BE-026), 2026-11-21
 

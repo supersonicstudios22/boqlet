@@ -23,7 +23,7 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 | Phase | **Phase 3**, integration and release (M8a done; M8 under way) |
 | Role | **Frontend agent** |
 | Latest verified | CI on `5f10fe5` (2026-11-21): all seven jobs green, the 106 browser tests on the mock (F06-AC10 presence passed on its first try), the scenario suite and the browser smoke against Java; the rollout to the pilot passed. |
-| Next task | M8 in segments; **the owner (2026-11-21): do not stop until M8 is complete** (report after each segment). (1) FE-044 + TS-003 **done** (`5e9fa2c`). (2) TS-002 + FE-045 **done** (`7ae13e8`). (2b) **done** (`47d299d`). (3) BE-025 **done** (`4a34fd8`). (4) BE-026 + TS-004 **done** (`7d4f790`; results in `plan/README.md` "v1 acceptance": a live run on booqlet.com needs host access, left for an operator). **Next: (5) FE-046** the new repository root; then (6) FE-047 the release (the owner gave the go to merge `v_1` into `main`; email and billing stay as they are). |
+| Next task | M8 in segments; **the owner (2026-11-21): do not stop until M8 is complete** (report after each segment). (1)–(4) **done** (`5e9fa2c`, `7ae13e8`, `47d299d`, `4a34fd8`, `7d4f790`). (5) FE-046 **done** (`7a79db3`): the repository root is the product root. **Next: (6) FE-047** the release: tag `main` `poc-final`, merge `v_1` into `main` (the owner gave the go), deploy from `main` to the same host, tag `v1.0.0`; email and billing stay as they are. |
 | Waiting for the owner | Nothing blocks M8. Needs a person, prepared but not done by the agent: v1 criterion 12 (a new user runs the setup wizard), opening exported workbooks in Excel and LibreOffice. Later, the owner's: an alert destination, error tracking, installing `ops/pilot/backup.sh` with an off-host copy, removing the Vercel demo after FE-047. |
 | In progress | Nothing. |
 | Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Browser tests against Java are the smoke set in `apps/app/e2e-java` (P52, `08-delivery/testing.md`). Phase-2 checks still open are in `docs/11` "Known limitations … phase 2"; phase-3 ones under "… phase 3". Pricing stays deferred (P48). |
@@ -44,6 +44,17 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-21 — FE-046 the new repository root (frontend agent)
+- **Built:** `7a79db3`. `git mv` of every product entry to the root; the PoC, its dev API and the Vercel demo deleted.
+- **Deviations from the spec:** the check "`git grep boqlet_v1` finds only the build log, docs/11 and the sentence of
+  history" also finds texts kept as history on purpose: decision P44, the milestones' M0 and M8 rows, the FE-000 and
+  FE-046 task texts, and a path on the host in docs/18 (an old release folder there still has that name).
+- **For the next agent:** after pulling this, reinstall locally: `npm install` (workspace links) and
+  `engine/.venv/Scripts/python -m pip install -e ./engine` (the editable install pointed into `boqlet_v1/engine`), or
+  `npm run setup:engine`. On Windows an editor or file watcher can hold folders open and make `git mv` fail with
+  "Permission denied"; moving the folder's entries one by one works. The host is unaffected: it runs images and
+  its own Compose folder (`/srv/boqlet/current/ops/pilot`).
 
 ### 2026-11-21 — Owner decisions: M8 to the end; BE-025 alerts in the log (frontend agent)
 - **Decisions taken:** the owner asked to run the rest of M8 without stopping, reporting after each segment, and gave
