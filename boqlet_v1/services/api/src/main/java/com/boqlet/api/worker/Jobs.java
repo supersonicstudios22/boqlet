@@ -35,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class Jobs {
     private static final Set<String> METERED = Set.of("parse", "run", "preview");
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Jobs.class);
+    private final io.micrometer.core.instrument.MeterRegistry meters;
     private final JdbcTemplate database;
     private final StoredJson json;
     private final EntitlementService limits;
@@ -48,7 +50,7 @@ public class Jobs {
     private final String generalPool;
 
     Jobs(JdbcTemplate database, StoredJson json, EntitlementService limits, ProjectAccess projects, OrgAccess orgs, ObjectStorage storage,
-         List<JobHandler> handlers, Notifications notifications,
+         List<JobHandler> handlers, Notifications notifications, io.micrometer.core.instrument.MeterRegistry meters,
          @Value("${BOQLET_ENGINE_TRANSPORT:http}") String transport,
          @Value("${BOQLET_ENGINE_MODEL_POOL:default}") String modelPool,
          @Value("${BOQLET_ENGINE_GENERAL_POOL:default}") String generalPool) {
@@ -59,6 +61,7 @@ public class Jobs {
         this.orgs = orgs;
         this.storage = storage;
         this.notifications = notifications;
+        this.meters = meters;
         if (!Set.of("http", "postgres").contains(transport)) throw new IllegalArgumentException("Invalid BOQLET_ENGINE_TRANSPORT.");
         this.transport = transport;
         this.modelPool = modelPool;
@@ -254,6 +257,30 @@ public class Jobs {
     }
 
     private void finishTerminal(Attempt attempt, String status, JsonNode result, OffsetDateTime finished) {
+        try (var scope = com.boqlet.api.http.LogContext.job(attempt.id(), attempt.org())) {
+            finishTerminalLogged(attempt, status, result, finished);
+        }
+    }
+
+    /**
+     * Size class of a job by its model (nfr.md "Model processing"): small < 20 MB, medium up to
+     * 300 MB, large above; runs and other jobs without a model size are "none".
+     */
+    static String sizeClass(JsonNode metrics) {
+        long bytes = metrics.path("modelBytes").asLong(-1);
+        if (bytes < 0) return "none";
+        return bytes < 20L << 20 ? "small" : bytes <= 300L << 20 ? "medium" : "large";
+    }
+
+    private void finishTerminalLogged(Attempt attempt, String status, JsonNode result, OffsetDateTime finished) {
+        if (attempt.startedAt() != null) {
+            var took = java.time.Duration.between(attempt.startedAt(), finished);
+            meters.timer("boqlet.jobs.duration", "type", attempt.type(), "status", status, "size", sizeClass(result.path("metrics")))
+                    .record(took);
+            log.atInfo().addKeyValue("jobType", attempt.type()).addKeyValue("jobStatus", status)
+                    .addKeyValue("attempt", attempt.number()).addKeyValue("durationMs", took.toMillis())
+                    .log("Job {} {} after {} ms", attempt.type(), status, took.toMillis());
+        }
         Map<String, Object> output = handlers.get(attempt.type()).finished(attempt, status, result);
         JsonNode error = "failed".equals(status) ? result.get("error") : null;
         database.update("""

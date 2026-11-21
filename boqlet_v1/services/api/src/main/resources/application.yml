@@ -41,6 +41,9 @@ logging:
     format:
       console: ${BOQLET_LOG_FORMAT:}
 management:
+  tracing:
+    sampling:
+      probability: ${BOQLET_TRACING_SAMPLING:1.0}
   server:
     port: ${BOQLET_MANAGEMENT_PORT:${server.port}}
   endpoints:

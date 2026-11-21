@@ -15,7 +15,12 @@ public class RunIndex {
     private final ArtifactReader artifacts;
     private final PostgresCopy copy;
 
-    RunIndex(JdbcTemplate database, StoredJson json, ArtifactReader artifacts, PostgresCopy copy) {
+    private final io.micrometer.core.instrument.Timer ingestion;
+
+    RunIndex(JdbcTemplate database, StoredJson json, ArtifactReader artifacts, PostgresCopy copy,
+             io.micrometer.core.instrument.MeterRegistry meters) {
+        this.ingestion = io.micrometer.core.instrument.Timer.builder("boqlet.runs.ingestion")
+                .description("Time to index a run result's lines, questions, warnings and log").register(meters);
         this.database = database;
         this.json = json;
         this.artifacts = artifacts;
@@ -31,7 +36,7 @@ public class RunIndex {
                 """, (row, i) -> new IndexEntry(row.getString("result_key"), row.getBoolean("missing")), run);
         if (entries.isEmpty()) return;
         var entry = entries.getFirst();
-        if (entry.missing()) populate(run, artifacts.read(entry.key()));
+        if (entry.missing()) ingestion.record(() -> populate(run, artifacts.read(entry.key())));
         else database.update("UPDATE runs SET indexed_at = now() WHERE id = ?", run);
     }
 

@@ -44,6 +44,7 @@ public final class IdentityFilter extends OncePerRequestFilter {
                     throw IdentityService.failure(org.springframework.http.HttpStatus.NOT_FOUND, "not_found", "The resource was not found.");
                 }
                 request.setAttribute(Login.ATTRIBUTE, login);
+                com.boqlet.api.http.LogContext.user(login.userId());
             } catch (ApiException failure) {
                 if (admin) failure = IdentityService.failure(org.springframework.http.HttpStatus.NOT_FOUND,
                         "not_found", "The resource was not found.");

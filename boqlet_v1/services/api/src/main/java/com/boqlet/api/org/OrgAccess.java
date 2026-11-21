@@ -41,8 +41,10 @@ public class OrgAccess {
     }
 
     public MemberOrg require(UUID org, UUID user) {
-        return database.query(MEMBERSHIPS + " AND o.id = ?", this::map, user, org)
+        var access = database.query(MEMBERSHIPS + " AND o.id = ?", this::map, user, org)
                 .stream().findFirst().orElseThrow(() -> missing("organisation"));
+        com.boqlet.api.http.LogContext.org(org);
+        return access;
     }
 
     /** All organisation and membership mutations lock the tenancy row first. */

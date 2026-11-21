@@ -117,6 +117,10 @@ services:
       BOQLET_ENGINE_HTTP_CONCURRENCY: ${ENGINE_HTTP_CONCURRENCY:-1}
       BOQLET_ENGINE_JOB_TIMEOUT: PT${ENGINE_QUEUE_JOB_TIMEOUT_SECONDS:-1800}S
       BOQLET_MAX_UPLOAD_MIB: ${MAX_UPLOAD_MIB:-512}
+      # BE-025: JSON logs (requestId, userId, orgId, jobId, trace ids) and Prometheus metrics on the
+      # internal network (the ingress routes /api/v1 only). Alerts are log lines (alert.firing).
+      BOQLET_LOG_FORMAT: ecs
+      BOQLET_MANAGEMENT_ENDPOINTS: health,prometheus
     networks:
       database:
       backend:
@@ -148,6 +152,7 @@ services:
       ENGINE_QUEUE_POOL: ${ENGINE_QUEUE_POOL:-default}
       ENGINE_QUEUE_JOB_TIMEOUT_SECONDS: ${ENGINE_QUEUE_JOB_TIMEOUT_SECONDS:-1800}
       ENGINE_QUEUE_POLL_SECONDS: ${ENGINE_QUEUE_POLL_SECONDS:-1}
+      ENGINE_LOG_FORMAT: json
     networks: [backend, database]
     mem_limit: ${ENGINE_QUEUE_MEMORY:-4g}
     cpus: ${ENGINE_QUEUE_CPUS:-2.0}

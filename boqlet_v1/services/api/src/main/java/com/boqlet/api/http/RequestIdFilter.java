@@ -17,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 final class RequestIdFilter extends OncePerRequestFilter {
     static final String HEADER = "X-Request-Id";
+    /** One line per API request (BE-025): method, path without the query (it can hold search text), status, time. */
+    private static final org.slf4j.Logger access = org.slf4j.LoggerFactory.getLogger("com.boqlet.api.access");
     private static final Pattern SAFE_ID = Pattern.compile("[a-zA-Z0-9_-]{1,64}");
 
     @Override
@@ -27,8 +29,21 @@ final class RequestIdFilter extends OncePerRequestFilter {
                 ? incoming
                 : UUID.randomUUID().toString();
         response.setHeader(HEADER, requestId);
+        long started = System.nanoTime();
         try (var ignored = MDC.putCloseable("requestId", requestId)) {
-            chain.doFilter(request, response);
+            try {
+                chain.doFilter(request, response);
+            } finally {
+                String path = request.getRequestURI();
+                if (path.startsWith("/api/")) {
+                    long ms = (System.nanoTime() - started) / 1_000_000;
+                    access.atInfo().addKeyValue("http.method", request.getMethod()).addKeyValue("url.path", path)
+                            .addKeyValue("http.status", response.getStatus()).addKeyValue("durationMs", ms)
+                            .log("{} {} {} {} ms", request.getMethod(), path, response.getStatus(), ms);
+                }
+            }
+        } finally {
+            LogContext.clearRequest();
         }
     }
 }

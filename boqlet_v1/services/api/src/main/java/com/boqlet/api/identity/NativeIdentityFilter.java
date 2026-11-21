@@ -53,6 +53,7 @@ public final class NativeIdentityFilter extends OncePerRequestFilter {
                         throw IdentityService.failure(HttpStatus.NOT_FOUND, "not_found", "The resource was not found.");
                     }
                     request.setAttribute(Login.ATTRIBUTE, login);
+                    com.boqlet.api.http.LogContext.user(login.userId());
                     SecurityContextHolder.getContext().setAuthentication(
                             UsernamePasswordAuthenticationToken.authenticated(login.userId(), null, List.of()));
                 }

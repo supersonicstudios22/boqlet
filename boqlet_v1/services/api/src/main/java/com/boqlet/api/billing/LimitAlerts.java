@@ -23,8 +23,11 @@ class LimitAlerts {
     private final Notifications notifications;
     private final TransactionTemplate transactions;
 
+    private final io.micrometer.core.instrument.MeterRegistry meters;
+
     LimitAlerts(JdbcTemplate database, EntitlementService entitlements, StoredJson json,
-                Notifications notifications, TransactionTemplate transactions) {
+                Notifications notifications, TransactionTemplate transactions, io.micrometer.core.instrument.MeterRegistry meters) {
+        this.meters = meters;
         this.database = database;
         this.entitlements = entitlements;
         this.json = json;
@@ -34,6 +37,7 @@ class LimitAlerts {
 
     @Transactional
     public void refused(LimitReached failure, String action) {
+        meters.counter("boqlet.limits.hits", "limit", String.valueOf(failure.key)).increment();
         if (failure.org == null) return;
         database.update("""
                 INSERT INTO limit_events (id, org_id, user_id, limit_name, current_value, max_value, action)

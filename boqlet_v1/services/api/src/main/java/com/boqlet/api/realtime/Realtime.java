@@ -28,7 +28,12 @@ public class Realtime {
     private final EventWakeup wakeup;
     private final java.util.concurrent.ExecutorService streams = Executors.newVirtualThreadPerTaskExecutor();
 
-    Realtime(JdbcTemplate database, StoredJson json, EventWakeup wakeup) {
+    /** Open live-update streams on this instance (deployment.md "SSE connections"). */
+    private final java.util.concurrent.atomic.AtomicInteger open = new java.util.concurrent.atomic.AtomicInteger();
+
+    Realtime(JdbcTemplate database, StoredJson json, EventWakeup wakeup, io.micrometer.core.instrument.MeterRegistry meters) {
+        io.micrometer.core.instrument.Gauge.builder("boqlet.sse.connections", open, java.util.concurrent.atomic.AtomicInteger::get)
+                .register(meters);
         this.database = database;
         this.json = json;
         this.wakeup = wakeup;
@@ -57,6 +62,15 @@ public class Realtime {
     }
 
     private void stream(SseEmitter emitter, AtomicBoolean alive, UUID actor, UUID session, long cursor, Instant until) {
+        open.incrementAndGet();
+        try {
+            streamEvents(emitter, alive, actor, session, cursor, until);
+        } finally {
+            open.decrementAndGet();
+        }
+    }
+
+    private void streamEvents(SseEmitter emitter, AtomicBoolean alive, UUID actor, UUID session, long cursor, Instant until) {
         try {
             emitter.send(SseEmitter.event().comment("connected").reconnectTime(1000));
             long heartbeat = System.nanoTime();

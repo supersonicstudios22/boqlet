@@ -52,8 +52,10 @@ public class ProjectAccess {
     record Listed(Project project, OffsetDateTime activity) {}
 
     public Project require(UUID project, UUID actor) {
-        return database.query(READ + " AND p.id = ?", this::map, actor, project).stream()
+        Project found = database.query(READ + " AND p.id = ?", this::map, actor, project).stream()
                 .findFirst().orElseThrow(ProjectAccess::missing).project();
+        com.boqlet.api.http.LogContext.org(found.getOrgId());
+        return found;
     }
 
     public Project lock(UUID project, UUID actor, String action) {
