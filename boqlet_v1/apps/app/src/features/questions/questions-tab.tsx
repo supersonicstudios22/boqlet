@@ -222,7 +222,7 @@ function QuestionRow({
           {message.text}
           {q.occurrences ? <span className="text-muted-foreground"> — {t("elements", { count: q.occurrences })}</span> : null}
           {showIn3d && (
-            <Link href={showIn3d} className="ml-2 text-link hover:underline" data-testid="question-show-in-3d">
+            <Link href={showIn3d} className="ml-2 text-link underline underline-offset-2" data-testid="question-show-in-3d">
               {t("showIn3d")}
             </Link>
           )}

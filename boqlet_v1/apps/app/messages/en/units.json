@@ -9,5 +9,11 @@
   "ft": "ft",
   "ft2": "ft²",
   "ft3": "ft³",
-  "lb": "lb"
+  "lb": "lb",
+  "sum": "sum",
+  "mm": "mm",
+  "km": "km",
+  "yd2": "yd²",
+  "yd3": "yd³",
+  "h": "h"
 }

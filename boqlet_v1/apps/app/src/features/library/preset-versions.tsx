@@ -121,7 +121,7 @@ function VersionView({ preset, versionId, editable, etag }: { preset: Preset; ve
         {restorable &&
           (preset.draft ? (
             <ConfirmDialog
-              trigger={<Button variant="outline" data-testid="restore-version" />}
+              trigger={<Button variant="outline" data-testid="restore-version">{t("versions.restore")}</Button>}
               title={t("versions.restoreTitle", { n: v.number ?? 0 })}
               body={t("versions.restoreBody", { n: v.number ?? 0 })}
               confirm={t("versions.restore")}

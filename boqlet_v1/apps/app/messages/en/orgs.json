@@ -2,6 +2,7 @@
   "suspended": "This organisation is suspended. You can look at everything, but nothing can be changed and no jobs start. Contact support to reactivate it.",
   "switcher": {
     "label": "Organisations",
+    "trigger": "{name}, switch organisation",
     "current": "Current organisation",
     "create": "New organisation"
   },

@@ -3,7 +3,7 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { EditField, SheetLine } from "./edits";
-import { displayUnit } from "./model";
+import { useUnit } from "@/i18n/units";
 
 export interface LineActions {
   restore: (line: SheetLine, field: EditField | "all") => void;
@@ -21,6 +21,7 @@ export interface LineActions {
  * manual line, edit and delete). Read-only users see the edits without the actions.
  */
 export function LineEdits({ line, editable, systemNames, actions }: { line: SheetLine; editable: boolean; systemNames: Map<string, string>; actions: LineActions }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.edits");
   const format = useFormatter();
   const edit = line.edit;
@@ -30,9 +31,9 @@ export function LineEdits({ line, editable, systemNames, actions }: { line: Shee
     const e = edit.engine;
     switch (field) {
       case "quantity":
-        return `${num(e.quantity)} ${displayUnit(e.unit)}`;
+        return `${num(e.quantity)} ${unitLabel(e.unit)}`;
       case "unit":
-        return displayUnit(e.unit);
+        return unitLabel(e.unit);
       case "description":
         return e.description;
       case "codes":
@@ -48,9 +49,9 @@ export function LineEdits({ line, editable, systemNames, actions }: { line: Shee
   const editedText = (field: EditField): string => {
     switch (field) {
       case "quantity":
-        return `${num(line.quantity)} ${displayUnit(line.unit)}`;
+        return `${num(line.quantity)} ${unitLabel(line.unit)}`;
       case "unit":
-        return displayUnit(line.unit);
+        return unitLabel(line.unit);
       case "description":
         return line.description;
       case "codes":

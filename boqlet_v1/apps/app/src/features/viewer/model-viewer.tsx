@@ -6,10 +6,10 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useCoverage, useElementLines, useModelScenes, type SceneIndex } from "@/api/hooks/viewer";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
-import { displayUnit } from "@/features/boq-sheet/model";
 import { cn } from "@/lib/utils";
 import { buildLinks, colorsFor, elementOfMesh, type ColorMode, type LegendEntry, type LinkLine } from "./links";
 import type { Box, SceneView } from "./scene-view";
+import { useUnit } from "@/i18n/units";
 
 export interface ViewerModel {
   versionId: string;
@@ -394,7 +394,7 @@ export function ModelViewer({
             {legend.map((l: LegendEntry) => (
               <li key={l.key}>
                 <button
-                  className={cn("flex w-full items-center gap-2 px-1 text-left hover:bg-accent", legendPick === l.key && "bg-selection")}
+                  className={cn("flex min-h-6 w-full items-center gap-2 px-1 text-left hover:bg-accent", legendPick === l.key && "bg-selection")}
                   aria-pressed={legendPick === l.key}
                   onClick={() => setLegendPick((k) => (k === l.key ? null : l.key))}
                   data-testid="viewer-legend-entry"
@@ -511,6 +511,7 @@ function ElementPanel({
   modelLabel?: string;
   onOpenLine?: (key: string) => void;
 }) {
+  const unitLabel = useUnit();
   const t = useTranslations("viewer.element");
   const format = useFormatter();
   const detail = useElementLines(runId, guid);
@@ -547,7 +548,7 @@ function ElementPanel({
                   line={{ description: l.description, unit: l.unit }}
                   lineKey={l.lineKey}
                   onOpenLine={onOpenLine}
-                  share={l.quantity === null ? undefined : `${format.number(l.quantity, { maximumFractionDigits: 3 })} ${displayUnit(l.unit)}`}
+                  share={l.quantity === null ? undefined : `${format.number(l.quantity, { maximumFractionDigits: 3 })} ${unitLabel(l.unit)}`}
                 />
               </li>
             ))}

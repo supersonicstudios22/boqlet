@@ -14,10 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineDetailBody } from "@/features/boq-sheet/line-detail";
-import { displayUnit } from "@/features/boq-sheet/model";
 import { lexicon } from "@/features/library/lib/readable";
 import { ModelViewer } from "@/features/viewer/model-viewer";
 import { cn } from "@/lib/utils";
+import { useUnit } from "@/i18n/units";
 
 /** The line's text in the grouping system (P14 item text), else the rule set's. */
 const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[system]?.text : undefined) ?? l.description;
@@ -28,6 +28,7 @@ const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[sys
  * detail and the 3D view and the Excel as the link includes. Nothing else of the firm's (BR-56).
  */
 export function PublicSharePage({ token }: { token: string }) {
+  const unitLabel = useUnit();
   const t = useTranslations("shares.public");
   const format = useFormatter();
   const message = useErrorMessage();
@@ -154,7 +155,7 @@ export function PublicSharePage({ token }: { token: string }) {
                           data-source={l.source}
                         >
                           <TableCell className="max-w-[520px]">{textOf(l, system)}</TableCell>
-                          <TableCell>{displayUnit(l.unit)}</TableCell>
+                          <TableCell>{unitLabel(l.unit)}</TableCell>
                           <TableCell className="text-right tabular-nums">{l.quantity === null ? "—" : format.number(l.quantity, { maximumFractionDigits: 3 })}</TableCell>
                         </TableRow>
                       )),

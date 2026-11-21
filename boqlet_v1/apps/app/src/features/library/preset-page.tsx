@@ -153,7 +153,7 @@ function PresetHeader({ preset: p, canCopy, orgId, orgSlug }: { preset: Preset; 
         {canCopy && copyFrom && <CloneDialog preset={p} orgId={orgId} orgSlug={orgSlug} />}
         {editable && (
           <ConfirmDialog
-            trigger={<Button variant="outline" data-testid="preset-archive" />}
+            trigger={<Button variant="outline" data-testid="preset-archive">{t("preset.archive")}</Button>}
             title={t("preset.archiveTitle", { name: p.name })}
             body={t("preset.archiveBody")}
             confirm={t("preset.archive")}
@@ -269,7 +269,7 @@ function EditTab({ preset: p, editable }: { preset: Preset; editable: boolean })
           </p>
           {editable && (
             <ConfirmDialog
-              trigger={<Button variant="outline" data-testid="discard-draft" />}
+              trigger={<Button variant="outline" data-testid="discard-draft">{t("edit.discard")}</Button>}
               title={t("edit.discardTitle")}
               body={t(p.latestPublishedVersion ? "edit.discardBody" : "edit.discardBodyNoVersion")}
               confirm={t("edit.discard")}

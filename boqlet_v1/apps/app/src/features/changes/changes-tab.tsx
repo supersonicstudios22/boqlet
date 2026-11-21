@@ -13,12 +13,12 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayUnit } from "@/features/boq-sheet/model";
 import { ModelViewer } from "@/features/viewer/model-viewer";
 import { viewerModels } from "@/features/viewer/viewer-tab";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
 import { candidates, DEFAULT_THRESHOLD, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
+import { useUnit } from "@/i18n/units";
 
 const CHANGE_CLASS: Record<string, string> = {
   added: "border-[var(--blue)] text-[var(--blue)]",
@@ -278,6 +278,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
 }
 
 function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty: (v: number | null | undefined) => string; format: ReturnType<typeof useFormatter>; openInSheet?: () => void }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.changes");
   const side = (l.after ?? l.before)!;
   const renamed = l.before && l.after && l.before.description !== l.after.description;
@@ -300,7 +301,7 @@ function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty:
       <TableCell className="text-right tabular-nums">{qty(l.after?.quantity)}</TableCell>
       <TableCell className="text-right tabular-nums">{l.delta === null || l.delta === undefined ? "—" : `${l.delta > 0 ? "+" : ""}${qty(l.delta)}`}</TableCell>
       <TableCell className="text-right tabular-nums">{l.deltaPct === null || l.deltaPct === undefined ? "—" : `${l.deltaPct > 0 ? "+" : ""}${format.number(l.deltaPct, { maximumFractionDigits: 1 })} %`}</TableCell>
-      <TableCell>{side.unit ? displayUnit(side.unit) : ""}</TableCell>
+      <TableCell>{side.unit ? unitLabel(side.unit) : ""}</TableCell>
       <TableCell className="text-muted-foreground" data-testid="change-causes">
         {(l.causes ?? []).map((c) => t(`causes.${c}`)).join(", ")}
       </TableCell>

@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 export function AppProviders({ children }: { children: ReactNode }) {
   const [client] = useState(makeQueryClient);
   const t = useTranslations("errors");
+  const tc = useTranslations("common");
   const message = useErrorMessage();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={client}>
       {children}
       <LimitDialog />
-      <Toaster position="bottom-right" />
+      <Toaster position="bottom-right" containerAriaLabel={tc("toasts")} />
     </QueryClientProvider>
   );
 }

@@ -8,7 +8,7 @@ import type { Param } from "@ifc-boq/types";
 import type { LineDetail } from "@/api/hooks/sheet";
 import { toReadable, type Lexicon } from "@/features/library/lib/readable";
 import { cn } from "@/lib/utils";
-import { displayUnit } from "./model";
+import { useUnit } from "@/i18n/units";
 
 type Step = NonNullable<LineDetail["trace"]["steps"]>[number];
 
@@ -80,6 +80,7 @@ function StepRow({
   describe: (key: string) => string | undefined;
   onSelect: (key: string) => void;
 }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.how");
   const tl = useTranslations("library");
   const format = useFormatter();
@@ -87,7 +88,7 @@ function StepRow({
   const p = step.params as Record<string, unknown>;
   const unit = step.unit ?? line.unit;
   const amount = (v: number, digits = 3) => format.number(v, { maximumFractionDigits: digits });
-  const withUnit = (v: unknown, u: string | undefined) => (typeof v === "number" ? `${amount(v, 6)}${u ? ` ${displayUnit(u)}` : ""}` : "—");
+  const withUnit = (v: unknown, u: string | undefined) => (typeof v === "number" ? `${amount(v, 6)}${u ? ` ${unitLabel(u)}` : ""}` : "—");
   const str = (k: string) => (typeof p[k] === "string" ? (p[k] as string) : "");
   const num = (k: string) => (typeof p[k] === "number" ? (p[k] as number) : 0);
   const count = num("count");
@@ -134,7 +135,7 @@ function StepRow({
   const value =
     step.value === null
       ? "—"
-      : `${format.number(step.value, { maximumFractionDigits: step.kind === "round" ? 6 : 3, ...(SIGNED.has(step.kind) ? { signDisplay: "exceptZero" } : {}) })} ${displayUnit(unit)}`;
+      : `${format.number(step.value, { maximumFractionDigits: step.kind === "round" ? 6 : 3, ...(SIGNED.has(step.kind) ? { signDisplay: "exceptZero" } : {}) })} ${unitLabel(unit)}`;
   const elements = step.elements?.length ? line.trace.elements.filter((e) => step.elements!.includes(e.guid)) : [];
   // Rule-set values this step used: its `param`, and a deduction's mode.
   const settings = [step.param, typeof p.modeParam === "string" ? p.modeParam : undefined].filter((s): s is string => !!s);

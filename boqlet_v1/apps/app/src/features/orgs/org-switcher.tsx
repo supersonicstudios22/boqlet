@@ -26,7 +26,7 @@ export function OrgSwitcher() {
   const memberships = me.data?.memberships ?? [];
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" data-testid="org-switcher" aria-label={t("label")} />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" data-testid="org-switcher" aria-label={t("trigger", { name: org.name })} />}>
         <span className="max-w-48 truncate">{org.name}</span>
         <ChevronsUpDownIcon className="text-muted-foreground" aria-hidden />
       </DropdownMenuTrigger>

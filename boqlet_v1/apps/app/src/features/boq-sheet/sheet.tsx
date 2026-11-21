@@ -31,13 +31,14 @@ import { batchFor, effectiveLines, restoreField, takeLinesFromUndo, withChange, 
 import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
 import { SystemRulesHint } from "@/features/setup/system-rules-hint";
-import { buildRows, displayUnit, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SourceFilter, shownDescription } from "./model";
+import { buildRows, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SourceFilter, shownDescription } from "./model";
 import { SourceTag } from "./source-tag";
 import { useCodeLists, useCodeListSeparators } from "./use-code-lists";
 import { positionNumbers } from "./positions";
 import { NotInModelsNotice } from "./not-in-models";
 import { WarningsBar } from "./warnings-bar";
 import { extensions } from "@/extensions";
+import { useUnit } from "@/i18n/units";
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
@@ -65,8 +66,6 @@ interface ColumnMeta {
 interface GroupLabels {
   unclassified: string;
   lines: (count: number) => string;
-  expand: (name: string) => string;
-  collapse: (name: string) => string;
   addLine: (name: string) => string;
 }
 
@@ -101,6 +100,7 @@ type Prompt = { title: string; summary: string; initial?: string; apply: (reason
  * and gets only stable props).
  */
 export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: Boq; readOnly?: boolean; frozen?: { overrides?: LineOverride[]; manualItems?: ManualItemRecord[] } }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.sheet");
   const te = useTranslations("boqs.edits");
   const tn = useTranslations("boqs.notInModels");
@@ -218,7 +218,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       }),
       // The item text of the Group-by system when its code has one (P14, F06 §2); an edited description wins.
       col("description", t("col.description"), { width: "minmax(16rem, 1fr)", editable: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
-      col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", cell: (l) => displayUnit(l.unit), engine: (l) => engine(l, "unit", displayUnit(l.edit?.engine.unit ?? "")) }),
+      col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", cell: (l) => unitLabel(l.unit), engine: (l) => engine(l, "unit", unitLabel(l.edit?.engine.unit ?? "")) }),
       col("quantity", t("col.quantity"), {
         width: "8rem",
         align: "right",
@@ -234,7 +234,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       // One column per extra classification (F06 §2), off by default.
       ...systems.filter((s) => s.id !== groupBy).map((s) => col(`code:${s.id}`, s.name, { width: "8rem", optional: true, cell: (l) => l.codes[s.id]?.code })),
     ];
-  }, [groupBy, systems, num, t, te, toConfirm, badges, positions]);
+  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel]);
 
   // TanStack Table owns the columns and their visibility; the rows are the sheet's own (groups + lines).
   // It returns functions the React Compiler can't memoise, so this component is left uncompiled.
@@ -261,8 +261,6 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
     () => ({
       unclassified: t("unclassified"),
       lines: (count) => t("groupLines", { count }),
-      expand: (name) => t("expand", { name }),
-      collapse: (name) => t("collapse", { name }),
       addLine: (name) => te("addToGroup", { name }),
     }),
     [t, te],
@@ -297,7 +295,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               : theirs.excluded
                 ? te("theirExcluded")
                 : theirs.quantity !== undefined && theirs.quantity !== null
-                  ? te("theirValue", { value: `${num(theirs.quantity)} ${displayUnit(theirs.unit ?? byKeyRef.current.get(key)?.unit ?? "")}`.trim() })
+                  ? te("theirValue", { value: `${num(theirs.quantity)} ${unitLabel(theirs.unit ?? byKeyRef.current.get(key)?.unit ?? "")}`.trim() })
                   : theirs.description
                     ? te("theirValue", { value: theirs.description })
                     : te("theirValue", { value: Object.values(theirs.codes ?? {}).join(", ") });
@@ -363,7 +361,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       const quantity = text === "" ? null : Number(text.replace(/\s/g, "").replace(",", "."));
       if (quantity !== null && (!Number.isFinite(quantity) || quantity < 0)) return;
       if (quantity === line.quantity) return;
-      askReason(te("quantityTitle"), te("quantitySummary", { line: line.description, value: quantity === null ? toConfirm : `${num(quantity)} ${displayUnit(line.unit)}` }), o?.reason, (reason) => change(key, { quantity, reason }));
+      askReason(te("quantityTitle"), te("quantitySummary", { line: line.description, value: quantity === null ? toConfirm : `${num(quantity)} ${unitLabel(line.unit)}` }), o?.reason, (reason) => change(key, { quantity, reason }));
     }
   };
 
@@ -932,7 +930,7 @@ function SheetGrid({
   return (
     <div
       ref={scroller}
-      role="grid"
+      role="treegrid"
       aria-label={label}
       aria-rowcount={rows.length + 1}
       tabIndex={0}
@@ -1023,6 +1021,7 @@ const GroupRowView = memo(function GroupRowView({
   num: (v: number) => string;
   labels: GroupLabels;
 }) {
+  const unitLabel = useUnit();
   const [over, setOver] = useState(false);
   const name = row.title === null ? labels.unclassified : `${row.code} ${row.title}`;
   // The group spans the columns before Unit; the subtotal sits under Unit and Quantity when the unit is shared.
@@ -1031,6 +1030,7 @@ const GroupRowView = memo(function GroupRowView({
     <div
       role="row"
       aria-rowindex={index + 2}
+      aria-level={row.depth + 1}
       aria-expanded={!row.collapsed}
       aria-selected={selected}
       className={cn("group/row absolute top-0 left-0 grid w-full min-w-fit cursor-default border-b border-border bg-muted/50 font-semibold", selected && "bg-selection", over && "outline-2 -outline-offset-2 outline-[var(--link)]")}
@@ -1053,13 +1053,13 @@ const GroupRowView = memo(function GroupRowView({
       data-testid="sheet-group"
       data-group={row.id}
     >
-      {lead && <div />}
-      <div className="flex min-w-0 items-center" style={{ gridColumn: `span ${span}` }}>
+      {lead && <div role="gridcell" />}
+      <div role="gridcell" className="flex min-w-0 items-center" style={{ gridColumn: `span ${span}` }}>
         <button
           className="flex min-w-0 items-center gap-1 truncate text-left"
           style={{ paddingLeft: `${0.5 + row.depth}rem` }}
           onClick={() => api.toggleGroup(row.id)}
-          aria-label={row.collapsed ? labels.expand(name) : labels.collapse(name)}
+          aria-expanded={!row.collapsed}
         >
           {row.collapsed ? <ChevronRight aria-hidden className="size-3.5 shrink-0" /> : <ChevronDown aria-hidden className="size-3.5 shrink-0" />}
           <span className="truncate">{name}</span>
@@ -1077,9 +1077,9 @@ const GroupRowView = memo(function GroupRowView({
           </button>
         )}
       </div>
-      {unitIndex >= 0 && <div className="flex items-center px-2 font-normal">{row.unit ? displayUnit(row.unit) : null}</div>}
+      {unitIndex >= 0 && <div role="gridcell" className="flex items-center px-2 font-normal">{row.unit ? unitLabel(row.unit) : null}</div>}
       {quantityIndex >= 0 && (
-        <div className="flex items-center justify-end px-2 tabular-nums" data-testid="group-subtotal">
+        <div role="gridcell" className="flex items-center justify-end px-2 tabular-nums" data-testid="group-subtotal">
           {row.quantity !== null ? num(row.quantity) : null}
         </div>
       )}
@@ -1126,6 +1126,7 @@ const LineRowView = memo(function LineRowView({
     <div
       role="row"
       aria-rowindex={index + 2}
+      aria-level={depth + 1}
       aria-selected={selected}
       className={cn(
         "absolute top-0 left-0 grid w-full min-w-fit cursor-pointer border-b border-border hover:bg-muted/40",

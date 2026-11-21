@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import { useOrg } from "@/features/orgs/org-context";
 import { useEngineMessage } from "@/i18n/engine-message";
 import { HowCalculated } from "./how-calculated";
-import { displayUnit } from "./model";
 import { SourceTag } from "./source-tag";
+import { useUnit } from "@/i18n/units";
 
 /** "… (from slot formwork_walls_formula)": the engine names the setting a formula came from. */
 const FROM_SLOT = /\s*\(from slot ([A-Za-z0-9_]+)\)\s*$/;
@@ -123,6 +123,7 @@ export function LineDetailBody({
   onSelect: (key: string) => void;
   showLog?: boolean;
 }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.detail");
   const format = useFormatter();
   const message = useEngineMessage();
@@ -153,7 +154,7 @@ export function LineDetailBody({
               )}
               <div className="flex items-baseline gap-3">
                 <span className="text-title tabular-nums" data-testid="detail-quantity">
-                  {line.quantity === null ? "—" : num(line.quantity)} {displayUnit(line.unit)}
+                  {line.quantity === null ? "—" : num(line.quantity)} {unitLabel(line.unit)}
                 </span>
                 <SourceTag source={line.source} />
               </div>

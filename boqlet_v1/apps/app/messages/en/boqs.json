@@ -140,8 +140,6 @@
     "columns": "Columns",
     "noMatches": "No line matches these filters.",
     "groupLines": "{count, plural, one {# line} other {# lines}}",
-    "expand": "Expand {name}",
-    "collapse": "Collapse {name}",
     "col": {
       "positionNo": "No.",
       "item": "Item",

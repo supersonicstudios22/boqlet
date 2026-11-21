@@ -35,13 +35,14 @@ export function UserMenu() {
     .toUpperCase();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" aria-label={t("menu")} data-testid="user-menu" />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" data-testid="user-menu" />}>
         <span className="grid size-6 place-items-center rounded-full bg-foreground text-label text-background" aria-hidden>
           {initials}
         </span>
-        <span className="hidden sm:inline" data-testid="user-name">
+        <span className="sr-only sm:not-sr-only" data-testid="user-name">
           {name}
         </span>
+        <span className="sr-only">{t("menu")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>

@@ -13,8 +13,8 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayUnit } from "@/features/boq-sheet/model";
 import { localJobs } from "@/realtime/local-jobs";
+import { useUnit } from "@/i18n/units";
 
 type Report = Schemas["EditsImportReport"];
 type Proposal = Report["overrides"][number];
@@ -45,6 +45,7 @@ async function readWorkbook(revisionId: string, file: File): Promise<Report> {
  * reason where F06 §6 asks; the ticked ones become line edits and manual lines in one go.
  */
 export function EditsImport({ boq }: { boq: Boq }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.exports.import");
   const te = useTranslations("boqs.exports");
   const format = useFormatter();
@@ -101,7 +102,7 @@ export function EditsImport({ boq }: { boq: Boq }) {
     const parts: string[] = [];
     if (p.edit.excluded) parts.push(t("whatExcluded"));
     if (p.edit.quantity !== undefined) parts.push(t("whatQuantity", { from: qty(line?.quantity), to: qty(p.edit.quantity) }));
-    if (p.edit.unit !== undefined) parts.push(t("whatUnit", { to: displayUnit(p.edit.unit) }));
+    if (p.edit.unit !== undefined) parts.push(t("whatUnit", { to: unitLabel(p.edit.unit) }));
     if (p.edit.description !== undefined) parts.push(t("whatDescription", { to: p.edit.description }));
     if (p.edit.codes) parts.push(t("whatMoved", { to: Object.values(p.edit.codes).join(", ") }));
     return parts.join(" · ");
@@ -193,7 +194,7 @@ export function EditsImport({ boq }: { boq: Boq }) {
                 <label key={i} className="flex items-center gap-2" data-testid="edits-import-manual">
                   <input type="checkbox" checked={ticked.has(`m:${i}`)} onChange={(e) => toggle(`m:${i}`, e.target.checked)} />
                   <span>
-                    {String(m.item?.item.description ?? "")} · {qty(typeof m.item?.item.quantity === "number" ? m.item.item.quantity : null)} {displayUnit(String(m.item?.item.unit ?? ""))}
+                    {String(m.item?.item.description ?? "")} · {qty(typeof m.item?.item.quantity === "number" ? m.item.item.quantity : null)} {unitLabel(String(m.item?.item.unit ?? ""))}
                     {m.item?.codes ? <span className="text-muted-foreground"> · {Object.values(m.item.codes).join(", ")}</span> : null}
                     {m.row ? <span className="text-muted-foreground"> · {t("row", { row: m.row })}</span> : null}
                   </span>

@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { SearchPicker } from "@/features/questions/search-picker";
 import type { CodeLists } from "./edits";
-import { displayUnit } from "./model";
 import { NotInModelsText } from "./not-in-models";
+import { useUnit } from "@/i18n/units";
 
 /** A reason for a quantity change or an exclusion (F06 §6: required for both). */
 export function ReasonDialog({ title, summary, initial, onConfirm, onClose }: { title: string; summary: string; initial?: string; onConfirm: (reason: string) => void; onClose: () => void }) {
@@ -95,6 +95,7 @@ export function ManualLineDialog({
   onSave: (input: ManualItemInput) => void;
   onClose: () => void;
 }) {
+  const unitLabel = useUnit();
   const t = useTranslations("boqs.manual");
   const message = useErrorMessage();
   const item = record?.item;
@@ -164,7 +165,7 @@ export function ManualLineDialog({
               <NativeSelect value={unit} onChange={(e) => setUnit(e.target.value)} data-testid="manual-unit">
                 {UNITS.map((u) => (
                   <option key={u} value={u}>
-                    {displayUnit(u)}
+                    {unitLabel(u)}
                   </option>
                 ))}
               </NativeSelect>
@@ -193,7 +194,7 @@ export function ManualLineDialog({
             {mode === "quantity" ? (
               <div className="flex items-center gap-2">
                 <Input inputMode="decimal" className="w-36 text-right tabular-nums" value={quantity} onChange={(e) => setQuantity(e.target.value)} aria-label={t("quantity")} data-testid="manual-quantity" />
-                <span className="text-muted-foreground">{displayUnit(unit)}</span>
+                <span className="text-muted-foreground">{unitLabel(unit)}</span>
                 <span className="text-muted-foreground">{t("emptyIsFlagged")}</span>
               </div>
             ) : (
