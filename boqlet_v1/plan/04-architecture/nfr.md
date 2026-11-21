@@ -11,7 +11,7 @@ CPUs: engine times there are longer. How to repeat them: `08-delivery/testing.md
 | Model | Example | Parse (first upload) | Run (cached parse) | Measured (TS-002, 2026-11-21) |
 |---|---|---|---|---|
 | Small: < 1k elements, < 20 MB | Duplex (2.4 MB, 218 elements) | ≤ 30 s | ≤ 5 s | parse 3.3 s, run 0.6 s ✓ |
-| Medium: 10k–50k elements, 50–300 MB | NBU office pair, corpus medium files | ≤ 5 min | ≤ 60 s | NBU Medical Clinic MEP (207 MB, 16,012 elements): **parse 9.0 min ✗** (11.0 before TS-002's mesh repair fix), run 21 s ✓ |
+| Medium: 10k–50k elements, 50–300 MB | NBU office pair, corpus medium files | ≤ 5 min | ≤ 60 s | NBU Medical Clinic MEP (207 MB, 16,012 elements): **parse 9.0 min ✗** (11.0 before TS-002's mesh repair fix; the geometry kernel alone takes 7 min here), run 21 s ✓ |
 | Large: 200k+ elements, > 300 MB | Enterprise only | ≤ 30 min (large pool) | ≤ 5 min | not measured (no such model in the corpus) |
 | Federated medium pair | NBU Medical Clinic (18 + 19 MB): ~2.5 min today | ≤ 3 min both parses in parallel | ≤ 60 s | parse 48 s in parallel, run 23 s ✓ |
 
@@ -30,7 +30,7 @@ CPUs: engine times there are longer. How to repeat them: `08-delivery/testing.md
 | First contentful paint (app shell, warm) | ≤ 1.5 s | 428 ms (worst of 5) ✓ |
 | BoQ sheet: 20k lines | smooth scroll (virtualised); group switch ≤ 300 ms client-side | 60 fps, p95 frame 16.7 ms; switch 52 ms ✓ |
 | Viewer: Duplex interactive | ≤ 3 s warm | 460–630 ms ✓ |
-| Viewer: 50k elements | ≤ 15 s to interactive; picking ≤ 100 ms | **15.9 s ✗** for the 16,012-element MEP model (59 MB GLB, cold; no 50k model in the corpus); picking 6–7 ms (Duplex) ✓ |
+| Viewer: 50k elements | ≤ 15 s to interactive; picking ≤ 100 ms | 4.3–4.9 s cold for the 16,012-element MEP model (59 MB GLB; 15.9 s before outlines were built after the first frame); picking 30 ms there, 6–10 ms on the Duplex ✓ (no 50k model in the corpus) |
 | Live update latency (job finished → UI) | ≤ 2 s | 49 ms, event to refetched data (mock) ✓ |
 | (Pricing module) vendor request page load (500 lines) | ≤ 2 s | module not built (P48) |
 | Live edit visible to other users of the BoQ (P31) | ≤ 1 s | asserted ≤ 1 s by `e2e/co-editing.spec.ts` F06-AC10 ✓ |

@@ -282,16 +282,14 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   English text without a code.
 - **A medium model parses in 9 minutes, not 5** (nfr.md, TS-002): the NBU Medical Clinic MEP model
   (207 MB, 16,012 elements) took 11 min; TS-002 replaced trimesh's per-face winding repair and
-  networkx components with numpy (`engine/ifc_boq/geometry.py`), which brought it to 9 min. What is
-  left: the geometry kernel (about 4 min on 12 cores; the pilot's worker has two), the per-element
-  mesh measurements (about 1.5 min), the JSON-schema check of the parsed model (about 2 min) and the
-  artifacts. Next steps, in order of value: validate the parsed model with a compiled validator or
-  only its envelope for large models; run the mesh measurements in a process pool; check the
-  kernel's settings. All other model, API and UI targets are met.
-- **The viewer misses its large-model target** (nfr.md: 50k elements ≤ 15 s to interactive): the
-  16,012-element MEP model takes 15.9 s cold. Its geometry is one uncompressed 59 MB GLB drawn as
-  16,012 meshes. No 50k-element model is in the corpus. Needs: compressed geometry from the engine
-  (meshopt or Draco) and batched drawing (three.js `BatchedMesh`) that keeps picking per element.
+  networkx components with numpy (`engine/ifc_boq/geometry.py`), which brought it to 9 min. The
+  geometry kernel alone (ifcopenshell building solids from the file's 4.7 million faceted
+  triangles) takes 7 min on 12 cores, so 5 min cannot be reached without changing the kernel: a
+  coarser tessellation does not help (the geometry is already triangles), the per-element Python
+  already runs while the kernel works. Left to try, with care for the quantities: another geometry
+  library or kernel settings; and, apart from the kernel, the JSON-schema check of the parsed model
+  (about 2 min single-core; a compiled validator, or only the envelope for large models). The
+  pilot's worker has two CPUs, so there the kernel takes far longer.
 - The accessibility suite (TS-003) runs axe on the main screens; a manual keyboard and
   screen-reader pass has not been done, and the pricing-module screens of TS-003 (S15c, S29) wait
   for the module (P48).
@@ -361,6 +359,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | 47d299d | FE-045 (segment 2b): the viewer builds edge outlines after the first frame; a 16,012-element model is interactive in 4.3–4.9 s instead of 15.9 s (target 15 s at 50k), picking 30 ms. The medium parse stays at 9 min: the geometry kernel alone takes 7 min on that model (docs/11 phase 3). |
 | 2026-11-21 | 7ae13e8 | TS-002, FE-045: performance suite (engine timing, API latency against the mock and Java, 50k-line ingestion, UI on a production build) with the results in nfr.md; per-route bundle budgets in CI. Engine: numpy winding repair and components (a 207 MB MEP model parses in 9.0 instead of 11.0 min, engine tests 3× faster, Duplex unchanged); geometry progress every 10 s (a parse with over 5 min of silent geometry failed in the mock). Misses left: medium parse 9 min (target 5), large-model viewer 15.9 s (target 15 s at 50k elements). |
 | 2026-11-21 | 5e9fa2c | FE-044, TS-003: accessibility suite (`e2e/a11y.spec.ts`, axe, WCAG 2.2 AA, no serious or critical violation on sign-in, S05, S10, S12a–c, S20, S35) and the v1 criterion 11 check in en-XA (`e2e/pseudo-locale.spec.ts`). Fixed: menu buttons named by their visible text; archive, discard-draft and restore-version buttons were empty since FE-021; the sheet is a treegrid; 3D legend target size; "Show in 3D" underlined; units from the catalogue (F15 §7); the toast area label. |
 | 2026-11-21 | (this commit) | Bug fixes found by CI: the scenario `admin` compared a trial end as a string, and Java writes `…55.140Z` as `…55.14Z` (failed whenever the milliseconds ended in 0); it compares instants now. Presence: leaving on unmount is deferred by a second and cancelled by a remount for the same BoQ, so a remount (React's development double mount) no longer sends PUT, DELETE, PUT with the DELETE arriving last; the likely cause of `e2e/co-editing.spec.ts` F06-AC10 failing at "each sees the other" in 7 of 20 CI runs (never reproduced locally; CI decides). |
