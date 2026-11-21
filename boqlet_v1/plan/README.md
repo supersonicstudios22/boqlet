@@ -194,3 +194,34 @@ merges `v_1` into it.
 | Delivery (08) | Phases, milestones, task lists, session rules and build log written (P37–P40, P44, P45); the pricing module (MP1, MP2) is for a later phase (P48) |
 | Design (06) | Design guidelines decided (P43); wordmark SVG still to come from the owner |
 | **Build** | Phase 1 completed 2026-11-14 (M0–M4 on the mock). Phase 2 completed 2026-11-20 (BE-000, ME, M5–M7 on Java and the real engine; pilot live on one environment, P51; staging BE-032 deferred; carried-over checks listed in the phase-2 summary). Phase 3: **M8a completed 2026-11-21** (FE-041…FE-043: the app on Java with native sign-in, engine fakes gone, every contract change adapted). **Next: M8** (FE-044), after the owner's approval. Live position: `10-build-log.md` |
+
+## v1 acceptance (TS-004, BE-026), 2026-11-21
+
+Checked at `v_1` after M8 segment 3. **Where:** P51 makes booqlet.com the staging environment, but it is
+invite-only and synthetic accounts need host access (`ops/pilot/verify-live.sh`), which the agent did not use.
+So the automated criteria ran through the shared suites on **CI's local native stack** (Java, Postgres, object
+storage and the real engine worker: the code the pilot runs) and on the mock with the real engine. On the
+pilot itself: every deploy's route and private-health probes, and the deployment session's synthetic smoke
+(`docs/19`). A live acceptance run on booqlet.com is left for an operator session with host access.
+
+| # | Criterion | Result | Evidence |
+|---|---|---|---|
+| 1 | Duplex reproduction | ✓ | `tests/scenarios/duplex.test.ts` (every `HAND_BOQ` line and count, on Java and the mock), `e2e/duplex.spec.ts`, engine `test_duplex.py` |
+| 2 | Federation | ✓ | `tests/scenarios/federation.test.ts` (one BoQ from architecture + structure, nothing measured twice, the shared chimney once; Java and mock), engine `test_federation.py` (overlap questions and answers) |
+| 3 | Revision | ✓ | scenarios `changes`, `versions`, `questions` (answers carried over), `e2e/versions-flow.spec.ts`, `e2e/new-versions.spec.ts` |
+| 4 | Traceability (M) | ✓ automated; person check open | `e2e/sheet.spec.ts` F06-AC2/AC5 (detail with formula, settings, shares), `e2e/viewer.spec.ts` F07-AC2 (element to its lines and back) |
+| 5 | Versions | ✓ | scenarios `versions` (`409 revision_locked`, `409 boq_confirmed`, approval), `e2e/versions-flow.spec.ts` |
+| 6 | Pricing module | — | not in v1 (P48) |
+| 7 | Library (M) | ✓ automated; person check open | `e2e/library-editors.spec.ts` F10-AC1 (three settings, preview on the Duplex, publish), scenarios `library-publish` |
+| 8 | Isolation | ✓ | `tests/scenarios/isolation.test.ts` on Java and the mock; Java integration tests (cross-tenant denial) |
+| 9 | Limits | ✓ | scenarios `orgs`, `projects`, `models`, `boqs` (`402 limit_reached` with the limit), `e2e/billing.spec.ts`, `e2e-java/orgs.spec.ts` |
+| 10 | Performance | ✗ one target | `04-architecture/nfr.md`: every target met except the medium-model parse (9 min, target 5; bound by the geometry kernel, `docs/11`) |
+| 11 | i18n | ✓ | `e2e/pseudo-locale.spec.ts` (shell, sheet, questions, Library, share page in en-XA) |
+| 12 | First setup (M) | open | needs a person new to the app; `e2e/setup.spec.ts` runs the wizard end to end |
+| 13 | Editing | ✓ | `e2e/co-editing.spec.ts` F06-AC10, `e2e-java/live.spec.ts`, scenarios `line-edits` (edits survive a new model version), `e2e/exports.spec.ts` FE-037 (Excel edits imported back) |
+| 14 | Vendors | — | not in v1 (P48) |
+| 15 | Share link | ✓ | scenarios `shares`, `e2e/shares.spec.ts` F18-AC1/AC2 (revoked at once), `e2e-java` (upload through a share link) |
+| 16 | Single session | ✓ | `e2e/sessions.spec.ts` F01-AC5, `e2e-java/sessions.spec.ts`, scenarios `state-machines` |
+| 17 | Admin console | ✓ | scenarios `admin` (numbers match the usage pages; no response contains project content), `e2e/admin.spec.ts` |
+
+**Open for v1:** criterion 10's medium parse, the person checks of 4, 7 and 12, and a live run on booqlet.com.

@@ -66,7 +66,7 @@ For a Boqlet-only app rollback, restore the last compatible image set and run th
 
 ## Observability and backups
 
-What BE-025 added (2026-11-21); the pilot takes it with the next release.
+What BE-025 added (2026-11-21). The code ships with every release; the Compose settings (`BOQLET_LOG_FORMAT`, `BOQLET_MANAGEMENT_ENDPOINTS`, `ENGINE_LOG_FORMAT`) are an operator task like every Compose change (`docs/19`): copy `ops/pilot/compose.yaml` to `/srv/boqlet/current/ops/pilot` and recreate `api` and `queue`.
 
 | What | Where | Notes |
 |---|---|---|
