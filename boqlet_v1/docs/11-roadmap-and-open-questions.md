@@ -256,9 +256,12 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   green push to `v_1` deploys to it. A separate staging environment is a future todo (BE-032);
   until then "on staging" checks run on the pilot with synthetic accounts, and load, performance
   and restore tests run against the local native stack.
-- Pilot operations (docs/18): enrolling the first real owner, email delivery to outside addresses,
-  and off-host backup with a tested restore are not qualified yet; no exported traces, metrics or
-  alert routing (BE-025).
+- Pilot operations (docs/18): enrolling the first real owner and email delivery to outside
+  addresses are not qualified yet. Since BE-025 the pilot has JSON logs, metrics and alerts as log
+  lines; still missing: an alert destination (log only, the owner's choice for now), error tracking
+  (needs an account), an exported trace store (needs a collector), and backups actually running:
+  `ops/pilot/backup.sh` is written and its restore is tested in CI, but it is not installed on the
+  host and has no off-host destination yet (`BACKUP_REMOTE`).
 - Billing is manual for pilots; a billing provider waits for paid self-service (BE-021, D7).
 - Local Windows runs of the native queue worker occasionally hang one parse for minutes (seen once in
   the scenario run against Java; CI on Linux hasn't shown it). Investigate if it recurs.
@@ -359,6 +362,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | 4a34fd8 | BE-025: JSON logs with requestId, userId, orgId, jobId and an access line per request; worker JSON logs with the job fields; metrics for job duration, ingestion, live-update streams and limit hits; alerts (queue wait, job failures, API 5xx, DB connections, storage probe) as log lines, the owner's choice for now; OpenTelemetry traces exported when an OTLP endpoint is set; `ops/pilot/backup.sh` and `restore-check.sh`, the restore tested in CI (`BackupRestoreTest`). Not yet: alert destination, error tracking, backups installed on the host with an off-host copy (docs/18). |
 | 2026-11-21 | 47d299d | FE-045 (segment 2b): the viewer builds edge outlines after the first frame; a 16,012-element model is interactive in 4.3–4.9 s instead of 15.9 s (target 15 s at 50k), picking 30 ms. The medium parse stays at 9 min: the geometry kernel alone takes 7 min on that model (docs/11 phase 3). |
 | 2026-11-21 | 7ae13e8 | TS-002, FE-045: performance suite (engine timing, API latency against the mock and Java, 50k-line ingestion, UI on a production build) with the results in nfr.md; per-route bundle budgets in CI. Engine: numpy winding repair and components (a 207 MB MEP model parses in 9.0 instead of 11.0 min, engine tests 3× faster, Duplex unchanged); geometry progress every 10 s (a parse with over 5 min of silent geometry failed in the mock). Misses left: medium parse 9 min (target 5), large-model viewer 15.9 s (target 15 s at 50k elements). |
 | 2026-11-21 | 5e9fa2c | FE-044, TS-003: accessibility suite (`e2e/a11y.spec.ts`, axe, WCAG 2.2 AA, no serious or critical violation on sign-in, S05, S10, S12a–c, S20, S35) and the v1 criterion 11 check in en-XA (`e2e/pseudo-locale.spec.ts`). Fixed: menu buttons named by their visible text; archive, discard-draft and restore-version buttons were empty since FE-021; the sheet is a treegrid; 3D legend target size; "Show in 3D" underlined; units from the catalogue (F15 §7); the toast area label. |

@@ -64,6 +64,19 @@ Both frontends initially registered the Compose service name `web` on separate n
 
 For a Boqlet-only app rollback, restore the last compatible image set and run the authenticated smoke check. For a full cutoff, use `bash edge.sh rollback` with the recorded baseline and verify the Narudzbe apex and API bootstrap. Apply the DNS rollback batch from the Boqlet zone if returning the apex to its former server. Keep the Boqlet volumes. Do not use `docker compose down -v` to roll back an image or routing change.
 
+## Observability and backups
+
+What BE-025 added (2026-11-21); the pilot takes it with the next release.
+
+| What | Where | Notes |
+|---|---|---|
+| Logs | `docker compose logs api queue` | JSON (ECS) from the API: one `com.boqlet.api.access` line per API request (method, path, status, `durationMs`) and every line with `requestId`, `userId`, `orgId`, `jobId` and trace ids where known; the queue worker's JSON lines carry `jobId`, `jobType`, `attempt`, `jobStatus`, `durationMs`. Follow a job across both by `jobId`. |
+| Metrics | `GET http://api:8080/actuator/prometheus` on the internal network | Request rate, latency and errors per endpoint (`http_server_requests`), queue depth and oldest wait per pool (`boqlet_jobs_*`), job duration by type, status and size class (`boqlet_jobs_duration`), run ingestion (`boqlet_runs_ingestion`), live-update streams (`boqlet_sse_connections`), limit hits (`boqlet_limits_hits`), connection pool (`hikaricp_*`). Not exposed by the ingress (it routes `/api/v1` only). |
+| Traces | OpenTelemetry through Micrometer | Spans are exported only when `MANAGEMENT_OTLP_TRACING_ENDPOINT` is set (an OTLP collector); sampling `BOQLET_TRACING_SAMPLING` (default 1.0). |
+| Alerts | log lines | Checked every minute by each API instance (`AlertMonitor`): `queue_wait` > 300 s, `job_failure_rate` > 5 % in the last hour (from 20 jobs), `api_5xx_rate` > 1 % in 5 min (from 100 requests), `db_connections` > 80 % of the pool, `storage_errors` (a probe). A WARN line `alert.firing <name>` when one starts, INFO `alert.resolved <name>` when it ends; gauge `boqlet_alerts_firing{alert}`. **No destination yet** (the owner, 2026-11-21: log only); `docker compose logs api | grep alert.firing` shows them. |
+| Backups | [backup.sh](../ops/pilot/backup.sh) | `pg_dump -Fc` of `boqlet`, the roles, and a tar of the object volume into `/srv/boqlet/backups`, 14 days kept; `BACKUP_REMOTE` (an rclone remote) copies them off the host. **Not installed yet**: run it from a root systemd timer, hourly for RPO 1 h. |
+| Restore check | [restore-check.sh](../ops/pilot/restore-check.sh) | Restores the newest dump into a scratch database, compares every table's row count with the live one and drops it. The same restore runs in CI on the local stack (`services/api` `BackupRestoreTest`). |
+
 ## Verification and current limits
 
 - Public TLS and endpoints passed for app and OIDC. Unsigned object requests and the Keycloak admin path are blocked. The Narudzbe apex returned HTTP 200 and its correct-origin API bootstrap returned 200 after the proxy rollout.

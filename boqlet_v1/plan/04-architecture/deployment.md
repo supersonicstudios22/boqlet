@@ -64,9 +64,17 @@ URLs (CORS: PUT/GET from the app origin only).
   DB connections > 80%, storage errors.
 - Error tracking (Sentry or equivalent) for web and API.
 
+Built in BE-025 (2026-11-21): the logs, metrics, alerts and traces above, with alerts as log lines
+until a destination is chosen and no error tracking yet (both need an account); operator view in
+`docs/18` "Observability and backups".
+
 ## Backups and recovery
 
 - Postgres: point-in-time recovery, 14 days. Daily restore test on staging (weekly in v1).
 - Storage: versioning on the bucket for `uploads/`, `runs/`, `exports/`. Parse artifacts can be
   recomputed from `uploads/`.
 - RPO 1 h, RTO 4 h for v1 (nfr.md).
+- Pilot (P51): `ops/pilot/backup.sh` (database dump, roles, object volume; 14 days; off-host copy
+  with `BACKUP_REMOTE`) and `ops/pilot/restore-check.sh`; the restore is tested in CI
+  (`BackupRestoreTest`). The pilot's Postgres is a container, so point-in-time recovery is
+  replaced by hourly dumps until a managed database is used.

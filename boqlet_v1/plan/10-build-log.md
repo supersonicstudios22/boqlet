@@ -23,8 +23,8 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 | Phase | **Phase 3**, integration and release (M8a done; M8 under way) |
 | Role | **Frontend agent** |
 | Latest verified | CI on `5f10fe5` (2026-11-21): all seven jobs green, the 106 browser tests on the mock (F06-AC10 presence passed on its first try), the scenario suite and the browser smoke against Java; the rollout to the pilot passed. |
-| Next task | M8 in segments; the owner (2026-11-21): when a segment is done, go on with the next one (for 3, after reporting 2b and asking). (1) FE-044 + TS-003 **done** (`5e9fa2c`). (2) TS-002 + FE-045 **done** (`7ae13e8`). (2b) performance fixes **done** (`47d299d`): the large-model viewer meets its target; the medium parse (9 min, target 5) is bound by the geometry kernel and stays in `docs/11` phase 3. **Next: (3) BE-025** observability and ops, once the owner confirms; then (4) BE-026 + TS-004 the v1 acceptance run on the pilot; (5) FE-046 the new repository root; (6) FE-047 the release. |
-| Waiting for the owner | A go for each segment after the current one. The owner approved M8 on 2026-11-21. For FE-047 (2026-11-21): email and billing stay as the pilot has them; the go to merge `v_1` into `main` is still the owner's. |
+| Next task | M8 in segments; **the owner (2026-11-21): do not stop until M8 is complete** (report after each segment). (1) FE-044 + TS-003 **done** (`5e9fa2c`). (2) TS-002 + FE-045 **done** (`7ae13e8`). (2b) performance fixes **done** (`47d299d`). (3) BE-025 **done** (`4a34fd8`; alerts log only, the owner's choice). **Next: (4) BE-026 + TS-004** the v1 acceptance run on the pilot; then (5) FE-046 the new repository root; (6) FE-047 the release (the owner gave the go to merge `v_1` into `main`; email and billing stay as they are). |
+| Waiting for the owner | Nothing blocks M8. Needs a person, prepared but not done by the agent: v1 criterion 12 (a new user runs the setup wizard), opening exported workbooks in Excel and LibreOffice. Later, the owner's: an alert destination, error tracking, installing `ops/pilot/backup.sh` with an off-host copy, removing the Vercel demo after FE-047. |
 | In progress | Nothing. |
 | Notes for the next session | One deployed environment (P51): "on staging" means the pilot, with synthetic accounts in a controlled verification window (`ops/pilot/verify-live.sh`); load, performance and restore tests run against the local native stack, never the pilot. Every green push to `v_1` deploys to the pilot automatically, so keep `v_1` green. Sign-in is native (P50, `docs/19`). Browser tests against Java are the smoke set in `apps/app/e2e-java` (P52, `08-delivery/testing.md`). Phase-2 checks still open are in `docs/11` "Known limitations … phase 2"; phase-3 ones under "… phase 3". Pricing stays deferred (P48). |
 
@@ -44,6 +44,15 @@ Not here: finished tasks one by one (`docs/11` "Done"), product decisions (the o
 ```
 
 ## Entries
+
+### 2026-11-21 — Owner decisions: M8 to the end; BE-025 alerts in the log (frontend agent)
+- **Decisions taken:** the owner asked to run the rest of M8 without stopping, reporting after each segment, and gave
+  the go to merge `v_1` into `main` at FE-047. Alerts stay log lines for now (no destination). BE-025's choices:
+  Micrometer's OpenTelemetry bridge (versions from Spring Boot 3.5), spans exported only with
+  `MANAGEMENT_OTLP_TRACING_ENDPOINT`; ECS JSON logs; `LogContext` for the log fields; the backup is `pg_dump -Fc`
+  plus a tar of the object volume (the pilot has no managed database with point-in-time recovery).
+- **For the next agent:** `backup.sh` is not installed on the host; installing it (a root systemd timer) and an
+  off-host destination are the owner's. The restore itself is tested by `BackupRestoreTest` on every CI run.
 
 ### 2026-11-21 — M8a Wire up (frontend agent)
 - **Built:** FE-041 (`c538394`..`67e46c0`, `e9eadfb`, `ececd45`, `c5ee763`, `f1779fd`, `a8ff18b`, `6a7abee`,
