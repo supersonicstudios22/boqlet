@@ -277,6 +277,12 @@ What phase 2 left open, with the task that deals with each. Phase 3 starts with 
   structured params before a translation is worth writing. The warnings `rule_set` (English problem
   text) and `federation_hole` (params without the class, file and owner) use the fallback too
   (`apps/app/src/i18n/engine-message.ts`). This matters only once a second language is added (P07).
+  The same holds for the answer options of engine questions ("Use the volume stated in the file")
+  and line notes from the engine ("no model behind this line…"): they come from the engine as
+  English text without a code.
+- The accessibility suite (TS-003) runs axe on the main screens; a manual keyboard and
+  screen-reader pass has not been done, and the pricing-module screens of TS-003 (S15c, S29) wait
+  for the module (P48).
 
 ## Suggested next steps
 
@@ -343,6 +349,7 @@ Newest first. One line per piece of work; details are in the commit and the link
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-21 | 5e9fa2c | FE-044, TS-003: accessibility suite (`e2e/a11y.spec.ts`, axe, WCAG 2.2 AA, no serious or critical violation on sign-in, S05, S10, S12a–c, S20, S35) and the v1 criterion 11 check in en-XA (`e2e/pseudo-locale.spec.ts`). Fixed: menu buttons named by their visible text; archive, discard-draft and restore-version buttons were empty since FE-021; the sheet is a treegrid; 3D legend target size; "Show in 3D" underlined; units from the catalogue (F15 §7); the toast area label. |
 | 2026-11-21 | (this commit) | Bug fixes found by CI: the scenario `admin` compared a trial end as a string, and Java writes `…55.140Z` as `…55.14Z` (failed whenever the milliseconds ended in 0); it compares instants now. Presence: leaving on unmount is deferred by a second and cancelled by a remount for the same BoQ, so a remount (React's development double mount) no longer sends PUT, DELETE, PUT with the DELETE arriving last; the likely cause of `e2e/co-editing.spec.ts` F06-AC10 failing at "each sees the other" in 7 of 20 CI runs (never reproduced locally; CI decides). |
 | 2026-11-21 | a48496c | FE-041: engine messages render from their codes (contract change C01, F15 §4): questions, warnings, the run log and line detail show `engine.{code}` with the params, else the engine's English; every Duplex question renders from its key (F15-AC3, `e2e/questions.spec.ts`). Line detail names the code source `item` (C03); `item_text_blank` renders from its key (C04). |
 | 2026-11-20 | 56984aa | FE-041, FE-043: browser smoke against Java with native sign-in (P52), 13 Playwright tests in `apps/app/e2e-java`, in CI's API job: F01-AC1..AC6, native cookie and origin rules, reset links, FL-1's sample BoQ, upload through share link, live co-editing. |

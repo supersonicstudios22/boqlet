@@ -46,6 +46,7 @@ Set in FE-001; change them deliberately and update this table.
 | `eslint`, `eslint-config-next` | 9.39.5, 16.4.6 | `apps/app` (ESLint 10 is not supported by `eslint-plugin-react` yet) |
 | `vitest`, `@vitejs/plugin-react`, `@testing-library/react`, `jsdom` | 5.1.0, 6.3.0, 16.3.3, 31.0.0 | `apps/app` (`npm run test` goes through `scripts/vitest.mjs`, which upper-cases a Windows drive letter in the cwd; Git Bash otherwise makes Vitest load itself twice) |
 | `@playwright/test` | 1.65.0 | `apps/app` (`npx playwright install chromium` once per machine) |
+| `@axe-core/playwright` | 4.14.0 | `apps/app` dev dependency: the accessibility suite `e2e/a11y.spec.ts` (TS-003, FE-044) |
 | TypeScript | 5.x (5.9 installed) | every workspace; `apps/app/tsconfig.json` maps `react` to its own `@types/react` 19 (the PoC hoists 18) |
 
 **shadcn components.** The registry's `base-mira` components import `cn` from an npm package
