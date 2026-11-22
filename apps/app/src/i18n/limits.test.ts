@@ -10,7 +10,7 @@ import notifications from "../../messages/en/notifications.json";
  * name in words, used by the limit dialog and the limit notifications, never the API's key.
  */
 const t = createTranslator({ locale: "en", messages: { errors, notifications } });
-const openapi = readFileSync(path.resolve(__dirname, "../../../../packages/api/openapi.yaml"), "utf8");
+const openapi = readFileSync(path.resolve(__dirname, "../../../../packages/api/openapi.yaml"), "utf8").replace(/\r\n/g, "\n"); // CRLF on a Windows checkout
 const block = openapi.slice(openapi.indexOf("\n    Entitlements:\n"), openapi.indexOf("\n    Plan:\n"));
 const limits = [...block.matchAll(/\n {8}(\w+): \{ type:/g)].map((m) => m[1]!);
 

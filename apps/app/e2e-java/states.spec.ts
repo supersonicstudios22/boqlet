@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from "./helpers";
+import { APP, apiAs, createOrg, newPerson, useSession, waitFor, type Person } from "./helpers";
 
 /**
  * Smoke against Java: the sheet with the mouse and the screens' states.
@@ -59,17 +59,22 @@ test("TF-104 and TF-103: double-click a quantity of a line not selected; pick a 
   await expect(page.locator(`[data-testid="sheet-line"][data-key=${JSON.stringify(key)}] [data-column="item"]`)).toHaveText(code);
 });
 
-test.describe("without WebGL", () => {
-  test.use({ launchOptions: { args: ["--disable-webgl", "--disable-webgl2", "--disable-3d-apis"] } });
-  test("TF-106: the viewer says so and lists the elements; picking one shows its lines", async ({ page }) => {
-    const { owner, url } = await sampleBoq("Nia Nogl");
-    await useSession(page.context(), owner);
+// A browser of its own without WebGL (launch options can't be set per describe group: they need a new worker).
+test("TF-106: without WebGL the viewer says so and lists the elements; picking one shows its lines", async ({ playwright }) => {
+  const { owner, url } = await sampleBoq("Nia Nogl");
+  const browser = await playwright.chromium.launch({ args: ["--disable-webgl", "--disable-webgl2", "--disable-3d-apis"] });
+  try {
+    const context = await browser.newContext({ baseURL: APP });
+    await useSession(context, owner);
+    const page = await context.newPage();
     await page.goto(`${url}?tab=viewer`);
     await expect(page.getByTestId("viewer-no-webgl")).toBeVisible();
     await expect(page.getByTestId("viewer-list-element").first()).toBeVisible({ timeout: 60_000 });
     await page.getByTestId("viewer-list-element").nth(3).click();
     await expect(page.getByTestId("viewer-selection")).toBeVisible();
-  });
+  } finally {
+    await browser.close();
+  }
 });
 
 test("TF-017 / TF-019: a project the API can't load says so with Try again, and recovers", async ({ page }) => {

@@ -6,8 +6,10 @@ import { LIMITS } from "./limits";
 /** TF-174 (C08): the inputs carry the API's request limits, so the API never has to refuse them. */
 
 const app = path.resolve(__dirname, "../..");
-const openapi = readFileSync(path.resolve(app, "../../packages/api/openapi.yaml"), "utf8");
-const source = (file: string) => readFileSync(path.join(app, file), "utf8");
+// Line endings normalised: a Windows checkout has CRLF (core.autocrlf).
+const text = (file: string) => readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+const openapi = text(path.resolve(app, "../../packages/api/openapi.yaml"));
+const source = (file: string) => text(path.join(app, file));
 /** `maxLength` of a property in a component schema of the contract. */
 function contractLimit(schema: string, prop: string): number {
   const at = openapi.indexOf(`\n    ${schema}:\n`);
