@@ -179,3 +179,34 @@ describe("decisions page (F05 §7)", () => {
     expect(lines).toHaveLength(count + 1);
   });
 });
+
+describe("a decision the run doesn't use is not a pending change (BR-23, TF-029)", () => {
+  it("answers about other questions leave the revision ready to save, also when they go to the project dictionary", async () => {
+    const api = client(owner.token);
+    const { data: org } = await api.POST("/orgs", { body: { name: "Pending Firm", slug: slug("pending") } });
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex pending" } });
+    const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
+    const version = await uploadVersion(owner, model!.id, await duplexBytes(), "Ifc2x3_Duplex_Architecture.ifc");
+    expect((await waitForVersion(owner, version.id)).status).toBe("ready");
+    const bill = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } }, body: { name: "X" } })).data!;
+    const { data: started } = await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: bill.currentRevision.id } } });
+    await finished(api, started!.run.id);
+    const pending = async () => (await api.GET("/boqs/{boqId}", { params: { path: { boqId: bill.id } } })).data!.currentRevision.pendingChanges;
+    expect(await pending()).toEqual([]);
+    const { data: terms } = await api.GET("/orgs/{orgId}/terms", { params: { path: { orgId: org!.id } } });
+    const material = terms!.find((t) => t.category === "material")!.id;
+    // A question of another BoQ (or of a model this BoQ doesn't use), and a name answer that publishes the project dictionary.
+    const { data, response } = await api.POST("/projects/{projectId}/decisions", {
+      params: { path: { projectId: project!.id } },
+      body: { decisions: [
+        { questionId: "unmatched:IfcSlab:TF-029 another BoQ", kind: "unmatched", answer: "skip" },
+        { questionId: "name:material:TF-029 not in this model", kind: "unknown_name", answer: material },
+      ] },
+    });
+    expect(response.status).toBe(200);
+    expect(data!.reopenedRevisions).toEqual([]);
+    expect(await pending()).toEqual([]);
+    const saved = await api.POST("/revisions/{revisionId}/issue", { params: { path: { revisionId: bill.currentRevision.id } }, body: { notModelledConfirmed: true } });
+    expect(saved.response.status, JSON.stringify(saved.error)).toBe(200);
+  }, 300_000);
+});

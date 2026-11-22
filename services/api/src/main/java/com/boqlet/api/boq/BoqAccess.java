@@ -145,7 +145,8 @@ public class BoqAccess {
     List<String> pending(Scope scope) {
         var r = scope.revision();
         if (r.run() == null || r.status() == RevisionStatus.ISSUED) return List.of();
-        return inputs.changes(runs.require(r.run()).snapshot(), inputs.snapshot(scope.project(), scope.bill().id(), clean(r.inputs())));
+        var asked = new HashSet<>(database.queryForList("SELECT question_id FROM run_questions WHERE run_id = ?", String.class, r.run()));
+        return inputs.changes(runs.require(r.run()).snapshot(), inputs.snapshot(scope.project(), scope.bill().id(), clean(r.inputs())), asked);
     }
 
     private RevisionInputs clean(RevisionInputs input) {

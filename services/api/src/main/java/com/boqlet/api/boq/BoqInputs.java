@@ -97,18 +97,34 @@ class BoqInputs {
     }
 
     List<String> changes(ObjectNode before, ObjectNode after) {
+        return changes(before, after, null);
+    }
+
+    /**
+     * What changed between a run's snapshot and the current state. With `asked` (the question ids the run
+     * asked), only what can alter that run counts (BR-23, backend.md "Pending changes", TF-029): decisions
+     * for those questions or for the ones it applied, and project-dictionary entries other than the
+     * answers to questions the run didn't ask. A decision about another BoQ's question is not pending.
+     */
+    List<String> changes(ObjectNode before, ObjectNode after, Set<String> asked) {
         var out = new ArrayList<String>();
+        Set<String> relevant = null;
+        if (asked != null) {
+            relevant = new HashSet<>(asked);
+            relevant.addAll(answers(before).keySet());
+        }
         var oldInputs = before.path("inputs");
         var inputs = after.path("inputs");
         if (!modelsById(oldInputs.path("models")).equals(modelsById(inputs.path("models")))) out.add("inputs.models");
         if (!equal(oldInputs, inputs, "ruleSetVersionId")) out.add("inputs.ruleSet");
         if (!equal(oldInputs, inputs, "classificationVersionIds")) out.add("inputs.classifications");
-        if (!equal(oldInputs, inputs, "dictionaryVersionIds") || !equal(before, after, "projectDictionaryVersionId")) {
+        if (!equal(oldInputs, inputs, "dictionaryVersionIds") || !equal(before, after, "projectDictionaryVersionId")
+                && (relevant == null || projectDictionaryChanged(before, after, relevant))) {
             out.add("inputs.dictionaries");
         }
         if (!equal(oldInputs, inputs, "federationVersionId")) out.add("inputs.federation");
         if (!equal(oldInputs, inputs, "resolutionVersionId")) out.add("inputs.resolution");
-        if (!answers(before).equals(answers(after))) out.add("decisions");
+        if (!answers(before, relevant).equals(answers(after, relevant))) out.add("decisions");
         if (!equal(before, after, "overrides") || !equal(before, after, "manualItems")) out.add("adjustments");
         return out;
     }
@@ -179,11 +195,38 @@ class BoqInputs {
     }
 
     private static Map<String, JsonNode> answers(JsonNode snapshot) {
+        return answers(snapshot, null);
+    }
+
+    private static Map<String, JsonNode> answers(JsonNode snapshot, Set<String> relevant) {
         var answers = new TreeMap<String, JsonNode>();
         for (JsonNode decision : snapshot.path("decisions")) {
-            answers.put(decision.path("questionId").asText(), decision.get("answer"));
+            String id = decision.path("questionId").asText();
+            if (relevant == null || relevant.contains(id)) answers.put(id, decision.get("answer"));
         }
         return answers;
+    }
+
+    /** The project dictionary's entries differ beyond answers (`answer:<field>:<raw>`) to questions the run didn't ask. */
+    private boolean projectDictionaryChanged(JsonNode before, JsonNode after, Set<String> relevant) {
+        var old = entries(before.path("projectDictionaryVersionId"));
+        var now = entries(after.path("projectDictionaryVersionId"));
+        var ids = new HashSet<>(old.keySet());
+        ids.addAll(now.keySet());
+        for (String id : ids) {
+            if (Objects.equals(old.get(id), now.get(id))) continue;
+            if (!id.startsWith("answer:") || relevant.contains("name:" + id.substring("answer:".length()))) return true;
+        }
+        return false;
+    }
+
+    private Map<String, JsonNode> entries(JsonNode version) {
+        var out = new HashMap<String, JsonNode>();
+        if (!version.isTextual()) return out;
+        for (JsonNode entry : catalog.version(UUID.fromString(version.asText())).doc().path("entries")) {
+            out.put(entry.path("id").asText(), entry);
+        }
+        return out;
     }
 
     private static boolean equal(JsonNode before, JsonNode after, String property) {
