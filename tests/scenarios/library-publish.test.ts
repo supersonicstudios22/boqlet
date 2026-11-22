@@ -135,8 +135,9 @@ describe("F10 §6 preview (fake until EN-005)", () => {
     versionId = version.id;
   }, 240_000);
 
-  async function preview(presetId: string): Promise<{ job: Schemas["Job"]; result: PreviewResult }> {
-    const started = await api(olivia).POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { modelVersionIds: [versionId] } });
+  async function preview(presetId: string, otherInputs?: Schemas["RevisionInputsPartial"]): Promise<{ job: Schemas["Job"]; result: PreviewResult }> {
+    const started = await api(olivia).POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { modelVersionIds: [versionId], ...(otherInputs ? { otherInputs } : {}) } });
+    expect(started.response.status, JSON.stringify(started.error)).toBe(202);
     expect(started.response.status).toBe(202);
     let job = started.data!;
     const deadline = Date.now() + 120_000;
@@ -181,5 +182,15 @@ describe("F10 §6 preview (fake until EN-005)", () => {
     // Ivana edits the Library but isn't on this project.
     const outsider = await api(ivana).POST("/presets/{presetId}/preview", { params: { path: { presetId: preset.id } }, body: { modelVersionIds: [versionId] } });
     expect(outsider.response.status).toBe(404);
+  }, 240_000);
+
+  it("TF-133 (F16-AC2): a preview may use the caller's own drafts as the other inputs, as the setup wizard does", async () => {
+    const rules = await newPatch(`Wizard rules ${slug("w")}`);
+    const ruleDraft = (await api(olivia).GET("/presets/{presetId}", { params: { path: { presetId: rules.id } } })).data!.draft!.id;
+    const codes = (await api(olivia).POST("/orgs/{orgId}/presets", { params: { path: { orgId: studioId } }, body: { kind: "classification", name: `Wizard codes ${slug("c")}`, start: { mode: "empty" } } })).data!;
+    const codesDraft = (await api(olivia).GET("/presets/{presetId}", { params: { path: { presetId: codes.id } } })).data!.draft!.id;
+    expect((await preview(codes.id, { ruleSetVersionId: ruleDraft })).result.lines.length).toBeGreaterThan(10);
+    const names = (await api(olivia).POST("/orgs/{orgId}/presets", { params: { path: { orgId: studioId } }, body: { kind: "dictionary", name: `Wizard names ${slug("n")}`, start: { mode: "empty" } } })).data!;
+    expect((await preview(names.id, { ruleSetVersionId: ruleDraft, classificationVersionIds: [codesDraft] })).result.lines.length).toBeGreaterThan(10);
   }, 240_000);
 });

@@ -338,6 +338,26 @@ public class Library {
         return catalog.head(id);
     }
 
+    /**
+     * The version is the current draft of a preset of this kind that the actor may edit, in the org
+     * (or project) being previewed: a preview may use it as another input (the setup wizard previews
+     * its step's draft with the rule-set draft of step 1, TF-133).
+     */
+    public boolean ownDraft(PresetCatalog.Version version, PresetKind kind, UUID org, UUID project, UUID actor) {
+        if (!version.draft()) return false;
+        var head = catalog.head(version.preset());
+        if (head.kind() != kind || !version.id().equals(head.draft()) || head.unavailable() != null
+                || head.layer() == PresetLayer.SYSTEM || !org.equals(head.org())
+                || (head.project() != null && !head.project().equals(project))) {
+            return false;
+        }
+        try {
+            return access(head.id(), actor).edit();
+        } catch (ApiException notVisible) {
+            return false;
+        }
+    }
+
     private Access access(UUID id, UUID actor) {
         var head = catalog.head(id);
         boolean edit = switch (head.layer()) {

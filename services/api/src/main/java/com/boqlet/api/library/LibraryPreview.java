@@ -51,14 +51,20 @@ class LibraryPreview {
         UUID ruleId = alternate != null && alternate.getRuleSetVersionId() != null
                 ? alternate.getRuleSetVersionId() : defaults.getRuleSetVersionId().orElse(null);
         if (ruleId == null && head.kind() != PresetKind.RULE_SET) throw invalid("no_rule_set", "Choose a rule set first.");
-        var rules = head.kind() == PresetKind.RULE_SET ? source :
-                catalog.selected(org, project.getId(), ruleId, PresetKind.RULE_SET);
+        var rules = head.kind() == PresetKind.RULE_SET ? source : input(org, project.getId(), ruleId, PresetKind.RULE_SET, actor);
         List<UUID> classIds = alternate != null && alternate.getClassificationVersionIds() != null
                 ? alternate.getClassificationVersionIds() : defaults.getClassificationVersionIds();
-        var classifications = choose(org, project.getId(), classIds, PresetKind.CLASSIFICATION, head, source);
+        var classifications = choose(org, project.getId(), classIds, PresetKind.CLASSIFICATION, head, source, actor);
         List<UUID> dictionaryIds = alternate != null && alternate.getDictionaryVersionIds() != null
                 ? alternate.getDictionaryVersionIds() : defaults.getDictionaryVersionIds();
-        var dictionaries = new ArrayList<>(catalog.dictionaries(org, project.getId(), dictionaryIds, project.getProjectDictionaryId()));
+        var dictionaries = new ArrayList<PresetCatalog.Version>();
+        if (dictionaryIds != null) dictionaryIds.forEach(id -> dictionaries.add(input(org, project.getId(), id, PresetKind.DICTIONARY, actor)));
+        // The project dictionary's published version comes last, as in a run, unless its draft is selected.
+        for (var version : catalog.dictionaries(org, project.getId(), List.of(), project.getProjectDictionaryId())) {
+            if (dictionaries.stream().noneMatch(chosen -> chosen.id().equals(version.id()) || chosen.preset().equals(version.preset()))) {
+                dictionaries.add(version);
+            }
+        }
         if (head.kind() == PresetKind.DICTIONARY) replace(dictionaries, source);
         var payload = new LinkedHashMap<String, Object>();
         payload.put("models", selected.stream().map(Models.WorkerModel::input).toList());
@@ -68,10 +74,10 @@ class LibraryPreview {
         UUID federation = alternate != null && alternate.getFederationVersionId().isPresent()
                 ? alternate.getFederationVersionId().get() : defaults.getFederationVersionId().orElse(null);
         payload.put("federation", federation == null ? catalog.system(PresetKind.FEDERATION, "federation-default").doc()
-                : catalog.selected(org, project.getId(), federation, PresetKind.FEDERATION).doc());
+                : input(org, project.getId(), federation, PresetKind.FEDERATION, actor).doc());
         UUID resolution = alternate == null ? null : alternate.getResolutionVersionId().orElse(null);
         payload.put("resolution", resolution == null ? catalog.system(PresetKind.RESOLUTION, "resolution-default").doc()
-                : catalog.selected(org, project.getId(), resolution, PresetKind.RESOLUTION).doc());
+                : input(org, project.getId(), resolution, PresetKind.RESOLUTION, actor).doc());
         if (head.kind() == PresetKind.FEDERATION) payload.put("federation", source.doc());
         if (head.kind() == PresetKind.RESOLUTION) payload.put("resolution", source.doc());
 
@@ -97,10 +103,16 @@ class LibraryPreview {
         return jobs.get(job, actor);
     }
 
+    /** A published version available here, or the actor's own draft (TF-133); else `400 invalid_preset`. */
+    private PresetCatalog.Version input(UUID org, UUID project, UUID id, PresetKind kind, UUID actor) {
+        var version = catalog.version(id);
+        return library.ownDraft(version, kind, org, project, actor) ? version : catalog.selected(org, project, id, kind);
+    }
+
     private List<PresetCatalog.Version> choose(UUID org, UUID project, List<UUID> ids, PresetKind kind,
-                                               PresetCatalog.Head head, PresetCatalog.Version source) {
+                                               PresetCatalog.Head head, PresetCatalog.Version source, UUID actor) {
         var versions = new ArrayList<PresetCatalog.Version>();
-        if (ids != null) ids.forEach(id -> versions.add(catalog.selected(org, project, id, kind)));
+        if (ids != null) ids.forEach(id -> versions.add(input(org, project, id, kind, actor)));
         if (head.kind() == kind) replace(versions, source);
         return versions;
     }
