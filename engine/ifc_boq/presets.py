@@ -39,21 +39,35 @@ def _schema(name: str):
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
+@lru_cache(maxsize=16)
+def _compiled(name: str):
+    """A schema's validator, built once (jsonschema.validate re-checks the schema itself on every call)."""
+    import jsonschema
+    schema = _schema(name)
+    return jsonschema.validators.validator_for(schema)(schema)
+
+
 def validate(doc: dict, kind: str, where: str = "") -> None:
-    schema = _schema(SCHEMA_FOR[kind])
-    if schema is None:
+    if _schema(SCHEMA_FOR[kind]) is None:
         return
     import jsonschema
-    try:
-        jsonschema.validate(doc, schema)
-    except jsonschema.ValidationError as e:
-        path = "/".join(str(p) for p in e.absolute_path)
-        raise ValueError(f"{where or kind}: invalid at '{path}': {e.message[:300]}") from None
+    error = jsonschema.exceptions.best_match(_compiled(SCHEMA_FOR[kind]).iter_errors(doc))
+    if error is not None:
+        path = "/".join(str(p) for p in error.absolute_path)
+        raise ValueError(f"{where or kind}: invalid at '{path}': {error.message[:300]}") from None
+
+
+# Preset files already validated, by path and (mtime, size): check() reads every shipped rule set twice per
+# call, and validating them each time took about 1 s of a draft save (TF-134). A changed file is read again.
+_VALIDATED: dict[Path, tuple[int, int]] = {}
 
 
 def _load(p: Path, kind: str) -> dict:
+    stat = p.stat()
     doc = json.loads(p.read_text(encoding="utf-8"))
-    validate(doc, kind, str(p.relative_to(PRESETS.parent)) if PRESETS.parent in p.parents else str(p))
+    if _VALIDATED.get(p) != (stat.st_mtime_ns, stat.st_size):
+        validate(doc, kind, str(p.relative_to(PRESETS.parent)) if PRESETS.parent in p.parents else str(p))
+        _VALIDATED[p] = (stat.st_mtime_ns, stat.st_size)
     return doc
 
 

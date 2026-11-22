@@ -107,12 +107,18 @@ def nominal_mass_per_length(profile: str | None) -> float | None:
     return float(m.group(1)) if m else None
 
 
+# The sources' set-name patterns, compiled once: fnmatch.fnmatch per set and pattern was most of a
+# Duplex run (~0.4 s of 0.6, TF-134). Case-sensitive, as fnmatch is on Linux where the engine runs.
+_SOURCE_PATTERNS = {kind: [(re.compile(fnmatch.translate(set_glob)).match, prop) for set_glob, prop in sources]
+                    for kind, sources in SOURCES.items() if isinstance(sources, list)}
+
+
 def find_reported(el: dict, kind: str):
     """First reported value for a quantity kind: (value, "Set.Prop") or (None, None)."""
-    for set_glob, prop in SOURCES.get(kind, []):
+    for matches, prop in _SOURCE_PATTERNS.get(kind, []):
         for bucket in (el["quantities"]["reported"], el["psets"]):
             for set_name, props in bucket.items():
-                if fnmatch.fnmatch(set_name, set_glob):
+                if matches(set_name):
                     v = props.get(prop)
                     if isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0:
                         return float(v), f"{set_name}.{prop}"

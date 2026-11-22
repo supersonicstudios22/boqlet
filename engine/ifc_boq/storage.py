@@ -117,7 +117,8 @@ def write_json_gzip(storage: Storage, key: str, doc: dict) -> None:
     with NamedTemporaryFile(delete=False) as stream:
         temp = Path(stream.name)
     try:
-        with gzip.open(temp, "wt", encoding="utf-8") as stream:
+        # Level 6: a third of level 9's time for a few percent more bytes (TF-134).
+        with gzip.open(temp, "wt", encoding="utf-8", compresslevel=6) as stream:
             json.dump(doc, stream, ensure_ascii=False, allow_nan=False)
         storage.put_file(key, temp)
     finally:

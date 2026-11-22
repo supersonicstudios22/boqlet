@@ -135,3 +135,39 @@ def test_parse_errors_use_the_version_error_codes(tmp_path, monkeypatch):
     assert first["error"]["code"] == second["error"]["code"] == "parse_timeout"
     assert first["error"]["retryable"] and not second["error"]["retryable"]
     assert worker_queue._timeout({"jobId": "j", "type": "run", "attempt": 1})["error"]["code"] == "engine_timeout"
+
+
+def test_a_preview_reuses_its_models_and_inputs_and_answers_what_two_runs_answer(tmp_path, monkeypatch):
+    """TF-134: a wizard preview (two runs on one Duplex) loads the models once, checks a document it has
+    seen once, and its results are those of the two runs made apart."""
+    from ifc_boq import worker
+    storage = LocalStorage(tmp_path)
+    storage.put_file("uploads/source.ifc", DUPLEX)
+    parsed = execute(envelope("parse", {"modelVersionId": "v", "sourceKey": "uploads/source.ifc", "fileName": DUPLEX.name}, "m/"), storage)
+    rules, library = presets.load_rule_set("demo-tweaked")
+    base, _ = presets.load_rule_set("as-modelled")
+    job = {"models": [{"id": "v", **parsed["output"]["artifacts"]}], "ruleSet": {"doc": rules, "library": list(library.values())},
+           "dictionaries": [presets.load_dictionary("global-seed")], "resolution": presets.resolution(), "federation": presets.federation()}
+    loads, checks = [], []
+    real_load, real_validator = worker._load_models, worker._validator
+    monkeypatch.setattr(worker, "_load_models", lambda *a: loads.append(1) or real_load(*a))
+    monkeypatch.setattr(worker, "_validator", lambda name: checks.append(name) or real_validator(name))
+    preview = execute(envelope("preview", {**job, "compareWith": {"doc": base, "library": list(library.values())}}, "p/"), storage)
+    assert preview["status"] == "succeeded", preview
+    assert len(loads) == 1 and "boq-result" not in checks
+    assert checks.count("rule-set") <= len({d["id"] for d in [rules, base, *library.values()]})   # each document once at most
+    monkeypatch.undo()
+    after = read_json_gzip(storage, preview["output"]["resultKey"])
+    before = read_json_gzip(storage, preview["output"]["compareResultKey"])
+    for result, doc in ((after, rules), (before, base)):
+        alone = execute(envelope("run", {**job, "ruleSet": {"doc": doc, "library": list(library.values())}}, f"r/{doc['id']}/"), storage)
+        expected = read_json_gzip(storage, alone["output"]["resultKey"])
+        assert [(l["key"], l["quantity"]) for l in result["lines"]] == [(l["key"], l["quantity"]) for l in expected["lines"]]
+
+
+def test_an_invalid_document_is_refused_every_time(monkeypatch):
+    from ifc_boq import worker
+    bad = {"schemaVersion": "1.0", "id": "x"}
+    for _ in range(2):
+        with pytest.raises(ValueError, match="dictionary"):
+            worker.validate(bad, "dictionary")

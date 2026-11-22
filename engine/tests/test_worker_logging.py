@@ -13,3 +13,13 @@ def test_json_log_line_carries_job_fields():
     assert line["log.level"] == "INFO"
     assert (line["jobId"], line["jobType"], line["durationMs"]) == ("j-1", "parse", 1234)
     assert "orgId" not in line
+
+
+def test_queue_jobs_start_from_a_fork_server_where_the_platform_has_one():
+    """TF-134: spawning a process per job imported the engine each time (~1.6-2.7 s); a fork server that
+    imported it once starts each job in ~0.2 s. Windows has no fork: it spawns."""
+    import multiprocessing
+
+    from ifc_boq import worker_queue
+    expected = "forkserver" if "forkserver" in multiprocessing.get_all_start_methods() else "spawn"
+    assert worker_queue._job_context().get_start_method() == expected

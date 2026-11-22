@@ -9,6 +9,7 @@ import os
 import signal
 import time
 from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 from threading import Event
 from uuid import uuid4
 
@@ -59,6 +60,18 @@ def _process(envelope, send):
         send.send(execute(envelope, storage(), progress))
 
 
+@lru_cache(maxsize=1)
+def _job_context():
+    """Each job runs in a process of its own. Spawning one imported the engine again for every job (about
+    2.7 s in the engine container, more than the Duplex preview itself, TF-134). Where the platform can
+    fork, a fork server that has imported the engine once starts every job: still one fresh process per job."""
+    if "forkserver" in multiprocessing.get_all_start_methods():
+        context = multiprocessing.get_context("forkserver")
+        context.set_forkserver_preload(["ifc_boq.worker", "ifc_boq.worker_http"])
+        return context
+    return multiprocessing.get_context("spawn")
+
+
 def _failure(envelope, code, message, retryable=True):
     return {"jobId": envelope["jobId"], "status": "failed",
             "error": {"code": code, "message": message, "retryable": retryable}}
@@ -74,7 +87,7 @@ def _timeout(envelope):
 
 
 def _execute(connection, worker, envelope, stopping, timeout):
-    context = multiprocessing.get_context("spawn")
+    context = _job_context()
     receive, send = context.Pipe(duplex=False)
     child = context.Process(target=_process, args=(envelope, send), daemon=True)
     job_id, attempt = envelope["jobId"], envelope["attempt"]

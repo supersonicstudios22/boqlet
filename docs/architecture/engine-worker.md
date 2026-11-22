@@ -186,7 +186,8 @@ Excel (`boq/PublicShares.java`).
   `queue_finish(worker, job, attempt, result)`, which runs `pg_notify('job_finished', id)`.
   The worker's DB role (`boqlet_queue` on the pilot, `ops/pilot/queue-grants.sql`) may only
   EXECUTE these functions; it touches no other table.
-- Each lease runs the IFC work in a child process. **Heartbeat** every 3 s
+- Each lease runs the IFC work in a child process of its own, started by a fork server that has
+  imported the engine once (Linux; Windows spawns, importing it per job). **Heartbeat** every 3 s
   (`HEARTBEAT_SECONDS`). The API treats a `running` job whose heartbeat is older than 30 s as
   lost and re-queues it, up to `max_attempts` = 3 (`Jobs.java`); a result for a lease the worker
   no longer owns is dropped.

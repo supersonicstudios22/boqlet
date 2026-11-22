@@ -164,3 +164,15 @@ def test_check_reports_slot_answers_that_do_not_fit_their_slot():
     good = {**patch, "params": {"wall_unit": {"value": "volume"}, "masonry_volume_from": {"value": 0.3},
                                 "include_proxies": {"value": False}}}
     assert presets.check("rules", good) == []
+
+
+def test_check_validates_the_shipped_presets_once_not_on_every_call(monkeypatch):
+    """TF-134: a draft save's check read and schema-checked every shipped rule set twice (about 1 s)."""
+    draft = {"schemaVersion": "1.0", "id": "ours", "name": "ours", "version": "1", "extends": "as-modelled",
+             "params": {"include_proxies": {"value": False}}}
+    presets.check("rules", draft)
+    calls = []
+    real = presets.validate
+    monkeypatch.setattr(presets, "validate", lambda *a, **k: calls.append(a[1]) or real(*a, **k))
+    assert presets.check("rules", draft) == []
+    assert calls == []

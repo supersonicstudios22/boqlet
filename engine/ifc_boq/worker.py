@@ -1,12 +1,15 @@
 """Execute the engine job contract independently of its transport."""
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
 import shutil
+import threading
 import time
 import zipfile
+from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -51,12 +54,34 @@ def _validator(name: str):
     return jsonschema.validators.validator_for(schema)(schema)
 
 
-def validate(doc, name: str):
+# Input documents that passed, by content: a preview validates the same rule-set library for both of its
+# runs and again for every wizard click, and that alone took ~0.5 s of a Duplex preview (TF-134).
+_VALID: OrderedDict = OrderedDict()
+_VALID_LOCK = threading.Lock()
+_VALID_MAX = 512
+
+
+def validate(doc, name: str, *, remember: bool = True):
+    """Raise ValueError when `doc` doesn't match the engine contract schema `name`. A document that passed
+    once is not checked again (`remember=False` for one-off documents: parsed models, results)."""
+    key = None
+    if remember:
+        text = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
+        key = (name, hashlib.sha256(text.encode("utf-8")).hexdigest())
+        with _VALID_LOCK:
+            if key in _VALID:
+                _VALID.move_to_end(key)
+                return
     try:
         _validator(name).validate(doc)
     except jsonschema.ValidationError as exc:
         path = "/".join(map(str, exc.absolute_path))
         raise ValueError(f"{name}: invalid at '{path}': {exc.message[:300]}") from exc
+    if key:
+        with _VALID_LOCK:
+            _VALID[key] = None
+            while len(_VALID) > _VALID_MAX:
+                _VALID.popitem(last=False)
 
 
 def _copy_in(storage: Storage, key: str, target: Path) -> None:
@@ -116,7 +141,7 @@ def _parse(job, storage, prefix, progress):
         parsed["header"]["source"].update(fileName=filename, sizeBytes=size)
         if source != ifc:
             parsed["header"]["source"]["sha256"] = sha256(source)
-        validate(parsed, "parsed-model")
+        validate(parsed, "parsed-model", remember=False)
         progress("write", 90, "Writing model artifacts")
         artifacts = {"parsedKey": prefix + "parsed.json.gz", "meshesKey": prefix + "meshes.npz",
                      "geometryKey": prefix + "geometry.glb", "sceneKey": prefix + "scene.json"}
@@ -136,7 +161,32 @@ def _parse(job, storage, prefix, progress):
         }
 
 
+def _load_models(job, storage):
+    models = []
+    for model in job["models"]:
+        parsed = read_json_gzip(storage, model["parsedKey"])
+        if parsed["header"]["parse"].get("format") != PARSE_FORMAT:
+            raise JobError("parse_format_mismatch", "Re-parse the model with the current engine")
+        meshes = None
+        if model.get("meshesKey"):
+            with TemporaryDirectory() as directory:
+                path = Path(directory) / "meshes.npz"
+                _copy_in(storage, model["meshesKey"], path)
+                meshes = load_meshes(path)
+        models.append({**model, "parsed": parsed, "meshes": meshes})
+    if not models:
+        raise JobError("invalid_input", "At least one model is required")
+    return models
+
+
 def _run(job, storage, prefix, progress):
+    output, _ = _run_result(job, storage, prefix, progress)
+    return output, {}
+
+
+def _run_result(job, storage, prefix, progress, *, check_result=True, models=None):
+    """A run's output and its result. A preview passes the models it already loaded (get_boq leaves them
+    as they are) and skips the result's schema check (TF-134)."""
     progress("load", 0, "Loading models and presets")
     rules = job["ruleSet"]
     validate(rules["doc"], "rule-set")
@@ -166,23 +216,14 @@ def _run(job, storage, prefix, progress):
     for doc in manual_items:
         validate(doc, "manual-item")
 
-    models = []
-    for model in job["models"]:
-        parsed = read_json_gzip(storage, model["parsedKey"])
-        if parsed["header"]["parse"].get("format") != PARSE_FORMAT:
-            raise JobError("parse_format_mismatch", "Re-parse the model with the current engine")
-        meshes = None
-        if model.get("meshesKey"):
-            with TemporaryDirectory() as directory:
-                path = Path(directory) / "meshes.npz"
-                _copy_in(storage, model["meshesKey"], path)
-                meshes = load_meshes(path)
-        models.append({**model, "parsed": parsed, "meshes": meshes})
-    if not models:
-        raise JobError("invalid_input", "At least one model is required")
+    if models is None:
+        models = _load_models(job, storage)
     result = get_boq(models, flat, classifications, dictionaries, job.get("resolution"), decisions,
                      federation=job.get("federation"), progress=progress, manual_items=manual_items)
-    validate(result, "boq-result")
+    if check_result:
+        # A preview's results are read only by its own report, never ingested as a run: their schema check
+        # (~0.3 s each on the Duplex, two per preview) is left to runs and the engine tests (TF-134).
+        validate(result, "boq-result", remember=False)
     progress("export", 95, "Writing BoQ artifacts")
     output = {
         "resultKey": prefix + "result.json.gz", "status": result["status"], "stats": result["stats"],
@@ -203,18 +244,18 @@ def _run(job, storage, prefix, progress):
         output["xlsxKey"] = prefix + "boq.xlsx"
         storage.put_bytes(output["xlsxKey"], export(result, meta))
     write_json_gzip(storage, output["resultKey"], result)
-    return output, {}
+    return output, result
 
 
 def _preview(job, storage, prefix, progress):
     compare = job.get("compareWith")
     request = {**job, "export": {}}
     if compare is None:
-        output, metrics = _run(request, storage, prefix, progress)
+        output, after = _run_result(request, storage, prefix, progress, check_result=False)
         result = {"resultKey": output["resultKey"]}
         if job.get("previewReport"):
-            result.update(_preview_report(storage, prefix, read_json_gzip(storage, output["resultKey"])))
-        return result, metrics
+            result.update(_preview_report(storage, prefix, after))
+        return result, {}
     if not isinstance(compare, dict):
         raise JobError("invalid_input", "Invalid comparison preset")
     if "schemaVersion" in compare:
@@ -224,12 +265,14 @@ def _preview(job, storage, prefix, progress):
     if not compare.keys() <= {"ruleSet", "classifications", "dictionaries"}:
         raise JobError("invalid_input", "Only presets can change in a preview comparison")
 
-    output, _ = _run(request, storage, prefix, lambda stage, pct, message: progress(stage, pct // 2, message))
-    other, _ = _run({**request, **compare}, storage, prefix + "compare/",
-                    lambda stage, pct, message: progress(stage, 50 + pct // 2, message))
+    # Both runs share one load of the models, and the comparison uses the results in memory (TF-134).
+    models = _load_models(request, storage)
+    output, after = _run_result(request, storage, prefix, lambda stage, pct, message: progress(stage, pct // 2, message),
+                                check_result=False, models=models)
+    other, before = _run_result({**request, **compare}, storage, prefix + "compare/",
+                                lambda stage, pct, message: progress(stage, 50 + pct // 2, message),
+                                check_result=False, models=models)
     progress("compare", 99, "Comparing preview lines")
-    after = read_json_gzip(storage, output["resultKey"])
-    before = read_json_gzip(storage, other["resultKey"])
     key = prefix + "diff.json.gz"
     changes = compare_lines(before, after)
     write_json_gzip(storage, key, {"changes": changes})
@@ -266,7 +309,7 @@ def _diff(job, storage, prefix, progress):
     result = compare(before, after, models(first, second), models(second, first),
                      inputs_changed=job.get("inputsChanged", []),
                      from_decisions=job.get("fromDecisions", []), to_decisions=job.get("toDecisions", []))
-    validate(result, "run-diff")
+    validate(result, "run-diff", remember=False)
     key = prefix + "diff.json.gz"
     progress("write", 90, "Writing change report")
     write_json_gzip(storage, key, result)
@@ -278,7 +321,7 @@ def _export_xlsx(job, storage, prefix, progress):
     meta = job.get("meta", {})
     if diff_key := job.get("diffKey"):
         data = read_json_gzip(storage, diff_key)
-        validate(data, "run-diff")
+        validate(data, "run-diff", remember=False)
         contents = diff_export.render(data, meta)
     else:
         data = read_json_gzip(storage, job["resultKey"])
