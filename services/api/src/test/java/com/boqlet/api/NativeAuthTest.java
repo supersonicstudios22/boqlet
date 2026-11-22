@@ -31,7 +31,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest(properties = {"BOQLET_NATIVE_AUTH=true", "BOQLET_APP_URL=https://booqlet.test"})
+@SpringBootTest(properties = {"BOQLET_NATIVE_AUTH=true", "BOQLET_APP_URL=https://booqlet.test",
+        "boqlet.auth.invitation-secret=native-auth-test-signing-secret-2026"})
 @AutoConfigureMockMvc
 @Testcontainers
 @DirtiesContext
@@ -54,6 +55,111 @@ class NativeAuthTest {
     @Autowired JdbcTemplate db;
     @Autowired MockMvc http;
     @Autowired ObjectMapper json;
+    @Autowired com.boqlet.api.identity.LinkTokens links;
+
+    /**
+     * P57: public sign-up and self-service reset. Closed, sign-up is refused; open, a person asks for
+     * a link, the email carries it (the outbox holds only its nonce), setting the password makes the
+     * account, and its first org starts on Free, which allows one owned org. A filled honeypot or a
+     * form sent too fast sends nothing; an address with an account is told so; a reset link sets a new
+     * password; the answer never says whether an address has an account; requests are throttled.
+     */
+    @Test
+    void publicSignUpBotProtectionOwnedOrgCapAndSelfServiceReset() throws Exception {
+        String email = "signup-person@example.test";
+        http.perform(get("/api/v1/auth/sign-up")).andExpect(status().isOk()).andExpect(jsonPath("$.open").value(false));
+        http.perform(signUp(email, null, 5000)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("sign_up_closed"));
+
+        db.update("UPDATE platform_settings SET public_sign_up = true");
+        http.perform(get("/api/v1/auth/sign-up")).andExpect(status().isOk()).andExpect(jsonPath("$.open").value(true));
+        http.perform(signUp(email, null, 5000, "https://other.test")).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("invalid_origin"));
+        http.perform(signUp("not an email", null, 5000)).andExpect(status().isBadRequest());
+        // Bots: a filled hidden field, or a form sent within 3 seconds. Accepted, and nothing is sent.
+        http.perform(signUp(email, "https://spam.test", 5000)).andExpect(status().isAccepted());
+        assertThat(outbox(email)).isEmpty();
+        db.update("DELETE FROM native_auth_limits");
+        http.perform(signUp(email, null, 800)).andExpect(status().isAccepted());
+        assertThat(outbox(email)).isEmpty();
+
+        http.perform(signUp(email.toUpperCase(java.util.Locale.ROOT), null, 5000)).andExpect(status().isAccepted());
+        var mails = outbox(email);
+        assertThat(mails).singleElement().satisfies(mail -> assertThat(mail.get("kind")).isEqualTo("account_link"));
+        assertThat(db.queryForObject("SELECT purpose FROM native_setup_links WHERE email = ?", String.class, email)).isEqualTo("setup");
+        String token = links.token((java.util.UUID) mails.getFirst().get("entity_id"));
+        http.perform(post("/api/v1/auth/set-password").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", token, "password", PASSWORD, "name", "Signed Up"))))
+                .andExpect(status().isNoContent());
+        assertThat(db.queryForObject("""
+                SELECT a.data->>'via' FROM audit_events a JOIN users u ON u.id = a.entity_id
+                WHERE a.action = 'user.password_set' AND u.email = ?
+                """, String.class, email)).isEqualTo("sign_up");
+        Cookie session = http.perform(post("/api/v1/auth/sign-in").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("email", email, "password", PASSWORD, "deviceLabel", "Test"))))
+                .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
+
+        // Free allows one owned org per person (P57): the second is 402 ownedOrgsPerUser.
+        http.perform(post("/api/v1/orgs").cookie(session).header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Signed Up Firm\",\"slug\":\"signed-up-firm\"}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.planId").value("free"));
+        http.perform(post("/api/v1/orgs").cookie(session).header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Second Firm\",\"slug\":\"second-firm\"}"))
+                .andExpect(status().isPaymentRequired()).andExpect(jsonPath("$.details.limit").value("ownedOrgsPerUser"))
+                .andExpect(jsonPath("$.details.current").value(1)).andExpect(jsonPath("$.details.max").value(1));
+        // A taken address is still 409, whatever the limit.
+        http.perform(post("/api/v1/orgs").cookie(session).header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Copy\",\"slug\":\"signed-up-firm\"}")).andExpect(status().isConflict());
+
+        // Signing up again with the address: told it has an account, no link.
+        db.update("DELETE FROM native_auth_limits");
+        http.perform(signUp(email, null, 5000)).andExpect(status().isAccepted());
+        assertThat(outbox(email)).extracting(mail -> mail.get("kind")).containsExactly("account_link", "account_exists");
+        assertThat(db.queryForObject("SELECT count(*) FROM native_setup_links WHERE email = ?", Long.class, email)).isZero();
+
+        // Self-service reset: an unknown address gets nothing, the account a reset link.
+        http.perform(reset("nobody-here@example.test")).andExpect(status().isAccepted());
+        assertThat(outbox("nobody-here@example.test")).isEmpty();
+        http.perform(reset(email)).andExpect(status().isAccepted());
+        var resetMail = outbox(email).getLast();
+        assertThat(resetMail.get("kind")).isEqualTo("account_link");
+        assertThat(db.queryForObject("SELECT purpose FROM native_setup_links WHERE email = ?", String.class, email)).isEqualTo("reset");
+        String newPassword = "a new self service password";
+        http.perform(post("/api/v1/auth/set-password").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", links.token((java.util.UUID) resetMail.get("entity_id")), "password", newPassword))))
+                .andExpect(status().isNoContent());
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(status().isUnauthorized());
+        http.perform(post("/api/v1/auth/sign-in").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("email", email, "password", newPassword, "deviceLabel", "Test"))))
+                .andExpect(status().isCreated());
+
+        // Three requests per address in 15 minutes, then 429 (the answer is the same for every address).
+        db.update("DELETE FROM native_auth_limits");
+        for (int i = 0; i < 3; i++) http.perform(reset("throttled@example.test")).andExpect(status().isAccepted());
+        http.perform(reset("throttled@example.test")).andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("auth_throttled"));
+        db.update("UPDATE platform_settings SET public_sign_up = false");
+    }
+
+    private List<Map<String, Object>> outbox(String email) {
+        return db.queryForList("SELECT kind, entity_id, org_id FROM email_outbox WHERE recipient = ? ORDER BY created_at, id", email);
+    }
+
+    private MockHttpServletRequestBuilder signUp(String email, String website, long elapsedMs) throws Exception {
+        return signUp(email, website, elapsedMs, ORIGIN);
+    }
+
+    private MockHttpServletRequestBuilder signUp(String email, String website, long elapsedMs, String origin) throws Exception {
+        var body = new java.util.LinkedHashMap<String, Object>();
+        body.put("email", email);
+        body.put("elapsedMs", elapsedMs);
+        if (website != null) body.put("website", website);
+        return post("/api/v1/auth/sign-up").header("Origin", origin).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body));
+    }
+
+    private MockHttpServletRequestBuilder reset(String email) throws Exception {
+        return post("/api/v1/auth/password-reset").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("email", email)));
+    }
 
     @Test
     void verifiedSetupCookieOriginTakeoverAndOperatorRecovery() throws Exception {
@@ -61,7 +167,8 @@ class NativeAuthTest {
         issue(SETUP, "setup");
         http.perform(setup(SETUP, PASSWORD)).andExpect(status().isNoContent());
         http.perform(setup(SETUP, PASSWORD)).andExpect(status().isBadRequest());
-        assertThat(db.queryForObject("SELECT password_hash FROM native_credentials", String.class)).startsWith("$argon2id$");
+        assertThat(db.queryForObject("SELECT password_hash FROM native_credentials c JOIN users u ON u.id = c.user_id WHERE u.email = ?",
+                String.class, EMAIL)).startsWith("$argon2id$");
 
         http.perform(signIn(PASSWORD, false).header("Origin", "https://other.test"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("invalid_origin"));

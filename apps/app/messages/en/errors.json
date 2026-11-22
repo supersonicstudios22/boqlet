@@ -8,9 +8,10 @@
     "body": "This action needs more than your current plan allows.",
     "detail": "{limit}: {current} of {max} in use.",
     "feature": "{limit} isn't part of your plan.",
-    "name": "{limit, select, seats {Seats} activeProjects {Active projects} maxModelVersionMb {Model file size (MB)} maxModelsPerBoq {Models in one BoQ} processingMinutesPerMonth {Processing minutes this month} libraryOrgPresets {Company presets} auditLogRetentionDays {Audit log history (days)} approvalWorkflow {Review and approval} shareLinks {Share links} exportWatermark {Excel without the watermark} other {A plan limit}}",
+    "name": "{limit, select, seats {Seats} activeProjects {Active projects} ownedOrgsPerUser {Organisations you own on this plan} maxModelVersionMb {Model file size (MB)} maxModelsPerBoq {Models in one BoQ} processingMinutesPerMonth {Processing minutes this month} libraryOrgPresets {Company presets} auditLogRetentionDays {Audit log history (days)} approvalWorkflow {Review and approval} shareLinks {Share links} exportWatermark {Excel without the watermark} other {A plan limit}}",
     "upgrade": "Upgrade",
-    "askOwner": "Ask your organisation's owner to change the plan."
+    "askOwner": "Ask your organisation's owner to change the plan.",
+    "ownedOrgs": "You already own {max, plural, one {an organisation} other {# organisations}} on the plan new organisations start on. Open it from the organisation menu, or ask boqlet to change its plan."
   },
   "codes": {
     "revision_locked": "This BoQ is locked: it was saved or confirmed. Reopen it or work on the current version.",
@@ -100,6 +101,11 @@
     "invalid_origin": "The request came from another site and was refused. Reload boqlet and try again.",
     "invalid_discipline": "Choose one of the disciplines in the organisation's federation settings.",
     "invalid_scope": "The model's scope isn't valid. Check it and try again.",
-    "version_in_use": "A BoQ uses this model version, so it can't be deleted."
+    "version_in_use": "A BoQ uses this model version, so it can't be deleted.",
+    "sign_up_closed": "Accounts are made by invitation for now. Ask a colleague to invite you.",
+    "link_unavailable": "Email links aren't set up on this server yet. Ask the boqlet team for a setup link.",
+    "plan_exists": "A plan with this id already exists. Choose another id.",
+    "plan_in_use": "Organisations are on this plan. Move them to another plan before you delete it.",
+    "default_plan_required": "One plan must be the default. Make another plan the default first."
   }
 }

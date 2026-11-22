@@ -7,6 +7,8 @@ describe("billing: GET /plans", () => {
     expect(response.status).toBe(200);
     expect(data!.map((p) => p.id)).toEqual(["free", "professional", "team", "enterprise"]);
     const free = data!.find((p) => p.id === "free")!;
-    expect(free.entitlements).toMatchObject({ seats: 2, activeProjects: 1, approvalWorkflow: false, exportWatermark: true });
+    // Free is one person with one org (P57).
+    expect(free.entitlements).toMatchObject({ seats: 1, ownedOrgsPerUser: 1, activeProjects: 1, approvalWorkflow: false, exportWatermark: true });
+    expect(typeof free.description).toBe("string");
   });
 });

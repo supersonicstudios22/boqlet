@@ -1,6 +1,7 @@
 # Plans and limits
 
-Billing is provider-agnostic (P08). The backend owns **plans → entitlements → enforcement**
+Plans are data the platform admin configures in the admin console (P57, F19 §9): this page
+gives the shape and the seeded starting values, not the live ones. Billing is provider-agnostic (P08). The backend owns **plans → entitlements → enforcement**
 and records **usage events**. A payment provider (Paddle likely) only tells the backend which
 plan an org is on, through an adapter (F14). All numbers below are **placeholders to tune**.
 Code must read them from the plan table, never hard-code them.
@@ -28,7 +29,8 @@ the decision.
 
 | Entitlement | Free | Professional | Team | Enterprise |
 |---|---|---|---|---|
-| `seats` | 2 | 5 | 25 | custom |
+| `seats` | 1 (P57: one person) | 5 | 25 | custom |
+| `ownedOrgsPerUser` (orgs on the plan one person may own, P57) | 1 | unlimited | unlimited | unlimited |
 | `activeProjects` | 1 | 10 | 50 | custom |
 | `maxModelVersionMb` | 50 | 300 | 300 | custom |
 | `maxModelsPerBoq` | 2 | 6 | 12 | custom |
@@ -43,6 +45,11 @@ the decision.
 | `auditLogRetentionDays` | 30 | 365 | 365 | custom |
 
 Definitions:
+
+- **Owned orgs per person** (`ownedOrgsPerUser`): orgs on this plan where the person is an owner
+  (an org being deleted doesn't count). Checked when someone creates an org, which starts on the
+  default plan; being invited to others' orgs doesn't count. An org override doesn't lift it (the
+  org doesn't exist yet); moving an org to another plan does.
 
 - **Active project**: status `active`. Archived projects stay readable and don't count.
 - **Processing minute**: wall-clock minutes of parse, run and preview jobs, summed per calendar
@@ -68,8 +75,18 @@ The org settings show usage for the current month against limits (F14).
 
 ## As built (2026-11-21)
 
-- **Plans** are seeded by `services/api/src/main/resources/db/migration/V3__plans_and_invitation_outbox.sql`
-  with the placeholder limits above: `free` (default), `professional`, `team`, `enterprise` (no
+- **Plans are configured by the platform admin** (P57): `GET/POST /admin/plans`,
+  `PUT/DELETE /admin/plans/{planId}`, `POST /admin/plans/{planId}/impact` and the console's Plans
+  page. A plan holds a name, description, price (amount and month or year, in the one platform
+  currency, `platform_settings.currency`; shown on the billing page, not charged), order
+  (`position`), whether customers see it (`public`), whether new orgs start on it (`default_plan`,
+  exactly one), and entitlements: only the keys of `EntitlementCatalogue` (Java), a number a
+  whole number of zero or more, left out for unlimited, a feature true or false. A change
+  applies to every org on the plan at once and deletes nothing; the impact preview counts the
+  orgs over a lowered metered limit (seats, active projects, processing minutes) or losing a
+  feature. Org overrides accept the same keys and values. Changes are audited.
+- **Plans** were seeded by `services/api/src/main/resources/db/migration/V3__plans_and_invitation_outbox.sql`
+  (and V23: Free has 1 seat and `ownedOrgsPerUser` 1, P57) with the placeholder limits above: `free` (default), `professional`, `team`, `enterprise` (no
   limits, so unlimited). There is no `pricingModule`, `vendorsPerRequest` or `openOfferRequests`
   key (the pricing module isn't built, P48). Professional and Team have no `libraryOrgPresets`
   row, so unlimited.
@@ -77,7 +94,7 @@ The org settings show usage for the current month against limits (F14).
   `409 checkout_unavailable`, the webhook `400 unsupported_provider`; a platform admin sets an
   org's plan (`PUT /admin/orgs/{id}/subscription`, F19). `subscriptions.provider` is `manual`.
 - **Enforced** (`402 limit_reached`, `services/api/src/main/java/com/boqlet/api/billing/EntitlementService.java`
-  and callers): `seats` at invite; `activeProjects` at create and unarchive (sample projects
+  and callers): `ownedOrgsPerUser` at org create (P57); `seats` at invite; `activeProjects` at create and unarchive (sample projects
   excluded); `maxModelVersionMb` at upload; `maxModelsPerBoq` at BoQ inputs; `libraryOrgPresets`
   at preset create; `processingMinutesPerMonth` at job enqueue (`worker/Jobs.java`); the features
   `shareLinks` and `approvalWorkflow`. `exportWatermark` and `auditLogRetentionDays` are applied

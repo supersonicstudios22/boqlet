@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { API_URL, client, authentication } from "../support/env";
 import { invitationToken } from "../support/mail";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /** F09 "Audit log" (FE-033): S18 project activity and S25 org audit, with filters and CSV. */
@@ -15,6 +16,7 @@ let projectId: string;
 beforeAll(async () => {
   owner = await signUp("Audit Owner", uniqueEmail("audit"));
   const { data: org } = await client(owner.token).POST("/orgs", { body: { name: "Audit Firm", slug: slug("audit") } });
+  await allowSeats(org!.id);
   orgId = org!.id;
   const email = uniqueEmail("audit-member");
   await client(owner.token).POST("/orgs/{orgId}/invitations", { params: { path: { orgId } }, body: { email, role: "member" } });

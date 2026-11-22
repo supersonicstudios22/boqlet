@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
 import { invitationToken } from "../support/mail";
-import { setPlan } from "../support/plans";
+import { allowSeats, setPlan } from "../support/plans";
 import { signUp, uniqueEmail } from "../support/users";
 
 /** F14 for the UI (FE-019): entitlements with usage, the 402 on a limit, checkout lifting it, usage. */
@@ -44,6 +44,7 @@ describe("F14 entitlements and billing", () => {
 
   it("billing is the owner's; usage the owner's and admins'; members see neither", async () => {
     const { owner, org } = await freeOrg();
+    await allowSeats(org.id);
     const email = uniqueEmail("billing-member");
     await client(owner.token).POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org.id } }, body: { email, role: "member" } });
     const member = await signUp("Member Person", email);
@@ -77,6 +78,7 @@ describe("limit and membership notifications (F13, FE-034)", () => {
 
   it("project_member.added tells the person added", async () => {
     const { owner, org } = await freeOrg();
+    await allowSeats(org.id);
     const email = uniqueEmail("added");
     await client(owner.token).POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org.id } }, body: { email, role: "member" } });
     const person = await signUp("Added Person", email);

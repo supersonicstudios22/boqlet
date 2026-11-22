@@ -1,6 +1,6 @@
 # F19 Platform admin console
 
-> **Status (2026-11-22):** Built (gaps). Overview, orgs, org detail, users, funnel and health pages (`apps/app/app/(admin)/admin`, `services/api/src/main/java/com/boqlet/api/admin`), metadata only; every admin read and action is audited (P54 Q59, TF-156); a trial ends on a day in UTC (TF-153).
+> **Status (2026-11-22):** Built (gaps). Overview, orgs, org detail, users, plans (list and editor with the effect on the orgs on a plan before saving), platform settings (currency, public sign-up; P57), funnel and health pages (`apps/app/app/(admin)/admin`, `services/api/src/main/java/com/boqlet/api/admin`), metadata only; every admin read and action is audited (P54 Q59, TF-156); a trial ends on a day in UTC (TF-153).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Not built: the vendors section, links to ops dashboards, billing-webhook failures and email bounces in health (the page says "not tracked yet", TF-154; `AdminReports.health()` has failed jobs and durations only), MFA.
 > - Revenue is always empty (`AdminReports.java`).
@@ -57,6 +57,17 @@ a customer.
    bounces. Links to the ops dashboards (deployment.md).
 8. **Later:** a support inbox (messages from an in-app "Contact us", threaded replies by
    email), announcements to all orgs or to orgs on a plan.
+9. **Plans and platform settings (P57):** the plans table (name, id, default, public or hidden,
+   price, orgs on it, the main limits) and a plan editor: name, description, price and period in
+   the platform currency (empty: no price), order, "customers see it", "new orgs start on it" (one
+   default plan; it can only be replaced, never unset), and every limit and feature the backend
+   enforces (`EntitlementCatalogue`; a number or no limit, a feature on or off). Before saving,
+   the editor shows what the change does to the orgs on the plan (over a lowered limit, losing a
+   feature; overrides counted). A save applies to every org on the plan at once and deletes
+   nothing; a plan no org is on can be deleted. Settings: the platform currency (ISO 4217) and
+   whether anyone may sign up. Every change needs a reason and is audited (`plan.created`,
+   `plan.updated`, `plan.deleted`, `platform.settings_changed`). The org detail's plan picker lists
+   hidden plans too, and its override picker every catalogue key.
 
 ## Data
 
@@ -86,7 +97,9 @@ of delay, the org detail is live.
 `PATCH /admin/orgs/{orgId}` (tags, suspend), `PUT /admin/orgs/{orgId}/subscription`,
 `PUT /admin/orgs/{orgId}/entitlement-overrides`, `GET /admin/orgs/{orgId}/notes`,
 `POST /admin/orgs/{orgId}/notes`, `GET /admin/users`, `DELETE /admin/users/{userId}/session`,
-`GET /admin/health` (vendor statistics come from the pricing module: `GET /pricing/admin/vendors`), `GET /admin/orgs.csv`.
+`GET /admin/health` (vendor statistics come from the pricing module: `GET /pricing/admin/vendors`), `GET /admin/orgs.csv`,
+`GET`/`POST /admin/plans`, `PUT`/`DELETE /admin/plans/{planId}`, `POST /admin/plans/{planId}/impact`,
+`GET`/`PUT /admin/settings` (P57).
 
 ## Acceptance criteria
 
@@ -94,4 +107,6 @@ of delay, the org detail is live.
 - [ ] The org table's seats, active projects and processing minutes equal the org's own usage page (automated on seed data).
 - [ ] An org that hit `activeProjects` appears under "hit a limit" with the time of the hit.
 - [ ] Changing an org's plan from the console needs a reason, takes effect at once, and shows in the org's audit log.
+- [ ] A plan change applies at once to every org on it; the editor shows the orgs over a lowered limit before saving; the default plan can't be unset or deleted (`tests/scenarios/plans.test.ts`).
+- [ ] A plan or an override accepts only the keys the backend enforces (`tests/scenarios/plans.test.ts`).
 - [ ] No `/admin/*` response contains project names, file names, line descriptions or prices (automated check on seed data).

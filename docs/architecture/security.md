@@ -7,15 +7,25 @@ built; they are also listed in `docs/product/known-limitations.md`.
 
 **Native sign-in, decided (P50; this closes P10's "provider undecided").** Users sign in with
 email and password on the boqlet domain; the Java API owns the credentials:
-- `POST /api/v1/auth/sign-in` and `POST /api/v1/auth/set-password`
-  (`identity/NativeAuthController.java`), enabled by `BOQLET_NATIVE_AUTH=true` (local stack and
-  pilot). Without it both answer `404 native_auth_disabled`.
+- `POST /api/v1/auth/sign-in`, `POST /api/v1/auth/set-password`, `GET`/`POST /api/v1/auth/sign-up`
+  and `POST /api/v1/auth/password-reset` (`identity/NativeAuthController.java`), enabled by
+  `BOQLET_NATIVE_AUTH=true` (local stack and pilot). Without it they answer `404 native_auth_disabled`.
 - Passwords are Argon2id hashes in `native_credentials` (`identity/NativeCredentials.java`,
   Spring `Argon2PasswordEncoder`).
-- No public sign-up and no self-service reset: the first owner and assisted resets get a one-hour
-  **setup link** (`native_setup_links`, only the token's sha256 is stored), issued on the server
-  (`ops/pilot/issue-setup-link.sh`; locally `npm run local:user`). Invited users set their
-  password from the invitation. Runbook: `docs/operations/auth-and-deploys.md`.
+- **Setup and reset links** are one-hour tokens in `native_setup_links` (only the token's sha256 is
+  stored, one link per address: a new one replaces the last). Operators issue them on the server
+  (`ops/pilot/issue-setup-link.sh`; locally `npm run local:user`). Invited users set their password
+  from the invitation. Runbook: `docs/operations/auth-and-deploys.md`.
+- **Public sign-up and self-service reset** (P57): `POST /auth/sign-up` (only while the platform
+  setting `public_sign_up` is on, else `403 sign_up_closed`) and `POST /auth/password-reset` email a
+  link; its token is an HMAC of the link's nonce with `BOQLET_INVITATION_SECRET` (`identity/LinkTokens.java`),
+  so neither the outbox nor the database holds a usable token, and a newer link or a used one makes
+  an older email's link dead. Both answer `202` whatever the address (no account enumeration); an
+  address with an account that asks to sign up gets an "you already have an account" email without
+  a token. Basic bot protection: a hidden `website` field filled in, or `elapsedMs` under 3 s (as the
+  browser measured it), is accepted and sends nothing. Every request counts, 20 per source address
+  and 3 per email in 15 minutes (`LINK_REQUESTS_PER_*`, `429 auth_throttled`). Not built: a captcha
+  or proof of work.
 - Rate limits on sign-in and set-password (`native_auth_limits`, 15-minute windows; Q56, P54,
   TF-122): only failures count, 45 failed sign-ins and password setups per source address and 12
   failed sign-ins per email; successes count separately against a generous cap of 600 per address,

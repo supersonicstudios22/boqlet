@@ -59,10 +59,10 @@ class SecurityConfiguration {
                         .requestMatchers(HttpMethod.HEAD, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
                         // HEAD is a GET without the body: the same public routes (TF-083, RequestPaths.publicRead).
-                        .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
-                        .requestMatchers(HttpMethod.HEAD, "/api/v1/plans", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/auth/sign-up", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/v1/plans", "/api/v1/auth/sign-up", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/billing/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/sign-in", "/api/v1/auth/set-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, RequestPaths.AUTH_ACTIONS.toArray(String[]::new)).permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().denyAll())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint(unauthenticated));

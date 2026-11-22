@@ -61,7 +61,7 @@ These outcomes are the yardstick for every feature and test. The test plans map 
 | **O5** | **Keep up with design changes**: a new model version re-runs with earlier answers and edits, and a change report shows what changed, line by line | F08 | Built |
 | **O6** | **Edit, version and confirm**: full line editing with live co-editing, locked saved versions, optional review and approval, confirm and reopen, audit log | F06, F09 | Built |
 | **O7** | **Hand it over**: Excel export (run, frozen version, change report) with edits imported back, and public read-only share links | F12, F18 | Built. Workbooks checked with openpyxl only, not yet opened by hand in Excel or LibreOffice |
-| **O8** | **Run the firm's account**: org, invitations, roles, one active session per account, notifications, plans and limits | F01, F02, F13, F14, F15 | Built for invite-only pilots. Not built: public sign-up, self-service password reset, payment provider, trial and downgrade handling |
+| **O8** | **Run the firm's account**: org, invitations, roles, one active session per account, notifications, plans and limits | F01, F02, F13, F14, F15 | Built: public sign-up (a platform setting, off by default) and self-service password reset by email, plans the platform admin configures (P57). Not built: a payment provider (prices are shown, not charged), stronger bot protection than a hidden field and throttling, trial and downgrade handling |
 | **O9** | **Operate the platform**: admin console with usage, funnel and health, metadata only | F19 | Built. Gaps: no MFA, revenue always empty, health lacks email and webhook failures |
 | O10 | (Pricing module) pricebooks, estimates, offer requests to vendors | F11, F17, F20 | **Not built** (P48): contract only |
 
@@ -69,7 +69,7 @@ These outcomes are the yardstick for every feature and test. The test plans map 
 
 | Journey | Steps and routes | Flow spec |
 |---|---|---|
-| **Onboarding** | Operator issues a setup link (`ops/pilot/issue-setup-link.sh`, locally `npm run local:user`) or an owner invites → `/sign-up?token=…` sets a password → `/sign-in` (takeover at `/session-conflict`) → `/onboarding` creates the org → `/{org}/setup` wizard (required for owner, admin and library editor) → `/{org}` dashboard, "Try with a sample project" (the Duplex) | FL-1 |
+| **Onboarding** | The person signs up at `/sign-up` while public sign-up is open (an emailed link, P57), or an operator issues a setup link (`ops/pilot/issue-setup-link.sh`, locally `npm run local:user`), or an owner invites → `/sign-up?token=…` sets a password → `/sign-in` (takeover at `/session-conflict`) → `/onboarding` creates the org → `/{org}/setup` wizard (required for owner, admin and library editor) → `/{org}` dashboard, "Try with a sample project" (the Duplex) | FL-1 |
 | **Main loop** | `/{org}/projects/new` → `/projects/{p}/models`: add a model, upload to object storage, parse job with live progress, input-check report → `/projects/{p}/boqs`: create a BoQ (model versions + presets) → Generate → Questions tab (bulk answer, promote to the company dictionary) → Sheet (edit, move, exclude, manual lines, co-editing), Viewer, Log → Save version → Confirm | FL-2, FL-7, FL-9 |
 | **New model version** | Upload v2 → "new version available" → regenerate (answers and edits carried over) → Changes tab (change report, Excel) → save the next version | FL-3 |
 | **Encode the office standard** | `/{org}/library`: rule sets, classifications, dictionaries, resolution settings; draft (autosaved), preview against a model version, publish version n; Excel templates round trip | FL-6 |
@@ -135,7 +135,7 @@ Planned in the specs but **not built**:
 
 | Gap | Spec | Note |
 |---|---|---|
-| Public sign-up into a free tier | P08, P17, F01, FL-1 step 1 | Invite-only by design for the pilot (when public sign-up comes: Q40); accounts come from setup links and invitations. Self-service password reset is also missing (resets are operator-issued links) |
+| Strong bot protection for public sign-up | P57, BE-D12 | Sign-up is built and off until the platform admin opens it; its bot protection is basic (a hidden field, a minimum fill time, throttling) |
 | Invite colleagues during onboarding | FL-1 step 3 | Onboarding is a single create-org form; the wizard follows, and until it is finished every org page but the settings leads to it (P54 Q57) |
 | Payment provider, checkout, webhooks | F14, BE-D7 | Manual billing: checkout answers `409 checkout_unavailable`, the webhook `400 unsupported_provider` |
 | Trial driven by plan config, downgrade rules | plans-and-limits | Admins set `trialEndsAt` by hand; no job drops an org to Free; excess projects don't become read-only |

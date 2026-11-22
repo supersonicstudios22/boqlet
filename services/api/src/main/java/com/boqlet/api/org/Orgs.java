@@ -56,7 +56,11 @@ public class Orgs {
         String name = name(request.getName());
         UUID org = Ids.newId();
         ObjectNode settings = merge(json.object(DEFAULT_SETTINGS), request.getSettings());
-        String plan = database.queryForObject("SELECT id FROM plans WHERE default_plan", String.class);
+        // A taken address is the request's own problem: say so before any plan limit.
+        if (Boolean.TRUE.equals(database.queryForObject("SELECT EXISTS(SELECT 1 FROM orgs WHERE slug = ?)", Boolean.class,
+                request.getSlug()))) throw slugTaken(request.getSlug());
+        String plan = limits.defaultPlan();
+        limits.checkOwnedOrgs(actor, plan);
         if (approvalEnabled(settings)) limits.requirePlanFeature(plan, "approvalWorkflow");
         int created = database.update("""
                 INSERT INTO orgs (id, name, slug, settings) VALUES (?, ?, ?, CAST(? AS jsonb))

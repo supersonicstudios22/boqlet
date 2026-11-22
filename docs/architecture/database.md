@@ -27,6 +27,7 @@ starts. PostgreSQL 16 everywhere (`postgres:16-alpine`).
 | `V14__provider_session_revocation` | `provider_session_revocations` (OIDC rollback only) |
 | `V15__native_credentials` | `native_credentials`, `native_setup_links`, `native_auth_limits` |
 | `V16__limit_event_actions` | *`admin_org_rows`* replaced (limit-event actions) |
+| `V23__plan_admin_and_public_sign_up` | `platform_settings` (one row: plan price `currency`, `public_sign_up`); columns `plans.description`, `position`, `price_amount`, `price_period`, `updated_at` (Free: 1 seat, `ownedOrgsPerUser` 1); `native_setup_links.nonce` (emailed links); `email_outbox.org_id` nullable (sign-up and reset mail; P57) |
 
 No pricing tables exist (the module is deferred, P48).
 
@@ -53,8 +54,9 @@ migration wins**; tables added during the build are listed above but not all are
 | `plans` | id text, name, entitlements jsonb, public bool | pk(id) |
 | `subscriptions` | org_id, plan_id, status, trial_ends_at, current_period_end, provider, provider_customer_id, provider_subscription_id, overrides jsonb | pk(org_id) |
 | `usage_events` | id, org_id, project_id, job_id, kind, duration_ms, model_bytes, element_count, outcome, at | idx(org_id, at) |
-| `email_outbox` | queued email (invitations, notifications) sent by `mail/EmailDelivery.java` | — |
-| `native_credentials`, `native_setup_links`, `native_auth_limits` | Argon2id hashes; one-hour setup and reset links (token sha256); sign-in rate-limit windows (P50) | — |
+| `email_outbox` | queued email (invitations, notifications; sign-up and reset links, with no org, P57) sent by `mail/EmailDelivery.java` | — |
+| `native_credentials`, `native_setup_links`, `native_auth_limits` | Argon2id hashes; one-hour setup and reset links (token sha256; `nonce` for an emailed link, whose token is derived from it, P57); sign-in, sign-up and reset rate-limit windows (P50) | — |
+| `platform_settings` | the platform's one row: plan price currency, public sign-up on or off (P57) | — |
 
 Not built: `billing_events` (no billing provider, D7).
 ## Projects and models

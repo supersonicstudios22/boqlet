@@ -8,12 +8,12 @@ import {
   useAdminAddNote,
   useAdminNotes,
   useAdminOrg,
+  useAdminPlans,
   useAdminSetOverrides,
   useAdminSetSubscription,
   useAdminUpdateOrg,
   type AdminOrgDetail,
 } from "@/api/hooks/admin";
-import { usePlans } from "@/api/hooks/models";
 import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { parseOverrideValue, parseTags, trialDay, trialEnd } from "./values";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { useLimitName } from "@/i18n/limits";
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -247,7 +248,10 @@ export function AdminOrgDetailView({ orgId }: { orgId: string }) {
 
 function Actions({ org }: { org: AdminOrgDetail }) {
   const t = useTranslations("admin.org");
-  const plans = usePlans();
+  // Every plan, hidden ones too, and every key a plan or override may set (P57).
+  const plans = useAdminPlans();
+  const limitName = useLimitName();
+  const keys = plans.data?.entitlementKeys.map((k) => k.key) ?? Object.keys(org.entitlements ?? {});
   const subscription = useAdminSetSubscription(org.id);
   const overrides = useAdminSetOverrides(org.id);
   const update = useAdminUpdateOrg(org.id);
@@ -275,7 +279,7 @@ function Actions({ org }: { org: AdminOrgDetail }) {
         >
           <Field id="admin-plan-select" label={t("planField")}>
             <NativeSelect id="admin-plan-select" value={planId} onChange={(e) => setPlanId(e.target.value)} data-testid="admin-plan-select">
-              {(plans.data ?? []).map((p) => (
+              {(plans.data?.plans ?? []).map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
@@ -335,9 +339,9 @@ function Actions({ org }: { org: AdminOrgDetail }) {
         >
           <Field id="admin-override-key" label={t("overrideKey")}>
             <NativeSelect id="admin-override-key" value={key} onChange={(e) => setKey(e.target.value)} data-testid="admin-override-key">
-              {Object.keys(org.entitlements ?? {}).map((k) => (
+              {keys.map((k) => (
                 <option key={k} value={k}>
-                  {k}
+                  {limitName(k)}
                 </option>
               ))}
             </NativeSelect>

@@ -2,6 +2,7 @@ package com.boqlet.api.mail;
 
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.extension.CoreModules;
+import com.boqlet.api.identity.LinkTokens;
 import com.boqlet.api.org.Invitations;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URI;
@@ -28,18 +29,20 @@ class EmailDelivery {
     private final StoredJson json;
     private final ObjectProvider<JavaMailSender> sender;
     private final Invitations invitations;
+    private final LinkTokens links;
     private final CoreModules modules;
     private final TransactionTemplate transactions;
     private final String app;
     private final String from;
 
-    EmailDelivery(JdbcTemplate database, StoredJson json, ObjectProvider<JavaMailSender> sender, Invitations invitations, CoreModules modules,
-                  TransactionTemplate transactions, @Value("${BOQLET_APP_URL:http://localhost:3000}") String app,
+    EmailDelivery(JdbcTemplate database, StoredJson json, ObjectProvider<JavaMailSender> sender, Invitations invitations, LinkTokens links,
+                  CoreModules modules, TransactionTemplate transactions, @Value("${BOQLET_APP_URL:http://localhost:3000}") String app,
                   @Value("${BOQLET_SMTP_FROM:}") String from) {
         this.database = database;
         this.json = json;
         this.sender = sender;
         this.invitations = invitations;
+        this.links = links;
         this.modules = modules;
         this.transactions = transactions;
         this.app = app.replaceAll("/+$", "");
@@ -72,6 +75,8 @@ class EmailDelivery {
                 case "invitation" -> invitation(item);
                 case "notification" -> notification(item);
                 case "org_deleted" -> deletedOrganisation(item);
+                case "account_link" -> accountLink(item);
+                case "account_exists" -> accountExists(item);
                 default -> null;
             };
             if (text == null) {
@@ -115,6 +120,42 @@ class EmailDelivery {
                             "You've been invited to join " + name + ".\n\nAccept the invitation: " + link
                             + "\n\nThe invitation expires on " + expiry + ".");
                 }, item.entity(), item.org(), nonce, item.email()).stream().findFirst().orElse(null);
+    }
+
+    /**
+     * A sign-up or reset link (P57), while it is still the address's current link: a newer request,
+     * a used link or an expired one sends nothing. The token is derived again from the nonce.
+     */
+    private Text accountLink(Item item) {
+        boolean sr = serbian(item.payload().path("locale").asText(""));
+        return database.query("""
+                SELECT purpose FROM native_setup_links WHERE email = ? AND nonce = ? AND expires_at > now()
+                """, (row, index) -> {
+                    boolean reset = row.getString(1).equals("reset");
+                    String link = app + "/sign-up?token=" + links.token(item.entity()) + (reset ? "&reset=1" : "");
+                    if (reset) return sr
+                            ? new Text("Nova lozinka | boqlet", "Izaberite novu lozinku: " + link + "\n\nLink važi jedan sat. "
+                                    + "Nova lozinka vas odjavljuje sa uređaja na kome ste prijavljeni.\n\n"
+                                    + "Ako niste vi tražili promenu, zanemarite ovu poruku: lozinka ostaje ista.")
+                            : new Text("Reset your password | boqlet", "Choose a new password: " + link + "\n\nThe link works for one hour. "
+                                    + "Setting a new password signs your account out where it is signed in.\n\n"
+                                    + "If you didn't ask for this, ignore this email: your password stays as it is.");
+                    return sr
+                            ? new Text("Napravite nalog | boqlet", "Postavite lozinku i napravite nalog na boqlet-u: " + link
+                                    + "\n\nLink važi jedan sat. Ako niste tražili nalog, zanemarite ovu poruku.")
+                            : new Text("Create your account | boqlet", "Set a password to create your boqlet account: " + link
+                                    + "\n\nThe link works for one hour. If you didn't ask for an account, ignore this email.");
+                }, item.email(), item.entity()).stream().findFirst().orElse(null);
+    }
+
+    /** Someone asked to sign up with an address that has an account (P57): say so, never with a token. */
+    private Text accountExists(Item item) {
+        if (serbian(item.payload().path("locale").asText(""))) return new Text("Već imate nalog | boqlet",
+                "Neko je zatražio novi nalog na boqlet-u sa ovom adresom, a ona već ima nalog.\n\nPrijava: " + app + "/sign-in"
+                + "\nZaboravljena lozinka: " + app + "/reset-password\n\nAko to niste bili vi, zanemarite ovu poruku.");
+        return new Text("You already have an account | boqlet",
+                "Someone asked to create a boqlet account with this address, and it already has one.\n\nSign in: " + app + "/sign-in"
+                + "\nForgot your password? " + app + "/reset-password\n\nIf this wasn't you, ignore this email.");
     }
 
     private Text notification(Item item) {

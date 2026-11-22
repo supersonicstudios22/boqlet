@@ -9,7 +9,7 @@ system interaction where it isn't obvious. Screens are defined in [screens.md](s
 
 | # | Actor | Step | Screen | API |
 |---|---|---|---|---|
-| 1 | Visitor | Sign up through the auth adapter. **Not built:** no public sign-up; an account starts from an operator setup link or an invitation, and `/sign-up` sets its password (P50, F01) | `/sign-up` | `POST /auth/set-password`, `POST /auth/sign-in` |
+| 1 | Visitor | Signs up with an email while public sign-up is open (P57), and sets a password from the emailed one-hour link; otherwise an account starts from an operator setup link or an invitation, and `/sign-up?token=…` sets its password (P50, F01) | `/sign-up` | `POST /auth/sign-up`, `POST /auth/set-password`, `POST /auth/sign-in` |
 | 1a | User | After sign-in: if the account is open on another device, confirms the takeover (F01 §10) | `/session-conflict` | `POST /sessions` (`409 session_active` → `{takeover: true}`) |
 | 2 | User | Lands in onboarding, names the org, picks currency / units / country. The org starts on the default tier (P17) | `/onboarding` | `GET /me`, `POST /orgs` |
 | 2a | Owner | **Setup wizard, required** (F16, P18): how the firm measures, item numbers and texts, names. "Use the suggested answers" finishes in minutes | `/{org}/setup` | F16 API |

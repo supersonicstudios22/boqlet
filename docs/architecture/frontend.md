@@ -87,6 +87,7 @@ apps/app/
   app/
     (public)/sign-in/[[...rest]]/page.tsx
     (public)/sign-up/[[...rest]]/page.tsx
+    (public)/reset-password/page.tsx
     (public)/invite/[token]/page.tsx
     (public)/s/[token]/page.tsx       # share link (F18)
     (public)/session-conflict/page.tsx
@@ -109,7 +110,7 @@ apps/app/
     (app)/[org]/settings/{general,members,billing,usage,audit,shares}/page.tsx, [section]/page.tsx (module sections)
     (app)/[org]/setup/page.tsx         # setup wizard (F16)
     (app)/areas/[area]/[[...segments]]/page.tsx   # module areas (area.routes); none registered
-    (admin)/admin/{,orgs,orgs/[orgId],users,funnel,health}/page.tsx   # platform admin console (F19)
+    (admin)/admin/{,orgs,orgs/[orgId],users,plans,plans/new,plans/[planId],settings,funnel,health}/page.tsx   # platform admin console (F19)
   src/
     api/            client.ts, keys.ts (query keys), hooks/<resource>.ts, errors.ts, global-errors.ts, query-client.ts
                     (the generated types are in packages/api/src/schema.d.ts, imported from @ifc-boq/api)

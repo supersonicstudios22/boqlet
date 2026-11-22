@@ -17,7 +17,7 @@ const USAGE_OF: Record<(typeof METERED)[number], "seats" | "activeProjects" | "p
   processingMinutesPerMonth: "processingMinutesThisMonth",
 };
 /** Other limits listed on the plan cards. */
-const LISTED = ["seats", "activeProjects", "maxModelVersionMb", "maxModelsPerBoq", "processingMinutesPerMonth", "approvalWorkflow", "exportWatermark"] as const;
+const LISTED = ["seats", "ownedOrgsPerUser", "activeProjects", "maxModelVersionMb", "maxModelsPerBoq", "processingMinutesPerMonth", "approvalWorkflow", "exportWatermark"] as const;
 
 /** S23 (owner): current plan, status, limits with usage, change plan (checkout), manage billing (portal). F14. */
 export function BillingSettings() {
@@ -80,6 +80,13 @@ export function BillingSettings() {
             return (
               <li key={p.id} className={cn("flex flex-col gap-3 border border-border p-4", isCurrent && "border-[var(--link)]")} data-testid="plan-card" data-plan={p.id}>
                 <h4 className="font-semibold">{p.name}</h4>
+                {/* The price as the platform admin set it, in the platform currency (P57); shown only, not charged (D7). */}
+                <p className="tabular-nums" data-testid="plan-price">
+                  {p.price
+                    ? t("price", { amount: format.number(p.price.amount, { style: "currency", currency: p.price.currency }), period: p.price.period })
+                    : t("noPrice")}
+                </p>
+                {p.description && <p className="text-muted-foreground">{p.description}</p>}
                 <dl className="flex flex-col gap-1">
                   {LISTED.map((key) => (
                     <div key={key} className="flex justify-between gap-2">

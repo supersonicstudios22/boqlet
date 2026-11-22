@@ -2,16 +2,19 @@ import { describe, expect, it } from "vitest";
 import { advanceDays, resetClock } from "../support/clock";
 import { API_URL, client } from "../support/env";
 import { invitationToken } from "../support/mail";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F01 accounts, organisations, members: acceptance criteria and behaviour, through the API only. */
 
 const slug = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
-async function newOwnerWithOrg(prefix = "firm") {
+/** A new person with a new Free org; `seats` (an override, default 25) leaves room to invite colleagues (Free has one, P57). */
+async function newOwnerWithOrg(prefix = "firm", seats: number | null = 25) {
   const owner = await signUp("Owner Person", uniqueEmail(prefix));
   const { data: org, response } = await client(owner.token).POST("/orgs", { body: { name: "Test Firm", slug: slug(prefix) } });
   expect(response.status).toBe(201);
+  if (seats !== null) await allowSeats(org!.id, seats);
   return { owner, org: org! };
 }
 
@@ -96,8 +99,15 @@ describe("F01 invitations", () => {
     expect(ok.data!.role).toBe("member");
   });
 
+  it("P57: Free is one person: its owner takes the only seat, so an invitation is 402 seats", async () => {
+    const { owner, org } = await newOwnerWithOrg("solo", null);
+    const refused = await invite(owner, org.id, uniqueEmail("seat"));
+    expect(refused.response.status).toBe(402);
+    expect(refused.error).toMatchObject({ code: "limit_reached", details: { limit: "seats", current: 1, max: 1 } });
+  });
+
   it("F01-AC3 inviting beyond the seat limit answers 402 with limit seats (pending invitations count)", async () => {
-    const { owner, org } = await newOwnerWithOrg(); // Free: 2 seats, the owner takes one
+    const { owner, org } = await newOwnerWithOrg("seats", 2); // 2 seats: the owner takes one
     expect((await invite(owner, org.id, uniqueEmail("seat"))).response.status).toBe(201);
     const over = await invite(owner, org.id, uniqueEmail("seat"));
     expect(over.response.status).toBe(402);

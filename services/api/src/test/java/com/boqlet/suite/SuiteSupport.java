@@ -152,6 +152,29 @@ public class SuiteSupport {
         }
 
         /**
+         * More seats for one org, as a platform admin's override (P57): Free has one seat, and a
+         * browser test that invites colleagues gives its org room, keeping every other Free limit.
+         * `{orgId, seats}`.
+         */
+        @PostMapping("/seats")
+        Map<String, Object> seats(@RequestBody Map<String, Object> body) {
+            UUID org = UUID.fromString(String.valueOf(body.get("orgId")));
+            int seats = ((Number) body.get("seats")).intValue();
+            int updated = database.update("""
+                    UPDATE subscriptions SET overrides = overrides || jsonb_build_object('seats', ?), updated_at = now() WHERE org_id = ?
+                    """, seats, org);
+            return Map.of("updated", updated);
+        }
+
+        /** Opens or closes public sign-up (P57), as the platform admin's setting does: `{open}`. */
+        @PostMapping("/public-sign-up")
+        Map<String, Object> publicSignUp(@RequestBody Map<String, Object> body) {
+            boolean open = Boolean.TRUE.equals(body.get("open"));
+            database.update("UPDATE platform_settings SET public_sign_up = ?", open);
+            return Map.of("open", open);
+        }
+
+        /**
          * Forgets native sign-in attempts (`native_auth_limits`): a browser suite signs in many
          * people from one address, far more than a person would in 15 minutes.
          */

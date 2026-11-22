@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
+import { allowProjects } from "../support/plans";
 import { DUPLEX, duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 import { xlsxRows } from "../support/xlsx";
@@ -210,9 +211,9 @@ describe("an edit whose line goes away (BR-09, TF-100)", () => {
   };
 
   beforeAll(async () => {
-    // A Free org has one active project: the federated one is in an org of its own.
-    const { data: org } = await api.POST("/orgs", { body: { name: "Model Versions Federation", slug: slug("model-versions-fed") } });
-    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Certification building" } });
+    // A Free org has one active project and a person owns one Free org (P57): the federated project gets room in the same org.
+    await allowProjects(orgId);
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Certification building" } });
     const models: Record<string, string> = {};
     for (const [name, discipline] of [["Architecture", "architecture"], ["Structural", "structure"]] as const) {
       const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name, discipline } });

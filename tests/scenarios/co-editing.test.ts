@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { client } from "../support/env";
 import { listen } from "../support/events";
 import { invitationToken } from "../support/mail";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /** F06 §14, P31, BR-29 (FE-040): presence in a BoQ and saved edits pushed to everyone in it. */
@@ -18,6 +19,7 @@ const streams: { close: () => void }[] = [];
 beforeAll(async () => {
   lead = await signUp("Lena Lead", uniqueEmail("coedit-lead"));
   const { data: org } = await client(lead.token).POST("/orgs", { body: { name: "Co-editing Firm", slug: slug("coedit") } });
+  await allowSeats(org!.id);
   const email = uniqueEmail("coedit-est");
   await client(lead.token).POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org!.id } }, body: { email, role: "member" } });
   estimator = await signUp("Eddie Estimator", email);

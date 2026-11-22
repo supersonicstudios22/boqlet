@@ -23,13 +23,15 @@ public class NativeCredentials {
     private static final SecureRandom RANDOM = new SecureRandom();
     private final JdbcTemplate db;
     private final Sessions sessions;
+    private final LinkTokens links;
     private final Argon2PasswordEncoder passwords = new Argon2PasswordEncoder(16, 32, 1, 19 * 1024, 2);
     private final String dummy = passwords.encode(token());
     private final Semaphore passwordSlots = new Semaphore(4);
 
-    NativeCredentials(JdbcTemplate db, Sessions sessions) {
+    NativeCredentials(JdbcTemplate db, Sessions sessions, LinkTokens links) {
         this.db = db;
         this.sessions = sessions;
+        this.links = links;
     }
 
     /**
@@ -40,6 +42,9 @@ public class NativeCredentials {
     public static final int FAILURES_PER_SOURCE = 45;
     public static final int FAILURES_PER_EMAIL = 12;
     public static final int SUCCESSES_PER_SOURCE = 600;
+    /** Public sign-up and reset requests (P57): every request counts, per address and per email, in 15 minutes. */
+    public static final int LINK_REQUESTS_PER_SOURCE = 20;
+    public static final int LINK_REQUESTS_PER_EMAIL = 3;
 
     /** `429 auth_throttled` when this window's count for the bucket has reached the maximum. */
     public void requireUnder(String bucket, int maximum) {
@@ -96,8 +101,9 @@ public class NativeCredentials {
         var digest = hash(rawToken);
         var operator = db.query("""
                 DELETE FROM native_setup_links WHERE token_hash = ? AND expires_at > now()
-                RETURNING email, purpose
-                """, (row, index) -> new Setup(row.getString("email"), row.getString("purpose").equals("reset")), digest)
+                RETURNING email, purpose, nonce IS NOT NULL AS emailed
+                """, (row, index) -> new Setup(row.getString("email"), row.getString("purpose").equals("reset"),
+                        row.getBoolean("emailed")), digest)
                 .stream().findFirst().orElse(null);
         String email = operator == null ? db.query("""
                 SELECT lower(i.email) FROM org_invitations i JOIN orgs o ON o.id = i.org_id
@@ -129,7 +135,57 @@ public class NativeCredentials {
         if (created != 1) throw invalidLink();
         db.update("INSERT INTO native_credentials (user_id, password_hash) VALUES (?, ?)", user, encoded);
         sessions.record(user, null, "user.password_set", user, JsonNodeFactory.instance.objectNode()
-                .put("via", operator == null ? "invitation" : "setup_link"));
+                .put("via", operator == null ? "invitation" : operator.emailed() ? "sign_up" : "setup_link"));
+    }
+
+    /**
+     * Public sign-up (P57): an address without an account gets a one-hour link to set its password
+     * (which proves the address; the account is made then); an address with an account gets an
+     * email saying so. A deleted account's address gets nothing. The caller answers the same either way.
+     */
+    @Transactional
+    public void requestSignUp(String email, String locale) {
+        record Existing(boolean deleted) {}
+        var existing = db.query("SELECT deleted_at IS NOT NULL FROM users WHERE lower(email) = ? ORDER BY deleted_at NULLS FIRST LIMIT 1",
+                (row, index) -> new Existing(row.getBoolean(1)), email).stream().findFirst();
+        if (existing.isPresent()) {
+            if (!existing.get().deleted()) enqueue("account_exists", Ids.newId(), email, locale);
+            return;
+        }
+        issueLink(email, "setup", locale);
+    }
+
+    /** Self-service reset (P57): an account with a password gets a one-hour reset link; other addresses get nothing. */
+    @Transactional
+    public void requestReset(String email) {
+        record Account(UUID id, String locale) {}
+        var account = db.query("""
+                SELECT u.id, u.locale FROM native_credentials c JOIN users u ON u.id = c.user_id
+                WHERE lower(u.email) = ? AND u.deleted_at IS NULL
+                """, (row, index) -> new Account(row.getObject(1, UUID.class), row.getString(2)), email).stream().findFirst();
+        if (account.isEmpty()) return;
+        issueLink(email, "reset", account.get().locale());
+        sessions.record(null, null, "user.password_reset_requested", account.get().id(), JsonNodeFactory.instance.objectNode());
+    }
+
+    /** One link per address: a new one replaces the last (whose email then no longer works). */
+    private void issueLink(String email, String purpose, String locale) {
+        UUID nonce = UUID.randomUUID();
+        db.update("""
+                INSERT INTO native_setup_links (email, token_hash, expires_at, purpose, nonce)
+                VALUES (?, ?, now() + interval '1 hour', ?, ?)
+                ON CONFLICT (email) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at,
+                    purpose = excluded.purpose, nonce = excluded.nonce
+                """, email, hash(links.token(nonce)), purpose, nonce);
+        enqueue("account_link", nonce, email, locale);
+    }
+
+    private void enqueue(String kind, UUID entity, String email, String locale) {
+        db.update("""
+                INSERT INTO email_outbox (id, org_id, kind, entity_id, recipient, payload)
+                VALUES (?, NULL, ?, ?, ?, CAST(? AS jsonb))
+                """, Ids.newId(), kind, entity, email,
+                JsonNodeFactory.instance.objectNode().put("locale", locale == null ? "" : locale).toString());
     }
 
     /**
@@ -191,5 +247,5 @@ public class NativeCredentials {
     }
 
     private record Credential(UUID user, String hash) {}
-    private record Setup(String email, boolean reset) {}
+    private record Setup(String email, boolean reset, boolean emailed) {}
 }

@@ -90,13 +90,21 @@ export async function useSession(context: BrowserContext, person: Person) {
   await context.addCookies([{ name: COOKIE, value: person.session, domain: new URL(APP).hostname, path: "/api/v1", httpOnly: true, sameSite: "Lax" }]);
 }
 
-/** An org owned by `person`, with the setup wizard (F16) finished unless `setupDone: false`. */
-export async function createOrg(person: Pick<Person, "session">, name: string, opts: { setupDone?: boolean } = {}): Promise<{ id: string; slug: string; name: string }> {
+/**
+ * An org owned by `person`, with the setup wizard (F16) finished unless `setupDone: false`. Free has
+ * one seat (P57): the org gets `seats` (default 25) as an override so colleagues can be invited;
+ * `seats: null` keeps Free's.
+ */
+export async function createOrg(person: Pick<Person, "session">, name: string, opts: { setupDone?: boolean; seats?: number | null } = {}): Promise<{ id: string; slug: string; name: string }> {
   const slug = unique("smoke").toLowerCase();
   const org = await apiAs<{ id: string; slug: string }>(person, "POST", "/orgs", { name, slug });
   if (opts.setupDone !== false) await apiAs(person, "PUT", `/orgs/${org.id}/setup`, { status: "done", step: "review" });
+  if (opts.seats !== null) await testCall("/seats", { orgId: org.id, seats: opts.seats ?? 25 });
   return { ...org, name };
 }
+
+/** Opens or closes public sign-up (P57), as the platform admin's setting does. */
+export const setPublicSignUp = (open: boolean) => testCall("/public-sign-up", { open });
 
 type SignInOptions = {
   /** Java answers that the account is open elsewhere: the form now offers to take over. */

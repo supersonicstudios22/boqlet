@@ -16,7 +16,7 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 
 | ID | Route | Who | Data (API) | Main actions |
 |---|---|---|---|---|
-| S01 | `/sign-in`, `/sign-up` | public | auth adapter | sign in / up |
+| S01 | `/sign-in`, `/sign-up`, `/reset-password` | public | auth adapter (`/auth/*`) | sign in; sign up by email while open (P57); set a password from a link; ask for a reset link |
 | S39 | `/` | signed-in user | `GET /me` | land in the only or last org, pick one of several, or go to onboarding (F01 §3) |
 | S02 | `/onboarding` | user without org | `POST /orgs` | create org, invite |
 | S03 | `/invite/[token]` | public → user | `GET /invitations/{token}` | accept |
@@ -68,7 +68,7 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S35 | `/s/[token]` | anyone with the link | `/public/shares/{token}/*` | read sheet, line explanation, 3D, download if included |
 | S37 | (pricing module) `/{org}/pricing/pricebooks`, `/vendor/pricebooks` | org (edit per role) / vendor | pricebooks, items, history | edit, bulk edit, Excel template, import, copy |
 | S38 | (pricing module) BoQ workspace `?tab=pricing` | lead, estimator, approver | estimate lines, sources, totals | fill remembered, pick a price, type, export |
-| S36 | `/admin` (overview, funnel, orgs, orgs/[id], users, vendors, health) | platform admin | `/admin/*` | notes, tags, plan change, trial, overrides, suspend, end session |
+| S36 | `/admin` (overview, funnel, orgs, orgs/[id], users, plans, plans/[id], plans/new, settings, vendors, health) | platform admin | `/admin/*` | notes, tags, plan change, trial, overrides, suspend, end session; create, edit and delete plans with their effect previewed; currency and public sign-up (P57) |
 
 Global chrome (all `/{org}` routes): top bar with org switcher, search (projects, BoQs, later
 elements), notifications bell, user menu. Left nav: Dashboard, Projects, Library, Settings.

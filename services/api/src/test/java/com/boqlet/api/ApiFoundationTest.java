@@ -63,7 +63,7 @@ class ApiFoundationTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
-        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test,platform@example.test,limits@example.test");
+        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test,platform@example.test,limits@example.test,metering-owner@example.test,sample-owner@example.test");
         properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
     }
 
@@ -165,6 +165,8 @@ class ApiFoundationTest {
                 """)).andExpect(status().isCreated()).andExpect(jsonPath("$.planId").value("free"))
                 .andReturn().getResponse().getContentAsString();
         String org = "/api/v1/orgs/" + json.readTree(created).path("id").asText();
+        // Two seats, as a platform admin's override (Free has one, P57): the owner and one invitation.
+        database.update("UPDATE subscriptions SET overrides = '{\"seats\":2}' WHERE org_id = ?::uuid", json.readTree(created).path("id").asText());
         http.perform(auth(patch(org), "owner", owner).content("{\"settings\":{\"defaultCurrency\":\"GBP\"}}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.settings.publicLinksAllowed").value(false))
                 .andExpect(jsonPath("$.settings.defaultCurrency").value("GBP"));
@@ -370,14 +372,14 @@ class ApiFoundationTest {
     /** TF-036 (BR-62): every parse, run and preview that ends has a usage event, a cancelled one too, with its earlier attempts' time. */
     @Test
     void aJobCancelledWhileQueuedIsMeteredWithItsEarlierAttempts() throws Exception {
-        var owner = session("owner");
-        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "owner", owner)
+        var owner = session("metering-owner");
+        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "metering-owner", owner)
                 .content("{\"name\":\"Metering firm\",\"slug\":\"metering-firm\"}")).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString()).path("id").asText();
-        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "owner", owner)
+        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "metering-owner", owner)
                 .content("{\"name\":\"Metered\"}")).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString()).path("id").asText();
-        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'metering-owner'", UUID.class);
         UUID job = transactions.execute(status -> {
             UUID id = jobs.enqueue("parse", UUID.fromString(org), UUID.fromString(project), actor, "modelVersion", Ids.newId(),
                     "orgs/" + org + "/test/", java.util.Map.of(), 5);
@@ -393,14 +395,14 @@ class ApiFoundationTest {
     /** P54 (Q62, TF-036): an unmetered job (the sample project's) writes a usage event with zero minutes: shown, not billed. */
     @Test
     void anUnmeteredJobWritesAZeroMinuteUsageEvent() throws Exception {
-        var owner = session("owner");
-        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "owner", owner)
+        var owner = session("sample-owner");
+        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "sample-owner", owner)
                 .content("{\"name\":\"Sample firm\",\"slug\":\"sample-usage-firm\"}")).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString()).path("id").asText();
-        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "owner", owner)
+        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "sample-owner", owner)
                 .content("{\"name\":\"Unmetered\"}")).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString()).path("id").asText();
-        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'sample-owner'", UUID.class);
         UUID job = transactions.execute(status -> {
             UUID id = jobs.enqueue("run", UUID.fromString(org), UUID.fromString(project), actor, "run", Ids.newId(),
                     "orgs/" + org + "/test/", java.util.Map.of(), 0, false);
@@ -410,7 +412,7 @@ class ApiFoundationTest {
         jobs.cancel(job, actor);
         assertThat(database.queryForMap("SELECT kind, outcome, duration_ms FROM usage_events WHERE job_id = ?", job))
                 .containsEntry("kind", "run").containsEntry("outcome", "cancelled").containsEntry("duration_ms", 0L);
-        var usage = json.readTree(http.perform(auth(get("/api/v1/orgs/" + org + "/usage"), "owner", owner))
+        var usage = json.readTree(http.perform(auth(get("/api/v1/orgs/" + org + "/usage"), "sample-owner", owner))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         assertThat(usage.path("processingMinutes").asDouble()).isZero();
         assertThat(usage.path("byProject").get(0).path("projectId").asText()).isEqualTo(project);
@@ -441,7 +443,7 @@ class ApiFoundationTest {
                 String subject = switch (token) {
                     case "pilot-a", "pilot-b" -> "pilot";
                     case "owner", "owner-b" -> "owner";
-                    case "uninvited", "unverified", "guest", "platform", "limits" -> token;
+                    case "uninvited", "unverified", "guest", "platform", "limits", "metering-owner", "sample-owner" -> token;
                     case "suite-olivia", "suite-ivana", "suite-marko", "suite-ana", "suite-victor", "suite-pat" -> token;
                     // People the shared scenarios sign up (com.boqlet.suite.SuiteSupport): the person is
                     // the subject; each browser of theirs is its own provider session (sid).

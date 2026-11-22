@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client, ROOT_URL, authentication } from "../support/env";
+import { allowProjects } from "../support/plans";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -183,8 +184,9 @@ describe("decisions page (F05 §7)", () => {
 describe("a decision the run doesn't use is not a pending change (BR-23, TF-029)", () => {
   it("answers about other questions leave the revision ready to save, also when they go to the project dictionary", async () => {
     const api = client(owner.token);
-    const { data: org } = await api.POST("/orgs", { body: { name: "Pending Firm", slug: slug("pending") } });
-    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex pending" } });
+    // A second project in the same org (a person owns one Free org, P57).
+    await allowProjects(orgId);
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Duplex pending" } });
     const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
     const version = await uploadVersion(owner, model!.id, await duplexBytes(), "Ifc2x3_Duplex_Architecture.ifc");
     expect((await waitForVersion(owner, version.id)).status).toBe("ready");
@@ -193,7 +195,7 @@ describe("a decision the run doesn't use is not a pending change (BR-23, TF-029)
     await finished(api, started!.run.id);
     const pending = async () => (await api.GET("/boqs/{boqId}", { params: { path: { boqId: bill.id } } })).data!.currentRevision.pendingChanges;
     expect(await pending()).toEqual([]);
-    const { data: terms } = await api.GET("/orgs/{orgId}/terms", { params: { path: { orgId: org!.id } } });
+    const { data: terms } = await api.GET("/orgs/{orgId}/terms", { params: { path: { orgId } } });
     const material = terms!.find((t) => t.category === "material")!.id;
     // A question of another BoQ (or of a model this BoQ doesn't use), and a name answer that publishes the project dictionary.
     const { data, response } = await api.POST("/projects/{projectId}/decisions", {

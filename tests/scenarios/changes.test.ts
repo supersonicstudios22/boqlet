@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
+import { allowProjects } from "../support/plans";
 import { readFile } from "node:fs/promises";
 import { DUPLEX, duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
@@ -12,6 +13,7 @@ type Api = ReturnType<typeof client>;
 
 let owner: TestUser;
 let api: Api;
+let orgId: string;
 let boq: Schemas["Boq"];
 let modelId: string;
 let runA: Schemas["Run"];
@@ -69,6 +71,7 @@ beforeAll(async () => {
   owner = await signUp("Changes Owner", uniqueEmail("changes"));
   api = client(owner.token);
   const { data: org } = await api.POST("/orgs", { body: { name: "Changes Firm", slug: slug("changes") } });
+  orgId = org!.id;
   const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex" } });
   const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
   modelId = model!.id;
@@ -167,8 +170,9 @@ describe("change report export (F08 §7)", () => {
 
 describe("an edited line whose model changes (F08-AC3, BR-09, TF-093)", () => {
   it("is listed with the engine's value under the edit, also with the |Δ%| filter, though the edited quantity stays", async () => {
-    const { data: org } = await api.POST("/orgs", { body: { name: "Changes Edits Firm", slug: slug("edits") } });
-    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex edits" } });
+    // A second project in the same org (a person owns one Free org, P57).
+    await allowProjects(orgId);
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Duplex edits" } });
     const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
     const v1 = await uploadVersion(owner, model!.id, await duplexBytes(), "Duplex_A.ifc");
     expect((await waitForVersion(owner, v1.id)).status).toBe("ready");

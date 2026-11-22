@@ -24,6 +24,13 @@ const calls = (api: ReturnType<typeof client>) => [
   () => api.GET("/admin/users"),
   () => api.DELETE("/admin/users/{userId}/session", { params: { path: { userId: USER } } }),
   () => api.GET("/admin/health"),
+  () => api.GET("/admin/plans"),
+  () => api.POST("/admin/plans", { body: { id: "contract-plan", name: "Contract", public: false, defaultPlan: false, position: 1, entitlements: {}, reason: "test" } }),
+  () => api.PUT("/admin/plans/{planId}", { params: { path: { planId: "free" } }, body: { name: "Free", public: true, defaultPlan: true, position: 0, entitlements: {}, reason: "test" } }),
+  () => api.DELETE("/admin/plans/{planId}", { params: { path: { planId: "team" } }, body: { reason: "test" } }),
+  () => api.POST("/admin/plans/{planId}/impact", { params: { path: { planId: "free" } }, body: { entitlements: {} } }),
+  () => api.GET("/admin/settings"),
+  () => api.PUT("/admin/settings", { body: { publicSignUp: true, reason: "test" } }),
 ];
 
 describe("F19 /admin/* isolation", () => {

@@ -199,6 +199,7 @@ class AccountSecurityTest {
     void tf043InvitationMailIsLimitedPerOrg() throws Exception {
         Cookie session = account(email("invites"), "Laptop");
         UUID org = org(session, "invites");
+        seats(org, 2);
         String invitation = json.readTree(http.perform(post("/api/v1/orgs/" + org + "/invitations").header("Origin", ORIGIN)
                 .cookie(session).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email("invitee") + "\",\"role\":\"member\"}"))
@@ -289,11 +290,12 @@ class AccountSecurityTest {
     void tf076AnInvitationNeedsASeatUnderThePlan() throws Exception {
         Cookie owner = account(email("seats"), "Laptop");
         UUID org = org(owner, "seats");
+        seats(org, 2);
         String invitee = email("seat-invitee");
         String invitation = json.readTree(http.perform(post("/api/v1/orgs/" + org + "/invitations").header("Origin", ORIGIN)
                 .cookie(owner).contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"" + invitee + "\",\"role\":\"member\"}"))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).path("id").asText();
-        // Free has 2 seats: the owner and the pending invitation. A member added past it (as a downgrade leaves).
+        // Two seats (an override: Free has one, P57): the owner and the pending invitation. A member added past it (as a downgrade leaves).
         UUID extra = UUID.randomUUID();
         db.update("INSERT INTO users (id, auth_subject, email, name) VALUES (?, ?, ?, 'Extra')", extra, "test:" + extra, email("extra"));
         db.update("INSERT INTO memberships (org_id, user_id, role) VALUES (?, ?, 'member')", org, extra);
@@ -315,6 +317,11 @@ class AccountSecurityTest {
         http.perform(setPassword(setup, PASSWORD, "Account Person")).andExpect(status().isNoContent());
         return http.perform(signIn(email, PASSWORD, device, false)).andExpect(status().isCreated())
                 .andReturn().getResponse().getCookie("boqlet_session");
+    }
+
+    /** Free has one seat (P57): a test that invites gives its org more, as a platform admin's override does. */
+    private void seats(UUID org, int seats) {
+        db.update("UPDATE subscriptions SET overrides = overrides || jsonb_build_object('seats', ?) WHERE org_id = ?", seats, org);
     }
 
     private UUID org(Cookie session, String name) throws Exception {

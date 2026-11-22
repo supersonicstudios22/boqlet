@@ -1,9 +1,9 @@
 package com.boqlet.api.admin;
 
 import com.boqlet.api.audit.AuditWriter;
+import com.boqlet.api.billing.EntitlementCatalogue;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.db.StoredJson;
-import com.boqlet.api.extension.CoreModules;
 import com.boqlet.api.http.ApiException;
 import com.boqlet.api.http.RequestContext;
 import com.boqlet.contract.model.*;
@@ -40,14 +40,15 @@ class AdminOrganisations {
     private final NamedParameterJdbcTemplate named;
     private final StoredJson json;
     private final AuditWriter audit;
-    private final CoreModules modules;
+    private final EntitlementCatalogue catalogue;
 
-    AdminOrganisations(JdbcTemplate database, NamedParameterJdbcTemplate named, StoredJson json, AuditWriter audit, CoreModules modules) {
+    AdminOrganisations(JdbcTemplate database, NamedParameterJdbcTemplate named, StoredJson json, AuditWriter audit,
+                       EntitlementCatalogue catalogue) {
         this.database = database;
         this.named = named;
         this.json = json;
         this.audit = audit;
-        this.modules = modules;
+        this.catalogue = catalogue;
     }
 
     record Filter(String plan, String status, String country, String tag, String signal, AdminFunnelStep stuckAt,
@@ -153,21 +154,14 @@ class AdminOrganisations {
         var current = json.read(database.queryForObject("SELECT overrides::text FROM subscriptions WHERE org_id = ?", String.class, org),
                 com.fasterxml.jackson.databind.node.ObjectNode.class);
         var changes = current.deepCopy();
-        var planTypes = database.query("""
-                SELECT key, jsonb_typeof(value) AS type FROM plans CROSS JOIN LATERAL jsonb_each(entitlements)
-                WHERE jsonb_typeof(value) IN ('number', 'boolean') GROUP BY key, type
-                """, (row, index) -> Map.entry(row.getString(1), row.getString(2)));
+        // Only the keys the backend enforces, each with a valid value (P57, EntitlementCatalogue).
         request.getOverrides().forEach((key, value) -> {
             if (value == null) {
                 changes.remove(key);
                 return;
             }
             JsonNode node = json.object(Map.of("value", value)).path("value");
-            String type = node.isBoolean() ? "boolean" : node.isNumber() && node.decimalValue().signum() >= 0 ? "number" : "";
-            var moduleType = modules.entitlementKeys().get(key);
-            if (!planTypes.contains(Map.entry(key, type)) && (moduleType == null || !moduleType.name().equalsIgnoreCase(type))) {
-                throw invalid("invalid_body", "Invalid entitlement override for " + key + ".");
-            }
+            if (!catalogue.valid(key, node)) throw invalid("invalid_body", "Invalid entitlement override for " + key + ".");
             changes.set(key, node);
         });
         database.update("UPDATE subscriptions SET overrides = ?::jsonb, updated_at = now() WHERE org_id = ?", changes.toString(), org);

@@ -46,6 +46,7 @@ export interface paths {
         /** @description API-only (Q50, TF-080): the app doesn't call it; it reads the user's orgs from `GET /me` memberships. */
         get: operations["listOrgs"];
         put?: never;
+        /** @description A new org on the default plan, with the caller as its owner. `402 limit_reached` (limit `ownedOrgsPerUser`) when the caller already owns as many orgs on the default plan as it allows (P57). */
         post: operations["createOrg"];
         delete?: never;
         options?: never;
@@ -1821,6 +1822,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/sign-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Whether anyone may create an account (P57, the platform setting `publicSignUp`). */
+        get: operations["getSignUpStatus"];
+        put?: never;
+        /** @description Public sign-up (P57). Emails the address a one-hour link to set a password (`/sign-up?token=…`), which proves the address; the account is made when the password is set, and its first org starts on the default plan. An address that already has an account gets an email saying so instead. The answer is `202` either way, so it doesn't tell which addresses have accounts. Basic bot protection: a filled `website` (a field people don't see) or a form sent in under 3 seconds (`elapsedMs`) is accepted with `202` and nothing is sent. Throttled per source and per email (`429 auth_throttled`). `403 sign_up_closed` while public sign-up is off. */
+        post: operations["requestSignUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Self-service password reset (P57). Emails an account with a password a one-hour reset link (`/sign-up?token=…&reset=1`); setting the new password ends the account's active session. The answer is `202` whether or not the address has an account. Throttled per source and per email (`429 auth_throttled`). */
+        post: operations["requestPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions": {
         parameters: {
             query?: never;
@@ -2268,6 +2304,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Every plan, hidden ones too, with the keys a plan may set and the platform currency (P57). */
+        get: operations["adminListPlans"];
+        put?: never;
+        /** @description A new plan. Audited (`plan.created`). `409 plan_exists` when the id is taken. */
+        post: operations["adminCreatePlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/plans/{planId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Replaces the plan's settings; every org on it gets the new limits at once (P57). Nothing is deleted: an org over a new limit keeps what it has, and new use past it is refused. Audited (`plan.updated`, before and after). `409 default_plan_required` when the default plan would stop being default without another taking its place. */
+        put: operations["adminUpdatePlan"];
+        post?: never;
+        /** @description Deletes a plan no org is on. Audited (`plan.deleted`). `409 plan_in_use` while orgs are on it, `409 default_plan_required` for the default plan. */
+        delete: operations["adminDeletePlan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/plans/{planId}/impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description What saving these entitlements would do to the orgs on the plan, before it is saved. Changes nothing. */
+        post: operations["adminPlanImpact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetSettings"];
+        /** @description The platform's currency and whether public sign-up is open (P57). Audited (`platform.settings_changed`). */
+        put: operations["adminUpdateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -2618,6 +2728,92 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /** @description A limit or feature the backend enforces (core, or registered by a module). Plans and overrides can only set these. */
+        EntitlementKey: {
+            key: string;
+            /**
+             * @description number: a non-negative whole number, left out for unlimited; boolean: a feature on or off (left out is off)
+             * @enum {string}
+             */
+            type: "number" | "boolean";
+        };
+        AdminPlan: {
+            id: string;
+            name: string;
+            description: string;
+            /** @description shown to customers on the billing page; a hidden plan is assigned by the platform admin only */
+            public: boolean;
+            /** @description the plan every new org starts on (one plan at a time) */
+            defaultPlan: boolean;
+            /** @description the order of the plans, lowest first */
+            position: number;
+            price?: components["schemas"]["PlanPrice"];
+            entitlements: components["schemas"]["Entitlements"];
+            /** @description orgs on this plan now */
+            orgCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminPlans: {
+            currency: string;
+            entitlementKeys: components["schemas"]["EntitlementKey"][];
+            plans: components["schemas"]["AdminPlan"][];
+        };
+        AdminPlanPriceInput: {
+            amount: number;
+            /** @enum {string} */
+            period: "month" | "year";
+        };
+        /** @description Everything a plan holds; a save replaces all of it and applies to every org on the plan at once (P57). `entitlements` may hold only the keys of `AdminPlans.entitlementKeys`: a number is a non-negative whole number (left out: unlimited), a feature true or false. */
+        AdminPlanInput: {
+            name: string;
+            description?: string;
+            public: boolean;
+            /** @description true makes this the default plan (the previous default stops being it); the default plan can't be unset, only replaced */
+            defaultPlan: boolean;
+            position: number;
+            price?: components["schemas"]["AdminPlanPriceInput"];
+            entitlements: {
+                [key: string]: unknown;
+            };
+            reason: string;
+        };
+        AdminPlanCreate: {
+            /** @description lowercase letters, digits and dashes, not `new`; fixed once made */
+            id: string;
+            name: string;
+            description?: string;
+            public: boolean;
+            defaultPlan: boolean;
+            position: number;
+            price?: components["schemas"]["AdminPlanPriceInput"];
+            entitlements: {
+                [key: string]: unknown;
+            };
+            reason: string;
+        };
+        AdminPlanDelete: {
+            reason: string;
+        };
+        PlanImpact: {
+            /** @description orgs on the plan */
+            orgs: number;
+            /** @description entitlement key → orgs the change affects: for a number, orgs whose use is over the new limit (they keep everything, new use is refused); for a feature, orgs that lose it. Overrides are taken into account */
+            affected: {
+                [key: string]: number;
+            };
+        };
+        PlatformSettings: {
+            /** @description ISO 4217 code of every plan price */
+            currency: string;
+            /** @description anyone may create an account at /sign-up (P57); off: accounts come only from setup links and invitations */
+            publicSignUp: boolean;
+        };
+        SignUpStatus: {
+            open: boolean;
+        };
         Error: {
             /** @description machine code, e.g. revision_locked, invalid_transition, deadline_passed */
             code: string;
@@ -2827,6 +3023,8 @@ export interface components {
             processingMinutesPerMonth?: number;
             libraryOrgPresets?: number;
             auditLogRetentionDays?: number;
+            /** @description how many orgs on this plan one person may own; checked when someone creates an org, which starts on the default plan (P57) */
+            ownedOrgsPerUser?: number;
             approvalWorkflow?: boolean;
             shareLinks?: boolean;
             exportWatermark?: boolean;
@@ -2836,7 +3034,18 @@ export interface components {
         Plan: {
             id: string;
             name: string;
+            /** @description a line for the plan card; empty when the platform admin wrote none */
+            description?: string;
+            price?: components["schemas"]["PlanPrice"];
             entitlements: components["schemas"]["Entitlements"];
+        };
+        /** @description The plan's price as shown to customers, in the platform's one currency (P57). Shown only; no payment provider charges it yet (D7). A plan without `price` shows none. */
+        PlanPrice: {
+            amount: number;
+            /** @description ISO 4217 code, the platform setting `currency` */
+            currency: string;
+            /** @enum {string} */
+            period: "month" | "year";
         };
         EntitlementsResponse: {
             planId: string;
@@ -4413,6 +4622,7 @@ export interface operations {
                     "application/json": components["schemas"]["Org"];
                 };
             };
+            402: components["responses"]["LimitReached"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -7659,6 +7869,145 @@ export interface operations {
             };
         };
     };
+    getSignUpStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignUpStatus"];
+                };
+            };
+            /** @description This backend doesn't run native sign-in (`native_auth_disabled`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestSignUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    email: string;
+                    /** @description the browser's language, for the email */
+                    locale?: string;
+                    /** @description left empty by people (hidden in the form) */
+                    website?: string;
+                    /** @description how long the form was open before it was sent */
+                    elapsedMs: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Accepted; an email is on its way when the address can sign up */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Public sign-up is off (`sign_up_closed`), or not from the app's origin (`invalid_origin`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description This backend doesn't run native sign-in (`native_auth_disabled`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too many attempts (`auth_throttled`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Accepted; an email is on its way when the address has an account */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Not from the app's origin (`invalid_origin`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description This backend doesn't run native sign-in (`native_auth_disabled`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too many attempts (`auth_throttled`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     openSession: {
         parameters: {
             query?: never;
@@ -8481,6 +8830,214 @@ export interface operations {
                     "application/json": components["schemas"]["AdminNote"];
                 };
             };
+        };
+    };
+    adminListPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlans"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminCreatePlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlan"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description The id is taken (`plan_exists`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    adminUpdatePlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlan"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description The default plan must stay default (`default_plan_required`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    adminDeletePlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlanDelete"];
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Orgs are on the plan (`plan_in_use`) or it is the default (`default_plan_required`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    adminPlanImpact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    entitlements: {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanImpact"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminGetSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSettings"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminUpdateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    currency?: string;
+                    publicSignUp?: boolean;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
         };
     };
     adminListUsers: {

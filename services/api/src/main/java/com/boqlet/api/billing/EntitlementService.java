@@ -7,6 +7,7 @@ import com.boqlet.contract.model.Entitlements;
 import com.boqlet.contract.model.EntitlementsResponse;
 import com.boqlet.contract.model.EntitlementsResponseUsage;
 import com.boqlet.contract.model.Plan;
+import com.boqlet.contract.model.PlanPrice;
 import com.boqlet.contract.model.Subscription;
 import com.boqlet.contract.model.UsageResponse;
 import com.boqlet.contract.model.UsageResponseByProjectInner;
@@ -35,13 +36,44 @@ public class EntitlementService {
         this.json = json;
     }
 
+    /** The plans customers see (P57): public ones, in the platform admin's order, with the price in the platform currency. */
     public List<Plan> plans() {
         return database.query("""
-                SELECT id, name, entitlements::text FROM plans WHERE public ORDER BY default_plan DESC,
-                    array_position(ARRAY['free','professional','team','enterprise'], id) NULLS LAST, created_at, id
+                SELECT p.id, p.name, p.description, p.entitlements::text, p.price_amount, p.price_period, s.currency
+                FROM plans p CROSS JOIN platform_settings s WHERE p.public ORDER BY p.position, p.created_at, p.id
                 """,
-                (row, index) -> new Plan(row.getString("id"), row.getString("name"),
-                        json.read(row.getString("entitlements"), Entitlements.class)));
+                (row, index) -> {
+                    var plan = new Plan(row.getString("id"), row.getString("name"),
+                            json.read(row.getString("entitlements"), Entitlements.class)).description(row.getString("description"));
+                    BigDecimal amount = row.getBigDecimal("price_amount");
+                    if (amount != null) plan.price(new PlanPrice(amount, row.getString("currency"),
+                            PlanPrice.PeriodEnum.fromValue(row.getString("price_period"))));
+                    return plan;
+                });
+    }
+
+    /** The plan a new org starts on. */
+    public String defaultPlan() {
+        return database.queryForObject("SELECT id FROM plans WHERE default_plan", String.class);
+    }
+
+    /**
+     * `402 limit_reached` (`ownedOrgsPerUser`, P57) when the person already owns as many orgs on the
+     * plan as it allows. In the caller's transaction, serialised per person, so two creates at once
+     * can't both pass.
+     */
+    public void checkOwnedOrgs(UUID actor, String plan) {
+        JsonNode maximum = json.read(database.queryForObject("SELECT entitlements::text FROM plans WHERE id = ?", String.class, plan),
+                JsonNode.class).path("ownedOrgsPerUser");
+        if (!maximum.isNumber()) return;
+        database.queryForObject("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))::text", String.class, "owned-orgs:" + actor);
+        long owned = database.queryForObject("""
+                SELECT count(*) FROM memberships m JOIN orgs o ON o.id = m.org_id JOIN subscriptions s ON s.org_id = o.id
+                WHERE m.user_id = ? AND m.role = 'owner' AND o.status <> 'deleting' AND s.plan_id = ?
+                """, Long.class, actor, plan);
+        if (BigDecimal.valueOf(owned).compareTo(maximum.decimalValue()) >= 0) {
+            throw new LimitReached(null, actor, "ownedOrgsPerUser", BigDecimal.valueOf(owned), maximum.decimalValue());
+        }
     }
 
     public Subscription subscription(UUID org) {

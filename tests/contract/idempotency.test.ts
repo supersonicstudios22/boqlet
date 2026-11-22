@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail } from "../support/users";
 
 /** api-conventions.md "Idempotency" (TF-073): the same `Idempotency-Key` answers the first response again. */
@@ -9,6 +10,7 @@ describe("Idempotency-Key", () => {
     const api = client(owner.token);
     const slug = `idem-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
     const { data: org } = await api.POST("/orgs", { body: { name: "Idempotent Firm", slug } });
+    await allowSeats(org!.id);
     const key = crypto.randomUUID();
     const invite = () => api.POST("/orgs/{orgId}/invitations", {
       params: { path: { orgId: org!.id }, header: { "Idempotency-Key": key } },

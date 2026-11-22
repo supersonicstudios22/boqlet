@@ -27,6 +27,13 @@ public final class RequestPaths {
         String method = request.getMethod();
         if (!"GET".equals(method) && !"HEAD".equals(method)) return false;
         String path = of(request);
-        return path.equals("/api/v1/plans") || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/");
+        return path.equals("/api/v1/plans") || path.equals("/api/v1/auth/sign-up") || path.startsWith("/api/v1/public/")
+                || path.startsWith("/api/v1/invitations/");
     }
+
+    /** The native sign-in routes anyone may POST to without a session (P50, P57); the Origin check still applies. */
+    public static final java.util.List<String> AUTH_ACTIONS = java.util.List.of(
+            "/api/v1/auth/sign-in", "/api/v1/auth/set-password", "/api/v1/auth/sign-up", "/api/v1/auth/password-reset");
+
+    public static boolean authAction(String path) { return AUTH_ACTIONS.contains(path); }
 }

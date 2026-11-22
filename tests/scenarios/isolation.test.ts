@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { client } from "../support/env";
 import { invitationToken, mailsTo } from "../support/mail";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
@@ -22,6 +23,7 @@ beforeAll(async () => {
   owner = await signUp("Iso Owner", uniqueEmail("iso-owner"));
   stranger = await signUp("Iso Stranger", uniqueEmail("iso-stranger"));
   const { data: org } = await client(owner.token).POST("/orgs", { body: { name: "Iso Firm", slug: slug("iso") } });
+  await allowSeats(org!.id);
   orgId = org!.id;
   projectId = (await client(owner.token).POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Private" } })).data!.id;
   boqId = (await client(owner.token).POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "Private BoQ" } })).data!.id;

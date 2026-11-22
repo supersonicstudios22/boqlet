@@ -153,7 +153,10 @@ class NativeWorkerTest {
         Cookie cookie = http.perform(post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer owner")
                 .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Native worker test\"}"))
                 .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
+        roomForAnotherOrg();
         String org = id(perform(post("/api/v1/orgs").content("{\"name\":\"Native\",\"slug\":\"native-worker\"}"), cookie, 201));
+        // Free has one seat (P57): room for the invitation, as a platform admin's override.
+        database.update("UPDATE subscriptions SET overrides = overrides || '{\"seats\":5}' WHERE org_id = ?::uuid", org);
         verifyInvitationMail(org, cookie);
         String project = id(perform(post("/api/v1/orgs/" + org + "/projects").content("{\"name\":\"Duplex\"}"), cookie, 201));
         String model = id(perform(post("/api/v1/projects/" + project + "/models")
@@ -525,7 +528,19 @@ class NativeWorkerTest {
         return suiteUsersJson;
     }
 
+    /**
+     * The harness's "owner" makes several orgs over the class's tests; Free allows one owned org per
+     * person (P57), so its earlier Free orgs move to Team first, as a platform admin would.
+     */
+    private void roomForAnotherOrg() {
+        database.update("""
+                UPDATE subscriptions SET plan_id = 'team' WHERE plan_id = 'free' AND org_id IN (
+                    SELECT m.org_id FROM memberships m JOIN users u ON u.id = m.user_id WHERE u.auth_subject = 'owner' AND m.role = 'owner')
+                """);
+    }
+
     private void verifyOrgPurge(Cookie cookie) throws Exception {
+        roomForAnotherOrg();
         String org = id(perform(post("/api/v1/orgs").content("{\"name\":\"Purge sample\",\"slug\":\"purge-sample\"}"), cookie, 201));
         String orgPath = "/api/v1/orgs/" + org;
         perform(post(orgPath + "/projects").content("{\"name\":\"Purge project\"}"), cookie, 201);

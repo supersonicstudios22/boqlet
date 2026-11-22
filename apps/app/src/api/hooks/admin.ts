@@ -13,6 +13,12 @@ export type AdminFunnelStep = Schemas["AdminFunnelStep"];
 export type AdminOrgRow = Schemas["AdminOrgRow"];
 export type AdminOrgDetail = Schemas["AdminOrgDetail"];
 export type AdminUserRow = Schemas["AdminUserRow"];
+export type AdminPlan = Schemas["AdminPlan"];
+export type AdminPlanInput = Schemas["AdminPlanInput"];
+export type AdminPlanCreate = Schemas["AdminPlanCreate"];
+export type EntitlementKey = Schemas["EntitlementKey"];
+export type PlanImpact = Schemas["PlanImpact"];
+export type PlatformSettings = Schemas["PlatformSettings"];
 
 export interface Period {
   from?: string;
@@ -140,3 +146,71 @@ export function useAdminHealth() {
   });
 }
 
+
+/** Plans as the platform admin configures them (P57): hidden ones too, the keys a plan may set, the currency. */
+export function useAdminPlans() {
+  return useQuery({
+    queryKey: keys.adminPlans(),
+    queryFn: async () => (await api.GET("/admin/plans")).data!,
+    // Every view is audited (BR-57): don't refetch on focus.
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** A plan change reaches every org on it: the plan lists, the orgs table and every org detail are stale. */
+function usePlanAction<V, R>(call: (v: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: call,
+    onSuccess: () => {
+      for (const key of [keys.adminPlans(), keys.plans(), ["adminOrgs"], ["adminOrg"], ["adminOverview"]]) {
+        void client.invalidateQueries({ queryKey: key });
+      }
+    },
+  });
+}
+
+export function useAdminCreatePlan() {
+  return usePlanAction(async (body: AdminPlanCreate) => (await api.POST("/admin/plans", { body })).data!);
+}
+
+export function useAdminUpdatePlan(planId: string) {
+  return usePlanAction(async (body: AdminPlanInput) => (await api.PUT("/admin/plans/{planId}", { params: { path: { planId } }, body })).data!);
+}
+
+export function useAdminDeletePlan(planId: string) {
+  return usePlanAction(async (reason: string) => {
+    await api.DELETE("/admin/plans/{planId}", { params: { path: { planId } }, body: { reason } });
+  });
+}
+
+/** What saving these entitlements would do to the orgs on the plan; changes nothing. */
+export function useAdminPlanImpact(planId: string | null, entitlements: Record<string, number | boolean>) {
+  return useQuery({
+    queryKey: ["adminPlanImpact", planId, entitlements],
+    enabled: planId !== null,
+    placeholderData: (previous) => previous,
+    queryFn: async () => (await api.POST("/admin/plans/{planId}/impact", { params: { path: { planId: planId! } }, body: { entitlements } })).data!,
+  });
+}
+
+export function useAdminSettings() {
+  return useQuery({
+    queryKey: keys.adminSettings(),
+    queryFn: async () => (await api.GET("/admin/settings")).data!,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useAdminUpdateSettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { currency?: string; publicSignUp?: boolean; reason: string }) => (await api.PUT("/admin/settings", { body })).data!,
+    onSuccess: (settings) => {
+      client.setQueryData(keys.adminSettings(), settings);
+      // The currency is in every plan price.
+      void client.invalidateQueries({ queryKey: keys.adminPlans() });
+      void client.invalidateQueries({ queryKey: keys.plans() });
+    },
+  });
+}

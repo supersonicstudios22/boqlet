@@ -12,7 +12,7 @@ import { Wordmark } from "@/components/shell/wordmark";
 import { usePageTitle } from "@/lib/page-title";
 import { navItemClass } from "@/components/nav-styles";
 
-const SECTIONS = ["overview", "funnel", "orgs", "users", "health"] as const;
+const SECTIONS = ["overview", "funnel", "orgs", "users", "plans", "settings", "health"] as const;
 const href = (s: (typeof SECTIONS)[number]) => (s === "overview" ? "/admin" : `/admin/${s}`);
 
 /**

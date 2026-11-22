@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
 import { invitationToken } from "../support/mail";
+import { allowSeats } from "../support/plans";
 import { signUp, uniqueEmail } from "../support/users";
 
 /** F16 setup progress (FE-028): `GET/PUT /orgs/{orgId}/setup`; the presets themselves are Library presets. */
@@ -12,6 +13,7 @@ describe("F16 setup progress", () => {
     const owner = await signUp("Setup Owner", uniqueEmail("setup"));
     const api = client(owner.token);
     const org = (await api.POST("/orgs", { body: { name: "Setup Firm", slug: slug("setup") } })).data!;
+    await allowSeats(org.id);
     const none = await api.GET("/orgs/{orgId}/setup", { params: { path: { orgId: org.id } } });
     expect(none.response.status).toBe(204);
 

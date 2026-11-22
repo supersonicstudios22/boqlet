@@ -1,8 +1,9 @@
 # F01 Accounts, organisations, members
 
-> **Status (2026-11-22):** Partly built. Orgs, invitations (at most 20 invitation mails an hour per org; an invitation over the plan's seats is refused), roles, multi-org, single session and takeover are built (native sign-in, P50). Account events are audited (password set or reset, session opened and ended, failed sign-in); a takeover is written into each of the user's orgs with both device labels; the members list shows when each member was last active (TF-044, TF-114, TF-118, TF-043, TF-076).
+> **Status (2026-11-22):** Partly built. Public sign-up and self-service password reset by email (P57; sign-up is a platform setting the platform admin opens, off by default; basic bot protection: a hidden field, a minimum fill time and throttling per address and per email; `NativeAuthController`, `apps/app/src/auth/adapters/native-links.tsx`). A person owns at most as many orgs on the default plan as it allows (`ownedOrgsPerUser`, Free: 1; `402 limit_reached` when creating another). Orgs, invitations (at most 20 invitation mails an hour per org; an invitation over the plan's seats is refused), roles, multi-org, single session and takeover are built (native sign-in, P50). Account events are audited (password set or reset, session opened and ended, failed sign-in); a takeover is written into each of the user's orgs with both device labels; the members list shows when each member was last active (TF-044, TF-114, TF-118, TF-043, TF-076).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
-> - No public sign-up: `/sign-up` only sets a password from an operator setup link or an invitation (`apps/app/app/(public)/sign-up/[[...rest]]/page.tsx`, `NativeCredentials.setPassword`); no self-service password reset (assisted reset links only).
+> - Bot protection is basic (P57): no captcha or proof of work; sign-up asks for no terms or privacy acceptance (there are no such pages yet).
+> - `ownedOrgsPerUser` is checked when someone creates an org, not when ownership changes hands ("make someone owner").
 > - Onboarding has no invite step (FL-1 step 3): `apps/app/app/(app)/onboarding/page.tsx` creates the org and goes to the wizard.
 > - The takeover question's place is always empty: `Sessions.java` has a `place` column nothing writes.
 > - The 12 h idle expiry is hard-coded (`interval '12 hours'` in `Sessions.java`), not configurable.
@@ -41,8 +42,10 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
    - else a module account kind only (pricing: a vendor with no org) → that module's area (`/vendor`);
    - else → `/onboarding` (create org).
 4. **Create org:** name required; slug suggested from the name (lower-case, `a-z0-9-`, 3–40
-   chars), editable, unique (`409 slug_taken`). The creator becomes `owner`. A Free
-   subscription is created. Optional fields at creation: default currency, unit system and
+   chars), editable, unique (`409 slug_taken`). The creator becomes `owner`. The org starts on
+   the default plan (Free). A person may own as many orgs on the default plan as its
+   `ownedOrgsPerUser` allows (Free: 1, P57); another is `402 limit_reached`, and a taken slug is
+   still `409` first. Optional fields at creation: default currency, unit system and
    country, used for project defaults.
 5. **Invite:** email + role. `seats` is checked when sending (`402 limit_reached` with
    `limit: "seats"`). Pending invitations count towards seats. Inviting an email that is
@@ -72,9 +75,20 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
     labels) so an owner can see an account being passed around. The session is the backend's
     own record, whatever the auth provider (07-backend D1).
 
+11. **Public sign-up and reset (native sign-in, P57).** While the platform admin has sign-up
+    open, `/sign-up` without a link asks for an email; the backend emails a one-hour link to
+    set the password (`/sign-up?token=…`), which proves the address, and the account is made
+    when the password is set. An address with an account gets an email saying so instead. A
+    hidden field filled in, or a form sent within 3 seconds, is accepted and sends nothing.
+    Sign-in links to "Forgot your password?" (`/reset-password`): an account with a password
+    gets a one-hour reset link (`&reset=1`, no name field); setting it ends the active session.
+    Both answer `202` whatever the address, and are throttled (20 requests per address and 3
+    per email in 15 minutes, `429 auth_throttled`). Closed, `/sign-up` says accounts come from
+    setup links and invitations, and sign-in shows no sign-up link.
+
 ## Screens
 
-- `/sign-in`, `/sign-up` (auth adapter pages), `/session-conflict` (the takeover question),
+- `/sign-in`, `/sign-up`, `/reset-password` (auth adapter pages), `/session-conflict` (the takeover question),
   `/onboarding` (create org, then the setup wizard, F16), `/invite/[token]`.
 - `/{org}/settings/general`, `/{org}/settings/members` (members table: name, email, role,
   joined, last active; invitations table: email, role, sent, expires, resend/revoke).

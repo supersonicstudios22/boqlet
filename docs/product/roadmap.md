@@ -36,9 +36,11 @@ a gap in [known-limitations.md](known-limitations.md).
 7. **Setup wizard as specified** (F16): "Suggest codes", names filtered to those worth asking, the
    sample Duplex as the wizard's model; the person check of criterion 12 (O2).
 8. **Coordinate alignment between federated models** (Q11) (O1).
-9. **Self-service accounts for public launch** (P08, P17): public sign-up with bot protection
-   (BE-D12), self-service password reset, a payment provider behind the billing adapter (BE-D7), trial
-   and downgrade rules; then Q18 and Q26 (tiers and prices) and Q19 and Q20 (legal) must be answered (O8).
+9. **Self-service accounts for public launch** (P08, P17): public sign-up and self-service reset are
+   built (P57, off until the platform admin opens sign-up); left: stronger bot protection than a hidden
+   field and throttling (BE-D12), a payment provider behind the billing adapter (BE-D7), trial and
+   downgrade rules, terms and privacy acceptance at sign-up; Q26 (what paid tiers are priced on) and
+   Q19 and Q20 (legal) (O8).
 10. **A staging environment** (BE-032, P51) before real users depend on the pilot.
 11. **Translations**: give engine log entries and answer options codes and structured params, then
     add a second UI language (P07, F15).

@@ -22,9 +22,10 @@ test("F01-AC2: an invitation opened by someone signed in with another email is r
   expect((await apiAs<{ status: string }>(stranger, "GET", `/invitations/${token}`)).status).toBe("pending");
 });
 
-test("F01-AC3: inviting beyond the free plan's seats shows the limit dialog (402 seats)", async ({ page }) => {
+test("F01-AC3: inviting beyond the plan's seats shows the limit dialog (402 seats)", async ({ page }) => {
   const owner = await newPerson("Free Owner");
-  const org = await createOrg(owner, "Free Firm");
+  // Two seats: the owner and one pending invitation (Free alone has one, P57).
+  const org = await createOrg(owner, "Free Firm", { seats: 2 });
   await useSession(page.context(), owner);
   await page.goto(`/${org.slug}/settings/members`);
   await page.getByTestId("invite-email").fill(newEmail("one"));

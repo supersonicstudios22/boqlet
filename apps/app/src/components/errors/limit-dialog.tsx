@@ -52,7 +52,10 @@ export function LimitDialog() {
         </DialogHeader>
         {limit !== undefined && current !== undefined && max !== undefined && (
           <p className="text-ui" data-testid="limit-detail">
-            {FEATURE_LIMITS.has(String(limit))
+            {limit === "ownedOrgsPerUser"
+              ? // Creating an org (P57): there is no org yet whose plan could be upgraded.
+                t("errors.limit.ownedOrgs", { max: Number(max) })
+              : FEATURE_LIMITS.has(String(limit))
               ? t("errors.limit.feature", { limit: limitName(String(limit)) })
               : t("errors.limit.detail", { limit: limitName(String(limit)), current: Number(current), max: Number(max) })}
           </p>

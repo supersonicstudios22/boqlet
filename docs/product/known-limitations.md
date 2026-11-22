@@ -45,9 +45,16 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
 ## Product (app, Java backend, worker)
 
 **Accounts and billing**
-- **No public sign-up and no self-service password reset.** Accounts come from operator setup links
-  (`ops/pilot/issue-setup-link.sh`, locally `npm run local:user`) and invitations; resets are
-  operator-issued links (P50). Public sign-up needs bot protection decided first (BE-D12).
+- **Public sign-up has basic bot protection only** (P57): a hidden field, a minimum fill time of
+  3 s (measured by the browser, so a script can claim it) and throttling (20 sign-up or reset
+  requests per address and 3 per email in 15 minutes). No captcha or proof of work; to upgrade
+  before sign-up gets traffic. Sign-up is off until the platform admin opens it (Settings in the
+  console). Sign-up asks for no terms or privacy acceptance: there are no such pages yet.
+- **Plan prices are shown, not charged** (P57, D7); one currency for every plan. A plan change
+  reaches every org on it at once: no plan versions or grandfathering, its history is the audit
+  log (`plan.updated` with before and after).
+- `ownedOrgsPerUser` (Free: one owned org per person, P57) is checked when an org is created, not
+  when ownership passes to someone ("make someone owner"), and an org override can't lift it.
 - **Billing is manual**: checkout answers `409 checkout_unavailable`, the billing webhook
   `400 unsupported_provider` (not audited), no provider adapter. A provider waits for paid
   self-service (BE-D7). No trial automation (admins set `trialEndsAt`; nothing drops an org to Free),

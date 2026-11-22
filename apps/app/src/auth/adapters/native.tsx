@@ -13,6 +13,7 @@ import { safeReturnTo, type AuthAdapter, type Session } from "../AuthAdapter";
 import { LIMITS } from "@/lib/limits";
 import { useHydrated } from "@/components/hydration";
 import { useRelativeTime } from "@/i18n/use-relative-time";
+import { ResetRequest, SignUpLink, SignUpRequest } from "./native-links";
 
 const LOADING: Session = { status: "loading" };
 const ANONYMOUS: Session = { status: "anonymous" };
@@ -112,10 +113,17 @@ export const nativeAuthAdapter: AuthAdapter = {
   retrySession,
   SignInPage: NativeSignIn,
   SignUpPage: NativeSetup,
+  ResetPasswordPage: ResetRequest,
 };
 
 function NativeSignIn() { return <NativeForm setup={false} />; }
-function NativeSetup() { return <NativeForm setup />; }
+
+/** `/sign-up`: with a link (setup, reset or invitation) the set-password form; without one, public sign-up (P57). */
+function NativeSetup() {
+  const query = useSearchParams();
+  const invite = /^\/invite\/([A-Za-z0-9_-]{43})\/?$/.exec(safeReturnTo(query.get("returnTo")))?.[1];
+  return query.get("token") || invite ? <NativeForm setup /> : <SignUpRequest />;
+}
 
 function NativeForm({ setup }: { setup: boolean }) {
   const t = useTranslations("auth.native");
@@ -125,6 +133,8 @@ function NativeForm({ setup }: { setup: boolean }) {
   const email = query.get("email") ?? "";
   const invite = /^\/invite\/([A-Za-z0-9_-]{43})\/?$/.exec(returnTo)?.[1];
   const token = query.get("token") ?? invite;
+  // A reset link (`&reset=1`, P57) chooses a new password for an account that has a name already.
+  const reset = setup && query.get("reset") === "1";
   const [busy, setBusy] = useState(false);
   const [conflict, setConflict] = useState(false);
   // The session open elsewhere (409 session_active): where and when, as S31 says it (TF-113).
@@ -175,7 +185,7 @@ function NativeForm({ setup }: { setup: boolean }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-8 py-16">
       <Wordmark className="text-display-sm" />
-      <h1 className="text-title">{t(setup ? "setPassword" : "signIn")}</h1>
+      <h1 className="text-title">{t(reset ? "newPassword" : setup ? "setPassword" : "signIn")}</h1>
       {/* Why one was signed out (`?reason=`) is shown above the form by the sign-in page. */}
       {setup && !token ? <p>{t("setupLink")}</p> : (
         <form method="post" onSubmit={submit} onChange={() => {
@@ -183,7 +193,7 @@ function NativeForm({ setup }: { setup: boolean }) {
           setActive(null);
         }} className="flex flex-col gap-4">
           {setup ? (
-            <label className="grid gap-2">{t("name")} <Input name="name" autoComplete="name" maxLength={LIMITS.personName} /></label>
+            !reset && <label className="grid gap-2">{t("name")} <Input name="name" autoComplete="name" maxLength={LIMITS.personName} /></label>
           ) : (
             <label className="grid gap-2">{t("email")} <Input type="email" name="email" autoComplete="username" defaultValue={email} required /></label>
           )}
@@ -225,6 +235,12 @@ function NativeForm({ setup }: { setup: boolean }) {
         </form>
       )}
       {!setup && invite && <Link className="text-link hover:underline" href={localAuthUrl({ returnTo, email }, true)}>{t("invited")}</Link>}
+      {!setup && (
+        <Link className="text-link hover:underline" href={`/reset-password${email ? `?${new URLSearchParams({ email })}` : ""}`} data-testid="forgot-password">
+          {t("forgot")}
+        </Link>
+      )}
+      {!setup && !invite && <SignUpLink returnTo={returnTo} />}
       {setup && <Link className="text-link hover:underline" href={localAuthUrl({ returnTo, email })}>{t("back")}</Link>}
     </main>
   );

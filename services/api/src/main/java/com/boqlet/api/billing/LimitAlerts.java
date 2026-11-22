@@ -63,6 +63,8 @@ class LimitAlerts {
 
     private void near(UUID org, String key, BigDecimal usage, JsonNode effective) {
         JsonNode limit = effective.path(key);
+        // A one-seat plan (Free, P57) is for one person: its only seat in use is the plan, not news.
+        if (key.equals("seats") && limit.isNumber() && limit.decimalValue().compareTo(BigDecimal.ONE) <= 0) return;
         if (limit.isNumber() && limit.decimalValue().signum() > 0
                 && usage.compareTo(limit.decimalValue().multiply(new BigDecimal("0.8"))) >= 0) {
             publish(org, key, usage, limit.decimalValue(),

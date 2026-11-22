@@ -39,6 +39,8 @@ export interface AuthAdapter {
   /** Optional embedded UI for providers that render forms in-app. */
   SignInPage?: ComponentType;
   SignUpPage?: ComponentType;
+  /** Self-service password reset (P57), for providers whose passwords live in the app. */
+  ResetPasswordPage?: ComponentType;
 }
 
 /** Only same-site paths are accepted as `returnTo` (no open redirects). */

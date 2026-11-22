@@ -72,7 +72,7 @@ working tree, so run it again after changing `services/api` or `engine`.
 | `engine` | not published | The HTTP worker the API calls (`BOQLET_ENGINE_TRANSPORT=http`). |
 | `db` (PostgreSQL 16) | `localhost:55432`, user and database `boqlet`, password `boqlet-local` | Flyway creates the schema when the API starts. |
 | `storage` (SeaweedFS, S3) | http://localhost:8333 | The browser uploads and downloads here directly with signed URLs; `storage-init` creates the bucket and allows the app's origin (CORS). |
-| `mail` (MailHog) | http://localhost:8025 | Every email the API sends: invitations, notifications. |
+| `mail` (MailHog) | http://localhost:8025 | Every email the API sends: invitations, notifications, sign-up and reset links (P57; sign-up is off until a platform admin opens it in Admin › Settings: `npm run local:admin -- <email>` makes one). |
 
 Everything is in `ops/local/compose.yaml` (project name `boqlet-local`); the helper is
 `scripts/local.mjs`. The secrets in it are fixed local-only values. Ports can be moved with

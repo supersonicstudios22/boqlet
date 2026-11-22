@@ -43,6 +43,8 @@ describe("native sign-in on a backend that doesn't run it", () => {
   for (const [path, body] of [
     ["/auth/sign-in", { email: "someone@example.com", password: "a long enough password", deviceLabel: "Contract suite" }],
     ["/auth/set-password", { token: "t".repeat(43), password: "a long enough password" }],
+    ["/auth/sign-up", { email: "someone@example.com", elapsedMs: 5000 }],
+    ["/auth/password-reset", { email: "someone@example.com" }],
   ] as const) {
     it(`POST ${path} answers 404 native_auth_disabled`, async () => {
       const res = await fetch(API_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -50,6 +52,12 @@ describe("native sign-in on a backend that doesn't run it", () => {
       expect(((await res.json()) as { code: string }).code).toBe("native_auth_disabled");
     });
   }
+});
+
+it("GET /auth/sign-up answers 404 native_auth_disabled there too (P57)", async () => {
+  const res = await fetch(API_URL + "/auth/sign-up");
+  expect(res.status).toBe(404);
+  expect(((await res.json()) as { code: string }).code).toBe("native_auth_disabled");
 });
 
 it("covers every tag the contract declares", () => {

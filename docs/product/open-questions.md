@@ -60,11 +60,11 @@ here first (with "Blocks: <task>") and then asked (`docs/development/workflow.md
 |---|---|---|
 | Q16 | ~~Authentication provider~~ | *Answered: Keycloak at BE-000, then native email and password sign-in in Java (P50, 2026-11-18).* |
 | Q17 | Hosting provider and region | *Answered for the pilot: Contabo, the only deployed environment (P51, `docs/operations/pilot.md`). Open for a separate staging environment (BE-032) and for production at scale.* |
-| Q18 | Plan limits and prices | Owner, before public launch (`docs/product/plans-and-limits.md`) |
+| Q18 | Plan limits and prices | *Partly answered (P57): Free is one seat and one owned org; every limit and price is data the platform admin sets in the console. The paid tiers' values stay the owner's to set there.* |
 | Q19 | Legal: terms of service, DPA, vendor terms (vendors are not customers) | Owner + lawyer |
 | Q20 | Data retention for vendors' offers after org deletion (BR-52) | Owner + lawyer |
 | Q21 | Support model for custom presets (service revenue with a QS partner, `docs/archive/platform-design-2026-10.md`) | Owner |
-| Q40 | When does public sign-up come (P08, P17, F01, FL-1 step 1)? It needs bot protection (BE-D12), self-service password reset, a payment provider (BE-D7) and Q18 / Q26 first. Today accounts come only from setup links and invitations (P50) | Owner, before public launch |
+| Q40 | ~~When does public sign-up come (P08, P17, F01, FL-1 step 1)?~~ | *Answered (P57, 2026-11-22): built now, opened by the platform admin (a setting, off by default), with basic bot protection (to be upgraded) and self-service reset; whoever signs up starts on Free; no payment provider needed first (prices are shown, plans set by the admin).* |
 | Q41 | Emails are sent in English and Serbian (`mail/EmailDelivery.java`) while the UI has English only (P07, P35). Intended (a pilot market), or should emails follow the UI's languages? | Owner |
 
 ## Engine, sourcing and validation

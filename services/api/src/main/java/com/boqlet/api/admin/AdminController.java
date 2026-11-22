@@ -22,11 +22,13 @@ class AdminController implements AdminApi {
     private final AdminOrganisations orgs;
     private final AdminUsers users;
     private final AdminReports reports;
+    private final PlanAdministration plans;
 
-    AdminController(AdminOrganisations orgs, AdminUsers users, AdminReports reports) {
+    AdminController(AdminOrganisations orgs, AdminUsers users, AdminReports reports, PlanAdministration plans) {
         this.orgs = orgs;
         this.users = users;
         this.reports = reports;
+        this.plans = plans;
     }
 
     @Override
@@ -110,6 +112,46 @@ class AdminController implements AdminApi {
     public ResponseEntity<AdminNote> adminAddNote(UUID org, AdminAddNoteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore())
                 .body(orgs.addNote(actor(), org, request.getText()));
+    }
+
+    @Override
+    public ResponseEntity<AdminPlans> adminListPlans() {
+        var list = plans.list();
+        viewed("admin.plans_viewed", "plan", null, Map.of());
+        return ok(list);
+    }
+
+    @Override
+    public ResponseEntity<AdminPlan> adminCreatePlan(AdminPlanCreate request) {
+        return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).body(plans.create(actor(), request));
+    }
+
+    @Override
+    public ResponseEntity<AdminPlan> adminUpdatePlan(String plan, AdminPlanInput request) {
+        return ok(plans.update(actor(), plan, request));
+    }
+
+    @Override
+    public ResponseEntity<Void> adminDeletePlan(String plan, AdminPlanDelete request) {
+        plans.delete(actor(), plan, request.getReason());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<PlanImpact> adminPlanImpact(String plan, AdminPlanImpactRequest request) {
+        return ok(plans.impact(plan, request.getEntitlements()));
+    }
+
+    @Override
+    public ResponseEntity<PlatformSettings> adminGetSettings() {
+        var settings = plans.settings();
+        viewed("admin.settings_viewed", "platform", null, Map.of());
+        return ok(settings);
+    }
+
+    @Override
+    public ResponseEntity<PlatformSettings> adminUpdateSettings(AdminUpdateSettingsRequest request) {
+        return ok(plans.updateSettings(actor(), request));
     }
 
     @Override
