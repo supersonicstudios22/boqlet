@@ -11,7 +11,7 @@ import type { BoqResult, Decision, ModelScope } from "./engine";
 import type { ManualItem, RuleSet } from "./rules";
 import type { DictField, Dictionary, Resolution } from "./dictionary";
 import type { Code } from "./classification";
-import type { CheckCode } from "./parsed";
+import type { Check, CheckCode } from "./parsed";
 
 export interface PresetInfo {
   id: string;
@@ -181,6 +181,8 @@ export interface ModelSummary {
   spaceCount: number;
   byClass: Record<string, number>;
   checks: Partial<Record<CheckCode, number>>;
+  /** The checks with their elements (at most 200 per code; `checks` has the whole count), without `data`. */
+  checkDetails?: Omit<Check, "data">[];
   parseMs: number;
   cached: boolean;
 }

@@ -35,6 +35,20 @@ def model_scene(parsed: dict, mesh_ids: set[str]) -> dict:
     }
 
 
+CHECK_DETAILS_PER_CODE = 200  # keeps the stored summary small on big models; `checks` keeps the whole count
+
+
+def check_details(checks: list[dict]) -> list[dict]:
+    """The checks with their elements, for the input-check report's "Show in 3D" (F03-AC5), without `data`."""
+    taken: dict[str, int] = {}
+    details = []
+    for check in checks:
+        taken[check["code"]] = taken.get(check["code"], 0) + 1
+        if taken[check["code"]] <= CHECK_DETAILS_PER_CODE:
+            details.append({k: check[k] for k in ("id", "code", "severity", "elementIds", "message")})
+    return details
+
+
 def model_summary(model_id: str, parsed: dict, cached: bool) -> dict:
     h, st = parsed["header"], parsed["stats"]
     return {
@@ -46,7 +60,8 @@ def model_summary(model_id: str, parsed: dict, cached: bool) -> dict:
                            for s in parsed["spatial"] if s["kind"] == "storey"),
                           key=lambda s: s.get("elevation") or 0),
         "elementCount": st["elementCount"], "openingCount": st["openingCount"], "spaceCount": st["spaceCount"],
-        "byClass": st["byClass"], "checks": parsed["verification"]["summary"], "parseMs": h["parse"]["durationMs"],
+        "byClass": st["byClass"], "checks": parsed["verification"]["summary"],
+        "checkDetails": check_details(parsed["verification"]["checks"]), "parseMs": h["parse"]["durationMs"],
         "cached": cached,
     }
 
