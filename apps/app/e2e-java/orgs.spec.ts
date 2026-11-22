@@ -37,7 +37,7 @@ test("F01-AC3: inviting beyond the free plan's seats shows the limit dialog (402
   expect(response.status()).toBe(402);
   expect(await response.json()).toMatchObject({ code: "limit_reached", details: { limit: "seats" } });
   await expect(page.getByTestId("limit-dialog")).toBeVisible();
-  await expect(page.getByTestId("limit-detail")).toContainText("seats: 2 of 2");
+  await expect(page.getByTestId("limit-detail")).toContainText("Seats: 2 of 2 in use.");
 });
 
 test("F01-AC4: the last owner can't leave or be demoted", async ({ page }) => {
