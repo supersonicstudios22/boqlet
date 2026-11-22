@@ -194,3 +194,22 @@ describe("checking a manual line's formula (F06 §7)", () => {
     expect(bad.data!.problems.length).toBeGreaterThan(0);
   });
 });
+
+describe("a reorder of a line that is gone (BR-09, TF-052)", () => {
+  it("is not dropped: the run asks about it (orphan_override)", async () => {
+    const api = client(owner.token);
+    const { data: item, response } = await api.POST("/boqs/{boqId}/manual-items", {
+      params: { path: { boqId: boq.id } },
+      body: { item: { id: "tf052-moved", kind: "other", description: "Moved and then removed", unit: "nr", quantity: 1 } as never },
+    });
+    expect(response.status).toBe(201);
+    const { lines: withItem } = await generate(api);
+    expect(withItem.some((l) => l.key === "tf052-moved")).toBe(true);
+    expect((await setOverride(api, { lineKey: "tf052-moved", sortAfter: null })).response.status).toBe(200);
+    expect((await api.DELETE("/manual-items/{itemId}", { params: { path: { itemId: item!.id } } })).response.status).toBe(204);
+    const { run } = await generate(api);
+    const { data: questions } = await api.GET("/runs/{runId}/questions", { params: { path: { runId: run.id } } });
+    expect(questions!.map((q) => q.id)).toContain("orphan:tf052-moved");
+    await api.DELETE("/overrides/{overrideId}", { params: { path: { overrideId: (await api.GET("/boqs/{boqId}/overrides", { params: { path: { boqId: boq.id } } })).data!.find((o) => o.lineKey === "tf052-moved")!.id } } });
+  }, 240_000);
+});

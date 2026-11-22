@@ -239,7 +239,7 @@ describe("an edit whose line goes away (BR-09, TF-100)", () => {
     expect(orphan).toMatchObject({ kind: "orphan_override", blocking: false, params: { lineKey: FOOTINGS } });
   }, 300_000);
 
-  it.fails("TF-052 (Java part): a reorder-only edit of a line that goes away orphans too", async () => {
+  it("TF-052 (Java part): a reorder-only edit of a line that goes away orphans too", async () => {
     expect((await questionsOf(run.id)).some((q) => q.id === `orphan:${GIRDER}`)).toBe(true);
   });
 });

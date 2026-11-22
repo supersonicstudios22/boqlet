@@ -115,6 +115,22 @@ describe("edits import (F12-AC4)", () => {
     expect((await api().GET("/boqs/{boqId}", { params: { path: { boqId: boq.id } } })).data!.currentRevision.pendingChanges).toEqual(["adjustments"]);
   });
 
+  it("a mistyped Ref is that row's problem, not a move the batch then refuses (TF-051)", async () => {
+    const file = path.join(tmp, "bad-ref.xlsx");
+    await exported(file);
+    const edit = [
+      "import sys", "from openpyxl import load_workbook", "wb = load_workbook(sys.argv[1]); ws = wb['BoQ']",
+      "row = next(r for r in range(6, ws.max_row + 1) if ws.cell(row=r, column=9).value)",
+      "ws.cell(row=row, column=1, value='ZZ.99'); wb.save(sys.argv[1]); print(ws.cell(row=row, column=9).value)",
+    ].join(String.fromCharCode(10));
+    const res = spawnSync(python, ["-c", edit, file], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+    expect(res.status, res.stderr).toBe(0);
+    const key = res.stdout.trim();
+    const { report } = await importFile(file);
+    expect(report.overrides.filter((o) => o.edit?.lineKey === key && o.edit?.codes)).toEqual([]);
+    expect(report.problems.length, JSON.stringify(report)).toBe(1);
+  });
+
   it("a file of another BoQ, or not a workbook, is reported, never applied", async () => {
     const other = (await api().POST("/projects/{projectId}/boqs", { params: { path: { projectId: boq.projectId } }, body: { name: "Other" } })).data!;
     const file = path.join(tmp, "other.xlsx");

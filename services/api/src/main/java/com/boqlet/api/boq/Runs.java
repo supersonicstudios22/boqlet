@@ -153,9 +153,10 @@ public class Runs {
         for (JsonNode row : snapshot.path("overrides")) {
             var override = json.object(row);
             String lineKey = override.path("lineKey").asText();
+            // The order is the index's (`sortAfter`, RunIndex), not the engine's. A reorder-only edit still goes to the
+            // engine, as an empty edit, so a line that is gone raises orphan_override (BR-09, TF-052).
             override.remove(List.of("lineKey", "sortAfter"));
-            if (!override.isEmpty()) result.add(json.object(Map.of("questionId", "override:" + lineKey,
-                    "scope", "project", "answer", override)));
+            result.add(json.object(Map.of("questionId", "override:" + lineKey, "scope", "project", "answer", override)));
         }
         return result;
     }
