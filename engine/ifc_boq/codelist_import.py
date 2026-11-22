@@ -65,8 +65,8 @@ def _read_csv(data: bytes) -> list[list[str]]:
 
 
 def _read_xlsx(data: bytes) -> list[tuple[str, list[list[str]]]]:
-    import openpyxl
-    wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+    from .sheets.xlsx_guard import open_workbook
+    wb = open_workbook(data)
     out = []
     for ws in wb.worksheets:
         rows = []

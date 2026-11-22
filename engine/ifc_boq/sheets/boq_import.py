@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from contextlib import closing
 import math
-from io import BytesIO
 from xml.etree.ElementTree import ParseError
-from zipfile import BadZipFile, ZipFile
+from zipfile import BadZipFile
 
-from openpyxl import load_workbook
 from openpyxl.styles import Protection
 from openpyxl.utils.exceptions import InvalidFileException
+
+from .xlsx_guard import JOB_LIMIT, WorkbookTooLarge, open_workbook
 
 KEY_COL = 9  # I, after Ref, Description, Unit, Quantity, Rate, Amount, Source, Notes
 FIRST = 6
@@ -52,18 +52,13 @@ def number(v):
     return None, False
 
 
-def _read_workbook(src):
-    with ZipFile(BytesIO(src)) as zipped:
-        if len(zipped.infolist()) > 4096 or sum(item.file_size for item in zipped.infolist()) > (256 << 20):
-            raise ValueError("Workbook is too large.")
-    return load_workbook(BytesIO(src), data_only=True, read_only=True, keep_links=False)
-
-
 def read(src, info):
     report = {"overrides": [], "manualItems": [], "problems": []}
     try:
-        with closing(_read_workbook(src)) as wb:
+        with closing(open_workbook(src, JOB_LIMIT)) as wb:
             return _read(wb, info, report)
+    except WorkbookTooLarge as exc:
+        return {"overrides": [], "manualItems": [], "problems": [{"row": 0, "message": str(exc)}]}
     except (BadZipFile, InvalidFileException, ParseError, ValueError, KeyError, IndexError, OSError):
         return {"overrides": [], "manualItems": [], "problems": [{"row": 0, "message": "This file is not an Excel workbook."}]}
 
