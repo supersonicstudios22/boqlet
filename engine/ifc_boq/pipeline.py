@@ -326,7 +326,9 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
 
     def sort_key(l):
         path = [p["code"] for p in l.get("codes", {}).get(primary, {}).get("path", [])] if primary else []
-        return (0 if path else 1, path, order.get(l["ruleId"], 999), l["description"])
+        # The engine's text, not an edited one: a text edit must not move the line or renumber its section (TF-105).
+        text = (l.get("overridden") or {}).get("engineDescription", l["description"])
+        return (0 if path else 1, path, order.get(l["ruleId"], 999), text)
 
     out_lines = []
     for l in sorted(lines, key=sort_key):

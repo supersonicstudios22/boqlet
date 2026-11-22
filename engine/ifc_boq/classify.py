@@ -174,6 +174,15 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
         if edit in codes:
             line.setdefault("overridden", {}).setdefault("engineCodes", {})[system] = code
             code, src, rule_id, why = edit, "decision", None, "user edit"
+        elif edit is not None:
+            # BR-09: an edit is never dropped silently; the line keeps the engine's code and says why.
+            message = (f"[{code_list['name']}] the edit moving '{line['description']}' to code '{edit}' is not applied: "
+                       f"the code is not in the code list")
+            warnings.append({"code": "unknown_code", "message": message, "ruleId": line["ruleId"],
+                             "params": {"system": system, "description": line["description"], "code": edit, "edit": True}})
+            line.setdefault("notes", []).append(f"edit to code {edit} not applied: not in {code_list['name']}")
+            log.warn("decision", message, ruleId=line["ruleId"], lineKey=line["key"], code="log.decision.edit_not_applied",
+                     params={"system": code_list["name"], "description": line["description"], "code": edit})
         if code:
             path, cur, guard = [], codes[code], 0
             while cur and guard < 20:

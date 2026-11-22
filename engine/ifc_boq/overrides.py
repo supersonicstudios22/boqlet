@@ -49,6 +49,8 @@ def _finish(line: dict, edit: dict, log: CalcLog) -> None:
     if "quantity" in fields:
         old = fmt(details["engineQuantity"]) if details["engineQuantity"] is not None else "to confirm"
         new = fmt(details["quantity"]) if details["quantity"] is not None else "to confirm"
+        if "unit" in fields:                     # a unit edit: say from what to what (TF-108)
+            old, new = f"{old} {details['engineUnit']}", f"{new} {line['unit']}"
         summary = f"quantity edited: {old} → {new}"
     else:
         summary = f"edited {', '.join(fields)}"

@@ -61,10 +61,11 @@ HOSTED = ("IfcDoor", "IfcWindow")
 
 
 def model_key(models: list[dict], m: dict) -> str:
-    """Stable name for a model in question ids and answers: its discipline, or its file name
-    when two models share a discipline (model ids change with every new version)."""
+    """Stable name for a model in question ids and answers: its discipline, or, when two models share a
+    discipline, the model's name the API sends (version ids and upload file names change with every new
+    version, TF-053; the file name is the fallback without the API)."""
     same = sum(1 for o in models if o["discipline"] == m["discipline"])
-    return m["discipline"] if same == 1 else f"{m['discipline']}/{m['fileName']}"
+    return m["discipline"] if same == 1 else f"{m['discipline']}/{m.get('name') or m['fileName']}"
 
 
 def owned_by_discipline(settings: dict, discipline: str, el: dict, x) -> bool:
@@ -606,7 +607,7 @@ def _embedded_across(taken, tk, model_of, log):
     hosts = [e for e in taken if e["family"] in ("planar", "space") and solid(e) is not None]   # rooms: columns in them
     rods = sorted((e for e in taken if e["family"] == "linear" and solid(e) is not None),
                   key=lambda e: solid(e).bounds[0][0])
-    found = 0
+    found, failed = 0, []
     for h in hosts:
         H = solid(h)
         for r in rods:
@@ -616,7 +617,10 @@ def _embedded_across(taken, tk, model_of, log):
             if model_of[r["guid"]] is model_of[h["guid"]] or R.bounds[1][0] < H.bounds[0][0]:
                 continue
             v = geometry.shared_volume(H, R)
-            if v and v > geometry.SHARED_MIN and add_embedded(h, r, v, model=r.get("model_id")):
+            if v is None:                                    # open or broken mesh: the boolean failed
+                failed.append([h["guid"], r["guid"]])
+                continue
+            if v > geometry.SHARED_MIN and add_embedded(h, r, v, model=r.get("model_id")):
                 found += 1
                 log.detail("match", f"{r.get('name') or r['guid']} ({r['ifc_class']}, {model_of[r['guid']]['fileName']}) passes "
                                     f"through {h.get('name') or h['guid']} ({model_of[h['guid']]['fileName']}): "
@@ -629,3 +633,8 @@ def _embedded_across(taken, tk, model_of, log):
     if found:
         log.info("match", f"{found} element(s) pass through elements of another model (embedded)",
             code="log.federation.embedded_summary", params=dict(count=found))
+    if failed:
+        log.warn("match", f"{len(failed)} element pair(s) of different models could not be intersected (open or broken "
+                          f"meshes), so nothing is deducted for them: " + ", ".join(f"{a} / {b}" for a, b in failed[:20])
+                          + (" …" if len(failed) > 20 else ""),
+            code="log.federation.embedded_failed", params=dict(count=len(failed), pairs=failed[:100]))

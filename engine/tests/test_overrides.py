@@ -56,3 +56,39 @@ def test_codes_exclusion_orphans_and_xlsx(duplex_parsed):
 def test_unit_requires_quantity(duplex_parsed):
     with pytest.raises(ValueError, match="requires a quantity"):
         run(duplex_parsed, decisions=[edit("old", unit="m")])
+
+
+def test_an_edit_to_a_code_no_longer_in_the_list_is_reported_not_dropped(duplex_parsed):
+    """BR-09 (TF-052): the line keeps its engine code, and says the edit wasn't applied."""
+    original = run(duplex_parsed)
+    item = next(line for line in original["lines"] if "acme-cost-codes" in line["codes"])
+    result = run(duplex_parsed, decisions=[edit(item["key"], codes={"acme-cost-codes": "Q.77"})])
+    line = next(line for line in result["lines"] if line["key"] == item["key"])
+    assert line["codes"]["acme-cost-codes"]["code"] == item["codes"]["acme-cost-codes"]["code"]
+    assert any("Q.77" in note and "not applied" in note for note in line["notes"]), line["notes"]
+    warning = next(w for w in result["warnings"] if w["code"] == "unknown_code" and w["params"].get("edit"))
+    assert warning["params"]["code"] == "Q.77"
+    assert any(entry["code"] == "log.decision.edit_not_applied" and entry["lineKey"] == item["key"] for entry in result["log"])
+
+
+def test_a_reorder_only_edit_of_a_vanished_line_becomes_an_orphan(duplex_parsed):
+    result = run(duplex_parsed, decisions=[edit("gone line", sortAfter="walls | x")])
+    assert any(q["id"] == "orphan:gone line" for q in result["questions"])
+
+
+def test_a_text_edit_keeps_the_line_in_its_place(duplex_parsed):
+    """F06 §13, BR-28 (TF-105): lines sort by the engine's text, so an edit doesn't renumber its section."""
+    original = run(duplex_parsed)
+    keys = [line["key"] for line in original["lines"]]
+    last = next(line for line in reversed(original["lines"]) if line["ruleId"] == "slabs")
+    result = run(duplex_parsed, decisions=[edit(last["key"], description="AAA exterior slab on grade (edited text)")])
+    assert [line["key"] for line in result["lines"]] == keys
+
+
+def test_a_unit_edit_note_names_both_units(duplex_parsed):
+    """TF-108: "quantity edited: 0.9 → 905" said nothing about t → kg."""
+    original = run(duplex_parsed)
+    steel = next(line for line in original["lines"] if line["ruleId"] == "steel-sections")
+    result = run(duplex_parsed, decisions=[edit(steel["key"], quantity=905, unit="kg", reason="Supplier list")])
+    line = next(line for line in result["lines"] if line["key"] == steel["key"])
+    assert any(note.startswith("quantity edited:") and f" {steel['unit']} → 905 kg" in note for note in line["notes"]), line["notes"]

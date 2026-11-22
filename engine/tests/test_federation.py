@@ -165,3 +165,38 @@ def test_models_far_apart_are_reported():
     r = run([{"id": "str", "parsed": struc, "discipline": "structure"},
              {"id": "copy", "parsed": copy_of(struc, "ZZ", shift=5000.0), "discipline": "architecture"}])
     assert any(w["code"] == "federation_coordinates" for w in r["warnings"])
+
+
+def test_overlap_question_id_survives_a_new_file_name():
+    """TF-053: two models of one discipline are told apart by the model's name the API sends (stable
+    across versions), not the upload's file name, so an answered overlap stays answered."""
+    struc = parsed("Structural")
+
+    def models(file_name):
+        copy = copy_of(struc, "ZZ")
+        copy["header"]["source"]["fileName"] = file_name
+        return [{"id": "v1", "parsed": struc, "discipline": "structure", "name": "Steel frame"},
+                {"id": "v2", "parsed": copy, "discipline": "structure", "name": "Steel frame copy",
+                 "scope": {"include": [{"ifcClass": "IfcBeam"}]}}]
+    first = next(q for q in run(models("frame.ifc"))["questions"] if q["kind"] == "overlap")
+    assert first["id"] == "overlap:structure/Steel frame|structure/Steel frame copy:IfcBeam"
+    again = run(models("frame_rev2.ifc"), [{"questionId": first["id"], "scope": "project", "answer": "structure/Steel frame"}])
+    assert first["id"] not in {q["id"] for q in again["questions"]}
+
+
+def test_embedded_pairs_whose_boolean_fails_are_logged(monkeypatch):
+    """TF-060: a column through a slab of another model that can't be intersected is reported, not skipped."""
+    import trimesh
+
+    from ifc_boq import federation, geometry
+    from ifc_boq.log import CalcLog
+    slab, column = trimesh.creation.box((4, 4, 0.2)), trimesh.creation.box((0.3, 0.3, 3))
+    arch = {"id": "a", "fileName": "arch.ifc", "meshes": {"S": slab}}
+    struc = {"id": "s", "fileName": "str.ifc", "meshes": {"C": column}}
+    taken = [{"guid": "S", "family": "planar", "ifc_class": "IfcSlab", "name": "Slab"},
+             {"guid": "C", "family": "linear", "ifc_class": "IfcColumn", "name": "Column"}]
+    monkeypatch.setattr(geometry, "shared_volume", lambda a, b: None)
+    log = CalcLog()
+    federation._embedded_across(taken, {"S", "C"}, {"S": arch, "C": struc}, log)
+    entry = next(e for e in log.entries if e["code"] == "log.federation.embedded_failed")
+    assert entry["level"] == "warning" and entry["params"]["count"] == 1 and entry["params"]["pairs"] == [["S", "C"]]
