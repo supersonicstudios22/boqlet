@@ -79,6 +79,11 @@ def export(result: dict, meta: dict) -> bytes:
         systems = sorted(systems, key=lambda system: system["id"] != group_by)
     primary = systems[0]["id"] if systems else None
     lines = result["lines"]
+    if order := meta.get("lineOrder"):
+        # The sheet's order (F06 §13, BR-28): reorders and placed manual lines live in the backend's
+        # index, not in the engine result. Lines it doesn't list keep the engine's order after them (TF-049).
+        rank = {key: index for index, key in enumerate(order)}
+        lines = sorted(lines, key=lambda line: rank.get(line["key"], len(rank)))
     text_systems = {system for line in lines for system, code in line["codes"].items() if code.get("text")}
 
     # ------------------------------------------------------------------ BoQ

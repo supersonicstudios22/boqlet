@@ -21,6 +21,15 @@ public class StoredJson {
         }
     }
 
+    /** A tree as a typed value, without writing it out and parsing it again. */
+    public <T> T convert(com.fasterxml.jackson.databind.JsonNode tree, Class<T> type) {
+        try {
+            return mapper.treeToValue(tree, type);
+        } catch (JsonProcessingException failure) {
+            throw new IllegalStateException("Invalid stored " + type.getSimpleName(), failure);
+        }
+    }
+
     public ObjectNode object(Object data) {
         return data == null ? mapper.createObjectNode() : mapper.valueToTree(data);
     }

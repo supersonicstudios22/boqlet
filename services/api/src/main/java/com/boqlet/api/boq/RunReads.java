@@ -78,10 +78,11 @@ class RunReads {
                          WHERE part.ordinality <= :pathDepth) = :path
                     """);
         }
-        var positionsByKey = positions.positions(id, system != null ? system : primary(run));
-        var items = named.query("SELECT l.line::text, l.sort_index" + filter + " ORDER BY l.sort_index LIMIT :count OFFSET :offset",
-                args, (row, index) -> json.read(numbered(row.getString("line"), row.getInt("sort_index"), positionsByKey).toString(),
-                        RunLine.class));
+        var numbers = positions.numbers(id, system != null ? system : primary(run));
+        // The page is chosen on sort_index alone, so the lines skipped by the offset are never read (TF-179).
+        var items = named.query("SELECT p.line::text, p.sort_index FROM run_lines p WHERE p.run_id = :run AND p.sort_index IN"
+                        + " (SELECT l.sort_index" + filter + " ORDER BY l.sort_index LIMIT :count OFFSET :offset) ORDER BY p.sort_index",
+                args, (row, index) -> json.convert(numbered(row.getString("line"), row.getInt("sort_index"), numbers), RunLine.class));
         var page = new LinesPage(items.size() > count ? items.subList(0, count) : items).total(total)
                 .nextCursor(items.size() > count ? Long.toString((long) offset + count) : null);
         if (groups != null) page.setGroups(groups);
@@ -112,7 +113,7 @@ class RunReads {
 
     LineDetail detail(UUID id, UUID actor, String key) {
         var run = ready(id, actor);
-        var numbers = positions.positions(id, primary(run));
+        var numbers = positions.numbers(id, primary(run));
         var line = database.query("SELECT line::text, sort_index FROM run_lines WHERE run_id = ? AND line_key = ?",
                 (row, index) -> numbered(row.getString("line"), row.getInt("sort_index"), numbers), id, key)
                 .stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
@@ -237,9 +238,9 @@ class RunReads {
         return ElementLines.StatusEnum.EXCLUDED;
     }
 
-    private ObjectNode numbered(String encoded, int index, Map<String, String> positions) {
+    private ObjectNode numbered(String encoded, int index, String[] numbers) {
         var line = json.read(encoded, ObjectNode.class).put("sortIndex", index);
-        String number = positions.get(line.path("key").asText());
+        String number = index < numbers.length ? numbers[index] : null;
         if (number != null) line.put("positionNo", number);
         return line;
     }

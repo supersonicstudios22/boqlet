@@ -32,6 +32,13 @@ public class BoqExports {
     private final ObjectStorage storage;
     private final AuditWriter audit;
     private final RunIndex index;
+    /** Position numbers of recently read runs (TF-179): at most 16 runs and groupings, about 1 MB each at 20,000 lines. */
+    private final Map<String, String[]> numbers = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String[]> eldest) {
+            return size() > 16;
+        }
+    });
 
     BoqExports(JdbcTemplate database, StoredJson json, Jobs jobs, Runs runs, BoqAccess boqs, ProjectAccess projects,
                OrgAccess orgs, EntitlementService limits, ObjectStorage storage, AuditWriter audit, RunIndex index) {
@@ -94,6 +101,9 @@ public class BoqExports {
         if (group != null) metadata.put("groupBy", group);
         metadata.put("classifications", run.run().getClassifications() == null ? List.of() : run.run().getClassifications());
         metadata.put("positionNumbers", positions(currentId, group));
+        // The sheet's order, with reorders and placed manual lines (F06-AC3, BR-28; TF-049).
+        metadata.put("lineOrder", database.queryForList("SELECT line_key FROM run_lines WHERE run_id = ? ORDER BY sort_index",
+                String.class, currentId));
         metadata.put("locale", project.getLocale());
         if (settings.getNumberFormat() != null) metadata.put("numberFormat", settings.getNumberFormat());
         if (limits.enabled(project.getOrgId(), "exportWatermark")) metadata.put("watermark", true);
@@ -141,13 +151,35 @@ public class BoqExports {
     }
 
     Map<String, String> positions(UUID run, String group) {
+        var positions = new LinkedHashMap<String, String>();
+        for (Numbered line : numbering(run, group)) positions.put(line.key(), line.position());
+        return positions;
+    }
+
+    /**
+     * Position numbers by sort index, for reading pages of lines. A run's lines and their order never
+     * change once indexed (a purged index is rebuilt the same), so they are kept per run and grouping:
+     * a page no longer reads every line of the run (TF-179).
+     */
+    String[] numbers(UUID run, String group) {
+        String key = run + "|" + group;
+        String[] cached = numbers.get(key);
+        if (cached != null) return cached;
+        var lines = numbering(run, group);
+        String[] byIndex = new String[lines.stream().mapToInt(Numbered::index).max().orElse(-1) + 1];
+        for (Numbered line : lines) byIndex[line.index()] = line.position();
+        numbers.put(key, byIndex);
+        return byIndex;
+    }
+
+    private List<Numbered> numbering(UUID run, String group) {
         index.ensure(run);
         var rows = database.query("""
-                SELECT line_key, line->'codes'->CAST(? AS text)->>'code' AS code FROM run_lines
+                SELECT line_key, sort_index, line->'codes'->CAST(? AS text)->>'code' AS code FROM run_lines
                 WHERE run_id = ? AND NOT coalesce((line->>'excluded')::boolean, false) ORDER BY sort_index
-                """, (row, index) -> new Numbered(row.getString("line_key"), row.getString("code")), group, run);
+                """, (row, index) -> new Numbered(row.getString("line_key"), row.getInt("sort_index"), row.getString("code")),
+                group, run);
         var counts = new HashMap<String, Integer>();
-        var positions = new LinkedHashMap<String, String>();
         String separator = ".";
         if (group != null) separator = database.query("""
                 SELECT v.doc->'codeList'->>'separator' AS separator FROM runs r
@@ -156,12 +188,13 @@ public class BoqExports {
                 WHERE r.id = ? AND v.doc->'codeList'->>'id' = ?
                 """, (row, index) -> Optional.ofNullable(row.getString("separator")).filter(value -> !value.isBlank()).orElse("."),
                 run, group).stream().findFirst().orElse(".");
+        var out = new ArrayList<Numbered>(rows.size());
         int index = 0;
         for (Numbered line : rows) {
             String code = line.code() == null ? "0" : line.code();
-            positions.put(line.key(), group == null ? Integer.toString(++index) : code + separator + counts.merge(code, 1, Integer::sum));
+            out.add(line.at(group == null ? Integer.toString(++index) : code + separator + counts.merge(code, 1, Integer::sum)));
         }
-        return positions;
+        return out;
     }
 
     private static String primary(RunCatalog.Entry run) {
@@ -202,5 +235,13 @@ public class BoqExports {
 
     public record Scheduled(UUID export, UUID job) {}
     private record Entry(Export view, UUID org, UUID project, String key) {}
-    private record Numbered(String key, String code) {}
+    private record Numbered(String key, int index, String code, String position) {
+        Numbered(String key, int index, String code) {
+            this(key, index, code, null);
+        }
+
+        Numbered at(String number) {
+            return new Numbered(key, index, code, number);
+        }
+    }
 }

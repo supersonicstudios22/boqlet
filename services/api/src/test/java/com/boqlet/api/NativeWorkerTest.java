@@ -183,6 +183,7 @@ class NativeWorkerTest {
         verifyLibrary(org, version, cookie);
         verifyBoq(org, project, version, cookie);
         verifyRevisedIfc(project, model, cookie);
+        verifyLargeRunPages(project, cookie);
         verifySample(org, cookie);
         verifyOrgPurge(cookie);
         verifyRealtime(org, cookie);
@@ -222,6 +223,55 @@ class NativeWorkerTest {
         var diffId = awaitJob(id(comparison), cookie).path("output").path("diffId").asText();
         var diff = perform(get("/api/v1/diffs/" + diffId + "/elements"), cookie, 200);
         assertThat(diff.path("items").size()).isEqualTo(3);
+    }
+
+    /**
+     * TF-179 (nfr.md "Lines page (500 lines) p95 ≤ 500 ms", F06 §1 runs up to 20,000 lines): a page of a
+     * 20,500-line run costs about what a page of a small run costs; it used to read and number every line
+     * of the run and every line skipped by the offset. A copy of the project's run, its lines copied 500 times.
+     */
+    private void verifyLargeRunPages(String project, Cookie cookie) throws Exception {
+        String source = id(perform(get("/api/v1/projects/" + project + "/boqs"), cookie, 200).get(0).path("currentRevision").path("currentRun"));
+        var big = java.util.UUID.randomUUID();
+        database.update("""
+                INSERT INTO runs SELECT (jsonb_populate_record(NULL::runs, to_jsonb(r) || jsonb_build_object('id', ?::text))).*
+                FROM runs r WHERE r.id = ?::uuid
+                """, big.toString(), source);
+        int lines = database.queryForObject("SELECT count(*) FROM run_lines WHERE run_id = ?::uuid", Integer.class, source);
+        database.update("""
+                INSERT INTO run_lines (run_id, sort_index, line_key, line)
+                SELECT ?, k * ? + l.sort_index, l.line_key || '~c' || k, jsonb_set(l.line, '{key}', to_jsonb(l.line_key || '~c' || k))
+                FROM run_lines l CROSS JOIN generate_series(0, 499) k WHERE l.run_id = ?::uuid
+                """, big, lines, source);
+        String path = "/api/v1/runs/" + big + "/lines";
+        var all = perform(get(path + "?limit=20000"), cookie, 200);
+        assertThat(all.path("total").asInt()).isEqualTo(lines * 500);
+        var tail = perform(get(path + "?limit=500&cursor=" + (lines * 500 - 500)), cookie, 200).path("items");
+        var end = perform(get(path + "?limit=20000&cursor=20000"), cookie, 200).path("items");
+        assertThat(tail.size()).isEqualTo(500);
+        // The same lines, numbers and order as reading the whole run.
+        for (int i = 0; i < 500; i++) {
+            var expected = end.get(end.size() - 500 + i);
+            assertThat(tail.get(i).path("key").asText()).isEqualTo(expected.path("key").asText());
+            assertThat(tail.get(i).path("positionNo").asText()).isEqualTo(expected.path("positionNo").asText()).isNotBlank();
+        }
+        assertThat(all.path("items").get(0).path("positionNo").asText()).isNotBlank();
+        // What a page costs beyond its own lines must not grow with the run: numbering every line and reading
+        // the lines skipped by the offset made a one-line page at line 20,000 take about 0.7 s.
+        var small = new java.util.ArrayList<Long>();
+        var page = new java.util.ArrayList<Long>();
+        for (int i = 0; i < 7; i++) {
+            long started = System.nanoTime();
+            perform(get(path + "?limit=1&cursor=20000"), cookie, 200);
+            small.add((System.nanoTime() - started) / 1_000_000);
+            started = System.nanoTime();
+            perform(get(path + "?limit=500&cursor=" + (i % 2 == 0 ? 20_000 : 0)), cookie, 200);
+            page.add((System.nanoTime() - started) / 1_000_000);
+        }
+        java.util.Collections.sort(small);
+        java.util.Collections.sort(page);
+        System.out.println("[perf] 20,500-line run, ms sorted: 1-line page at 20,000 " + small + "; 500-line pages " + page);
+        assertThat(small.get(3)).as("median ms of a 1-line page at line 20,000 of a 20,500-line run").isLessThanOrEqualTo(150);
     }
 
     /** The shared contract suite (`tests/contract`) against this API. */
@@ -618,6 +668,14 @@ class NativeWorkerTest {
         var saved = perform(post(revisionPath + "/issue").content("{\"notModelledConfirmed\":true,\"note\":\"Pilot freeze\"}"), cookie, 200);
         assertThat(saved.path("frozen").path("runId").asText()).isEqualTo(run);
         assertThat(saved.path("frozen").path("exportIds").size()).isEqualTo(1);
+        // TF-049: the workbook gets the sheet's line order (sort_index), not only the engine's.
+        assertThat(database.queryForList("""
+                SELECT k.value FROM jobs j JOIN exports e ON e.job_id = j.id,
+                    jsonb_array_elements_text(j.input->'meta'->'lineOrder') WITH ORDINALITY k(value, n)
+                WHERE e.id = ?::uuid ORDER BY k.n
+                """, String.class, saved.path("frozen").path("exportIds").get(0).asText()))
+                .isEqualTo(database.queryForList("SELECT line_key FROM run_lines WHERE run_id = ?::uuid ORDER BY sort_index",
+                        String.class, run)).isNotEmpty();
         http.perform(auth(patch(revisionPath).content("{\"inputs\":{\"dictionaryVersionIds\":[]}}"), cookie))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("revision_locked"));
         String billPath = "/api/v1/boqs/" + billId;
