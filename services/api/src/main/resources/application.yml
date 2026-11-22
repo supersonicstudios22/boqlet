@@ -33,6 +33,10 @@ spring:
       "[mail.smtp.writetimeout]": 5000
 server:
   forward-headers-strategy: ${BOQLET_FORWARD_HEADERS_STRATEGY:none}
+  tomcat:
+    # Read (and drop) the rest of a refused upload up to this size, so the client gets the `413 too_large`
+    # instead of a reset connection (TF-071). Larger bodies are still cut off.
+    max-swallow-size: 32MB
   port: ${BOQLET_API_PORT:8080}
   error:
     include-message: never

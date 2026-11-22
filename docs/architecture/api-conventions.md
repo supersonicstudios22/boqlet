@@ -59,19 +59,22 @@ checks part of them (`tests/contract`, docs/testing/README.md).
 
 Body: `{ "code": "snake_case_code", "message": "Human message (English, for logs)", "details": {…} }`.
 The UI translates by `code` (with `details` as params). It shows `message` only as a fallback.
+Every failure has this body, also those raised before a handler runs (the servlet error page,
+`ErrorPages`, is open to every caller so it never turns into a `401`; TF-071).
 
 | Status | When | Example codes |
 |---|---|---|
-| 400 | invalid input | `invalid_body`, `unknown_field`, `not_ifc`, `offer_incomplete` |
+| 400 | invalid input | `invalid_body`, `unknown_field`, `invalid_parameter`, `invalid_file`, `invalid_request` (refused before routing, e.g. `//` or `;` in the path), `not_ifc`, `offer_incomplete` |
 | 401 | no or invalid credentials | `unauthenticated` |
 | 402 | plan limit | `limit_reached` (+ `limit`, `current`, `max`) |
 | 403 | role not allowed | `forbidden` (+ `required`), `four_eyes` |
 | 404 | missing or not visible | `not_found` |
+| 405 | method not served on this path | `method_not_allowed` (+ `Allow`) |
 | 409 | blocked by state | `invalid_transition`, `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
 | 413 | upload or request body too large | `too_large` |
 | 422 | engine refused a document | `preset_invalid` (+ `problems[]`) |
 | 429 | rate limit | `rate_limited` (+ `Retry-After`) |
-| 500/503 | server or engine unavailable | `internal`, `engine_unavailable` |
+| 500/503 | server or engine unavailable | `internal` (logged with the request id), `engine_unavailable` |
 
 ## Pagination
 

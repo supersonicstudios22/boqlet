@@ -42,7 +42,8 @@ class SecurityConfiguration {
                 // Native cookie requests have an exact Origin check in NativeIdentityFilter.
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
-                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+                        // The error page answers what failed on the request dispatch (TF-071): it must not ask to sign in.
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
