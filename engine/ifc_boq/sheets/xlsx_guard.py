@@ -23,14 +23,25 @@ MAX_RATIO = 100
 RATIO_FROM = 1 << 20
 
 
-class WorkbookTooLarge(ValueError):
+class WorkbookRefused(ValueError):
+    """A workbook the readers refuse before openpyxl reads it; the message says why."""
+
+
+class WorkbookTooLarge(WorkbookRefused):
     pass
 
 
+MACROS = "This workbook contains macros (.xlsm). Save it as an Excel workbook without macros (.xlsx) and try again."
+
+
 def check(data: bytes, limit: int = QUICK_LIMIT) -> None:
-    """Raise WorkbookTooLarge for a workbook that expands too far (BadZipFile if it isn't a zip at all)."""
+    """Raise WorkbookRefused for a workbook with macros, WorkbookTooLarge for one that expands too far
+    (BadZipFile if it isn't a zip at all)."""
     with ZipFile(BytesIO(data)) as zipped:
         members = zipped.infolist()
+    # A VBA project means macros: never run here, but refused as security.md says (an .xlsm by any name).
+    if any(m.filename.lower().rsplit("/", 1)[-1] == "vbaproject.bin" for m in members):
+        raise WorkbookRefused(MACROS)
     if len(members) > MAX_MEMBERS:
         raise WorkbookTooLarge(f"The workbook is too large: it has more than {MAX_MEMBERS} parts.")
     if sum(member.file_size for member in members) > limit:

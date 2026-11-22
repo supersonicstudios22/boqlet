@@ -158,3 +158,25 @@ def test_template_formula_cells_without_saved_values_are_problems():
     problems = templates.read(data, out.getvalue())["problems"]
     assert any(p.get("sheet") == "Settings" and p.get("row") == 2 and p.get("column") == "F" and "formula" in p["message"]
                for p in problems), problems
+
+
+def with_macros(data: bytes) -> bytes:
+    """A workbook with a VBA project in it, as Excel saves an .xlsm."""
+    out = BytesIO(data)
+    with zipfile.ZipFile(out, "a") as z:
+        z.writestr("xl/vbaProject.bin", b"\xd0\xcf\x11\xe0 not really a VBA project")
+    return out.getvalue()
+
+
+def test_workbooks_with_macros_are_refused_by_every_reader():
+    """TF-041 (security.md: no macros, .xlsm rejected): by name for code lists, by content for all three."""
+    plain = workbook(0)
+    with pytest.raises(ValueError, match="macros"):
+        codelist_import.read_table("codes.xlsm", plain)
+    with pytest.raises(ValueError, match="macros"):
+        codelist_import.read_table("codes.xlsx", with_macros(plain))
+    rule, library = presets.load_rule_set("as-modelled")
+    data = {"kind": "rule_set", "doc": rule, "library": list(library.values())}
+    assert "macros" in templates.read(data, with_macros(templates.write(data)))["error"]
+    report = boq_import.read(with_macros(plain), {"boqId": "b", "lines": []})
+    assert report["overrides"] == [] and "macros" in report["problems"][0]["message"]

@@ -11,7 +11,7 @@ from zipfile import BadZipFile
 from openpyxl.styles import Protection
 from openpyxl.utils.exceptions import InvalidFileException
 
-from .xlsx_guard import JOB_LIMIT, UNCACHED, WorkbookTooLarge, open_workbook, uncached_formulas
+from .xlsx_guard import JOB_LIMIT, UNCACHED, WorkbookRefused, open_workbook, uncached_formulas
 
 KEY_COL = 9  # I, after Ref, Description, Unit, Quantity, Rate, Amount, Source, Notes
 FIRST = 6
@@ -59,7 +59,7 @@ def read(src, info):
     try:
         with closing(open_workbook(src, JOB_LIMIT)) as wb:
             return _read(wb, info, report)
-    except WorkbookTooLarge as exc:
+    except WorkbookRefused as exc:
         return {"overrides": [], "manualItems": [], "problems": [{"row": 0, "message": str(exc)}]}
     except (BadZipFile, InvalidFileException, ParseError, ValueError, KeyError, IndexError, OSError):
         return {"overrides": [], "manualItems": [], "problems": [{"row": 0, "message": "This file is not an Excel workbook."}]}

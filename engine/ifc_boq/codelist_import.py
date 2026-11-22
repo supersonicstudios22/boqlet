@@ -87,7 +87,10 @@ def _read_xlsx(data: bytes) -> list[tuple[str, list[list[str]]]]:
 def read_table(file_name: str, data: bytes) -> dict:
     """{ sheets: [ { name, rows, guess } ] }. Raises ValueError for unsupported files."""
     name = file_name.lower()
-    if name.endswith((".xlsx", ".xlsm")):
+    if name.endswith(".xlsm"):
+        from .sheets.xlsx_guard import MACROS
+        raise ValueError(MACROS)
+    if name.endswith(".xlsx"):
         raw = _read_xlsx(data)
     elif name.endswith((".csv", ".tsv", ".txt")):
         raw = [(file_name, _read_csv(data))]
