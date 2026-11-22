@@ -4,7 +4,7 @@ The working record of the test campaign in [`test-plan.md`](test-plan.md). Each 
 while the campaign runs. A session that stops half-way leaves this file up to date. The next session
 reads the run log and resumes from the first stage not marked done.
 
-**In progress: Stage 6 (fix and retest). Stages 0–5 done (TF-001…TF-188); every S1 is fixed and deployed (TF-011 `fc78b12`; TF-039, TF-174, TF-085 in `1be66cb`, CI 44980195142); batches B1–B6 in progress, then Stage 7.**
+**Done: Stages 0–7 (2026-11-21 → 2026-11-22).** 192 findings (TF-001…TF-192); every S1 and S2 fixed or deferred to a named task; the owner's 21 questions answered (P54) and implemented (batch B7). Before Stage 0
 the mock API was removed (P53, `cf58e32`) and the plan was revised for Java only: stacks L (local
 Docker), H (test harness, `NativeWorkerTest`) and P (pilot); lanes 1D–1F renumbered. Rows of the
 old mock lanes are gone; references below to `e2e/*.spec.ts` and the mock's tests point at deleted
@@ -12,21 +12,32 @@ files and are marked so. The campaign stops at every stage end for the owner's g
 
 ## Summary
 
-Filled in at Stage 7.
+Stage 7, 2026-11-22. "Fixed" means committed with a test that failed first; "verified" means retested
+live (on L or P) after the fix. The owner's answers (Q42–Q62, P54) are counted under fixed: batch B7.
 
 | | S1 | S2 | S3 | S4 | Total |
 |---|---|---|---|---|---|
-| Found | | | | | |
-| Fixed and verified | | | | | |
-| Owner (questions) | | | | | |
-| Deferred to a task | | | | | |
-| Known limitation | | | | | |
+| Found | 4 | 20 | 111 | 57 | 192 |
+| Fixed, with a test | 4 | 19 | 87 | 50 | 160 |
+| of them verified live | 4 | 3 | 3 | 3 | 13 |
+| Owner questions (answered, fixed in B7) | – | 1 | 10 | 10 | 21 |
+| Deferred to a task (recorded in known-limitations) | – | 1 | 21 | 1 | 23 |
+| Duplicates / refuted | – | – | 3 / – | 5 / 1 | 8 / 1 |
+
+Deferred: TS-005 (the browser coverage lost with the mock; 18 findings, partly closed by the 11 e2e-java
+specs now in the repo), TS-006 (performance suite in CI), FE-034 global search (TF-016), EN-imperial
+(TF-050), FE-048 old run read-only (TF-095), TF-047 (one 429 code with Retry-After). Every one is in
+`docs/product/known-limitations.md`.
 
 - Commit under test (start): `8d22de6` (main; the first Stage 0 ran on `3d68ffc`)
-- Commit after the fixes (end): ``
-- CI on the end commit: 
-- Pilot rollout and `verify-live.sh`: 
-- Waiting for the owner: 
+- Commit after the fixes (end): see the Stage 7 row of the run log
+- CI on the end commit: see the Stage 7 row
+- Pilot: passive checks after each rollout (edge and routing check, headers, public routes); `verify-live.sh`
+  needs the operator's SSH and was not run (Stage 3 decision: account checks on L)
+- Waiting for the owner: purge pilot access-log URLs that may hold sign-in passwords (TF-190); roll out the
+  new `ops/pilot/compose.yaml` for `queue-interactive` (TF-180); the first-setup test with a new person
+  (v1-12, script in the session scratchpad `stage3/out/s3b-library/person-test-script.txt`); an NVDA pass;
+  opening the exports in Excel and LibreOffice
 
 ## Run log
 
@@ -78,8 +89,8 @@ One row per stage or lane, updated when it starts and ends.
 | 4.6 Pricing boundary | done | 2026-11-21 | 2026-11-21 | L | Pass: ArchUnit, BR-41 lint, `openapi-pricing.yaml` lint, `MODULE_PRICING=1` refused by `next.config`, `modules.ts` registers nothing, no pricing string or nav in the core. Session scratchpad `stage4/pricing-boundary.txt` | — |
 | 4.7 PoC smoke | n/a | | | — | Removed by FE-046 (tag `poc-final`); only the leftover-references check in §9.7 | |
 | 5 Triage | done | 2026-11-22 | 2026-11-22 | — | 186 findings routed (section "Triage"): 134 fix now in six batches (3 S1, 16 S2, 74 S3, 41 S4), 20 owner questions (Q42–Q61 in `docs/product/open-questions.md`), 22 deferred (TS-005, TS-006, FE-034, EN-imperial, FE-048), 8 duplicates, 1 refuted, 2 verified. TF-039 and TF-174 raised to S1. §C has the live result of every criterion | — |
-| 6 Fix and retest | in progress | 2026-11-22 | — | `1be66cb` (S1s, deployed) | B1: the three S1s fixed, verified and deployed first (`d5e0d8b`, `5e69e2c`, `1be66cb`, gate on a clean clone: npm test, engine 217, JUnit, contract 184, scenarios, browser smoke 13/13); the other B1 findings and parts of B4/B6 committed locally (`4d65638`…`7bd2ae4`), statuses in §F. New: TF-187 (parallel workbook reads), TF-188 (smoke flake) | — |
-| 7 Regression, push, CI, pilot, records | not started | | | | | |
+| 6 Fix and retest | done | 2026-11-22 | 2026-11-22 | L, H, P | Seven batches B1–B7 (B7: the owner's answers, P54) by up to three fix agents on disjoint files; each fix with a test that failed first; every push gated on a clean clone (npm test, engine, JUnit, contract, scenarios, browser smoke, resilience). Pushes: `1be66cb` (S1s), `95a0e96`, `20531f8` (red: TF-192), `7a4b8e7`, `83f73c8`; statuses in §F | TF-187…TF-192 found and fixed |
+| 7 Regression, push, CI, pilot, records | done | 2026-11-22 | 2026-11-22 | L, H, P | 1A static, build, bundle, codegen drift: green; 1B 72 files / 389 tests; 1C engine 265, CLI, corpus 12/12; 1D full `mvn verify` (queue transport, scenarios, browser smoke 33, resilience) green on the gate and in CI; 1E `local:up` (rebuilds, TF-082) + `local:check` green; 1F CI parity: every job green on `83f73c8` (CI 45018386661, deployed 12:06 UTC, rollout not superseded). TF-179 p95 298 ms from a Linux client. Pilot passive: edge and routing, headers (HSTS app and API), public HEAD, `/admin` 401. Records: summary above, changelog, known-limitations, feature status blocks, overview, testing README | — |
 
 ## Noted while writing the plan (check in Stage 2, R7)
 
@@ -921,7 +932,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `2b9d165` (Q47): security.md states the accepted network-boundary control for the pilot; a known limitation before a wider rollout.
 - **Retest:**
 
-### TF-046 · S3 · gap · app · fixed
+### TF-046 · S3 · gap · app · verified
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:89-90` (HSTS gap), `:101-108` web security
 - **Steps:** `curl -sI http://localhost:3000/sign-in`, `/invite/abc`, `http://localhost:8080/api/v1/plans`; on the pilot passively `curl -sI https://booqlet.com/`, `/invite/abc`, `/api/v1/plans` (§9.3).
@@ -930,7 +941,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Evidence:** `headers()` with only `/sign-up/:rest*` and `/s/:token*`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
 - **Fix:** `a0a34b0` (app headers, verified on P after `95a0e96`) and `2b9d165` (HSTS on API answers when `BOQLET_APP_URL` is https; `AccountSecurityTest`, failed first). The `private-headers` Traefik middleware is defined outside the repo (pilot.md).
-- **Retest:** L: `/invite/abc` sends nosniff, DENY, frame-ancestors, no-referrer, noindex, no X-Powered-By.
+- **Retest:** P after `83f73c8`: API answers send `Strict-Transport-Security: max-age=31536000; includeSubDomains`, nosniff and `X-Frame-Options: DENY`; app pages since `95a0e96`.
 
 ### TF-047 · S4 · inconsistency · java · deferred
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
@@ -1306,7 +1317,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `2b9d165` (Q50): "Remove model" (archive) on the model page; six unused operations marked API-only (C17). `b7.spec.ts @b7-remove-model`.
 - **Retest:**
 
-### TF-081 · S4 · inconsistency · java · fixed
+### TF-081 · S4 · inconsistency · java · verified
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md` "Authentication" (`tests/contract/auth.test.ts`: every other operation `401` without a session); `permissions.md:106` (*non-admins* get 404 on `/admin/*`)
 - **Steps:** `GET /api/v1/admin/overview` with no cookie, native mode and OIDC mode.
@@ -1315,9 +1326,9 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Evidence:** `IdentityFilter.java:43-50` rewrites only after a token was decoded.
 - **Route:** answered by the owner (Q51, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** `2b9d165` (Q51): `/admin/*` answers 401 without a session, 404 to signed-in non-admins. `NativeAuthTest` (failed first).
-- **Retest:**
+- **Retest:** P after `83f73c8` (deployed 2026-11-22 12:06 UTC, CI 45018386661): anonymous `GET /api/v1/admin/orgs` → 401.
 
-### TF-082 · S3 · bug · ops · fixed
+### TF-082 · S3 · bug · ops · verified
 - **Found by:** Stage 2 (during the TF-011 retest) · main session · L · `fc78b12`
 - **Spec:** `docs/development/local-setup.md` / `CLAUDE.md` (`npm run local:up` builds and starts the backend; `scripts/local.mjs` `up` runs `compose up -d --build`)
 - **Steps:** on Windows with Docker Compose v5.6.0 (Docker 29.8.2), change a file under `services/api`, then `npm run local:up`.
@@ -1326,7 +1337,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Evidence:** session scratchpad `lanes/logs/tf011-local-up.log`, `tf011-local-up2.log`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
 - **Fix:** `55339a2`: `scripts/local.mjs` uppercases the drive letter and runs `docker compose` from the repo root (Bake compared paths case-sensitively).
-- **Retest:** L: from a lowercase `c:\` working directory the three images build.
+- **Retest:** Stage 7, L: `npm run local:up` rebuilt and restarted every image (108 s), `npm run local:check` passed end to end.
 
 ### TF-083 · S4 · inconsistency · java · verified
 - **Found by:** Stage 3 · 3c pilot (passive) · P, L · fc78b12
@@ -2265,7 +2276,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** port these to `NativeAuthTest` (auth, origin) and `tests/scenarios` (isolation, signed URLs with a short TTL override, names) and one Playwright spec for escaping.
 - **Retest:**
 
-### TF-179 · S2 · bug · java · fixed
+### TF-179 · S2 · bug · java · verified
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
 - **Spec:** v1-10 / nfr.md "Lines page (500 lines) p95 ≤ 500 ms" (test plan §9.1: "with a small load, for example 20 virtual users"); F06 §1 (runs up to 20,000 lines)
 - **Steps:** 1. A run with 20,500 lines in my own org (Duplex run, rows copied in SQL: prep20k.mjs). 2. 20 concurrent clients loop `GET /runs/{id}/lines?limit=500` for 60 s on the local stack (load2.mjs). 3. One client: limit=1, 50, 500 and cursor=20000 (probe-lines.mjs).
@@ -2274,7 +2285,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Evidence:** (session scratchpad `stage4/out/s4-perf/`) measure.log "load2 … lines" and "lines probe"; load2.json; services/api/src/main/java/com/boqlet/api/boq/RunReads.java (`var positionsByKey = positions.positions(id, …)`)
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
 - **Fix:** `f09befd` (positions per run, page by sort_index) and `9efea85` (each line's JSON stored at indexing in `run_lines.view`, V18, sent as stored; byte-identical to the typed path, asserted in `NativeWorkerTest`). `NativeWorkerTest#verifyLargeRunPages` (failed first).
-- **Retest:** L, 20,500 lines, 500-line pages, 20 clients 60 s: p95 **122 ms at the API** (access log, p50 80), 679 ms at a client through Docker Desktop's port forwarding on a loaded laptop (was 2,868). To confirm from a Linux client (Stage 7).
+- **Retest:** Stage 7, L, from a Linux client on the stack network (node:22-alpine on boqlet-local_default, no port forwarding): 20 clients x 60 s on the 20,500-line run, 500-line pages: p50 199 ms, **p95 298 ms**, p99 359 ms, 98 req/s, 0 errors (target p95 ≤ 500 ms; was 2,868 ms / 9 req/s). Script `stage7/linux/load.mjs`.
 
 ### TF-180 · S2 · gap · ops · fixed
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
@@ -2408,7 +2419,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `8745980`: no generated default for `OrgSettings.defaultLanguage`. `orgs.test.ts` (failed first).
 - **Retest:**
 
-### TF-192 · S3 · gap · tests · fixed
+### TF-192 · S3 · gap · tests · verified
 - **Found by:** Stage 6 · CI run 45011797259 (push of `20531f8`) · CI (Linux) · 20531f8
 - **Spec:** test-plan §11.2 (the gate is trusted only if deterministic); TF-186 (the resilience test runs in CI)
 - **Steps:** CI `api` job with `BOQLET_NATIVE_QUEUE_TEST=1` and `BOQLET_NATIVE_RESILIENCE=1`.
@@ -2416,4 +2427,4 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** on the Linux runner the worker-restart phase passed, then the second parse (database phase) never reached "running past download" within 60 s ("The job never ran."). Also the new `rollback` job exited 126: `scripts/ci-rollback-check.sh` was committed without the executable bit. Neither was deployed (the deploy was skipped; P stayed on `95a0e96`).
 - **Route:** fix now · B7 (test agent): find why the second parse isn't claimed or runs past the poll on Linux (the fork server after a worker restart?), then switch `BOQLET_NATIVE_RESILIENCE` back on in CI and make `rollback` required by deploy again.
 - **Fix:** `7a4b8e7` (interim) and `2b9d165`: the queue worker reports a new stage within 0.5 s instead of the next 3 s heartbeat (`test_worker_logging.py`, failed first); `awaitRunning` fails at once when the job ended first; CI runs the resilience test and requires the rollback job again. Reproduced on Linux in the engine container before and after.
-- **Retest:**
+- **Retest:** CI 45018386661 on `83f73c8` (Linux, queue transport): the resilience test and the required rollback job passed; deployed.
