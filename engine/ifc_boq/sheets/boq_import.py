@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from contextlib import closing
+from hashlib import sha256
+import json
 import math
 from xml.etree.ElementTree import ParseError
 from zipfile import BadZipFile
@@ -9,7 +11,7 @@ from zipfile import BadZipFile
 from openpyxl.styles import Protection
 from openpyxl.utils.exceptions import InvalidFileException
 
-from .xlsx_guard import JOB_LIMIT, WorkbookTooLarge, open_workbook
+from .xlsx_guard import JOB_LIMIT, UNCACHED, WorkbookTooLarge, open_workbook, uncached_formulas
 
 KEY_COL = 9  # I, after Ref, Description, Unit, Quantity, Rate, Amount, Source, Notes
 FIRST = 6
@@ -88,9 +90,25 @@ def _read(wb, info, report):
         if row[0]:
             exported[str(row[0])] = {"ref": row[1] or "", "description": row[2] or "", "unit": row[3] or "", "quantity": row[4], "top": row[5] or ""}
     current = {line["key"]: line for line in info["lines"]}
+    # The section rows the export writes: each level of the grouping code's path, and "Unclassified".
+    headings = {("", "Unclassified")}
+    for line in info["lines"]:
+        for node in ((line.get("codes") or {}).get(primary) or {}).get("path", []) if primary else []:
+            headings.add((str(node["code"]).strip(), str(node["title"]).strip()))
+    # The grouping code list's codes, when the caller sends them: a Ref outside it is that row's problem.
+    known = set(info["codes"]) if info.get("codes") is not None else None
+    ids = {}
     seen = set()
     heading = ""
+    # A formula typed into a read column without a saved value reads as empty: report it, skip the row (TF-177).
+    blank = uncached_formulas(wb, sheets={"BoQ"}, columns={*COLS.values(), "I"}, limit=1000)
+    for _, row, column in blank:
+        _problem(report, row, column, UNCACHED)
+    blank_rows = {row for _, row, _ in blank}
     for r, row in enumerate(ws.iter_rows(min_row=FIRST, max_col=KEY_COL, values_only=True), FIRST):
+        if r in blank_rows:
+            seen.add(str(row[KEY_COL - 1] or ""))      # a line on such a row is not proposed as excluded either
+            continue
         ref, desc, unit, qty = row[:4]
         key = row[KEY_COL - 1]
         desc_s = str(desc or "").strip()
@@ -101,8 +119,12 @@ def _read(wb, info, report):
                 continue
             if desc_s.startswith("Subtotal") or desc_s == "TOTAL":
                 continue
+            ref_s = str(ref or "").strip()
             if qty in (None, "") and not unit:
-                heading = str(ref or "").strip()
+                if (ref_s, desc_s) in headings or (known is not None and ref_s in known):
+                    heading = ref_s
+                else:
+                    _problem(report, r, COLS["unit"], "A new row needs a unit (and a quantity, or leave that empty to confirm later).")
                 continue
             q, ok = number(qty)
             if not ok:
@@ -111,8 +133,17 @@ def _read(wb, info, report):
             if not desc_s:
                 _problem(report, r, COLS["description"], "A new row needs a description.")
                 continue
-            item = {"id": f"xlsx-{r}", "kind": "other", "description": desc_s, "unit": str(unit or "item").strip(), **({"quantity": q} if q is not None else {})}
-            code = str(ref or "").strip() or heading
+            code = ref_s or heading
+            if primary and ref_s and known is not None and ref_s not in known:
+                _problem(report, r, COLS["ref"], f"\"{ref_s}\" is not a code of the grouping classification.")
+                continue
+            unit_s = str(unit or "item").strip()
+            # The id comes from the row's content, so another workbook's new row on the same row number can't
+            # collide with it (TF-051); a repeat of the same row in one file gets a suffix.
+            base = "xlsx-" + sha256(json.dumps([desc_s, unit_s, q, code], ensure_ascii=False).encode("utf-8")).hexdigest()[:12]
+            ids[base] = ids.get(base, 0) + 1
+            item = {"id": base if ids[base] == 1 else f"{base}-{ids[base]}", "kind": "other", "description": desc_s,
+                    "unit": unit_s, **({"quantity": q} if q is not None else {})}
             report["manualItems"].append({"item": {"item": item, **({"codes": {primary: code}} if primary and code else {})}, "row": r})
             continue
         key = str(key)
@@ -146,7 +177,9 @@ def _read(wb, info, report):
         ref_s = str(ref or "").strip()
         if primary and (ref_s != str(was["ref"]).strip() or (heading and heading != str(was["top"]))):
             code = ref_s if ref_s != str(was["ref"]).strip() else heading
-            if code:
+            if code and known is not None and code not in known:
+                _problem(report, r, COLS["ref"], f"\"{code}\" is not a code of the grouping classification.")
+            elif code:
                 edit["codes"] = {primary: code}
                 changes.append("moved")
         if changes:

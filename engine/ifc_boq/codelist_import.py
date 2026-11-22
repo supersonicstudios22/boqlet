@@ -65,8 +65,13 @@ def _read_csv(data: bytes) -> list[list[str]]:
 
 
 def _read_xlsx(data: bytes) -> list[tuple[str, list[list[str]]]]:
-    from .sheets.xlsx_guard import open_workbook
+    from .sheets.xlsx_guard import open_workbook, uncached_formulas
     wb = open_workbook(data)
+    if blank := uncached_formulas(wb, limit=10):
+        wb.close()
+        cells = ", ".join(f"{sheet}!{column}{row}" for sheet, row, column in blank)
+        raise ValueError(f"Some cells hold a formula with no saved value, so they would read as empty: {cells}. "
+                         "Type the values, or open and save the file in Excel.")
     out = []
     for ws in wb.worksheets:
         rows = []

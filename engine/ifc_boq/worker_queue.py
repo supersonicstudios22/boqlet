@@ -59,9 +59,18 @@ def _process(envelope, send):
         send.send(execute(envelope, storage(), progress))
 
 
-def _failure(envelope, code, message):
+def _failure(envelope, code, message, retryable=True):
     return {"jobId": envelope["jobId"], "status": "failed",
-            "error": {"code": code, "message": message, "retryable": True}}
+            "error": {"code": code, "message": message, "retryable": retryable}}
+
+
+def _timeout(envelope):
+    """A parse over the limit is `parse_timeout`, retried once (a model that always times out isn't parsed
+    three times; state-machines.md, engine-worker.md); other jobs keep `engine_timeout` (TF-037)."""
+    if envelope.get("type") == "parse":
+        return _failure(envelope, "parse_timeout", "Parsing the model exceeded the configured time limit.",
+                        retryable=int(envelope.get("attempt") or 1) < 2)
+    return _failure(envelope, "engine_timeout", "The worker exceeded the configured time limit.")
 
 
 def _execute(connection, worker, envelope, stopping, timeout):
@@ -94,7 +103,7 @@ def _execute(connection, worker, envelope, stopping, timeout):
                     heartbeat = now + HEARTBEAT_SECONDS
                     progress = None
                 if now >= deadline:
-                    result = _failure(envelope, "engine_timeout", "The worker exceeded the configured time limit.")
+                    result = _timeout(envelope)
                     break
                 if receive.poll(min(0.25, deadline - now)):
                     try:

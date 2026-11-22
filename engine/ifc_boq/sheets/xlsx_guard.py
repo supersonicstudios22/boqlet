@@ -7,6 +7,8 @@ CRC check if there is more), so a member can't expand past what the directory sa
 from __future__ import annotations
 
 from io import BytesIO
+import re
+from xml.etree.ElementTree import iterparse
 from zipfile import ZipFile
 
 from openpyxl import load_workbook
@@ -41,3 +43,36 @@ def open_workbook(data: bytes, limit: int = QUICK_LIMIT):
     """A read-only, data-only openpyxl workbook (no formulas evaluated, no external links), after `check`."""
     check(data, limit)
     return load_workbook(BytesIO(data), read_only=True, data_only=True, keep_links=False)
+
+
+SHEET_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+UNCACHED = "This cell holds a formula with no saved value, so it reads as empty. Type the value, or open and save the file in Excel."
+
+
+def uncached_formulas(wb, sheets=None, columns=None, limit: int = 50) -> list[tuple[str, int, str]]:
+    """(sheet, row, column) of formula cells without a saved value (TF-177).
+
+    Data-only reading gives such a cell as empty (tools like openpyxl save formulas without results; no
+    formula is ever evaluated here), so a reader reports them instead of reading a blank. Streams the sheet
+    XML of an `open_workbook` workbook; `sheets` and `columns` (letters) narrow it to what the reader reads."""
+    found = []
+    for ws in wb.worksheets:
+        path = getattr(ws, "_worksheet_path", None)
+        if path is None or (sheets is not None and ws.title not in sheets):
+            continue
+        with wb._archive.open(path) as source:
+            for _, element in iterparse(source):
+                if element.tag == SHEET_NS + "c":
+                    value = element.find(SHEET_NS + "v")
+                    # No value, or an empty one that isn't a cached empty text (Excel writes t="str" for that).
+                    if element.find(SHEET_NS + "f") is not None and (
+                            value is None or (not value.text and element.get("t") != "str")):
+                        column, row = re.fullmatch(r"([A-Z]+)(\d+)", element.get("r", "") or "A0").groups()
+                        if columns is None or column in columns:
+                            found.append((ws.title, int(row), column))
+                            if len(found) >= limit:
+                                return found
+                    element.clear()
+                elif element.tag == SHEET_NS + "row":
+                    element.clear()
+    return found

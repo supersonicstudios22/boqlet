@@ -58,7 +58,8 @@ Output:
   "sha256": "…" }
 ```
 Stages: `download`, `read`, `geometry`, `verify`, `write`. Errors: `not_ifc`,
-`unsupported_schema`, `corrupt_file`, `parse_timeout` (retryable once), `parse_error`.
+`unsupported_schema`, `corrupt_file`, `too_large`, `parse_timeout` (the queue worker's time limit;
+retryable once), `parse_error`.
 
 ### run
 Input (everything resolved by the API, so the worker never looks anything up):

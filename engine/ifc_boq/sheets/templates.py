@@ -8,7 +8,7 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from .. import presets
-from .xlsx_guard import WorkbookTooLarge, open_workbook
+from .xlsx_guard import UNCACHED, WorkbookTooLarge, open_workbook, uncached_formulas
 
 YELLOW = PatternFill("solid", fgColor="FFF2B3")
 GREY = PatternFill("solid", fgColor="EEEDE8")
@@ -484,6 +484,8 @@ def read(data: dict, content: bytes) -> dict:
         return {"error": f"The file can't be read as an Excel workbook: {exc}"}
     problems, changes = [], []
     try:
+        problems += [{"sheet": sheet, "row": row, "column": column, "message": UNCACHED}
+                     for sheet, row, column in uncached_formulas(wb)]
         doc = READ[data["kind"]](data, wb, problems, changes)
     finally:
         wb.close()

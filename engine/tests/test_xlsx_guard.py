@@ -132,3 +132,29 @@ def test_rpc_reads_at_most_a_few_workbooks_at_once_and_answers_busy_after_a_shor
         for _ in range(rpc.WORKBOOK_READ_SLOTS + 1):   # a refused workbook gives its slot back
             assert client.post("/rpc/codelist-read", json={"fileKey": "bomb", "fileName": "codes.xlsx"}).status_code == 422
         assert client.post("/rpc/codelist-read", json=request).status_code == 200
+
+
+def test_code_list_formula_cells_without_saved_values_are_refused_by_cell():
+    """TF-177: data-only reading gives a formula with no saved value as empty; say so instead of dropping it."""
+    from openpyxl import Workbook
+    book = Workbook()
+    book.active.append(["Code", "Title"])
+    book.active.append(["A", "=1+1"])
+    book.active.append(["=2+2", "Formula as code"])
+    out = BytesIO()
+    book.save(out)
+    with pytest.raises(ValueError, match=r"B2.*A3|formula"):
+        codelist_import.read_table("codes.xlsx", out.getvalue())
+
+
+def test_template_formula_cells_without_saved_values_are_problems():
+    from openpyxl import load_workbook
+    rule, library = presets.load_rule_set("as-modelled")
+    data = {"kind": "rule_set", "doc": rule, "library": list(library.values())}
+    book = load_workbook(BytesIO(templates.write(data)))
+    book["Settings"]["F2"] = "=1+1"
+    out = BytesIO()
+    book.save(out)
+    problems = templates.read(data, out.getvalue())["problems"]
+    assert any(p.get("sheet") == "Settings" and p.get("row") == 2 and p.get("column") == "F" and "formula" in p["message"]
+               for p in problems), problems

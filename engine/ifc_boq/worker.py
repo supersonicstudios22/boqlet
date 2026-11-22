@@ -79,7 +79,7 @@ def _parse(job, storage, prefix, progress):
             while chunk := src.read(1 << 20):
                 size += len(chunk)
                 if size > limit:
-                    raise JobError("model_too_large", "The model exceeds the worker upload limit")
+                    raise JobError("too_large", "The model exceeds the worker upload limit")
                 dst.write(chunk)
 
         if suffix == ".ifczip":
@@ -89,7 +89,7 @@ def _parse(job, storage, prefix, progress):
                     if len(entries) != 1 or Path(entries[0].filename).suffix.lower() != ".ifc":
                         raise JobError("not_ifc", "Expected one IFC file in the archive")
                     if entries[0].file_size > limit:
-                        raise JobError("model_too_large", "The expanded model exceeds the worker upload limit")
+                        raise JobError("too_large", "The expanded model exceeds the worker upload limit")
                     ifc = path / "model.ifc"
                     with archive.open(entries[0]) as src, ifc.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
@@ -317,7 +317,8 @@ def _import_boq_edits(job, storage, prefix, progress):
     lines = job.get("currentLines")
     if lines is None:
         lines = read_json_gzip(storage, job["resultKey"])["lines"]
-    report = boq_import.read(workbook, {"boqId": str(job["boqId"]), "primary": job.get("groupBy"), "lines": lines})
+    report = boq_import.read(workbook, {"boqId": str(job["boqId"]), "primary": job.get("groupBy"), "lines": lines,
+                                        "codes": job.get("groupCodes")})
     key = prefix + "edits.json.gz"
     write_json_gzip(storage, key, report)
     return {"reportKey": key, "counts": {field: len(values) for field, values in report.items()}}, {}

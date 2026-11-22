@@ -120,3 +120,18 @@ def verify_edit_round_trip(storage, result_key, code_list):
     assert len(by_key) == 3
     assert report["manualItems"][0]["item"]["item"]["quantity"] == 7
     assert report["problems"][0] == {"sheet": "BoQ", "row": invalid, "column": "D", "message": '"not numeric" is not a number.'}
+
+
+def test_parse_errors_use_the_version_error_codes(tmp_path, monkeypatch):
+    """TF-037: state-machines.md ModelVersion failed.error.code: too_large, parse_timeout (retryable once)."""
+    from ifc_boq import worker_queue
+    storage = LocalStorage(tmp_path)
+    storage.put_file("uploads/source.ifc", DUPLEX)
+    monkeypatch.setenv("ENGINE_MAX_MODEL_MB", "0")
+    failed = execute(envelope("parse", {"modelVersionId": "v", "sourceKey": "uploads/source.ifc", "fileName": "a.ifc"}, "p/"), storage)
+    assert failed["error"]["code"] == "too_large", failed
+    first = worker_queue._timeout({"jobId": "j", "type": "parse", "attempt": 1})
+    second = worker_queue._timeout({"jobId": "j", "type": "parse", "attempt": 2})
+    assert first["error"]["code"] == second["error"]["code"] == "parse_timeout"
+    assert first["error"]["retryable"] and not second["error"]["retryable"]
+    assert worker_queue._timeout({"jobId": "j", "type": "run", "attempt": 1})["error"]["code"] == "engine_timeout"
