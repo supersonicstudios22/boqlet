@@ -513,7 +513,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `9698476` (engine) and `7077e83` (`model-versions.test.ts` with the real v2 file; `edits-import.test.ts` text edit).
 - **Retest:**
 
-### TF-009 · S3 · test-gap · suites · open
+### TF-009 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** F14-AC4 "usage minutes equal the sum of job durations"
 - **Steps:** Read `ApiFoundationTest.organisationRolesAndInviteSeatReservation`.
@@ -521,7 +521,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** one synthetic 90 s usage event, recorded twice, gives 1.5 min (proves idempotency, not the sum over jobs).
 - **Evidence:** §C row F14-AC4.
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `179987f`: `NativeWorkerTest.usageMinutesAreTheTimeOfTheJobsThatRan` (a parse, a run, a preview vs `/orgs/{id}/usage`; HTTP within 1 s per job; queue: upper bound, metering uses the engine's `durationMs`, not the process start).
 - **Retest:**
 
 ### TF-010 · S3 · test-gap · suites · fixed
@@ -554,10 +554,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** (a) BoQ archive/restore lock with the project action `archive`, which is in `ARCHIVED_ACTIONS` (`ProjectAccess.java:31`; `Boqs.java:67,86`), and the restore path applies `name`/`description` (`Boqs.java:73-79`), so a BoQ in an archived project can be renamed; its `permissions.archive` stays `true` and the app offers archive/restore (`boqs/[boqId]/page.tsx:73`, `boq-header.tsx:138`). (b) withdraw and comment lock with `"view"` (`Boqs.java:187,198`); `BoqAccess.java:175-176` sets `withdraw`/`comment` without the project status; `review-tab.tsx:58` shows the comment box. (c) `ShareLinks.revoke` uses `projects.require` + role only (`ShareLinks.java:160-167`, `ProjectAccess.java:89-93`), while the link's `permissions.revoke` is `false`: the server allows what the UI hides. (d) `Decisions.promote` never checks project status (`Decisions.java:134-149`).
 - **Evidence:** `Set.of("view", "seeAudit", "archive")` (ProjectAccess.java:31); `access.lockBill(boq, actor, restore ? "archive" : "editBoqs")` (Boqs.java:67).
 - **Route:** fix now · B2 for (a) and (b); (c) and (d) answered by the owner (Q42, P54: the first option); fix now · B7 (owner answers)
-- **Fix:** a BoQ-level archive action refused while the project is archived; no name/description on restore without `editBoqs`; withdraw/comment with a write action; keys zeroed while archived; extend the F02-AC4 scenario.
+- **Fix:** (a, b) fixed in `8745980`: an archived project's BoQs can't be archived, restored, withdrawn or commented; revision keys keep view and seeAudit (`permissions.test.ts` cells flipped). **Open:** (c, d), B7 (Q42).
 - **Retest:**
 
-### TF-013 · S3 · inconsistency · java · open
+### TF-013 · S3 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R2 · code · `8d22de6`
 - **Spec:** `permissions.md` "Errors" (`403 forbidden` with `{"required": "approver"}`); `api-conventions.md` "403 … `forbidden` (+ `required`)"; F09-AC3 and test-plan J3 ("`403`, `reason: "four_eyes"`")
 - **Steps:** as a viewer `POST /projects/{id}/boqs`; as a member `PATCH /orgs/{id}`; with four-eyes on, the submitter `POST /revisions/{id}/approve`.
@@ -565,7 +565,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** project-role denials have no details (`ProjectAccess.java:89-93,116-118`, `Map.of()`); org denials use `details.requiredRole` (`OrgAccess.java:71-76`); four-eyes answers `code: "four_eyes"` with no `reason` (`Boqs.java:344`) (permissions.md matches the code; F09-AC3 and J3 don't).
 - **Evidence:** `throw error(HttpStatus.FORBIDDEN, "forbidden", "Your project role does not allow this.")`; `Map.of("requiredRole", …)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** `details.required` from both paths; F09-AC3 and J3 say `code: four_eyes`; a contract test on each 403.
+- **Fix:** `8745980`: every 403 carries `details.required`. `permissions.test.ts` cell flipped (failed first).
 - **Retest:**
 
 ### TF-014 · S3 · question · java · open
@@ -579,7 +579,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** lock with `view` per F10 §6, or write "edit rights on the project" into F10 and permissions.md and filter the picker and `permissions.preview`.
 - **Retest:**
 
-### TF-015 · S4 · inconsistency · java · open
+### TF-015 · S4 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R2 · code · `8d22de6`
 - **Spec:** `permissions.md` "Confirm a BoQ … approver ✓²" ("² only when approval is on")
 - **Steps:** approval off; `GET /projects/{id}` as an approver.
@@ -587,7 +587,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** both `true` whatever the setting (`ProjectAccess.java:38,99-100`); the BoQ revision's keys are right (`BoqAccess.java:177-178`) and the app uses those, so nothing visible breaks.
 - **Evidence:** `Map.entry("approve", APPROVAL), Map.entry("confirm", APPROVAL)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** compute them with the org's approval setting, or document them as role-only.
+- **Fix:** `8745980`: `approve` and `confirm` follow the org's approval setting and plan. `permissions.test.ts` cells flipped.
 - **Retest:**
 
 ### TF-016 · S3 · gap · app · deferred
@@ -744,7 +744,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `e726a5e`: pending changes count only decisions for the questions the run asked (the withdraw list's set), and a dictionary change unless it only touches name answers the run didn't ask. Scenario in `questions.test.ts` (failed first: `['inputs.dictionaries','decisions']`).
 - **Retest:**
 
-### TF-030 · S3 · inconsistency · java · open
+### TF-030 · S3 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** `state-machines.md` (refused "with `409 invalid_transition` and names the current state"); `backend.md` "explicit transition tables per entity"
 - **Steps:** `POST /boqs/{id}/reopen` on a working BoQ; `POST /jobs/{id}/cancel` on a succeeded job; `POST /model-versions/{id}/retry` on a ready version; `POST /revisions/{id}/approve` on a draft; as a viewer withdraw an `in_review` revision.
@@ -752,10 +752,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `details: {}` everywhere else (`Boqs.java:131,164,190,200,215,240` via `BoqAccess.java:245-247`; `Jobs.java:138`; `Models.java:250,261`; `ShareLinks.java:148`); withdraw maps a missing permission to `409 invalid_transition` (`Boqs.java:187-190`); a submit during review is `invalid_transition` (`:131`) but an issue during review is `revision_in_review` (`:119`).
 - **Evidence:** `throw conflict("invalid_transition", "Only a confirmed BoQ can be reopened.")` → `Map.of()`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `8745980` (`Boqs`, `ShareLinks`: `details.state`; a withdraw by a role that may not is 403) and `179987f` (`Jobs`, `Models`). `versions.test.ts`, `model-lifecycle.test.ts`.
 - **Retest:**
 
-### TF-031 · S3 · inconsistency · java · open
+### TF-031 · S3 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** `state-machines.md` ModelVersion "awaiting_upload → failed: upload not completed within 24 h"; BR-51
 - **Steps:** create a version, don't upload, advance 25 h, let the hourly retention task run; `GET /model-versions/{id}`. Also: at 24 h 30 min, before the sweep, `POST /model-versions/{id}/complete`.
@@ -763,10 +763,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the sweep soft-deletes it, keeping `status = 'awaiting_upload'` (`Maintenance.java:241-251`): it vanishes (404, gone from the list); no audit, no `error.code`. `complete()` doesn't check the age (`Models.java:219-242`), so until the hourly sweep (`Maintenance.java:203-211`) a late upload is accepted and queued.
 - **Evidence:** `UPDATE model_versions SET deleted_at = now() WHERE id = ?`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `179987f`: an upload not completed in 24 h fails with `upload_expired` (hourly sweep, which aborts the multipart upload, and a late complete); audited. `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
-### TF-032 · S3 · bug · java · open
+### TF-032 · S3 · bug · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** `state-machines.md` ModelVersion ("Deleting is allowed only when no run references it"); F03 §8 ("Otherwise 'archived' (hidden from pickers)")
 - **Steps:** BoQ on model version v1, generate; `DELETE /model-versions/{v1}` → 204; Re-generate.
@@ -774,10 +774,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `delete` refuses only `queued`/`processing`, never checks usage (`Models.java:255-272`, though `withUsage` exists at `:369-384`); then `inputs.validate` refuses deleted versions (`BoqInputs.java:67-72`) and Re-generate answers `400 invalid_inputs` (`Runs.java:76`): the working version is stuck until its models are changed. (F03's status block lists "no version delete" in the UI; the API allows it.)
 - **Evidence:** `UPDATE model_versions SET deleted_at = now() WHERE id = ?` without a usage check.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `179987f`: deleting a version a BoQ's inputs or a run use answers `409 version_in_use` with `details.usedBy`. `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
-### TF-033 · S3 · bug · java · open
+### TF-033 · S3 · bug · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** BR-09 ("An excluded line stays listed as excluded … in the sheet, the exports, share links …"); BR-03
 - **Steps:** exclude a line with a reason, regenerate, create a share link; `GET /public/shares/{token}/lines` and the detail of the excluded key.
@@ -785,10 +785,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** filtered out of the public lines, and the detail answers 404 (`PublicShares.java:63-64,85-87`).
 - **Evidence:** `… WHERE run_id = ? AND NOT coalesce((line->>'excluded')::boolean, false)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `8745980`: share lines include excluded lines (`excluded: true`), their detail opens. `shares.test.ts` (failed first).
 - **Retest:**
 
-### TF-034 · S3 · gap · java · open
+### TF-034 · S3 · gap · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** BR-51 ("Everything a user does that changes data writes an audit event"); F09 audit list (`model_version.failed`, `run.finished`); F09-AC5
 - **Steps:** cancel a queued run job, read `GET /projects/{p}/audit`; let a parse fail (`parse_error`) and a run fail.
@@ -796,7 +796,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `Jobs.cancel` writes no audit (`Jobs.java:118-141`); `ParseJob.finished` on failure or cancel writes none (`ParseJob.java:42-51`), `model_version.failed` only for `not_ifc` (`Models.java:232`); `RunJob.finished` audits only success as `run.completed` (`RunJob.java:212-217` vs `:247-248`); the expiry sweep (TF-031) isn't audited.
 - **Evidence:** no `audit.record` in `Jobs.cancel`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `179987f`: `job.cancelled`, `model_version.failed`, `run.failed`, `run.cancelled` audited. `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
 ### TF-035 · S3 · question · docs · open
@@ -877,7 +877,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `ff2c5f5` (engine: a `vbaProject.bin` part is refused by every reader, `WorkbookRefused`; `test_xlsx_guard.py`, failed first: did not raise) and `03189a3` (the picker no longer offers `.xlsm`).
 - **Retest:**
 
-### TF-042 · S3 · gap · java · open
+### TF-042 · S3 · gap · java · fixed
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:16` ("only the token's sha256 is stored"), `:51-52`, `:92`
 - **Steps:** `curl http://localhost:8080/api/v1/invitations/<token>` and `…/public/shares/<token>`; `docker logs boqlet-local-api-1 2>&1 | grep -E "invitations/|public/shares/"`.
@@ -885,10 +885,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the access log writes the full path (`http/RequestIdFilter.java:37-42`, `url.path`): raw share and invitation tokens land in the API logs (no retention limit in compose). A logged invitation token is enough to create the invitee's account with a password of the attacker's choosing (`NativeCredentials.java:84-88,107-111`) and accept the membership.
 - **Evidence:** `addKeyValue("url.path", path)….log("{} {} {} {} ms", …)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** log the handler pattern (`BEST_MATCHING_PATTERN_ATTRIBUTE`) or mask token segments; log rotation on the pilot.
+- **Fix:** `cd37865`: the access log logs the routed path with share and invitation tokens masked. `AccountSecurityTest` (failed first).
 - **Retest:**
 
-### TF-043 · S3 · gap · java · open
+### TF-043 · S3 · gap · java · fixed
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:111-113` ("invitations (20/h per org), rpc calls (60/min per user)", marked planned); test-plan B2
 - **Steps:** invite `x@example.test` once, then `POST /orgs/{org}/invitations/{inv}/resend` 25 times; count the mails in MailHog; 70× `POST /codelists/read` in a minute.
@@ -896,10 +896,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** no limit; resending a pending invitation skips the seat check (`org/Invitations.java:98-122`, only for `EXPIRED`), so the owner of a self-made org can send unlimited emails to any address through boqlet's SMTP; revoke + invite repeats too; rpc has no limit (`library/LibraryController.java:114-115`).
 - **Evidence:** `if (row.invitation().getStatus() == …EXPIRED) { limits.checkCapacity(…) }` then an unconditional `orgs.enqueueEmail(…)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** per-org invitation and resend buckets, per-user rpc buckets (the `native_auth_limits` pattern); a scenario test. (Not in `known-limitations.md`: TF-048.)
+- **Fix:** `cd37865`: invitations and resends 20 an hour per org; engine rpc calls 60 a minute per user (`429 rate_limited`, Retry-After). `AccountSecurityTest` (failed first).
 - **Retest:**
 
-### TF-044 · S3 · gap · java · open
+### TF-044 · S3 · gap · java · fixed
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** BR-51 ("Everything a user does that changes data writes an audit event"); `security.md:120,123`
 - **Steps:** create an account via set-password, sign in, sign out, a wrong password, a reset; query `audit_events` for that actor.
@@ -907,7 +907,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the only identity event is `session.replaced` on takeover (`Sessions.java:66-71`); `NativeCredentials.setPassword` creates users, changes hashes and ends sessions unaudited (`NativeCredentials.java:70-112`); sign-in (`:52-68`) and `Sessions.close` (`:102-108`) aren't audited.
 - **Evidence:** `UPDATE native_credentials SET password_hash = ? …; UPDATE sessions SET status = 'ended' …; return;`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** `user.password_set`, `user.password_reset`, `session.opened`, `session.ended`, `auth.sign_in_failed` through `AuditWriter`; add to F09's list; a `NativeAuthTest` assertion.
+- **Fix:** `cd37865`: `user.password_set`, `user.password_reset`, `session.opened`, `session.ended`, `auth.sign_in_failed` audited. `AccountSecurityTest` (failed first).
 - **Retest:**
 
 ### TF-045 · S3 · question · ops · open
@@ -976,7 +976,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** map default units to imperial (convert explicit metric or warn) with `UNIT_FACTOR`; or state in F02 and F15 that the setting has no effect yet.
 - **Retest:**
 
-### TF-051 · S3 · bug · engine · open
+### TF-051 · S3 · bug · engine · fixed
 - **Found by:** Stage 2 · R6 · code + synthetic round trip · `8d22de6`
 - **Spec:** F12 ("new rows without a key (proposed as manual lines under the group they sit in), rows it couldn't read"); CLAUDE.md rule 5
 - **Steps:** export; insert a row with only a description, and a full new row below it; import. Later import another workbook with a new row on the same row number. Also mistype one Ref.
@@ -984,7 +984,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** a row with no unit and no quantity is taken as a group heading (`boq_import.py:109-111`), dropped, and resets `heading` to `""`, so the next new rows lose their group and land in Unclassified; new manual ids are `xlsx-{row}` (`:119`) and Java refuses an existing id (`Adjustments.java:210-214`), so a later import fails; Refs aren't checked, one bad Ref makes `Adjustments.codes` throw `unknown_code` and the whole batch fails (`Adjustments.java:223-236`).
 - **Evidence:** rows 12 (description only) and 13 ("Extra wall", m2, 5) under group 2 → `manualItems: [{'id': 'xlsx-13', … no 'codes'}]`, `problems: []`.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** `7704cd9` (engine) and `83cd787` (Java: the import job gets `groupBy`, `groupCodes`, `groupCodesBySystem` from the run's snapshot; scenario "a mistyped Ref…" in `edits-import.test.ts`, failed first). **Open:** the engine reads `groupCodesBySystem[primary]` (the workbook's own grouping).
+- **Fix:** `7704cd9`, `83cd787`, `179987f` (the engine checks Refs against `groupCodesBySystem[groupBy]`, the workbook's grouping; `test_worker.py`, failed first).
 - **Retest:**
 
 ### TF-052 · S3 · bug · engine · fixed
@@ -1152,7 +1152,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `55339a2`: no Storybook; components documented by their doc comments.
 - **Retest:**
 
-### TF-067 · S4 · inconsistency · docs · open
+### TF-067 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** several docs (index and path slips)
 - **Steps:** see each item.
@@ -1160,7 +1160,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. "S01–S37" in `docs/README.md:29`, `test-plan.md:167,444`; screens.md goes to S38. 2. link labels still show `../12-ifc-corpus-catalogue.md` (targets fine): `known-limitations.md:19`, `overview.md:88`, `testing/README.md:107,135`. 3. paths not from the root: `engine.md:260` `tests/test_expr.py` (→ `engine/tests/test_expr.py`), `scope-and-acceptance.md:126` `scripts/pseudo-locale.test.mjs` (→ `apps/app/scripts/…`). 4. `engine-worker.md:205` "a `GET /health` on both transports": the queue worker serves no HTTP. 5. `services/api/README.md:186` omits `/_test/auth-limits/reset` (`SuiteSupport.java:158`). 6. `commands.md:3` "Every npm script" omits `npm run perf -w @ifc-boq/tests`, `i18n:pseudo` and `start` in `apps/app`.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** `55339a2`: link labels, paths, `/health` on HTTP only, commands. **Open:** `services/api/README.md` lists `/_test/auth-limits/reset` (Java agent).
+- **Fix:** `55339a2` and `179987f` (`services/api/README.md` lists `/_test/auth-limits/reset`).
 - **Retest:**
 
 ### TF-068 · S4 · inconsistency · ops · fixed
@@ -1207,7 +1207,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `ff738b6`: ERROR dispatch permitted; `ErrorPages` answers `/error` with the API body and status; `ApiErrors` maps parameter validation, multipart limits, 405, Spring's ErrorResponse and a logged 500. Test `ErrorResponsesTest` (failed first: 401).
 - **Retest:** L: `limit=5000` → 400 `invalid_parameter`; `//admin/orgs`, `;x=1` → 400 `invalid_request`; `DELETE /me` → 405; 21 MiB code list → 413; NUL in a name → 500 (TF-176).
 
-### TF-072 · S3 · inconsistency · contract · open
+### TF-072 · S3 · inconsistency · contract · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `openapi.yaml:2313-2321` (`LimitError` = `Error` + **top-level** required `limit`, `current`, `max`), the 402 of every limited operation (`:2021-2023`)
 - **Steps:** trigger any 402 (a third active project on Free).
@@ -1215,7 +1215,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** Java puts them in `details` (`billing/LimitReached.java:26-28`); the app reads `error.details.*` (`limit-dialog.tsx:38-41`) and the scenarios assert `details` (`projects.test.ts:43`, `orgs.test.ts:97`): Java, app and tests agree; the contract (and the generated TS type) says otherwise; `api-conventions.md:67` is ambiguous.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** docs in `55339a2` (`details.limit/current/max`). **Open:** `LimitError.details` in the contract (Java), then drop its KNOWN_MISMATCHES entry.
+- **Fix:** `8745980`: `LimitError.details` in the contract; its KNOWN_MISMATCHES entry removed.
 - **Retest:**
 
 ### TF-073 · S3 · gap · app · fixed
@@ -1229,7 +1229,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `14c2e23` (app sends `Idempotency-Key`), `03189a3` (a fresh key per preview, 3 s reuse), `9efea85` (the header on 13 operations in the contract, C14; a bad key → `400 invalid_parameter`; `tests/contract/idempotency.test.ts`).
 - **Retest:**
 
-### TF-074 · S3 · bug · java · open
+### TF-074 · S3 · bug · java · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md:54` ("Unknown fields in requests are rejected with `400 unknown_field`"); `openapi.yaml:2678,2684,2956` (`scope: ModelScope`; `run-request.schema.json:75-92` `additionalProperties: false`); CLAUDE.md rule 5
 - **Steps:** `POST /projects/{id}/models {"name":"A","scope":{"exlude":[{"ifcClass":"IfcFurnishingElement"}]}}`, then generate.
@@ -1237,10 +1237,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `201`, stored as given: `ModelScope` is opaque in the pom (`pom.xml:142-146`, "The worker validates their schema"), `Models.java:93-95,107-110` stores it, `Runs.java:84` forwards it, but the worker never validates scope (`worker.py:139-167`); `federation.py:204,216,221` reads only `exclude`/`include`: the typo is ignored and the furniture measured. (The UI can't edit scope: known; API clients only.)
 - **Evidence:** no `ModelScope` validation in `engine/ifc_boq`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** validate `scope` on createModel, updateModel, updateRevisionInputs and in `worker._run`; correct the pom comment.
+- **Fix:** `179987f`: a model's scope is checked through the engine's `check` rpc (kind `model-scope`, `400 invalid_scope` with problems); the run refuses an invalid scope. `test_presets.py`, `test_worker.py`, `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
-### TF-075 · S3 · bug · java · open
+### TF-075 · S3 · bug · java · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `openapi.yaml:3072-3076` (`ManualItemInput.item` is `ManualItem`, `additionalProperties: false`, `kind` enum); `api-conventions.md:54`
 - **Steps:** `POST /boqs/{id}/manual-items {"item":{"id":"X1","description":"d","unit":"m","kind":"bogus","colour":1}}`, then generate.
@@ -1248,7 +1248,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `201` (`Adjustments.java:202-221` checks only non-blank fields and the quantity); every later run fails (`worker.py:166-167` `validate(doc, "manual-item")`): the BoQ can't be generated until the item is removed. The app's form sends valid kinds only.
 - **Evidence:** as cited.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** validate against the `manual-item` schema on add and update → `400 invalid_body`.
+- **Fix:** `8745980`: manual items checked against the engine's ManualItem shape (400 invalid_body). `line-edits.test.ts` (failed first).
 - **Retest:**
 
 ### TF-076 · S3 · inconsistency · java · open
@@ -1259,7 +1259,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `createVersion` checks only `maxModelVersionMb` (`Models.java:163-165`); minutes are checked at enqueue (`Jobs.java:94-96`), in `complete`/`retry` (`Models.java:241,252,318`): the whole file is uploaded, then refused with a 402 the contract doesn't declare. Also undeclared: `updateOrg` (`Orgs.java:79-80`), `resendOrgInvitation` (`Invitations.java:104-105`).
 - **Evidence:** as cited.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** check minutes in `createVersion` too; declare `402` on completeModelUpload, retryModelVersion, updateOrg, resendOrgInvitation.
+- **Fix:** Java part in `179987f`: `createVersion` checks `processingMinutesPerMonth` before any upload URL (`limits.test.ts`). **Open:** the Invitations part (seat check vs plan), app agent.
 - **Retest:**
 
 ### TF-077 · S3 · inconsistency · app · fixed
@@ -1284,7 +1284,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `7077e83`: every suite client validates each JSON response against `openapi.yaml` (`tests/support/contract.ts`); known mismatches listed by finding (TF-072, TF-189).
 - **Retest:** harness: contract and scenario suites green with it; it found TF-189.
 
-### TF-079 · S4 · inconsistency · docs · open
+### TF-079 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md:66-74,137-138` (error table, rate-limit headers); `permissions.md:155`
 - **Steps:** compare the table with Java's error sites.
@@ -1292,7 +1292,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 413 for models is `model_too_large`, not `too_large` (`Models.java:163`); a bad parameter has three codes: `invalid_param` (most sites, e.g. `Idempotency.java:37`), `invalid_parameter` (`ApiErrors.java:39`), `invalid_cursor` (`AuditReader.java:69`); public-share operations don't declare 429. (422 row: TF-062; 403 details: TF-013; 429 headers: TF-047.)
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** docs in `55339a2` list the codes as answered. **Open:** one bad-parameter code; 429 declared on the public share operations (Java, contract).
+- **Fix:** `8745980`: one bad-parameter code (`invalid_parameter`, `invalid_cursor` kept for audit); 429 declared on the public share operations.
 - **Retest:**
 
 ### TF-080 · S4 · question · contract · open
@@ -1328,7 +1328,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `55339a2`: `scripts/local.mjs` uppercases the drive letter and runs `docker compose` from the repo root (Bake compared paths case-sensitively).
 - **Retest:** L: from a lowercase `c:\` working directory the three images build.
 
-### TF-083 · S4 · inconsistency · java · open
+### TF-083 · S4 · inconsistency · java · fixed
 - **Found by:** Stage 3 · 3c pilot (passive) · P, L · fc78b12
 - **Spec:** `docs/domain/permissions.md` / `api-conventions.md` (public routes: `/plans`, `/public/*`, `/invitations/*` need no session); RFC 9110 (HEAD is GET without a body)
 - **Steps:** `curl -sI https://booqlet.com/api/v1/plans`; `curl -sI http://127.0.0.1:8080/api/v1/plans`.
@@ -1336,10 +1336,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `HEAD` answers `401`, `GET` `200`, on P and L: the public-route rule is `"GET".equals(method)` (`NativeIdentityFilter`, `IdentityFilter`, the token resolver in `SecurityConfiguration`), so HEAD on `/plans`, `/public/*`, `/invitations/*` needs a session (link checkers and uptime probes that use HEAD get 401).
 - **Evidence:** (session scratchpad `stage3/out/s3c-pilot/`) session scratchpad `stage3/out/s3c-pilot/notes.md`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** treat HEAD like GET for the public routes (one shared predicate with TF-011's `RequestPaths`).
+- **Fix:** `cd37865`: `RequestPaths.publicRead` (GET or HEAD) in both identity filters and the bearer resolver. `AccountSecurityTest`, `orgs.test.ts` (failed first).
 - **Retest:**
 
-### TF-084 · S4 · bug · ops · fixed
+### TF-084 · S4 · bug · ops · verified
 - **Found by:** Stage 3 · 3c pilot (passive) · P · fc78b12
 - **Spec:** `docs/operations/` (the pilot checks run from an operator's machine); test-plan §9.3 (`check-public-edge.py`)
 - **Steps:** on Windows, `python ops/pilot/check-public-edge.py` in a console with the default code page.
@@ -1348,7 +1348,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Evidence:** (session scratchpad `stage3/out/s3c-pilot/`) session scratchpad `stage3/out/s3c-pilot/notes.md`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
 - **Fix:** `55339a2`: `check-public-edge.py` switches stdout to UTF-8 and prints `->`.
-- **Retest:** L: under cp1252 the old script raised UnicodeEncodeError, the new one prints.
+- **Retest:** P: `python -I -X utf8 ops/pilot/check-public-edge.py` runs and prints `->` (and on cp1252 consoles, as tested).
 
 ### TF-085 · S1 · bug · java/app · verified
 - **Found by:** Stage 3/4 · s3a-shares · L · fc78b12
@@ -1366,12 +1366,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-087 · S4 · inconsistency · java · open
+### TF-087 · S4 · inconsistency · java · fixed
 - **Found by:** Stage 3/4 · s3a-shares · L · fc78b12
 - **Summary (spec, steps, actual, fix):** share rate limit: one counter per address across all tokens, reset each clock minute; F18 says "per token and IP". 429 at request 301, no Retry-After. ShareController.java:111-122, q4-ratelimit.mjs.
 - **Evidence:** session scratchpad `stage3/out/s3a-shares/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `cd37865`: the share limit counts per address and token (300/min), at most 50 tokens per address a minute. `AccountSecurityTest` (failed first).
 - **Retest:**
 
 ### TF-088 · S3 · test-gap · suites · deferred
@@ -1398,12 +1398,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-091 · S4 · gap · java · open
+### TF-091 · S4 · gap · java · fixed
 - **Found by:** Stage 3/4 · s3a-matrix · L · fc78b12
 - **Summary (spec, steps, actual, fix):** review comments never audited (21 comments, 0 events of 1,433). Boqs.comment (Boqs.java:196-206) writes none. F09 minimum list has no comment action (maybe intended). BR-51. Evidence probe-audit.mjs. Fix: revision.commented event + F09, or document.
 - **Evidence:** session scratchpad `stage3/out/s3a-matrix/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `8745980`: `revision.commented` audited (comment id and line key, not the text). `versions.test.ts` (failed first).
 - **Retest:**
 
 ### TF-092 · S3 · test-gap · suites · fixed
@@ -1422,12 +1422,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `7bd2ae4` (engine: snapshots carry `engineQuantity`, override comparison ignores engine fields, element changes from item lines; `test_diff.py`, failed first. Contract C09; the 1 % filter keeps a moved engine value, `changes.test.ts`, failed first; change-report Excel engine columns) and `14c2e23` (app: "engine 106.4 → engine 96.38" under an edited line; `model.test.ts`, failed first).
 - **Retest:**
 
-### TF-094 · S3 · bug · java · open
+### TF-094 · S3 · bug · java · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** second Generate while a run is active returns the old run even after inputs changed. F04 edge cases ("both runs are created; the newest finished becomes current"), BR-22. Steps POST runs; PATCH classifications; POST runs -> 202 same run/job (Runs.java:68-73); finishes on old inputs, pendingChanges stays; one user's Cancel cancels the other's run. UI hides Generate while active (affects 2nd user/tab/API). Evidence probe-double.mjs, probe-double2.mjs. Fix: reuse only if the request equals current state, or change the spec.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `179987f`: a second Generate reuses the active run only for the same snapshot, else a new run beside it (V20 drops the one-active-run index); the newest finished run becomes current. `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
 ### TF-095 · S3 · gap · app · deferred
@@ -1446,12 +1446,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-097 · S3 · bug · java · open
+### TF-097 · S3 · bug · java · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** review/approval/reopen notifications render raw keys (notifications.kinds.revision_review_requested, …review_withdrawn, …boq_reopened); console FORMATTING_ERROR "by"/"reason" not provided. Boqs.notify (Boqs.java:359-368) sends only boq, revision, label; changes_requested and approved need {by} too. Emails fine. F13, F15-AC3. Evidence j7.json (bell, notificationsPage, bellProblems), shots/bell-01, bell-02, j7.mjs, j3b.mjs. Fix: by + reason params; generic fallback instead of the key.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `8745980`: BoQ and revision notifications carry `by`, `boq.reopened` the reason. `versions.test.ts` (failed first).
 - **Retest:**
 
 ### TF-098 · S3 · bug · app · fixed
@@ -1582,12 +1582,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `a0a34b0`: on `409 session_active` the form names the other device and its last activity (S31 texts), with Cancel. `native-form.test.tsx`; `e2e-java/sessions.spec.ts` asserts the device text and Cancel.
 - **Retest:** L: "You're signed in on campaign, last active now. Continue here and sign out there?…"; Cancel brings back Sign in.
 
-### TF-114 · S3 · gap · java · open
+### TF-114 · S3 · gap · java · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** session.replaced audit rows have org_id NULL and data only {replacementId}: no device labels; org owner can't see takeovers (org audit shows only org.setup_done, org.created). F01 §10 ("Takeovers are audited (session.replaced, both device labels) so an owner can see an account being passed around"). Evidence a6.log (A10). Fix: both device labels in data; write into the user's orgs or an owner-readable audit.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `cd37865`: `session.replaced` written per org with both device labels. `AccountSecurityTest` (failed first).
 - **Retest:**
 
 ### TF-115 · S3 · bug · app · fixed
@@ -1614,20 +1614,20 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `852393e`: only 409s about state someone else changed say "changed in the meantime". `api/query-client.test.ts` (failed first).
 - **Retest:**
 
-### TF-118 · S4 · gap · java · open
+### TF-118 · S4 · gap · java · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** memberships.last_active_at never written (only read: Orgs.java:193, AdminOrganisations.java:218); 0 of 45 rows set; members table "last active" shows "-" for everyone. F01 Screens. Evidence b-api-B1-B3.log, shots/ab-15-members.png. Fix: update (throttled) where Sessions refreshes last_seen_at, or drop from spec.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `cd37865`: `memberships.last_active_at` kept with the session's `last_seen_at` (at most every 5 min). `AccountSecurityTest` (failed first).
 - **Retest:**
 
-### TF-119 · S4 · gap · java · open
+### TF-119 · S4 · gap · java · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** org.updated audit data only {"before":{"name","slug"}}: changing fourEyes, approvalRequired, publicLinksAllowed, formats leaves no trace of what changed. BR-51, F01-AC7. Evidence b-api-B1-B3.log. Fix: changed settings before/after in data.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `cd37865`: `org.updated` records before/after including the settings that changed. `AccountSecurityTest`, `orgs.test.ts` (failed first).
 - **Retest:**
 
 ### TF-120 · S4 · inconsistency · app · fixed
@@ -1638,12 +1638,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `852393e`: one rounding for usage minutes; "under 0.1 min". `usage-settings.test.ts`.
 - **Retest:**
 
-### TF-121 · S4 · gap · java · open
+### TF-121 · S4 · gap · java · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** PATCH /me {"locale":"not a locale!!"} -> 200, stored; app silently falls back to English. F01, F15. Evidence a-api.log, ab-browser-run1.log. Fix: validate supported locales -> 400.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `cd37865`: PATCH /me refuses a malformed BCP 47 locale (400 invalid_body). `AccountSecurityTest`, `orgs.test.ts` (failed first).
 - **Retest:**
 
 ### TF-122 · S4 · question · java · open
@@ -1703,7 +1703,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `852393e`: the activity filter lists the actions Java writes, each labelled ("Another change" otherwise), no ids in Details; families labelled. `features/audit/audit-actions.test.ts` reads Java's action literals (failed first).
 - **Retest:**
 
-### TF-128 · S3 · inconsistency · java · open
+### TF-128 · S3 · inconsistency · java · fixed
 - **Found by:** Stage 3 · D7 · L · fc78b12
 - **Spec:** F03 §1 ("discipline (`architecture`, `structure`, `mep` + any discipline key in the org's federation settings) … suggested from the first version's `disciplineGuess` if the user leaves it as 'detect'"); api-conventions.md (validation, `400`)
 - **Steps:** 1. `POST /projects/{p}/models {"name":"Facade","discipline":"facade"}` (no such key in the federation settings). 2. Create a model with `"discipline":"detect"` and upload `fixtures/ifc/buildingsmart/IFC2X3/Building-Hvac.ifc`.
@@ -1711,7 +1711,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1 → `201` with `discipline: "facade"` (`Models.create` stores any non-blank string, `model/Models.java:89-97`; same for `update`). 2 → the model's discipline becomes `"unknown"` (the engine's guess; `ParseJob.java:91-93` copies any guess: `unknown`, `mixed`, `infrastructure`). The BoQ setup tab then offers "unknown" and "facade" as discipline choices next to Architecture / Structure / Building services, and the models list shows "UNKNOWN" (screenshot). What federation does with such a discipline was not checked.
 - **Evidence:** (session scratchpad `stage3/out/s3b-projects/`) OUT/d-api2.log (`D7 unknown discipline key 'facade' 201`, `"discipline":"unknown"`), OUT/d7-ui.log, OUT/shots/d7-03-setup-tab.png, OUT/shots/d1-07-upload-progress.png (Detect me · UNKNOWN); scripts OUT/d-api2.mjs, OUT/d7-ui.mjs.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** validate the discipline against the allowed set (400); map a non-discipline guess to "architecture" or leave "detect" and ask.
+- **Fix:** `179987f`: a discipline is `detect` or a federation key (`400 invalid_discipline`, `details.allowed`); a first-version guess outside them becomes architecture. `model-lifecycle.test.ts` (failed first).
 - **Retest:**
 
 ### TF-129 · S4 · bug · app · duplicate
@@ -1802,7 +1802,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `987d9f1` (engine: preview lines carry `codes[system] = {code, text}`; `test_item_texts.py`, failed first), `7bd2ae4` (contract `PreviewLine.codes`, C10), `14c2e23` (app: the samples read the engine-filled text back; `item-text.test.ts`, failed first).
 - **Retest:**
 
-### TF-137 · S3 · bug · java · open
+### TF-137 · S3 · bug · java · fixed
 - **Found by:** Stage 3 · F2, F4 · L · fc78b12
 - **Spec:** F05 §1 (the questions tab lists `GET /runs/{runId}/questions` "joined with project decisions"); F05 §8 (a decision whose question no longer appears is shown on the decisions page as "not used by current runs")
 - **Steps:** 1. Project P1: BoQ "Questions" (Duplex) raises 14 blocking `missing:doors:*` questions; answer them. 2. Open BoQ "bS IFC2x3" (buildingSMART models only, no doors of the Duplex) › Questions › Answered.
@@ -1810,7 +1810,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the list shows every answered project decision as a question of this run, e.g. 14 "BLOCKING Rule 'Doors' needs a quantity for M_Single-Flush…" with "Show in 3D" for elements that are not in its models, plus the other BoQ's double claim and unmatched answers. `Decisions.questions()` adds every question of the run snapshot's applied decisions (all project decisions are sent to every run).
 - **Evidence:** (session scratchpad `stage3/out/s3b-library/`) OUT\f4.json (`answeredList`), OUT\f1.json; API: `GET /runs/{q3 run}/questions` has `missing_data/B/answered: 14` (session log in OUT\f2.json context).
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** list only the run's own questions (`run_questions`), joined with decisions; leave unused decisions to the decisions page.
+- **Fix:** `179987f`: the result lists `answeredQuestionIds` (types first), stored in `runs.answered_questions` (V21); a run's questions are its asked questions plus those. `test_versions.py`, `model-lifecycle.test.ts` (failed first). Runs made before keep the old list.
 - **Retest:**
 
 ### TF-138 · S3 · bug · java · duplicate
@@ -2221,7 +2221,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5e69e2c`: `maxLength`/`maxItems` on every request string and array (contract C08), enforced by the generated DTOs (`400 invalid_body`); `RequestSizeFilter` caps JSON bodies at 1 MiB (32 MiB for document and batch operations, `413 too_large`); the fields the DTOs can't reach are checked in code; V17 cuts names stored before. Tests `ApiFoundationTest#requestStringsArraysAndBodiesAreBounded` (failed first: 121-character name → 200), `RequestSizeFilterTest`, `tests/contract/validation.test.ts`.
 - **Retest:** L, API rebuilt from the fix: 8 and 32 MiB names → `413`; each Stage 4 field one character over its cap → `400 invalid_body`; 10,001 and 50,000 decisions → `400` in 0.5–0.8 s (was a 74 s OOM); with a 120-character name decisions dryRun of 20 → 10 KiB, project activity 26 KiB (`stage6/java/retest-tf174.log`). Audit rows written before the fix keep their copies (append-only). Pushed and deployed in `1be66cb`.
 
-### TF-175 · S3 · inconsistency · java · open
+### TF-175 · S3 · inconsistency · java · fixed
 - **Found by:** Stage 4 · 4.3 · L · fc78b12
 - **Spec:** `docs/architecture/security.md` "Cross-tenant access returns `404`, not `403`"; `docs/domain/permissions.md` (another org's objects are not found)
 - **Steps:** as owner of org A, with ids of org B (a stranger's org): 1. `POST /boqs/{A boq}/share-links {"mode":"pinned","revisionId":"<B revision>"}`. 2. `PATCH /revisions/{A rev} {"inputs":{"ruleSetVersionId":"<B private rule-set version>"}}`, and the same in `POST /projects/{A}/boqs {"inputs":…}`. 3. `POST /runs/{A run}/compare {"againstRunId":"<B run>"}`. Repeat each with a random UUID.
@@ -2229,10 +2229,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. B's revision -> `400 invalid_body "That version belongs to another BoQ."`, random -> `404 "The revision was not found."`. 2. B's version -> `400 invalid_inputs "A selected preset isn't a published rule set available in this project."`, random -> `404 not_found "The preset or version was not found."` (createBoq the same). 3. B's run -> `404 "The project was not found."`, random -> `404 "The run was not found."`. Nothing of B's is returned or changed (every other nested-id check passed: OUT/isolation.log), and ids are UUIDv7, so this is an existence oracle only.
 - **Evidence:** (session scratchpad `stage4/out/s4-security/`) OUT/isolation.mjs, isolation2.mjs, isolation.log ("oracle check" lines).
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** resolve body ids through the org-scoped lookups first and answer `404` like the path ids; one scenario test with a foreign id per body field.
+- **Fix:** `8745980`: another org's preset version, pinned revision or run answers 404 like a random id. `isolation.test.ts` (failed first).
 - **Retest:**
 
-### TF-176 · S4 · gap · java · open
+### TF-176 · S4 · gap · java · fixed
 - **Found by:** Stage 4 · 4.3 · L · fc78b12
 - **Spec:** `security.md` "Input handling"; the upload file-name check already refuses control characters (`Invalid model filename.`)
 - **Steps:** `PATCH /projects/{id}` and `PATCH /me` with names containing BEL (`\u0007`), ESC (`\u001b[31m`), CR LF, the right-to-left override `‮` ("abc‮txt.exe"), a lone surrogate (`\ud800`), NUL.
@@ -2240,7 +2240,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** BEL, ESC, CR LF and U+202E stored and returned (`200`); a lone surrogate silently becomes `?`; NUL -> `401 unauthenticated` (Postgres `invalid byte sequence for encoding "UTF8": 0x00`, TF-071 path). Model file names reject all of these (`fname.mjs`), entity names none. A U+202E in an org or user name spoofs text in members lists, mails and exports.
 - **Evidence:** (session scratchpad `stage4/out/s4-security/`) OUT/bigjson.log (control-character lines), OUT/filenames.log.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** one shared name validator (no C0/C1 controls, no bidi overrides, valid UTF-16) on every name/label field; `400 invalid_body` for NUL instead of the 401.
+- **Fix:** `cd37865`: `TextInputAdvice` refuses NUL and unpaired surrogates in every body, and control/separator/bidi characters in names and labels (400 invalid_body). `AccountSecurityTest`, `orgs.test.ts` (failed first).
 - **Retest:**
 
 ### TF-177 · S4 · gap · engine · fixed
@@ -2322,7 +2322,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5cc298a`: `/api/v1` in development goes through `app/api/v1/[...path]/route.ts` (`src/api/proxy.ts`), `503 api_unavailable` for an unreachable API; edits retry while unavailable, an unsaved batch stays listed (Save again / Discard) and is sent again on resume or online; the BoQ page keeps its workspace on a refetch error. Tests `proxy.test.ts` (failed first), `errors.test.ts`, `e2e-java/resilience.spec.ts`.
 - **Retest:** L (dev app, API cut for ~20 s): 503 JSON, "Saving…", the not-saved alert; the edit saved by itself ~5 s after the API was back.
 
-### TF-184 · S3 · gap · java · open
+### TF-184 · S3 · gap · java · fixed
 - **Title:** HTTP job transport: transient failures burn job attempts: an engine outage longer than ~35 s fails every queued and running job, and a sub-second database restart aborts every in-flight job for ~55 s
 - **Found by:** Stage 4 · 4.4 · L · fc78b12
 - **Spec:** `nfr.md` "Availability and recovery" ("Jobs survive worker crashes (heartbeat re-queue). No job is lost on deploy."); `storage-jobs-realtime.md` "Jobs" step 5; `engine-worker.md` "Transports" (HTTP is the default transport and the local stack's)
@@ -2331,10 +2331,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. the dropped connection re-queues at once (`engine_unavailable`, retryable), but attempts 2 and 3 are claimed at +10 s and +20 s (`available_at = now() + attempts*10 s`, `Jobs.java:253`) while the engine is still down, fail on connect, and the job ends `failed` 44 s after the kill (3 attempts); the version shows FAILED "The processing service was not available. Try again." (the Try again button then works). Every job queued during a longer engine stop fails the same way, and the API's readiness stays UP throughout (the engine isn't part of it). With an immediate restart (engine healthy after 5.7 s) the job re-queues and succeeds on attempt 2 (parse 22.6 s instead of ~7 s; run 11.6 s instead of 0.6 s). 2. the heartbeat `UPDATE jobs` throws during the restart; `JobDispatcher.await` doesn't catch it, `execute` records `ingestion_failed`, which also fails, and cancels the engine exchange (`JobDispatcher.java:131-141`): the engine's work is thrown away and the row stays `running` until `reclaimLostJobs` (30 s stale + 30 s scan) re-queues it at +55 s; attempt 2 then succeeds. API requests themselves survived the restart (13/13 200). 3. a retry 1.3 s after the engine came back hit `java.net.ConnectException` and spent an attempt (+10 s).
 - **Evidence:** (session scratchpad `stage4/out/s4-resilience/`) OUT/worker-kill.mjs, worker-parse-kill-60.log (failed at 44.3 s, attempts 3), worker-parse-kill-0.log, worker-run-kill-0.log; OUT/db-restart.mjs, db-restart.log ("Could not ingest job …", "Could not record ingestion failure …" in the API log at 23:48:49), db-stop.log; OUT/ui-outage.log, shots/outage-2-requeued.png (version shows QUEUED with no hint of a retry), outage-4-version-failed.png
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** don't count an attempt when the worker was unreachable before the job started (connect refused / no first byte): re-queue with growing backoff without incrementing, or skip claiming while `GET /health` fails; catch `DataAccessException` from `heartbeat()` in `await` and keep streaming (retry the heartbeat) instead of cancelling the exchange; show "waiting for the processing service" on a re-queued job; a `NativeWorkerTest` case that stops the worker for 60 s mid-job.
+- **Fix:** `179987f`: a refused or timed-out worker connection re-queues without using an attempt (`waiting_for_worker`, first 30 min); a refused heartbeat no longer cancels the exchange; result writes retry 15 s. `worker/JobDispatcherTest` (4).
 - **Retest:**
 
-### TF-185 · S4 · gap · java · open
+### TF-185 · S4 · gap · java · fixed
 - **Title:** Request ids: echoed and in the pilot's JSON logs, but not in error bodies, and the local stack's log format drops them; readiness hangs while the database is down
 - **Found by:** Stage 4 · 4.4 · L · fc78b12
 - **Spec:** test plan §9.4 "request ids in logs and error bodies"; `deployment.md:59` and `docs/operations/pilot.md` "Logs" (every line with `requestId`, `userId`, `orgId`, `jobId`); `api-conventions.md` "Errors" (body `{code, message, details}`: silent on a request id)
@@ -2343,10 +2343,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** echoed on every status, also through the app proxy; unsafe or 65+ character ids are replaced by a UUID (good). Error bodies carry no request id. In ECS format the access line has `requestId`, `userId` (and job lines `jobId`); in the local stack's default text format (`BOQLET_LOG_FORMAT` unset) no line contains the request id, user or job id, only empty trace brackets, so local logs (and the campaign's) can't be followed by request id. With the database stopped, `/actuator/health` and `/readiness` didn't answer within 3 s (liveness did, 200); readiness came back 1.5 s after the database started.
 - **Evidence:** (session scratchpad `stage4/out/s4-resilience/`) OUT/reqid.mjs + reqid.log (0 log lines per id in text format), OUT/two-api.mjs + two-api.log (ECS line with `"requestId":"s4res-two-api-404"`), OUT/db-stop.log (`"ready":"ERR:TimeoutError"` for 18 s)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** add `requestId` to `ApiErrors` bodies (or document that only the header carries it and have the app show it on the error screen); set `BOQLET_LOG_FORMAT: ecs` in `ops/local/compose.yaml` or add `%X{requestId}` to the text pattern; a short Hikari `connectionTimeout`/`validationTimeout` for the health group (or a 2 s DB health timeout).
+- **Fix:** `cd37865`: text logs carry the correlation fields; the DB health check gives up after 2 s (`HealthTimeoutTest`); the app shows "Reference for support" on 5xx (`error-reference.test.tsx`).
 - **Retest:**
 
-### TF-186 · S3 · test-gap · suites · open
+### TF-186 · S3 · test-gap · suites · fixed
 - **Title:** Resilience lane (§9.4): worker loss, DB blips, SSE reconnect and rollback compatibility have no automated test
 - **Found by:** Stage 4 · 4.4 · L · fc78b12
 - **Spec:** test plan §9.4; `nfr.md` "Availability and recovery"
@@ -2355,7 +2355,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** passing but untested here (script paths): engine kill mid-parse and mid-run with re-queue (worker-kill.mjs), graceful engine restart mid-parse (worker-kill.mjs restart), queue reclaim after a database restart (db-restart.mjs), API restart during a stream (sse-restart.mjs), older app on a newer Flyway history (rollback.log, manual SQL), backup and restore into a throwaway Postgres and SeaweedFS (backup-restore.sh, verify-restore.py: the storage half isn't in `BackupRestoreTest`), xlsx bomb on the RPCs (mkbomb.py, bomb.mjs; TF-039's fix).
 - **Evidence:** (session scratchpad `stage4/out/s4-resilience/`) the scripts above in OUT
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:** `3179d79` (browser: missed events replayed with the exact Last-Event-ID; the xlsx bomb in `test_xlsx_guard.py`). **Open:** NativeWorkerTest process-control cases (worker kill, engine restart, DB restart), the CI rollback step, BackupRestoreTest's storage half.
+- **Fix:** `3179d79` (browser: missed events replayed) and `179987f`: `NativeWorkerTest.jobsSurviveTheWorkerAndTheDatabaseGoingAway` (worker killed mid-parse, DB paused and connections dropped; ≤ 2 attempts; `BOQLET_NATIVE_RESILIENCE`, on in CI), `BackupRestoreTest` restores the object volume, CI job `rollback` starts the previous release on the migrated schema before deploy.
 - **Retest:**
 
 ### TF-187 · S3 · gap · engine · fixed
@@ -2378,17 +2378,17 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `a0a34b0`: `<html data-hydrated>` once React runs (`components/hydration.tsx`); the browser helpers wait for it (`hydrated(page)` in `signInWithForm`, `setPasswordWithForm`). The cold-start race also exposed TF-190.
 - **Retest:**
 
-### TF-189 · S3 · bug · java · open
+### TF-189 · S3 · bug · java · fixed
 - **Found by:** Stage 6 · B6 (TF-078's response validation in the suites) · harness · 9698476
 - **Spec:** `openapi.yaml` `RunLine` (`quantity` required, `number | null`); `api-conventions.md` (responses match the contract)
 - **Steps:** a run with a flagged line (quantity `null`); `GET /runs/{runId}/lines/by-key?key=…` for it (`sheet.test.ts` F06-AC2).
 - **Expected:** `quantity: null` in the body, as `GET /runs/{id}/lines` sends it.
 - **Actual:** the field is missing: `default-property-inclusion: non_null` drops it on the line-detail path. The suites list it as the known mismatch `getLine 200` (`tests/support/contract.ts`).
 - **Route:** fix now · B2 (Java correctness)
-- **Fix:**
+- **Fix:** `8745980`: a Jackson mix-in keeps `LineDetail.quantity: null` (getLine, getPublicShareLine); the KNOWN_MISMATCHES entry removed.
 - **Retest:**
 
-### TF-190 · S2 · bug · app · fixed
+### TF-190 · S2 · bug · app · verified
 - **Found by:** Stage 6 · B2 app fix agent, from TF-188's trace · harness, L · 852393e
 - **Spec:** `docs/architecture/security.md` (credentials only in POST bodies, never in URLs or logs); OWASP ASVS 2.x (no secrets in URLs)
 - **Steps:** open `/sign-in` on a cold or slow page and press Sign in before React has hydrated (seen in the browser smoke right after set-password).
@@ -2396,4 +2396,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the native form had no `method`, so the browser submitted it as `GET /sign-in?email=…&password=…`: the password landed in the URL, the browser history and any access log on the way (Traefik on P). Seen in the TF-188 trace (`stage6/trace1/trace.zip`).
 - **Route:** fix now · B2 (found in Stage 6)
 - **Fix:** `a0a34b0`: the form is `method="post"` and its submit is disabled until hydration (`useHydrated()`); `src/auth/adapters/native-form.test.tsx`. **Owner:** check whether P's access logs hold such URLs and purge them.
+- **Retest:** P after `95a0e96` (deployed 2026-11-22 09:14 UTC, CI 45004989803): `/sign-in` serves `<form … method="post">`.
+
+### TF-191 · S3 · bug · contract · fixed
+- **Found by:** Stage 6 · B2 fix agent (identity/org slice) · harness · 9efea85
+- **Spec:** `api-conventions.md` (PATCH changes only the fields sent); F15 (the org's default language)
+- **Steps:** `PATCH /orgs/{id} {"settings":{"defaultLanguage":"sr"}}`, then `PATCH /orgs/{id} {"settings":{"defaultCurrency":"USD"}}`.
+- **Expected:** `defaultLanguage` stays `"sr"`.
+- **Actual:** it is `"en"` again: the generated `OrgSettings` has `defaultLanguage = "en"` (openapi `default: en`), so `Orgs.merge` writes `"en"` whenever settings are patched without it.
+- **Route:** fix now · B2 (Java agent: drop `default: en` from `OrgSettings.defaultLanguage` in `openapi.yaml`, api:gen; a scenario)
+- **Fix:** `8745980`: no generated default for `OrgSettings.defaultLanguage`. `orgs.test.ts` (failed first).
 - **Retest:**
