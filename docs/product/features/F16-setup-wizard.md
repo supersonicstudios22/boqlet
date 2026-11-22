@@ -1,7 +1,7 @@
 # F16 Setup wizard: measure, number and name the firm's way
 
-> **Status (2026-11-21):** Built (simplified). The required first-run wizard (`apps/app/app/(app)/[org]/setup`, `apps/app/src/features/setup`) with suggested answers, the rule-set checklist and measuring screens, and "Publish all".
-> **Not built / differs:**
+> **Status (2026-11-22):** Built (simplified). The required first-run wizard (`apps/app/app/(app)/[org]/setup`, `apps/app/src/features/setup`) with suggested answers, the rule-set checklist and measuring screens, and "Publish all". Until it is finished every org page except the settings and the wizard leads to the wizard (P54 Q57, TF-139); steps 2 and 3 preview with the wizard's drafts (TF-133) within 3 s of an answer (TF-134) and show item texts (TF-136).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Step 2 is the full classification editor (no "Suggest codes" step); step 3 is the full dictionary editor, not filtered to names worth asking; the review step shows counts.
 > - "Setup in progress by {name}" and "Start separately" are not built; the sample Duplex is not offered as the wizard's model.
 > - F16-AC1 (a person new to the app, under 15 minutes) has not been checked by a person.

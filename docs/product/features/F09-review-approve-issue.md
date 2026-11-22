@@ -1,7 +1,7 @@
 # F09 Versions, confirmation, optional approval, audit
 
-> **Status (2026-11-21):** Built. Working version, Save version, Confirm/Reopen, optional review and approval with four-eyes, project and org audit are built (`services/api/src/main/java/com/boqlet/api/boq/Boqs.java`, `apps/app/src/features/versions`).
-> **Not built / differs:**
+> **Status (2026-11-22):** Built. Working version, Save version, Confirm/Reopen, optional review and approval with four-eyes, project and org audit are built (`services/api/src/main/java/com/boqlet/api/boq/Boqs.java`, `apps/app/src/features/versions`). A confirmed BoQ may be archived and restored (P54 Q54, TF-096). Cancelled jobs, failed parses, failed or cancelled runs and review comments are audited (TF-034, TF-091); every `403` names the required role (TF-013); events past the plan's `auditLogRetentionDays` are deleted (BR-51, Q45).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - With approval on, the working version is read-only while in review (the warning before an edit is the Withdraw button).
 > - The Changes tab is hidden from viewers without `seeAudit`/`editBoqs` (`boqs/[boqId]/page.tsx`).
 > - Audit action names differ from §6: `model_version.created` (not `.uploaded`), `revision.inputs_updated`, `run.completed`, `line.edited` / `line.restored`, `manual_line.*`, `org.setup_done`, `project.member_*`; no `edits.imported` event found.

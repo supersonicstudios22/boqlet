@@ -1,8 +1,8 @@
 # F10 Library: rule sets, classifications, dictionaries
 
-> **Status (2026-11-21):** Built (gaps). Rule sets, classifications, dictionaries and resolution settings with drafts, versions, publish, preview, Where used, code-list import and Excel templates (`apps/app/src/features/library`, `services/api/src/main/java/com/boqlet/api/library`).
-> **Not built / differs:**
-> - Not built: "rebase on latest", unarchive (no contract operation), renaming ids across documents, a structured version diff (a JSON line diff is shown), "keep other columns" on code-list import.
+> **Status (2026-11-22):** Built (gaps). Rule sets, classifications, dictionaries and resolution settings with drafts, versions, publish, preview, Where used, code-list import and Excel templates (`apps/app/src/features/library`, `services/api/src/main/java/com/boqlet/api/library`). A preview may use the caller's own current drafts as its other inputs (TF-133) and follows a change within 3 s (TF-134); a preview on a project's model needs only access to the project (P54 Q43); slot answers are checked against their slots (TF-135); publishing a preset rebases its "Based on it" clones' drafts at once (Q58, TF-140).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
+> - Not built: a manual "rebase on latest", unarchive (no contract operation), renaming ids across documents, a structured version diff (a JSON line diff is shown), "keep other columns" on code-list import.
 > - An item text's "Reads as" sample needs a preview run.
 
 ## Purpose

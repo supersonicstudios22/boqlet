@@ -1,7 +1,7 @@
 # F01 Accounts, organisations, members
 
-> **Status (2026-11-21):** Partly built. Orgs, invitations, roles, multi-org, single session and takeover are built (native sign-in, P50).
-> **Not built / differs:**
+> **Status (2026-11-22):** Partly built. Orgs, invitations (at most 20 invitation mails an hour per org; an invitation over the plan's seats is refused), roles, multi-org, single session and takeover are built (native sign-in, P50). Account events are audited (password set or reset, session opened and ended, failed sign-in); a takeover is written into each of the user's orgs with both device labels; the members list shows when each member was last active (TF-044, TF-114, TF-118, TF-043, TF-076).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - No public sign-up: `/sign-up` only sets a password from an operator setup link or an invitation (`apps/app/app/(public)/sign-up/[[...rest]]/page.tsx`, `NativeCredentials.setPassword`); no self-service password reset (assisted reset links only).
 > - Onboarding has no invite step (FL-1 step 3): `apps/app/app/(app)/onboarding/page.tsx` creates the org and goes to the wizard.
 > - The takeover question's place is always empty: `Sessions.java` has a `place` column nothing writes.

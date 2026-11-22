@@ -1,9 +1,9 @@
 # F03 Models and versions
 
-> **Status (2026-11-21):** Partly built. Models, versions, browser upload to signed URLs, parse jobs with live progress and the input-check report are built.
-> **Not built / differs:**
+> **Status (2026-11-22):** Partly built. Models, versions, browser upload to signed URLs, parse jobs with live progress and the input-check report are built. Every check row opens the viewer with its affected elements (TF-125); "Remove model" archives a model (P54 Q50, TF-080); a discipline is `detect` or one of the org's federation keys, and the model forms offer those (TF-128); processing minutes are checked before any upload (TF-076); a version a BoQ uses can't be deleted (`409 version_in_use`, TF-032).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Uploads over 100 MB: Java returns multipart part URLs (`services/api/src/main/java/com/boqlet/api/storage/ObjectStorage.java`, 16 MB parts) but the app PUTs the whole file to the first URL and ignores `parts` (`apps/app/src/features/models/upload.ts`). Likely broken; not verified at runtime. No resume after an interruption.
-> - `.ifczip` is accepted by Java (`Models.java`) but refused by the app (`upload.ts` accepts `.ifc` only).
+> - `.ifczip` is accepted by Java (`Models.java`) but refused by the app (`upload-button.tsx` accepts `.ifc` only).
 > - Scope rules per model or BoQ can't be edited; the UI shows "Whole model / N rules" only (`apps/app/src/features/boqs/setup-tab.tsx`).
 > - Version list: no "used by", note column, comparison of two versions' summaries, or delete button (`DELETE /model-versions/{id}` exists; the app never calls it).
 

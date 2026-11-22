@@ -1,10 +1,11 @@
 # F15 i18n, units, locale, currency
 
-> **Status (2026-11-21):** Partly built. Every UI string goes through next-intl (`apps/app/messages/en`, pseudo-locale `en-XA`); org number and date formats, units and currency are built.
-> **Not built / differs:**
+> **Status (2026-11-22):** Partly built. Every UI string goes through next-intl (`apps/app/messages/en`, pseudo-locale `en-XA`); the org's number and date formats apply everywhere numbers show: sheet, line detail, changes, viewer, previews, the share page and exports (TF-021); units and currency are built; a user's locale must be a BCP 47 tag (TF-121).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Only English (and the pseudo-locale) ship.
 > - Engine log entries, some warnings and engine answer options stay in the engine's English (`apps/app/src/i18n/engine-message.ts`).
 > - The browser pseudo-locale check (F15-AC1) was deleted with the mock (P53); only unit tests remain.
+> - Imperial output (EN-imperial, deferred): see [known limitations](../known-limitations.md).
 
 ## Requirements
 

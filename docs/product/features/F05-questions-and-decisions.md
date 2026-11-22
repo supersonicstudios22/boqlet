@@ -1,6 +1,6 @@
 # F05 Questions and decisions
 
-> **Status (2026-11-21):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built.
+> **Status (2026-11-22):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built. A run lists the questions it asked plus those its decisions answered (TF-137); a click on the preselected suggested answer accepts it (P54 Q60, TF-173); viewers see questions and decisions read-only (Q44).
 > **Not built / differs:**
 > - The questions tab filters by kind and answered state only; no model filter (`apps/app/src/features/questions/questions-tab.tsx`).
 

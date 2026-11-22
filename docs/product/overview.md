@@ -115,16 +115,18 @@ road" in [CLAUDE.md](../../CLAUDE.md).
 - **No licensed standard content** in the product or repo (DIN, VOB, CSI…; D30–D32, [sourcing](../domain/sourcing-and-licensing.md)).
 - **No logged-in guests** (P28): org users, public links, platform admins (and later vendors) only.
 
-## Current state (2026-11-21)
+## Current state (2026-11-22)
 
 **Released as v1.0.0** and running as an **invite-only pilot** at booqlet.com, the only deployed
 environment, which counts as development (P51). Every green push to `main` deploys there. The mock
 API used during the build is gone (P53): Java is the only backend, and it runs locally in Docker.
+The test campaign (Stages 1–6, `docs/testing/test-findings.md`) fixed what it found on `main`, the
+owner answered its questions (P54), and the deferred items are in [known-limitations.md](known-limitations.md).
 
 | | What |
 |---|---|
 | **Built and working** | Everything in O1–O9 above: native sign-in with one active session, orgs and invitations, projects, models and versions with parse jobs, federation, BoQs and runs, questions and decisions, the virtualised sheet with full editing and live co-editing, "How it is calculated", the three.js viewer, change reports, saved versions, review, approval and confirmation, the Library with versions and preview, the setup wizard, Excel exports and edits import, share links, notifications (in-app and SMTP email), plans and limits with manual billing, the admin console, i18n infrastructure (English plus a pseudo-locale) |
-| **Verified how** | The engine reproduces the hand-made Duplex BoQ exactly (`engine/tests/test_duplex.py`, and through the API in `tests/scenarios/duplex.test.ts`). 13 of 17 v1 acceptance criteria pass automatically, 2 are pricing (n/a), the medium-model parse misses its target, and 3 need a person ([scope-and-acceptance.md](scope-and-acceptance.md#v1-acceptance-results-2026-11-21)) |
+| **Verified how** | The engine reproduces the hand-made Duplex BoQ exactly (`engine/tests/test_duplex.py`, and through the API in `tests/scenarios/duplex.test.ts`). The shared contract and scenario suites, the JUnit classes and the browser smoke run against Java on every push ([../testing/README.md](../testing/README.md)). 13 of 17 v1 acceptance criteria pass automatically, 2 are pricing (n/a), the medium-model parse misses its target, and 3 need a person ([scope-and-acceptance.md](scope-and-acceptance.md#v1-acceptance-results-2026-11-21)) |
 | **Accuracy** | Checked only on the Duplex and the buildingSMART samples. No professional BoQ to compare with yet: the biggest open risk ([known-limitations.md](known-limitations.md)) |
 
 ### Intended vs. built
@@ -134,25 +136,26 @@ Planned in the specs but **not built**:
 | Gap | Spec | Note |
 |---|---|---|
 | Public sign-up into a free tier | P08, P17, F01, FL-1 step 1 | Invite-only by design for the pilot (when public sign-up comes: Q40); accounts come from setup links and invitations. Self-service password reset is also missing (resets are operator-issued links) |
-| Invite colleagues during onboarding | FL-1 step 3 | Onboarding is a single create-org form |
+| Invite colleagues during onboarding | FL-1 step 3 | Onboarding is a single create-org form; the wizard follows, and until it is finished every org page but the settings leads to it (P54 Q57) |
 | Payment provider, checkout, webhooks | F14, BE-D7 | Manual billing: checkout answers `409 checkout_unavailable`, the webhook `400 unsupported_provider` |
 | Trial driven by plan config, downgrade rules | plans-and-limits | Admins set `trialEndsAt` by hand; no job drops an org to Free; excess projects don't become read-only |
 | Default presets chosen per project | F02 | Defaults come from the org's starred presets or the wizard's "Publish all" |
 | Scope rules editable per model / BoQ | F03, D44 | Stored and used by the engine; the UI only shows them |
-| Large uploads (> 100 MB) | F03 | Java returns multipart part URLs; the app PUTs the whole file to the first one. Likely broken, not verified at runtime. Resume isn't built either |
+| Large uploads (> 100 MB) | F03 | Java returns multipart part URLs; the app PUTs the whole file to the first one. Likely broken, not verified at runtime. Resume isn't built either. A model can be removed (archived, P54 Q50); a version can't be deleted from the UI |
 | Server-side grouping above 20,000 lines; three-line item-text clamp | F06 | The client loads every line of the run, 20,000 per request, and groups them in the browser |
 | Setup wizard as specified | F16 | Simplified: steps 2 and 3 are the full editors; no "Suggest codes", no "setup in progress by…" |
 | Pricing module (vendors, pricebooks, estimates, offer requests) | P32–P36, F11, F17, F20 | Deferred (P48). Only `openapi-pricing.yaml` and the core's extension points exist; `packages/pricing-ui` does not exist |
 | AI name suggestions; coordinate alignment between models | v1 scope "out" | Settings type exists for AI; federation assumes shared coordinates and warns |
-| Languages other than English | P07, F15 | Infrastructure only; engine log texts are still English strings |
-| Admin MFA, revenue, email and webhook health | F19 | — |
+| Languages other than English | P07, F15 | Infrastructure only; engine log texts are still English strings. The org's number and date formats apply everywhere (TF-021); imperial output is deferred (EN-imperial) |
+| Global search; opening an earlier run read-only | FE-034, F04 §5 (FE-048) | Deferred in the test campaign ([known-limitations.md](known-limitations.md)) |
+| Admin MFA, revenue, email and webhook health | F19 | Health says "not tracked yet" for webhook failures and bounces; every admin read is audited (P54 Q59) |
 | Separate staging environment | P51 | A future todo |
 | Success measures "instrumented from day one" | below | Partly: usage events per job, and the admin funnel (setup → model → BoQ → saved → shared, with median hours) |
 
 **Built but in no feature spec:** native email-and-password sign-in with setup links (P50, a decision
 rather than a feature spec); Keycloak OIDC kept as a rollback adapter (`legacy-identity` profile);
 Serbian email templates next to English (`EmailDelivery`), while the UI has no Serbian (Q41); the Postgres
-job queue, idempotency keys, JSON logs, metrics and alerts as log lines; admin tags and notes; the
+job queue, idempotency keys, JSON logs (request, user, org and job ids in text logs too), metrics and alerts as log lines; rate limits on sign-in, invitation mail, engine rpc calls and share links (`security.md`); admin tags and notes; the
 local Docker stack (`ops/local`).
 
 ## Where it is heading

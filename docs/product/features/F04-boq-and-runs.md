@@ -1,8 +1,9 @@
 # F04 BoQs and runs
 
-> **Status (2026-11-21):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built.
-> **Not built / differs:**
-> - "Generate a BoQ" is offered on the model version page, not in the ready notification (`docs/product/known-limitations.md`; not re-verified).
+> **Status (2026-11-22):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built. A second Generate with changed inputs runs beside the active run, and the newest finished run becomes current (TF-094).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
+> - "Generate a BoQ" is offered on the model version page, not in the ready notification (not re-verified).
+> - An earlier run can't be opened read-only (FE-048, deferred): see [known limitations](../known-limitations.md).
 
 ## Purpose
 

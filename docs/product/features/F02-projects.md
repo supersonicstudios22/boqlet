@@ -1,9 +1,10 @@
 # F02 Projects
 
-> **Status (2026-11-21):** Partly built. Create, settings, members, archive, dashboard "Needs you" and the sample project are built.
-> **Not built / differs:**
+> **Status (2026-11-22):** Partly built. Create, settings, members, archive, dashboard "Needs you" and the sample project are built. An archived project keeps `archive` (to restore it) and still allows revoking share links and promoting a name answer (P54 Q42, Q53; `permissions.md`).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - No default-preset pickers at creation or in project settings (`apps/app/app/(app)/[org]/projects/new/page.tsx`, `projects/[projectId]/settings`): defaults come from the org's starred presets or the wizard's "Publish all".
 > - Warning for an archived default preset: not found in the code.
+> - The project's unit system has no effect yet (EN-imperial, deferred): see [known limitations](../known-limitations.md).
 
 ## Purpose
 

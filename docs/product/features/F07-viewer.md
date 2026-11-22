@@ -1,7 +1,7 @@
 # F07 3D viewer
 
-> **Status (2026-11-21):** Built. three.js viewer over the engine's `geometry.glb` (`apps/app/src/features/viewer`): highlight, element to lines, colour modes, section box, storey filter, isolate/hide, box select.
-> **Not built / differs:**
+> **Status (2026-11-22):** Built. three.js viewer over the engine's `geometry.glb` (`apps/app/src/features/viewer`): highlight, element to lines, colour modes, section box, storey filter, isolate/hide, box select. In the Changes tab a changed element lists its lines from both runs with before, after and delta (TF-102); in the split view the line detail sits above the 3D view (TF-107).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - The shared filter bar lacks IFC class, type, material and "changed since a revision".
 > - No merged-mesh / id-buffer picking for models over 200k elements; "Show in 3D" from a question carries at most 300 GlobalIds.
 > - That Open Engine (D66) is not used; it stays a later option.

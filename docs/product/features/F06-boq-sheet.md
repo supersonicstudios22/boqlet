@@ -1,9 +1,10 @@
 # F06 BoQ sheet
 
-> **Status (2026-11-21):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built.
-> **Not built / differs:**
+> **Status (2026-11-22):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built. Keyboard editing: the selected line has an active cell (ArrowLeft/Right), F2 or Enter edits it (TF-159); the grid is one Tab stop (TF-161). Numbers follow the org's format (TF-021). An edit refused because the session ended or the API was unreachable is kept and offered again (TF-146, TF-183). The "not in the models" notice's collapse is a per-user server preference (P54 Q55, TF-109).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Above 20,000 lines the app does not switch to server-side grouping: it loads every line of the run, 20,000 per request following `nextCursor` to the end, and groups them in the browser (`apps/app/src/api/hooks/sheet.ts`), though Java supports `groupBy`/`level`.
 > - The three-line clamp for item texts is not built (rows are one line).
+> - No global search (FE-034, deferred): see [known limitations](../known-limitations.md).
 
 ## Purpose
 

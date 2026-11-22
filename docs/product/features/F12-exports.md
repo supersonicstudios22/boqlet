@@ -1,6 +1,6 @@
 # F12 Exports
 
-> **Status (2026-11-21):** Built. Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`).
+> **Status (2026-11-22):** Built. Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
 > **Not built / differs:**
 > - Workbooks are checked with openpyxl only; never opened by hand in Excel or LibreOffice (F12-AC1).
 

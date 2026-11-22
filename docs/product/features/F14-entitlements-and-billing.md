@@ -1,10 +1,10 @@
 # F14 Entitlements, usage and billing
 
-> **Status (2026-11-21):** Partly built (manual billing). Plans, entitlements, limit checks with `402 limit_reached`, usage events and the usage page are built (`services/api/src/main/java/com/boqlet/api/billing`).
-> **Not built / differs:**
+> **Status (2026-11-22):** Partly built (manual billing). Plans, entitlements, limit checks with `402 limit_reached` (every limit covered by `tests/scenarios/limits.test.ts`), usage events (sample-project jobs with zero minutes, P54 Q62) and the usage page are built (`services/api/src/main/java/com/boqlet/api/billing`).
+> **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - No billing provider or adapter: checkout always answers `409 checkout_unavailable` and the webhook `400 unsupported_provider`, not audited (`BillingController.java`); `subscriptions.provider` is `manual`; the portal echoes the return URL.
 > - No trial by plan configuration (`trialPlanId`/`trialDays`): an admin sets `trialEndsAt` by hand and no job drops an org to Free when it ends.
-> - Downgrade handling (excess projects read-only) is not built.
+> - Downgrade handling (excess projects read-only) is not built; invitations over the seats are refused (TF-076).
 > - Admin revenue figures are always empty.
 
 ## Purpose

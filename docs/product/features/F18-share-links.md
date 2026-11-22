@@ -1,10 +1,10 @@
 # F18 Public share links
 
-> **Status (2026-11-21):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge.
+> **Status (2026-11-22):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038).
 > **Not built / differs:**
 > - The public sheet is a plain grouped table (no virtualisation; search only).
 > - The footer's sign-up link points to a page that is not public (no public sign-up, F01).
-> - The rate limit defaults to 300 requests per minute per address per instance (`BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`), not 60.
+> - The rate limit defaults to 300 requests per minute per address and token on each instance, with at most 50 tokens per address a minute (`BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`; `429` with `Retry-After`, TF-087), not 60.
 
 ## Purpose
 
