@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { API, APP, apiAs, createOrg, newAccount, newEmail, newPerson, rawAs, setPasswordWithForm, setupLink, signInApi, signInWithForm, unique, useSession } from "./helpers";
+import { API, APP, apiAs, createOrg, hydrated, newAccount, newEmail, newPerson, rawAs, setPasswordWithForm, setupLink, signInApi, signInWithForm, unique, useSession } from "./helpers";
 
 /**
  * Smoke against Java (FE-041/FE-043): native sign-up from a setup link, the session cookie,
@@ -39,6 +39,7 @@ test("F01-AC1: a new person signs up from a setup link, creates an org, finishes
 test("native sign-in: a wrong password is refused; the session cookie is HttpOnly; sign-out ends the session", async ({ page }) => {
   const { email } = await newAccount("Cookie Person");
   await page.goto("/sign-in");
+  await hydrated(page);
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill("not the password at all, really");
   await page.locator('button[type="submit"]').click();

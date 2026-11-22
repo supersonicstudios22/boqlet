@@ -18,6 +18,8 @@ export function AdminHealthView() {
     );
   if (!health.data) return <LoadingLines />;
   const h = health.data;
+  // A figure the API doesn't send isn't measured yet: say so, never "0" (TF-154).
+  const tracked = (v: number | null | undefined) => (typeof v === "number" ? format.number(v) : t("notTracked"));
   const durations = Object.entries(h.jobDurationsMs ?? {});
   return (
     <div className="flex max-w-3xl flex-col gap-8" data-testid="admin-health">
@@ -25,11 +27,11 @@ export function AdminHealthView() {
       <dl className="flex flex-wrap gap-10">
         <div className="flex flex-col">
           <dt className="label-caps text-muted-foreground">{t("billingWebhookFailures")}</dt>
-          <dd className="text-title tabular-nums">{format.number(h.billingWebhookFailures ?? 0)}</dd>
+          <dd className="text-title tabular-nums" data-testid="health-webhook-failures">{tracked(h.billingWebhookFailures)}</dd>
         </div>
         <div className="flex flex-col">
           <dt className="label-caps text-muted-foreground">{t("emailBounces")}</dt>
-          <dd className="text-title tabular-nums">{format.number(h.emailBounces ?? 0)}</dd>
+          <dd className="text-title tabular-nums" data-testid="health-email-bounces">{tracked(h.emailBounces)}</dd>
         </div>
       </dl>
       <section className="flex flex-col gap-3">

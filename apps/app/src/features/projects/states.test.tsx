@@ -28,7 +28,9 @@ vi.mock("@/components/ui/button", () => ({
 vi.mock("@/components/dimension-rule", () => ({ DimensionRule: () => null }));
 vi.mock("@/features/projects/activity-list", () => ({ ActivityList: () => null }));
 vi.mock("@/extensions", () => ({ extensions: () => [] }));
-vi.mock("@/features/orgs/org-context", () => ({ useOrg: () => ({ org: { slug: "acme" } }) }));
+const orgOf = vi.hoisted(() => ({ id: "o1" }));
+vi.mock("@/features/orgs/org-context", () => ({ useOrg: () => ({ org: { id: orgOf.id, slug: "acme" } }), useOrgScope: () => ({ org: { id: orgOf.id, slug: "acme" } }) }));
+vi.mock("@/components/errors/not-found-view", () => ({ NotFoundView: () => <div data-testid="not-found" /> }));
 
 type Q = { data?: unknown; isPending: boolean; isError: boolean; error: unknown; refetch: () => void };
 const state = vi.hoisted(() => ({ models: null as unknown, boqs: null as unknown, project: null as unknown }));
@@ -56,7 +58,7 @@ function mount(node: ReactNode) {
 }
 const pending = (): Q => ({ isPending: true, isError: false, error: null, refetch: vi.fn() });
 const failed = (): Q => ({ isPending: false, isError: true, error: new ApiError(500, "internal", "boom"), refetch: vi.fn() });
-const project = { id: "p1", name: "P", permissions: {} };
+const project = { id: "p1", orgId: "o1", name: "P", permissions: {} };
 
 /** The overview inside a project scope (the scope's own loading is tested below). */
 function InScope({ children }: { children: ReactNode }) {
@@ -101,5 +103,21 @@ describe("TF-019 project scope", () => {
     expect(page.querySelector("[data-testid=inline-error]")).not.toBeNull();
     act(() => page.querySelector<HTMLButtonElement>("[data-testid=inline-error-retry]")!.click());
     expect((state.project as Q).refetch).toHaveBeenCalled();
+  });
+});
+
+describe("TF-116 a project under another org's URL", () => {
+  it("is not found, instead of opening inside the other org's chrome", () => {
+    orgOf.id = "o2";
+    state.project = { data: project, isPending: false, isError: false, error: null, refetch: vi.fn() };
+    const rendered = vi.fn();
+    function Child() {
+      rendered();
+      return null;
+    }
+    const page = mount(<ProjectProvider projectId="p1"><Child /></ProjectProvider>);
+    expect(page.querySelector("[data-testid=not-found]")).not.toBeNull();
+    expect(rendered).not.toHaveBeenCalled();
+    orgOf.id = "o1";
   });
 });

@@ -101,8 +101,10 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 
 ## Data protection
 
-- TLS everywhere (Traefik on the pilot). **Gap:** HSTS is not set by the app, the API or the
-  checked-in Traefik configuration.
+- TLS everywhere (Traefik on the pilot). HSTS (`max-age=31536000; includeSubDomains`) is sent by the
+  app's production build on every page (`apps/app/next.config.ts`, TF-046). **Gap:** not by the API
+  responses or the checked-in Traefik configuration (the routers name a `private-headers` middleware
+  that is defined outside the repo).
 - Encryption at rest: storage and database encryption are the host's (provider-managed).
 - Secrets via environment or a secret manager, never in the repo. The values in
   `ops/local/compose.yaml` are fixed local-only values; never reuse them on the pilot.
@@ -117,6 +119,11 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 
 ## Web security
 
+- App response headers (`apps/app/next.config.ts`, TF-046): every page sends
+  `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` with `Content-Security-Policy:
+  frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, and no `X-Powered-By`.
+  The bearer links (`/s/*`, `/invite/*`, `/sign-up`) send `Referrer-Policy: no-referrer`; `/s/*` and
+  `/invite/*` also `X-Robots-Tag: noindex, nofollow`.
 - **Gap: no CSP is set** (no `Content-Security-Policy` in `apps/app/next.config.ts`, in Java or
   in `ops/pilot`). Intended policy: `default-src 'self'`; `connect-src` the API, the SSE endpoint
   and the storage domain; `img-src 'self' data: blob:` and the storage domain; `worker-src blob:`

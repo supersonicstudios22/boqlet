@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "@/config";
 import { safeReturnTo, type AuthAdapter, type Session } from "../AuthAdapter";
 import { LIMITS } from "@/lib/limits";
+import { useHydrated } from "@/components/hydration";
+import { useRelativeTime } from "@/i18n/use-relative-time";
 
 const LOADING: Session = { status: "loading" };
 const ANONYMOUS: Session = { status: "anonymous" };
@@ -124,8 +126,14 @@ function NativeForm({ setup }: { setup: boolean }) {
   const token = query.get("token") ?? invite;
   const [busy, setBusy] = useState(false);
   const [conflict, setConflict] = useState(false);
+  // The session open elsewhere (409 session_active): where and when, as S31 says it (TF-113).
+  const [active, setActive] = useState<{ deviceLabel: string; place?: string; lastSeenAt: string } | null>(null);
+  const ts = useTranslations("auth.session");
+  const relative = useRelativeTime();
   const [error, setError] = useState("");
   const session = useNativeSession();
+  // Until React runs the form, its submit would be a native GET with the password in the URL (TF-188).
+  const hydrated = useHydrated();
   useEffect(() => {
     if (!setup && session.status === "authenticated") window.location.replace(returnTo);
   }, [returnTo, session.status, setup]);
@@ -145,8 +153,12 @@ function NativeForm({ setup }: { setup: boolean }) {
         window.location.replace(setup ? localAuthUrl({ returnTo, email }) : returnTo);
         return;
       }
-      const failure = await response.json().catch(() => ({})) as { code?: string; message?: string };
+      const failure = await response.json().catch(() => ({})) as { code?: string; message?: string; activeSession?: { deviceLabel: string; place?: string; lastSeenAt: string } };
       setConflict(failure.code === "session_active");
+      if (failure.code === "session_active" && failure.activeSession) {
+        setActive(failure.activeSession);
+        return;
+      }
       // By code from the catalogue (api-conventions.md, TF-077); the server's English only as a last resort.
       const known = failure.code ? `codes.${failure.code}` : null;
       setError(failure.code === "unauthenticated" ? t("invalidLogin") : known && te.has(known) ? te(known) : (failure.message ?? t("retry")));
@@ -163,7 +175,10 @@ function NativeForm({ setup }: { setup: boolean }) {
       <h1 className="text-title">{t(setup ? "setPassword" : "signIn")}</h1>
       {/* Why one was signed out (`?reason=`) is shown above the form by the sign-in page. */}
       {setup && !token ? <p>{t("setupLink")}</p> : (
-        <form onSubmit={submit} onChange={() => setConflict(false)} className="flex flex-col gap-4">
+        <form method="post" onSubmit={submit} onChange={() => {
+          setConflict(false);
+          setActive(null);
+        }} className="flex flex-col gap-4">
           {setup ? (
             <label className="grid gap-2">{t("name")} <Input name="name" autoComplete="name" maxLength={LIMITS.personName} /></label>
           ) : (
@@ -176,9 +191,34 @@ function NativeForm({ setup }: { setup: boolean }) {
           </label>
           {setup && <p className="text-muted-foreground">{t("passwordLength")}</p>}
           {error && <p role="alert" className="text-error">{error}</p>}
-          <Button type="submit" className="self-start" disabled={busy}>
-            {t(setup ? "setPassword" : conflict ? "takeover" : "signIn")}
-          </Button>
+          {conflict && active && (
+            <div role="alert" className="flex flex-col gap-2 border-l-2 border-[var(--status-attention)] pl-3" data-testid="takeover-question">
+              <p>
+                {active.place
+                  ? ts("openElsewherePlace", { device: active.deviceLabel, place: active.place, when: relative(active.lastSeenAt) })
+                  : ts("openElsewhere", { device: active.deviceLabel, when: relative(active.lastSeenAt) })}
+              </p>
+              <p className="text-muted-foreground">{ts("explain")}</p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Button type="submit" className="self-start" disabled={busy || !hydrated} data-testid="auth-submit">
+              {t(setup ? "setPassword" : conflict ? "takeover" : "signIn")}
+            </Button>
+            {conflict && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setConflict(false);
+                  setActive(null);
+                }}
+                data-testid="takeover-cancel"
+              >
+                {ts("cancel")}
+              </Button>
+            )}
+          </div>
         </form>
       )}
       {!setup && invite && <Link className="text-link hover:underline" href={localAuthUrl({ returnTo, email }, true)}>{t("invited")}</Link>}

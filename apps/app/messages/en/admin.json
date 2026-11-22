@@ -228,6 +228,7 @@
     "ms": "{n} ms",
     "s": "{n} s",
     "billingWebhookFailures": "Billing webhook failures",
-    "emailBounces": "Email bounces"
+    "emailBounces": "Email bounces",
+    "notTracked": "not tracked yet"
   }
 }

@@ -25,10 +25,32 @@ const nextConfig: NextConfig = {
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   env: { MODULE_PRICING },
   transpilePackages: ["@ifc-boq/api"],
-  // Share links (F18 "Security"): never indexed, never leak the token through the referrer.
+  // No "X-Powered-By: Next.js" (TF-046).
+  poweredByHeader: false,
+  // Every page (TF-046, security.md "Web security"): no MIME sniffing, never framed, the origin only as
+  // referrer elsewhere, and HSTS in a production build (browsers ignore it over plain http). Later
+  // entries win for the same header: bearer links (share links F18, invitations, setup links) are
+  // never indexed and never leak their token through the referrer.
   async headers() {
     return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          ...(process.env.NODE_ENV === "production" ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
+        ],
+      },
       { source: "/sign-up/:rest*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
+      {
+        source: "/invite/:token*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
       {
         source: "/s/:token*",
         headers: [

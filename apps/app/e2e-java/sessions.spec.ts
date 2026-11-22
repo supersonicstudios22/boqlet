@@ -24,6 +24,9 @@ test("F01-AC5: a second browser is asked first; not continuing changes nothing, 
   await other.goto("/sign-in");
   await signInWithForm(other, email, { expectConflict: true });
   await expect(other.locator('main [role="alert"]')).toBeVisible();
+  // TF-113: the question says where the other session is and when it was last active, and can be cancelled.
+  await expect(other.getByTestId("takeover-question")).toContainText("You're signed in on Web browser, last active");
+  await expect(other.getByTestId("takeover-cancel")).toBeVisible();
   expect((await second.cookies()).filter((c) => c.name === "boqlet_session")).toHaveLength(0);
 
   // Not continuing: the first browser goes on as it was.

@@ -22,3 +22,16 @@ describe("tags", () => {
     expect(parseTags("")).toEqual([]);
   });
 });
+
+describe("TF-153: a trial ends on the day the admin picks, wherever the admin is", () => {
+  it("the picked day is stored as the end of that day (UTC) and shown as that day in any time zone", async () => {
+    const { trialEnd, trialDay } = await import("./values");
+    const iso = trialEnd("2026-12-12");
+    expect(iso).toBe("2026-12-12T23:59:59.000Z");
+    // A viewer east of UTC (Sarajevo, Tokyo) and west of it (New York) all read 12 Dec.
+    for (const timeZone of ["Europe/Sarajevo", "Asia/Tokyo", "America/New_York"]) {
+      const shown = (d: Date, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en", { ...options, timeZone: options.timeZone ?? timeZone }).format(d);
+      expect(trialDay(iso, shown), timeZone).toBe("Dec 12, 2026");
+    }
+  });
+});

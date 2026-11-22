@@ -105,9 +105,18 @@ type SignInOptions = {
   landing?: RegExp;
 };
 
+/**
+ * The page's React runs (`<html data-hydrated>`, set by the app). A form filled before that is
+ * reset by hydration or submitted natively (TF-188): wait for it after every full page load.
+ */
+export async function hydrated(page: Page) {
+  await expect(page.locator("html")).toHaveAttribute("data-hydrated", "true", { timeout: 60_000 });
+}
+
 /** Fills the native sign-in form and waits until the app's session is open (or the takeover question). */
 export async function signInWithForm(page: Page, email: string, opts: SignInOptions = {}) {
   await resetAuthLimits();
+  await hydrated(page);
   await expect(page.locator('input[name="password"]')).toBeVisible();
   const field = page.locator('input[name="email"]');
   if ((await field.inputValue()) !== email) await field.fill(email);
@@ -124,6 +133,7 @@ export async function signInWithForm(page: Page, email: string, opts: SignInOpti
 /** Sets the password on the native sign-up page (a setup link or an invitation) and signs in. */
 export async function setPasswordWithForm(page: Page, name: string, email: string, opts: SignInOptions = {}) {
   await resetAuthLimits();
+  await hydrated(page);
   await page.locator('input[name="name"]').fill(name);
   await page.locator('input[name="password"]').fill(PASSWORD);
   await page.locator('button[type="submit"]').click();

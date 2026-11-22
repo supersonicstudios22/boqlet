@@ -11,6 +11,9 @@ import { invalidationsFor } from "./invalidation";
 import { localJobs } from "./local-jobs";
 import { connectRealtime } from "./sse";
 import { useNotificationText } from "@/features/notifications/use-notification-text";
+import { api } from "@/api/client";
+import { isApiError } from "@/api/errors";
+import { reasonForRevoked } from "@/auth/revoked";
 
 /** Opens the tab's SSE connection while signed in and turns events into query refetches. */
 export function RealtimeProvider({ children }: { children: ReactNode }) {
@@ -29,10 +32,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     return connectRealtime({
       getToken: () => authAdapter.getAccessToken(),
       onEvent(e) {
-        // F01 §10: the account was opened on another device and this session was taken over.
+        // F01 §10: this session ended: taken over, expired, or ended (another tab's sign-out, support).
+        // The sign-in page says which (TF-115).
         if (e.event === "session.revoked") {
           const mine = authAdapter.appSession();
-          if (typeof mine === "object" && mine !== null && e.data.sessionId === mine.id) signedOut("session_replaced");
+          if (typeof mine === "object" && mine !== null && e.data.sessionId === mine.id)
+            void reasonForRevoked(e.data, () =>
+              api.GET("/me").then(
+                () => null,
+                (err: unknown) => (isApiError(err) ? err.code : null),
+              ),
+            ).then(signedOut);
           return;
         }
         if (e.event === "job.progress" && typeof e.data.jobId === "string") {

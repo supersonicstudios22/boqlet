@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReasonDialog } from "./reason-dialog";
-import { parseOverrideValue, parseTags } from "./values";
+import { parseOverrideValue, parseTags, trialDay, trialEnd } from "./values";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
@@ -90,7 +90,7 @@ export function AdminOrgDetailView({ orgId }: { orgId: string }) {
             <dt className="text-muted-foreground">{t("subscriptionStatus")}</dt>
             <dd data-testid="admin-org-subscription">{o.subscriptionStatus === "trialing" ? to("statuses.trialing") : to("statuses.active")}</dd>
             <dt className="text-muted-foreground">{t("trialEndsAt")}</dt>
-            <dd data-testid="admin-org-trial">{o.trialEndsAt ? date(o.trialEndsAt) : t("noTrial")}</dd>
+            <dd data-testid="admin-org-trial">{o.trialEndsAt ? trialDay(o.trialEndsAt, (d, options) => format.dateTime(d, options)) : t("noTrial")}</dd>
           </dl>
           <h3 className="label-caps text-muted-foreground">{t("planHistory")}</h3>
           {(o.planHistory ?? []).length === 0 ? (
@@ -252,7 +252,7 @@ function Actions({ org }: { org: AdminOrgDetail }) {
   const overrides = useAdminSetOverrides(org.id);
   const update = useAdminUpdateOrg(org.id);
   const [planId, setPlanId] = useState(org.planId);
-  const [trialDay, setTrialDay] = useState(() => day(new Date(Date.now() + 14 * 86_400_000)));
+  const [pickedDay, setTrialDay] = useState(() => day(new Date(Date.now() + 14 * 86_400_000)));
   const [key, setKey] = useState(() => Object.keys(org.entitlements ?? {})[0] ?? "seats");
   const [value, setValue] = useState("");
   const suspended = org.status === "suspended";
@@ -289,14 +289,14 @@ function Actions({ org }: { org: AdminOrgDetail }) {
           trigger={<Button variant="outline" data-testid="admin-trial">{t("extendTrial")}</Button>}
           title={t("extendTrial")}
           submit={t("save")}
-          canSubmit={!!trialDay}
+          canSubmit={!!pickedDay}
           onSubmit={async (reason) => {
-            await subscription.mutateAsync({ trialEndsAt: new Date(`${trialDay}T23:59:59.000Z`).toISOString(), reason });
+            await subscription.mutateAsync({ trialEndsAt: trialEnd(pickedDay), reason });
             saved();
           }}
         >
           <Field id="admin-trial-date" label={t("trialField")}>
-            <Input id="admin-trial-date" type="date" value={trialDay} onChange={(e) => setTrialDay(e.target.value)} data-testid="admin-trial-date" />
+            <Input id="admin-trial-date" type="date" value={pickedDay} onChange={(e) => setTrialDay(e.target.value)} data-testid="admin-trial-date" />
           </Field>
           <div className="flex flex-wrap items-center gap-2">
             <span className="label-caps text-muted-foreground">{t("trialDays")}</span>

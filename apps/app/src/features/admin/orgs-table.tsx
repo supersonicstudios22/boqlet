@@ -13,6 +13,7 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { trialDay } from "./values";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 
@@ -194,7 +195,7 @@ export function AdminOrgsTable() {
                   <TableCell>{r.planId}</TableCell>
                   <TableCell>
                     {statusText(r)}
-                    {r.subscriptionStatus === "trialing" && r.trialEndsAt && <span className="text-muted-foreground"> · {date(r.trialEndsAt)}</span>}
+                    {r.subscriptionStatus === "trialing" && r.trialEndsAt && <span className="text-muted-foreground"> · {trialDay(r.trialEndsAt, (d, options) => format.dateTime(d, options))}</span>}
                   </TableCell>
                   <TableCell className="text-right tabular-nums" data-testid="orgs-seats">
                     {usedOf(r.seats)}

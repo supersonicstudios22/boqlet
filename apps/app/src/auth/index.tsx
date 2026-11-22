@@ -18,7 +18,7 @@ setAccessTokenSource(() => authAdapter.getAccessToken());
 const AuthContext = createContext<AuthAdapter>(authAdapter);
 
 /** 401 codes that mean "signed out on purpose", with a message on the sign-in page (F01 §10). */
-export const SIGNED_OUT_REASONS = new Set(["session_replaced", "session_expired"]);
+export const SIGNED_OUT_REASONS = new Set(["session_replaced", "session_expired", "session_ended"]);
 
 /**
  * Signs out because the app's session ended elsewhere (taken over, or idle): the sign-in page
