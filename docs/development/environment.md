@@ -10,7 +10,7 @@ need these only to run a part on its own, or to deploy.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `API_PROXY_TARGET` | `http://localhost:8080` in development | Where `next dev` rewrites `/api/v1`. In production there is no rewrite unless it is set (on the pilot Traefik routes `/api/v1`) |
+| `API_PROXY_TARGET` | `http://localhost:8080` in development | Where `next dev` forwards `/api/v1` (the route handler `app/api/v1/[...path]/route.ts`). In production nothing is forwarded unless it is set (on the pilot Traefik routes `/api/v1`) |
 | `NEXT_PUBLIC_API_BASE_URL` | `/api/v1` | Base URL of the API client |
 | `NEXT_PUBLIC_AUTH_ADAPTER` | `native` | `native` (P50) or `keycloak` (rollback only) |
 | `NEXT_PUBLIC_KEYCLOAK_URL`, `_REALM`, `_CLIENT_ID` | — | Only with the `keycloak` adapter |

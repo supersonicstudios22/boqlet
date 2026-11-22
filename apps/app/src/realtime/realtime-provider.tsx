@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { keys } from "@/api/keys";
 import { authAdapter, SIGNED_OUT_REASONS, signedOut, useSession } from "@/auth";
-import { publishLineEdited, type LineEdited } from "./boq-events";
+import { publishApiResumed, publishLineEdited, type LineEdited } from "./boq-events";
 import { invalidationsFor } from "./invalidation";
 import { localJobs } from "./local-jobs";
 import { connectRealtime } from "./sse";
@@ -53,6 +53,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       // A page with nothing else to ask learns here that its session was taken over or expired.
       onUnauthorized(code) {
         if (SIGNED_OUT_REASONS.has(code)) signedOut(code);
+      },
+      // The API was unreachable (a restart, a deploy) and is back: refetch what is on screen, as the
+      // replay covers only the last minutes and queries that failed meanwhile have given up (TF-182, TF-183).
+      onResume() {
+        void client.invalidateQueries();
+        publishApiResumed();
       },
       onStatus(s) {
         if (typeof document !== "undefined") document.documentElement.dataset.realtime = s;

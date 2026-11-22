@@ -38,6 +38,11 @@ export function ProjectProvider({ projectId, children }: { projectId: string; ch
   return <ProjectContext.Provider value={scope}>{children}</ProjectContext.Provider>;
 }
 
+/** The project of the route, or null outside a project route. */
+export function useOptionalProjectScope(): ProjectScope | null {
+  return useContext(ProjectContext);
+}
+
 export function useProjectScope(): ProjectScope {
   const scope = useContext(ProjectContext);
   if (!scope) throw new Error("useProjectScope outside a project route");

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
+import { isUnavailable } from "@/api/errors";
 import { keys } from "@/api/keys";
 
 export type LineOverride = Schemas["LineOverride"];
@@ -33,13 +34,24 @@ export interface EditBatch {
 }
 
 /**
+ * An edit sent while the API doesn't answer (a restart or deploy) is sent again a few times, 2 to 8 s
+ * apart (TF-183): a batch replaces each line's override, so sending it twice changes nothing.
+ */
+export const editRetry = {
+  retry: (failures: number, error: unknown) => isUnavailable(error) && failures < 4,
+  retryDelay: (failures: number) => Math.min(1000 * 2 ** failures, 8000),
+};
+
+/**
  * Writes line edits. The overrides list updates optimistically, so an edit shows at once (F06 §6);
- * a refused one rolls back. The BoQ refreshes after (pending changes).
+ * a refused one rolls back. The BoQ refreshes after (pending changes). One the API never answered
+ * also rolls back, after `editRetry`; the sheet keeps it as not saved, with "Save again".
  */
 export function useEditLines(boqId: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (batch: EditBatch) => (await api.POST("/boqs/{boqId}/overrides/batch", { params: { path: { boqId } }, body: batch })).data!,
+    ...editRetry,
     onMutate: async (batch) => {
       await client.cancelQueries({ queryKey: keys.overrides(boqId) });
       const before = client.getQueryData<LineOverride[]>(keys.overrides(boqId));

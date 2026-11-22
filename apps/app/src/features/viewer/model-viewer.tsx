@@ -10,6 +10,18 @@ import { cn } from "@/lib/utils";
 import { buildLinks, colorsFor, elementOfMesh, type ColorMode, type LegendEntry, type LinkLine } from "./links";
 import type { Box, SceneView } from "./scene-view";
 import { useUnit } from "@/i18n/units";
+import { useBoqFormat } from "@/i18n/boq-format";
+
+/** A line of a changed element, before and after (the Changes tab, F07 §9). */
+export interface ChangedLine {
+  key: string;
+  description: string;
+  unit: string;
+  change: "added" | "removed" | "changed" | "unchanged";
+  before: number | null;
+  after: number | null;
+  delta: number | null;
+}
 
 export interface ViewerModel {
   versionId: string;
@@ -60,9 +72,10 @@ export function ModelViewer({
   onSelectionChange?: (selection: { elements: string[]; lines: string[] }) => void;
   /**
    * A change report's elements (F08 §4): the viewer opens in the "changes" colour mode, and the removed
-   * ones are drawn as a red ghost from `ghostModels` (the older run's versions that differ).
+   * ones are drawn as a red ghost from `ghostModels` (the older run's versions that differ). `linesOf`:
+   * a picked element's lines before and after, with the delta (F07 §9).
    */
-  changes?: { added: readonly string[]; changed: readonly string[]; removed: readonly string[]; ghostModels: ViewerModel[] };
+  changes?: { added: readonly string[]; changed: readonly string[]; removed: readonly string[]; ghostModels: ViewerModel[]; linesOf?: (guid: string) => readonly ChangedLine[] };
   /** A share link's viewer (F18): scenes and geometry through its public endpoints; no coverage, no element panel lines. */
   publicToken?: string;
   className?: string;
@@ -245,6 +258,9 @@ export function ModelViewer({
   const single = picked.size === 1 ? [...picked][0]! : null;
   const pickedLines = useMemo(() => [...new Map([...picked].flatMap((g) => links.linesOf(g)).map((l) => [l.key, l])).values()], [picked, links]);
   const focusLineRow = focusLine ? lines?.find((l) => l.key === focusLine) : undefined;
+  // The Changes tab: the picked elements' lines in either run, before and after (F07 §9, TF-102).
+  const linesOfChange = changes?.linesOf;
+  const changedLines = useMemo(() => (linesOfChange ? [...new Map([...picked].flatMap((g) => linesOfChange(g)).map((l) => [l.key, l])).values()] : null), [picked, linesOfChange]);
   useEffect(() => {
     onSelectionChange?.({ elements: [...picked], lines: pickedLines.map((l) => l.key) });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the selection changes
@@ -432,14 +448,15 @@ export function ModelViewer({
         {picked.size > 0 && (
           <section className="flex flex-col gap-2" data-testid="viewer-selection">
             <div className="flex items-center gap-2">
-              <p className="flex-1">{t("picked", { elements: picked.size, lines: pickedLines.length })}</p>
+              <p className="flex-1">{t("picked", { elements: picked.size, lines: changedLines ? changedLines.length : pickedLines.length })}</p>
               <Button variant="ghost" size="icon" aria-label={t("clearSelection")} title={t("clearSelection")} onClick={() => setPicked(new Set())}>
                 <X aria-hidden />
               </Button>
             </div>
+            {changedLines && <ChangedLines rows={changedLines} onOpenLine={onOpenLine} />}
             {single ? (
-              <ElementPanel runId={runId} guid={single} element={elements[single]} modelLabel={models.find((m) => m.versionId === modelOf.get(single))?.label} onOpenLine={onOpenLine} />
-            ) : (
+              <ElementPanel runId={changedLines ? undefined : runId} guid={single} element={elements[single]} modelLabel={models.find((m) => m.versionId === modelOf.get(single))?.label} onOpenLine={onOpenLine} />
+            ) : changedLines ? null : (
               <ul className="flex flex-col gap-0.5">
                 {pickedLines.map((l) => (
                   <li key={l.key}>
@@ -481,6 +498,34 @@ function SectionBox({ bounds, box, onMove }: { bounds: Box; box: Box; onMove: (a
   );
 }
 
+/** A picked element's lines in the Changes tab: before → after and Δ (F07 §9, F07-AC6). */
+function ChangedLines({ rows, onOpenLine }: { rows: readonly ChangedLine[]; onOpenLine?: (key: string) => void }) {
+  const t = useTranslations("viewer.changedLines");
+  const format = useBoqFormat();
+  const unitLabel = useUnit();
+  const qty = (v: number | null) => (v === null ? "—" : format.number(v, { maximumFractionDigits: 3 }));
+  return (
+    <section className="flex flex-col gap-1" data-testid="viewer-changed-lines">
+      <h4 className="label-caps text-muted-foreground">{t("title")}</h4>
+      {rows.length === 0 && <p className="text-muted-foreground">{t("none")}</p>}
+      <ul className="flex flex-col gap-1.5">
+        {rows.map((l) => (
+          <li key={l.key} className="flex flex-col" data-testid="viewer-changed-line" data-key={l.key} data-change={l.change}>
+            <LineLink line={l} lineKey={l.key} onOpenLine={l.change === "removed" ? undefined : onOpenLine} />
+            <span className="flex flex-wrap gap-x-2 tabular-nums text-muted-foreground">
+              <span>{t(`change.${l.change}`)}</span>
+              <span data-testid="viewer-changed-before-after">
+                {t("beforeAfter", { before: qty(l.before), after: qty(l.after), unit: unitLabel(l.unit) })}
+              </span>
+              {l.delta !== null && l.change !== "unchanged" && <span data-testid="viewer-changed-delta">{t("delta", { delta: `${l.delta > 0 ? "+" : ""}${qty(l.delta)}` })}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function LineLink({ line, lineKey, onOpenLine, share }: { line?: { description: string; unit: string }; lineKey: string; onOpenLine?: (key: string) => void; share?: string }) {
   const label = line?.description ?? lineKey;
   return (
@@ -513,7 +558,7 @@ function ElementPanel({
 }) {
   const unitLabel = useUnit();
   const t = useTranslations("viewer.element");
-  const format = useFormatter();
+  const format = useBoqFormat();
   const detail = useElementLines(runId, guid);
   const rows: [string, string | undefined][] = [
     [t("class"), element?.ifcClass ?? detail.data?.ifcClass],

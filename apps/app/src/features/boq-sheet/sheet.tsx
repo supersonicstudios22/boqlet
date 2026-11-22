@@ -6,13 +6,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, ChevronDown, ChevronRight, Columns3, Download, GripVertical, Plus, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { Boq, Run } from "@/api/hooks/boqs";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEditLines, useManualItems, useOverrides, useRemoveManualItem, useSaveManualItem, type LineOverride, type LineOverrideInput, type ManualItemRecord } from "@/api/hooks/edits";
+import { useEditLines, useManualItems, useOverrides, useRemoveManualItem, useSaveManualItem, type EditBatch, type LineOverride, type LineOverrideInput, type ManualItemRecord } from "@/api/hooks/edits";
+import { isUnavailable } from "@/api/errors";
 import { keys as queryKeys } from "@/api/keys";
 import { useBoqPresence } from "@/features/boqs/presence";
-import { onLineEdited } from "@/realtime/boq-events";
+import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
 import { useExportRun } from "@/api/hooks/exports";
 import { useMe } from "@/api/hooks/me";
 import { useLines } from "@/api/hooks/sheet";
@@ -39,6 +40,7 @@ import { NotInModelsNotice } from "./not-in-models";
 import { WarningsBar } from "./warnings-bar";
 import { extensions } from "@/extensions";
 import { useUnit } from "@/i18n/units";
+import { useBoqFormat } from "@/i18n/boq-format";
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
@@ -90,7 +92,8 @@ type Prompt = { title: string; summary: string; initial?: string; apply: (reason
  * The BoQ sheet (F06 §1–4, §6–7, §10, §11): every line of the run, grouped by any attached
  * classification with subtotals, filters that never change the data, toggleable columns, the line
  * detail beside it. On the working version, leads and estimators edit it like a spreadsheet:
- * double-click (or F2) a description, unit, quantity or Item cell; drag a line onto another to
+ * double-click a description, unit, quantity or Item cell, or by keyboard pick the line (arrows up and
+ * down), its cell (arrows left and right) and press F2 or Enter; drag a line onto another to
  * reorder it, or onto a group to move it there; tick lines for bulk moves and exclusions; Ctrl+Z
  * undoes the last 20 edits; "Add line" adds a manual line. Edits show at once (the BoQ's current
  * edits laid over the run's lines, `edits.ts`) and apply on the next run.
@@ -104,7 +107,6 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const t = useTranslations("boqs.sheet");
   const te = useTranslations("boqs.edits");
   const tn = useTranslations("boqs.notInModels");
-  const locale = useLocale();
   const message = useErrorMessage();
   const lines = useLines(run.id);
   const me = useMe();
@@ -144,9 +146,13 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
   const badges = useModuleLineBadges(boq.id, run.id);
   const [editing, setEditing] = useState<{ key: string; column: EditableColumn } | null>(null);
+  // The selected line's active cell (TF-159): ArrowLeft/Right move it, F2 or Enter edit it.
+  const [activeColumn, setActiveColumn] = useState<EditableColumn>("description");
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [manualDialog, setManualDialog] = useState<{ record?: ManualItemRecord; defaults?: { codes?: Record<string, string>; sortHint?: string } } | null>(null);
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  // Edits the API never answered (a restart or deploy, TF-183): kept here and sent again, never dropped.
+  const [unsaved, setUnsaved] = useState<{ apply: EditBatch; undo: EditBatch | null }[]>([]);
   const undoRef = useRef(undoStack);
   useLayoutEffect(() => {
     undoRef.current = undoStack;
@@ -198,11 +204,10 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   };
   const rows = useMemo(() => buildRows(filtered, groupBy, collapsed), [filtered, groupBy, collapsed]);
   const filtering = filtered.length !== all.length;
-  // One formatter for every cell (the rule set's rounding is already applied by the engine).
-  const num = useMemo(() => {
-    const f = new Intl.NumberFormat(locale, { maximumFractionDigits: 6 });
-    return (v: number) => f.format(v);
-  }, [locale]);
+  // One formatter for every cell (the rule set's rounding is already applied by the engine), in the
+  // firm's number format and the project's locale (F15 §6, §11, TF-021).
+  const boqFormat = useBoqFormat();
+  const num = useMemo(() => (v: number) => boqFormat.number(v, { maximumFractionDigits: 6 }), [boqFormat]);
   const toConfirm = t("toConfirm");
 
   const columns = useMemo<ColumnDef<SheetLine>[]>(() => {
@@ -315,11 +320,52 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
 
   const pushUndo = (entry: UndoEntry) => setUndoStack((s) => [...s.slice(-(UNDO_DEPTH - 1)), entry]);
 
+  /**
+   * Sends one edit batch; once saved, its inverse (if any) goes on the undo stack. A batch the API
+   * never answered, after the hook's retries, is kept as not saved (TF-183). mutateAsync, so every
+   * batch gets its outcome, not only the latest.
+   */
+  const send = (apply: EditBatch, undo: EditBatch | null) =>
+    editLines.mutateAsync(apply).then(
+      () => {
+        if (undo) pushUndo({ kind: "batch", apply, undo });
+      },
+      (error: unknown) => {
+        if (isUnavailable(error)) setUnsaved((u) => [...u, { apply, undo }]);
+      },
+    );
+  const sendUnsaved = async () => {
+    const batches = unsaved;
+    setUnsaved([]);
+    // In order: a later edit of the same line must win.
+    for (const b of batches) await send(b.apply, b.undo);
+  };
+  const sendUnsavedRef = useRef(sendUnsaved);
+  useLayoutEffect(() => {
+    sendUnsavedRef.current = sendUnsaved;
+  });
+  const hasUnsaved = unsaved.length > 0;
+  useEffect(() => {
+    if (!hasUnsaved) return;
+    // Sent again as soon as the API answers (the event stream is back) or the browser is online again.
+    const again = () => void sendUnsavedRef.current();
+    const off = onApiResumed(again);
+    window.addEventListener("online", again);
+    // Leaving the page would lose them.
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => {
+      off();
+      window.removeEventListener("online", again);
+      window.removeEventListener("beforeunload", warn);
+    };
+  }, [hasUnsaved]);
+
   /** One edit (any number of lines) as one request; its inverse goes on the undo stack. */
   const commit = (changes: Map<string, LineOverrideInput | null>) => {
     if (!changes.size) return;
     const { apply, undo } = batchFor(changes, current);
-    editLines.mutate(apply, { onSuccess: () => pushUndo({ kind: "batch", apply, undo }) });
+    void send(apply, undo);
   };
   useLayoutEffect(() => {
     keepMineRef.current = (key, mine) => commit(new Map([[key, mine]]));
@@ -331,7 +377,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
     const entry = undoStack[undoStack.length - 1];
     if (!entry) return;
     setUndoStack((s) => s.slice(0, -1));
-    if (entry.kind === "batch") editLines.mutate(entry.undo);
+    if (entry.kind === "batch") void send(entry.undo, null);
     else removeManual.mutate(entry.recordId);
   };
 
@@ -355,7 +401,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       // Sent as it is: without a quantity edit the API refuses it with the reason (409 unit_needs_quantity).
       const next = { ...(withChange(o, key, {}) ?? { lineKey: key }), unit };
       const { apply, undo } = batchFor(new Map([[key, next]]), current);
-      editLines.mutate(apply, { onSuccess: () => pushUndo({ kind: "batch", apply, undo }) });
+      void send(apply, undo);
     } else if (column === "quantity") {
       const text = value.trim();
       const quantity = text === "" ? null : Number(text.replace(/\s/g, "").replace(",", "."));
@@ -461,10 +507,14 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
     [],
   );
 
-  // "/" focuses the search (F06 §10); Ctrl+Z undoes the last edit (F06 §6); F2 edits the selected line's description.
-  const keys = useRef({ undo: undoLast, edit: () => selected && rowApi.startEdit(selected, "description") });
+  // The editable columns on screen, left to right (Item only while grouping by a classification).
+  const editableColumns = visibleMetas.flatMap((c) => (c.editable ? [c.editable] : []));
+  const shownActive = editableColumns.includes(activeColumn) ? activeColumn : "description";
+  const editActive = () => selected && rowApi.startEdit(selected, shownActive);
+  // "/" focuses the search (F06 §10); Ctrl+Z undoes the last edit (F06 §6); F2 edits the selected line's active cell.
+  const keys = useRef({ undo: undoLast, edit: editActive });
   useLayoutEffect(() => {
-    keys.current = { undo: undoLast, edit: () => selected && rowApi.startEdit(selected, "description") };
+    keys.current = { undo: undoLast, edit: editActive };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -488,7 +538,9 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const setFilter = <K extends keyof SheetFilters>(key: K, value: SheetFilters[K] | "") => setFilters((f) => ({ ...f, [key]: value || undefined }));
   const checkedKeys = [...checked].filter((k) => byKey.has(k) && !byKey.get(k)!.pending);
   const shownKeys = rows.filter((r) => r.kind === "line" && !(r as { line: SheetLine }).line.pending).map((r) => r.id);
-  const editError = editLines.error ?? saveManual.error ?? removeManual.error;
+  // An edit the API didn't answer is shown as not saved (below), not as an error.
+  const editError = (editLines.error && !isUnavailable(editLines.error) ? editLines.error : null) ?? saveManual.error ?? removeManual.error;
+  const retrying = editLines.isPending && editLines.failureCount > 0;
 
   if (lines.isError) return <p role="alert" className="text-error">{message(lines.error)}</p>;
   if (!lines.data) return <p className="text-muted-foreground" aria-busy="true">{t("loading")}</p>;
@@ -672,6 +724,22 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
           {message(editError)}
         </p>
       ) : null}
+      {retrying && (
+        <p role="status" className="text-muted-foreground" data-testid="edit-retrying">
+          {te("retrying")}
+        </p>
+      )}
+      {hasUnsaved && (
+        <div role="alert" className="flex flex-wrap items-center gap-3 border-l-2 border-[var(--status-error)] pl-3" data-testid="edit-unsaved" data-count={unsaved.length}>
+          <span>{te("notSaved", { count: unsaved.length })}</span>
+          <Button variant="outline" onClick={() => void sendUnsaved()} disabled={editLines.isPending} data-testid="edit-unsaved-retry">
+            {te("retry")}
+          </Button>
+          <Button variant="ghost" onClick={() => setUnsaved([])} data-testid="edit-unsaved-discard">
+            {te("discard")}
+          </Button>
+        </div>
+      )}
 
       {split && hasModels ? (
         <div ref={splitBox} className="flex items-start" data-testid="sheet-split">
@@ -699,6 +767,10 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               checkAllLabel={te("selectAll")}
               pendingLabel={te("pending")}
               editingBy={markers}
+              activeColumn={editable ? shownActive : null}
+              editableColumns={editable ? editableColumns : []}
+              onActiveColumn={setActiveColumn}
+              onEditActive={editActive}
             />
           </div>
           <div
@@ -762,6 +834,10 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               checkAllLabel={te("selectAll")}
               pendingLabel={te("pending")}
               editingBy={markers}
+              activeColumn={editable ? shownActive : null}
+              editableColumns={editable ? editableColumns : []}
+              onActiveColumn={setActiveColumn}
+              onEditActive={editActive}
             />
           </div>
           {renderDetail(undefined)}
@@ -874,6 +950,10 @@ function SheetGrid({
   checkAllLabel,
   pendingLabel,
   editingBy,
+  activeColumn,
+  editableColumns,
+  onActiveColumn,
+  onEditActive,
 }: {
   rows: Row[];
   columns: ColumnMeta[];
@@ -898,6 +978,11 @@ function SheetGrid({
   pendingLabel: string;
   /** Lines others are editing (F06 §14), line key → the marker's text. */
   editingBy: ReadonlyMap<string, string>;
+  /** The selected line's active cell (TF-159), null when the sheet can't be edited. */
+  activeColumn: EditableColumn | null;
+  editableColumns: EditableColumn[];
+  onActiveColumn: (column: EditableColumn) => void;
+  onEditActive: () => void;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   // Like TanStack Table, the virtualizer returns functions the React Compiler can't memoise.
@@ -940,8 +1025,17 @@ function SheetGrid({
         if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           e.preventDefault();
           move(e.key === "ArrowDown" ? 1 : -1);
+        } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && selected && activeColumn && editableColumns.length) {
+          // Between the editable cells of the selected line (TF-159).
+          e.preventDefault();
+          const at = Math.max(0, editableColumns.indexOf(activeColumn));
+          onActiveColumn(editableColumns[Math.max(0, Math.min(editableColumns.length - 1, at + (e.key === "ArrowRight" ? 1 : -1)))]!);
         } else if (e.key === "Escape") onSelect(null);
         else if (e.key === "Enter" && !selected) move(0);
+        else if (e.key === "Enter" && activeColumn) {
+          e.preventDefault();
+          onEditActive();
+        }
       }}
       data-testid="sheet-grid"
       data-rows={rows.length}
@@ -977,6 +1071,7 @@ function SheetGrid({
               selected={row.id === selected}
               checked={checked.has(row.id)}
               editingColumn={editing?.key === row.id ? editing.column : null}
+              activeColumn={row.id === selected ? activeColumn : null}
               editable={editable}
               codeItems={codeItems}
               api={api}
@@ -1103,6 +1198,7 @@ const LineRowView = memo(function LineRowView({
   checkLabel,
   pendingLabel,
   editingBy,
+  activeColumn,
 }: {
   line: SheetLine;
   depth: number;
@@ -1119,6 +1215,8 @@ const LineRowView = memo(function LineRowView({
   checkLabel: string;
   pendingLabel: string;
   editingBy?: string;
+  /** This (selected) line's active cell, edited by F2 or Enter. */
+  activeColumn: EditableColumn | null;
 }) {
   const [over, setOver] = useState(false);
   const canEdit = editable && !line.pending;
@@ -1183,6 +1281,7 @@ const LineRowView = memo(function LineRowView({
       {columns.map((c) => {
         const field = c.editable ? FIELD_OF[c.editable] : undefined;
         const edited = !!field && !!line.edit?.fields.includes(field) && (field !== "codes" || !!c.engine?.(line));
+        const active = canEdit && !!c.editable && c.editable === activeColumn;
         if (editingColumn && c.editable === editingColumn) {
           return (
             <div key={c.id} role="gridcell" className="flex items-center px-0.5" onClick={(e) => e.stopPropagation()}>
@@ -1198,7 +1297,7 @@ const LineRowView = memo(function LineRowView({
           <div
             key={c.id}
             role="gridcell"
-            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", edited && "after:absolute after:top-0 after:right-0 after:border-t-[6px] after:border-l-[6px] after:border-t-[var(--status-attention)] after:border-l-transparent")}
+            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-0 after:right-0 after:border-t-[6px] after:border-l-[6px] after:border-t-[var(--status-attention)] after:border-l-transparent")}
             style={c.id === "description" ? { paddingLeft: `${0.5 + depth}rem` } : undefined}
             title={edited ? c.engine?.(line) : undefined}
             onDoubleClick={canEdit && c.editable ? (e) => {
@@ -1206,6 +1305,8 @@ const LineRowView = memo(function LineRowView({
               api.startEdit(line.key, c.editable!);
             } : undefined}
             data-edited={edited ? "true" : undefined}
+            data-active={active ? "true" : undefined}
+            aria-selected={c.editable ? active : undefined}
             data-column={c.id}
           >
             <span className="truncate" title={c.id === "description" ? String(c.cell(line) ?? "") : undefined}>{c.cell(line)}</span>

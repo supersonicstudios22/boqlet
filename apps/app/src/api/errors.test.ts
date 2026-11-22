@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, throwOnApiError } from "./errors";
+import { ApiError, isUnavailable, throwOnApiError } from "./errors";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -35,5 +35,14 @@ describe("ApiError", () => {
     const error = throwOnApiError.onError!({ error: new TypeError("fetch failed") } as never) as ApiError;
     expect(error.status).toBe(0);
     expect(error.code).toBe("network");
+  });
+
+  it("TF-183: tells an unreachable or restarting API (no answer, 502/503/504, api_unavailable) from a refusal", async () => {
+    expect(isUnavailable(ApiError.network(new TypeError("fetch failed")))).toBe(true);
+    expect(isUnavailable(await ApiError.fromResponse(json(503, { code: "api_unavailable", message: "" })))).toBe(true);
+    for (const status of [502, 503, 504]) expect(isUnavailable(await ApiError.fromResponse(new Response("Bad Gateway", { status })))).toBe(true);
+    expect(isUnavailable(await ApiError.fromResponse(json(409, { code: "revision_locked", message: "" })))).toBe(false);
+    expect(isUnavailable(await ApiError.fromResponse(json(500, { code: "internal", message: "" })))).toBe(false);
+    expect(isUnavailable(new Error("x"))).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import { Button } from "@/components/ui/button";
 import type { EditField, SheetLine } from "./edits";
 import { useUnit } from "@/i18n/units";
@@ -23,7 +24,7 @@ export interface LineActions {
 export function LineEdits({ line, editable, systemNames, actions }: { line: SheetLine; editable: boolean; systemNames: Map<string, string>; actions: LineActions }) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.edits");
-  const format = useFormatter();
+  const format = useBoqFormat();
   const edit = line.edit;
   const num = (v: number | null) => (v === null ? t("toConfirm") : format.number(v, { maximumFractionDigits: 6 }));
   const engineText = (field: EditField): string => {

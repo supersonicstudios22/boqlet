@@ -3,12 +3,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-/**
- * Where `/api/v1` goes outside production: the Java backend, by default the local one
- * (`npm run local:up`, docs/development/local-setup.md). In production the ingress routes `/api/v1` to the
- * API on the same domain (architecture.md).
+/*
+ * `/api/v1` outside production goes to the Java backend (`API_PROXY_TARGET`, by default the local one,
+ * docs/development/local-setup.md) through the route handler `app/api/v1/[...path]/route.ts`, not a
+ * rewrite: Next's rewrite proxy answers an unreachable API with a bare text 500, the handler with
+ * `503 api_unavailable` (TF-183). In production the ingress routes `/api/v1` to the API on the same domain.
  */
-const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";
 
 /**
  * Module build flags (P36): `MODULE_PRICING=1` builds the app with the pricing module, registered in
@@ -44,9 +44,7 @@ const nextConfig: NextConfig = {
       { source: `/${a}`, destination: `/areas/${a}` },
       { source: `/${a}/:path*`, destination: `/areas/${a}/:path*` },
     ]);
-    if (process.env.NODE_ENV === "production" && !process.env.API_PROXY_TARGET) return { beforeFiles, afterFiles: [], fallback: [] };
-    const afterFiles = [{ source: "/api/v1/:path*", destination: `${apiTarget}/api/v1/:path*` }];
-    return { beforeFiles, afterFiles, fallback: [] };
+    return { beforeFiles, afterFiles: [], fallback: [] };
   },
 };
 

@@ -41,7 +41,7 @@ working tree, so run it again after changing `services/api` or `engine`.
 
 | Service | Address on the host | Notes |
 |---|---|---|
-| App (host, `next dev`) | http://localhost:3000 | Native sign-in. `/api/v1` is rewritten to `API_PROXY_TARGET`, default http://localhost:8080. |
+| App (host, `next dev`) | http://localhost:3000 | Native sign-in. `/api/v1` is forwarded to `API_PROXY_TARGET`, default http://localhost:8080. |
 | `api` (Java) | http://localhost:8080 | `BOQLET_NATIVE_AUTH=true`, cookies without `Secure` (plain HTTP), the app's origin `http://localhost:3000`. Health: `/actuator/health/readiness`. |
 | `engine` | not published | The HTTP worker the API calls (`BOQLET_ENGINE_TRANSPORT=http`). |
 | `db` (PostgreSQL 16) | `localhost:55432`, user and database `boqlet`, password `boqlet-local` | Flyway creates the schema when the API starts. |

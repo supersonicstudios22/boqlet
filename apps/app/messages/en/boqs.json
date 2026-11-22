@@ -451,7 +451,11 @@
     "keepMine": "Keep mine",
     "theirValue": "Now: {value}",
     "theirRestored": "Now: as the engine measured it",
-    "theirExcluded": "Now: excluded"
+    "theirExcluded": "Now: excluded",
+    "retrying": "Saving… The server is not answering; trying again.",
+    "notSaved": "{count, plural, one {An edit was not saved: the server did not answer.} other {# edits were not saved: the server did not answer.}} It is kept here and sent again when the server is back.",
+    "retry": "Save again",
+    "discard": "Discard"
   },
   "manual": {
     "addTitle": "Add a line",

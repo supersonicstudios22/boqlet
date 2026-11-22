@@ -70,6 +70,11 @@ function SuspendedBanner() {
   );
 }
 
+/** The org of the route, or null outside an org route (a share page, the account page). */
+export function useOrgScope(): OrgScope | null {
+  return useContext(OrgContext);
+}
+
 export function useOrg(): OrgScope {
   const scope = useContext(OrgContext);
   if (!scope) throw new Error("useOrg outside an org route");

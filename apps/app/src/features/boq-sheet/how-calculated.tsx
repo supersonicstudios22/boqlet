@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import type { Param } from "@ifc-boq/types";
 import type { LineDetail } from "@/api/hooks/sheet";
 import { toReadable, type Lexicon } from "@/features/library/lib/readable";
@@ -83,7 +84,8 @@ function StepRow({
   const unitLabel = useUnit();
   const t = useTranslations("boqs.how");
   const tl = useTranslations("library");
-  const format = useFormatter();
+  // BoQ values in the firm's number format (TF-021).
+  const format = useBoqFormat();
   const [open, setOpen] = useState(false);
   const p = step.params as Record<string, unknown>;
   const unit = step.unit ?? line.unit;

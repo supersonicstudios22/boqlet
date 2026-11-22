@@ -68,9 +68,11 @@ translates its "Close" text (`common.close`); `button.tsx` default and icon size
   public pages (sign-in shell, invitation previews).
 - **No Next.js route handlers with business logic.** Next serves the UI. The API is a separate
   service on the same domain: the client calls `NEXT_PUBLIC_API_BASE_URL` (default `/api/v1`);
-  in development `next.config.ts` rewrites `/api/v1/*` to `API_PROXY_TARGET` (default the local
-  Java API, `http://localhost:8080`); in production the edge routes `/api/v1` to the API (no
-  rewrite unless `API_PROXY_TARGET` is set).
+  in development the route handler `app/api/v1/[...path]/route.ts` (`src/api/proxy.ts`) passes
+  `/api/v1/*` to `API_PROXY_TARGET` (default the local Java API, `http://localhost:8080`) and answers
+  `503 api_unavailable` when it can't be reached (TF-183); in production the edge routes `/api/v1`
+  to the API (the handler answers only when `API_PROXY_TARGET` is set). That handler is the only
+  route handler, and it only forwards.
 - Next middleware is allowed only to redirect unauthenticated users to `/sign-in`, when the
   auth adapter exposes a cookie the middleware can check.
 
@@ -216,7 +218,7 @@ versions, where used and preview.
 | `NEXT_DIST_DIR` | build folder override (the Java browser smoke uses `.next-java`) |
 | `MODULE_PRICING` | must stay unset; `1` throws until the module exists (P48) |
 
-In dev, `next.config.ts` rewrites `/api/v1/*` to the Java API so cookies behave as in production
+In dev, the `/api/v1` route handler forwards to the Java API so cookies behave as in production
 (same origin). Full list of variables: `docs/development/environment.md`.
 
 ## Modules (P36)

@@ -81,5 +81,17 @@
   "picked": "{elements, plural, one {# element} other {# elements}} selected · {lines, plural, one {# line} other {# lines}}",
   "openInSheet": "Open in the sheet",
   "showIn3d": "Show in 3D",
-  "shortcuts": "Shift-drag selects in a box · Esc clears · F frames · H hides · I isolates"
+  "shortcuts": "Shift-drag selects in a box · Esc clears · F frames · H hides · I isolates",
+  "changedLines": {
+    "title": "Its lines, before and after",
+    "none": "This element feeds no line in either run.",
+    "change": {
+      "added": "New line",
+      "removed": "Line removed",
+      "changed": "Changed",
+      "unchanged": "Unchanged"
+    },
+    "beforeAfter": "{before} → {after} {unit}",
+    "delta": "Δ {delta}"
+  }
 }

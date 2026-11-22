@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { LineChange } from "@/api/hooks/diffs";
-import { candidates, groupLines, groupsIn, passes, DEFAULT_THRESHOLD } from "./model";
+import type { ElementChange, LineChange } from "@/api/hooks/diffs";
+import { candidates, elementLineChanges, groupLines, groupsIn, passes, DEFAULT_THRESHOLD } from "./model";
 
 /** F08 §3–4, §6 in the Changes tab (FE-030): filters, grouping like the sheet, what to compare with. */
 
@@ -73,5 +73,25 @@ describe("what to compare with (F08 §3, §6)", () => {
     const { list, defaultRunId } = candidates({ currentRunId: "r2", revisions: [{ id: "A", label: "A", status: "draft", currentRun: run("r2") }], runs: [run("r2"), run("r1")], otherBoqs: [], basedOnRevisionId: null });
     expect(defaultRunId).toBeNull();
     expect(list.map((c) => c.runId)).toEqual(["r1"]);
+  });
+});
+
+describe("TF-102: a changed element's lines before and after (F07 §9, F07-AC6)", () => {
+  // The Duplex door that grew from 0762 to 0864: its old line lost it, its new line gained it.
+  const door: ElementChange = { guid: "g1", model: "Arch", change: "changed", fields: ["type", "quantities"], lineKeys: ["door-0762", "door-0864", "doors-all"] };
+  const changes = [line("door-0762", "changed", 3, 2, "08", "Door 0762"), line("door-0864", "added", null, 1, "08", "Door 0864")];
+  const current = new Map([
+    ["door-0864", { description: "Door 0864", unit: "nr", quantity: 1 }],
+    ["doors-all", { description: "Doors", unit: "nr", quantity: 9 }],
+  ]);
+  it("lists each line of the element with before, after and delta; an unchanged one with its quantity", () => {
+    expect(elementLineChanges("g1", [door, { guid: "g2", change: "added", lineKeys: ["x"] }], changes, current)).toEqual([
+      { key: "door-0762", description: "Door 0762", unit: "m2", change: "changed", before: 3, after: 2, delta: -1 },
+      { key: "door-0864", description: "Door 0864", unit: "m2", change: "added", before: null, after: 1, delta: null },
+      { key: "doors-all", description: "Doors", unit: "nr", change: "unchanged", before: 9, after: 9, delta: 0 },
+    ]);
+  });
+  it("is empty for an element the report doesn't list", () => {
+    expect(elementLineChanges("nope", [door], changes, current)).toEqual([]);
   });
 });

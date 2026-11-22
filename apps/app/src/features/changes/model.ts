@@ -1,4 +1,4 @@
-import type { LineChange } from "@/api/hooks/diffs";
+import type { ElementChange, LineChange } from "@/api/hooks/diffs";
 
 /** F08 §4 filters of the lines table: change type, |Δ%| at or above a threshold (default 1 %), group. */
 export interface ChangeFilters {
@@ -83,4 +83,39 @@ export function candidates(input: {
   for (const b of input.otherBoqs) if (b.currentRun && done(b.currentRun.status)) add({ runId: b.currentRun.id, kind: "boq", label: b.name, at: b.currentRun.finishedAt ?? b.currentRun.createdAt });
   const based = input.revisions.find((r) => r.id === input.basedOnRevisionId)?.currentRun;
   return { list, defaultRunId: based && based.id !== input.currentRunId && done(based.status) ? based.id : null };
+}
+
+/** One line of a changed element, before and after (F07 §9: clicking a changed element in the Changes tab). */
+export interface ElementLineChange {
+  key: string;
+  description: string;
+  unit: string;
+  change: LineChange["change"] | "unchanged";
+  before: number | null;
+  after: number | null;
+  delta: number | null;
+}
+
+/**
+ * The lines an element of the report feeds in either run (its `lineKeys`), with their quantities before
+ * and after and the delta from the report; a line the report doesn't list is unchanged, with its
+ * quantity in the newer run (`current`).
+ */
+export function elementLineChanges(
+  guid: string,
+  elements: readonly ElementChange[],
+  lines: readonly LineChange[],
+  current: ReadonlyMap<string, { description: string; unit: string; quantity: number | null }>,
+): ElementLineChange[] {
+  const keys = [...new Set(elements.filter((e) => e.guid === guid).flatMap((e) => e.lineKeys ?? []))];
+  const byKey = new Map(lines.map((l) => [l.lineKey, l]));
+  return keys.flatMap((key): ElementLineChange[] => {
+    const l = byKey.get(key);
+    if (l) {
+      const side = sideOf(l);
+      return [{ key, description: side.description ?? key, unit: side.unit ?? "", change: l.change, before: l.before?.quantity ?? null, after: l.after?.quantity ?? null, delta: l.delta ?? null }];
+    }
+    const now = current.get(key);
+    return now ? [{ key, description: now.description, unit: now.unit, change: "unchanged", before: now.quantity, after: now.quantity, delta: now.quantity === null ? null : 0 }] : [];
+  });
 }

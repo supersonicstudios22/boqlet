@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { Download, X } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { saveFile } from "@/api/hooks/exports";
 import { publicExport, usePublicLine, usePublicLines, usePublicShare } from "@/api/hooks/shares";
 import type { RunLine } from "@/api/hooks/sheet";
@@ -18,6 +18,7 @@ import { lexicon } from "@/features/library/lib/readable";
 import { ModelViewer } from "@/features/viewer/model-viewer";
 import { cn } from "@/lib/utils";
 import { useUnit } from "@/i18n/units";
+import { useBoqFormat } from "@/i18n/boq-format";
 
 /** The line's text in the grouping system (P14 item text), else the rule set's. */
 const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[system]?.text : undefined) ?? l.description;
@@ -30,7 +31,8 @@ const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[sys
 export function PublicSharePage({ token }: { token: string }) {
   const unitLabel = useUnit();
   const t = useTranslations("shares.public");
-  const format = useFormatter();
+  // BoQ values and the run date in the BoQ format (TF-021): the defaults until the share carries the firm's.
+  const format = useBoqFormat();
   const message = useErrorMessage();
   const share = usePublicShare(token);
   const shown = !!share.data?.revisionLabel;
@@ -38,6 +40,27 @@ export function PublicSharePage({ token }: { token: string }) {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const detail = usePublicLine(token, share.data?.include.lineDetail ? selected : null);
+  // TF-158: each line opens by keyboard (a button in its description cell); focus goes into the detail
+  // when a line is opened from the sheet, and back to that line when the detail closes.
+  const lineButtons = useRef(new Map<string, HTMLButtonElement>());
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  const focusDetail = useRef(false);
+  const detailShown = !!(selected && detail.data);
+  useEffect(() => {
+    if (detailShown && focusDetail.current) {
+      focusDetail.current = false;
+      detailHeading.current?.focus();
+    }
+  }, [detailShown, selected]);
+  const openLine = (key: string) => {
+    focusDetail.current = true;
+    setSelected(key);
+  };
+  const closeDetail = () => {
+    const key = selected;
+    setSelected(null);
+    if (key) lineButtons.current.get(key)?.focus();
+  };
   const excel = useMutation({ mutationFn: async () => saveFile(await publicExport(token), `${share.data?.boqName ?? "boq"}_${share.data?.revisionLabel ?? ""}.xlsx`.replace(/[^\w.-]+/g, "-")), onError: () => {} });
   const system = share.data?.include.groupBy ?? share.data?.systems?.[0]?.id;
   const lex = useMemo(() => lexicon({}, (name) => name), []);
@@ -154,7 +177,25 @@ export function PublicSharePage({ token }: { token: string }) {
                           data-key={l.key}
                           data-source={l.source}
                         >
-                          <TableCell className="max-w-[520px]">{textOf(l, system)}</TableCell>
+                          <TableCell className="max-w-[520px]">
+                            {s.include.lineDetail ? (
+                              <button
+                                type="button"
+                                ref={(el) => {
+                                  if (el) lineButtons.current.set(l.key, el);
+                                  else lineButtons.current.delete(l.key);
+                                }}
+                                onClick={() => openLine(l.key)}
+                                aria-expanded={selected === l.key}
+                                aria-controls={selected === l.key ? "share-detail" : undefined}
+                                className="w-full rounded-[var(--radius)] text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                {textOf(l, system)}
+                              </button>
+                            ) : (
+                              textOf(l, system)
+                            )}
+                          </TableCell>
                           <TableCell>{unitLabel(l.unit)}</TableCell>
                           <TableCell className="text-right tabular-nums">{l.quantity === null ? "—" : format.number(l.quantity, { maximumFractionDigits: 3 })}</TableCell>
                         </TableRow>
@@ -165,10 +206,12 @@ export function PublicSharePage({ token }: { token: string }) {
               )}
             </section>
             {s.include.lineDetail && selected && detail.data && (
-              <aside className="flex w-full flex-col gap-4 border-l border-border pl-5 lg:w-[440px] lg:shrink-0" data-testid="share-detail">
+              <aside id="share-detail" aria-label={t("detail")} className="flex w-full flex-col gap-4 border-l border-border pl-5 lg:w-[440px] lg:shrink-0" data-testid="share-detail">
                 <div className="flex items-start gap-2">
-                  <h2 className="text-title flex-1">{textOf(detail.data, system)}</h2>
-                  <Button variant="ghost" aria-label={t("close")} onClick={() => setSelected(null)}>
+                  <h2 ref={detailHeading} tabIndex={-1} className="text-title flex-1 outline-none">
+                    {textOf(detail.data, system)}
+                  </h2>
+                  <Button variant="ghost" aria-label={t("close")} onClick={closeDetail}>
                     <X aria-hidden />
                   </Button>
                 </div>

@@ -21,3 +21,17 @@ export function onLineEdited(fn: (e: LineEdited) => void): () => void {
 export function publishLineEdited(e: LineEdited) {
   for (const fn of listeners) fn(e);
 }
+
+const resumeListeners = new Set<() => void>();
+
+/** The API answers again after a failure (the tab's event stream reconnected, TF-182/TF-183): unsaved work can be sent again. */
+export function onApiResumed(fn: () => void): () => void {
+  resumeListeners.add(fn);
+  return () => {
+    resumeListeners.delete(fn);
+  };
+}
+
+export function publishApiResumed() {
+  for (const fn of resumeListeners) fn();
+}

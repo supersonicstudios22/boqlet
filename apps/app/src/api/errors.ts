@@ -47,6 +47,14 @@ export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }
 
+/**
+ * The API could not be reached or is restarting (a deploy, TF-183): no answer, a gateway's 502/503/504,
+ * or the dev proxy's `api_unavailable`. Worth retrying; nothing was refused.
+ */
+export function isUnavailable(error: unknown): boolean {
+  return isApiError(error) && (error.status === 0 || error.status === 502 || error.status === 503 || error.status === 504 || error.code === "api_unavailable");
+}
+
 /** openapi-fetch middleware: throw an `ApiError` for every non-2xx answer (redirects pass). */
 export const throwOnApiError: Middleware = {
   async onResponse({ response }) {

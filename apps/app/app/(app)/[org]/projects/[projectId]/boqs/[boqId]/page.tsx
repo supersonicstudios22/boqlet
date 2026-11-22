@@ -7,6 +7,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useBoq, useRuns, type Run } from "@/api/hooks/boqs";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { DimensionRule } from "@/components/dimension-rule";
+import { Button } from "@/components/ui/button";
 import { BoqHeader } from "@/features/boqs/boq-header";
 import { BoqPresenceProvider, PresenceAvatars } from "@/features/boqs/presence";
 import { useRevisions } from "@/api/hooks/diffs";
@@ -36,6 +37,7 @@ type Tab = (typeof TABS)[number];
 export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: string }> }) {
   const { boqId } = use(params);
   const t = useTranslations("boqs");
+  const tc = useTranslations("common");
   const message = useErrorMessage();
   const orgScope = useOrg();
   const { org } = orgScope;
@@ -62,7 +64,17 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   const base = `/${org.slug}/projects/${project.id}/boqs/${boqId}`;
   const approval = org.settings?.approvalRequired === true;
 
-  if (boq.isError) return <p role="alert" className="text-error">{message(boq.error)}</p>;
+  // A failed refetch (the API restarting, TF-183) keeps the page and its unsaved edits on screen; it
+  // refetches when the API answers again (the realtime provider). Only a BoQ never loaded is an error.
+  if (boq.isError && !boq.data)
+    return (
+      <div role="alert" className="flex flex-col items-start gap-3" data-testid="boq-error">
+        <p className="text-error">{message(boq.error)}</p>
+        <Button variant="outline" onClick={() => void boq.refetch()} disabled={boq.isFetching}>
+          {tc("retry")}
+        </Button>
+      </div>
+    );
   if (!boq.data) return <div className="h-40" aria-busy="true" />;
   const current = viewing ? viewing.currentRun : boq.data.currentRevision.currentRun;
   const href = (key: string) => `${base}?${new URLSearchParams({ tab: key, ...(viewing ? { version: viewing.id } : {}) }).toString()}`;

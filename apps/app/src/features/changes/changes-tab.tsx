@@ -17,8 +17,10 @@ import { ModelViewer } from "@/features/viewer/model-viewer";
 import { viewerModels } from "@/features/viewer/viewer-tab";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
-import { candidates, DEFAULT_THRESHOLD, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
+import { useLines } from "@/api/hooks/sheet";
+import { candidates, DEFAULT_THRESHOLD, elementLineChanges, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
 import { useUnit } from "@/i18n/units";
+import { useBoqFormat, type BoqFormatter } from "@/i18n/boq-format";
 
 const CHANGE_CLASS: Record<string, string> = {
   added: "border-[var(--blue)] text-[var(--blue)]",
@@ -94,6 +96,8 @@ export function ChangesTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefi
 function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; toRunId: string; fromRunId: string; runs: Run[] | undefined; message: (e: unknown) => string; base: string }) {
   const t = useTranslations("boqs.changes");
   const format = useFormatter();
+  // Quantities and deltas in the firm's number format (TF-021); counts stay in the UI's.
+  const boqFormat = useBoqFormat();
   const router = useRouter();
   const diff = useDiff(toRunId, fromRunId);
   const lines = useDiffLines(diff.data?.id);
@@ -119,7 +123,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
   if (!diff.data) return <p className="text-muted-foreground" aria-busy="true" data-testid="changes-loading">{t("comparing")}</p>;
   const s = diff.data.summary;
   const n = (v: number | undefined) => format.number(v ?? 0);
-  const qty = (v: number | null | undefined) => (v === null || v === undefined ? "—" : format.number(v, { maximumFractionDigits: 3 }));
+  const qty = (v: number | null | undefined) => (v === null || v === undefined ? "—" : boqFormat.number(v, { maximumFractionDigits: 3 }));
   const exportExcel = () => {
     const id = toast.loading(t("exporting"));
     exporting.mutate(undefined, { onSuccess: (e) => toast.success(t("exported", { file: e.fileName }), { id }), onError: (err) => toast.error(message(err), { id }) });
@@ -253,7 +257,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
                   </TableRow>
                 ),
                 ...g.lines.map((l) => (
-                  <LineRow key={l.lineKey} line={l} qty={qty} format={format} openInSheet={l.change !== "removed" ? () => router.push(`${base}?${new URLSearchParams({ tab: "sheet", line: l.lineKey }).toString()}`) : undefined} />
+                  <LineRow key={l.lineKey} line={l} qty={qty} format={boqFormat} openInSheet={l.change !== "removed" ? () => router.push(`${base}?${new URLSearchParams({ tab: "sheet", line: l.lineKey }).toString()}`) : undefined} />
                 )),
               ])}
             </TableBody>
@@ -270,14 +274,22 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
       {toRun && (
         <section className="flex flex-col gap-3">
           <h3 className="label-caps">{t("viewer")}</h3>
-          <ChangesViewer toRun={toRun} fromRunId={fromRunId} byChange={byChange} focus={focus} />
+          <ChangesViewer
+            toRun={toRun}
+            fromRunId={fromRunId}
+            byChange={byChange}
+            focus={focus}
+            elements={elements.data}
+            lineChanges={lines.data}
+            onOpenLine={(key) => router.push(`${base}?${new URLSearchParams({ tab: "sheet", line: key }).toString()}`)}
+          />
         </section>
       )}
     </div>
   );
 }
 
-function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty: (v: number | null | undefined) => string; format: ReturnType<typeof useFormatter>; openInSheet?: () => void }) {
+function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty: (v: number | null | undefined) => string; format: BoqFormatter; openInSheet?: () => void }) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.changes");
   const side = (l.after ?? l.before)!;
@@ -357,12 +369,36 @@ function ElementsTable({ elements, onShow }: { elements: ElementChange[]; onShow
   );
 }
 
-/** The newer run's models in the "changes" colour mode; removed elements from the older run's other versions as ghosts. */
-function ChangesViewer({ toRun, fromRunId, byChange, focus }: { toRun: Run; fromRunId: string; byChange: { added: string[]; changed: string[]; removed: string[] }; focus: string[] | null }) {
+/**
+ * The newer run's models in the "changes" colour mode; removed elements from the older run's other
+ * versions as ghosts. With the newer run's lines (the picked elements' lines, the other colour modes)
+ * and, for a picked element, its lines before and after with the delta (F07 §9, TF-102).
+ */
+function ChangesViewer({
+  toRun,
+  fromRunId,
+  byChange,
+  focus,
+  elements,
+  lineChanges,
+  onOpenLine,
+}: {
+  toRun: Run;
+  fromRunId: string;
+  byChange: { added: string[]; changed: string[]; removed: string[] };
+  focus: string[] | null;
+  elements: ElementChange[] | undefined;
+  lineChanges: LineChange[] | undefined;
+  onOpenLine: (key: string) => void;
+}) {
   const fromRun = useRun(fromRunId).data;
+  const toLines = useLines(toRun.id).data;
   const models = useMemo(() => viewerModels(toRun), [toRun]);
   const ghostModels = useMemo(() => viewerModels(fromRun).filter((m) => !models.some((x) => x.versionId === m.versionId)), [fromRun, models]);
-  const changes = useMemo(() => ({ ...byChange, ghostModels }), [byChange, ghostModels]);
+  const changes = useMemo(() => {
+    const current = new Map((toLines ?? []).map((l) => [l.key, l]));
+    return { ...byChange, ghostModels, linesOf: (guid: string) => elementLineChanges(guid, elements ?? [], lineChanges ?? [], current) };
+  }, [byChange, ghostModels, toLines, elements, lineChanges]);
   if (byChange.removed.length && !fromRun) return <div className="h-40" aria-busy="true" />;
-  return <ModelViewer key={`${toRun.id}|${fromRunId}|${ghostModels.length}`} models={models} runId={toRun.id} systems={toRun.classifications ?? []} changes={changes} focusGuids={focus} className="h-[560px]" />;
+  return <ModelViewer key={`${toRun.id}|${fromRunId}|${ghostModels.length}`} models={models} runId={toRun.id} lines={toLines} systems={toRun.classifications ?? []} changes={changes} focusGuids={focus} onOpenLine={onOpenLine} className="h-[560px]" />;
 }
