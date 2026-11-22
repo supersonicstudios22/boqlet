@@ -101,6 +101,39 @@ def names_in_model(parsed: dict, dictionaries: list[dict], resolution: dict | No
     return sorted(rows.values(), key=lambda r: (r["field"], r["term"] is not None, r["raw"].lower()))
 
 
+class _Answers(dict):
+    """The decisions' answers by question id, remembering the ones the run looked up and found: the questions
+    it would have asked, answered (TF-137)."""
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.used: set[str] = set()
+
+    def get(self, key, default=None):
+        if dict.__contains__(self, key):
+            self.used.add(key)
+        return dict.get(self, key, default)
+
+    def __contains__(self, key):
+        found = dict.__contains__(self, key)
+        if found:
+            self.used.add(key)
+        return found
+
+    def __getitem__(self, key):
+        value = dict.__getitem__(self, key)
+        self.used.add(key)
+        return value
+
+
+def answered_ids(answers: _Answers, resolver) -> list[str]:
+    """The questions this run raised that decisions answered: answers it looked up, and names the decision
+    layer resolved (`decision:{field}:{raw}` entries, names.decision_entries). Line edits are not questions."""
+    names = {"name:" + str(r["entryId"])[len("decision:"):] for r in resolver.cache.values()
+             if str(r.get("entryId") or "").startswith("decision:")}
+    return sorted({key for key in answers.used if not key.startswith("override:")} | names)
+
+
 def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]], dictionaries: list[dict],
             resolution: dict | None = None, decisions: list[dict] | None = None,
             rule_library: dict[str, dict] | None = None, federation: dict | None = None,
@@ -110,7 +143,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     resolution = resolution or {}
     decisions = decisions or []
     overrides = from_decisions(decisions)
-    answers = {d["questionId"]: d.get("answer") for d in decisions}
+    answers = _Answers({d["questionId"]: d.get("answer") for d in decisions})
 
     models = ([{"id": None, "parsed": parsed}] if isinstance(parsed, dict) and "header" in parsed
               else [dict(m) for m in parsed])
@@ -355,6 +388,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         "ruleSet": ruleset_snapshot,
         "lines": out_lines,
         "questions": questions,
+        "answeredQuestionIds": answered_ids(answers, rv),
         "warnings": warnings,
         "checks": [c if len(models) == 1 else {**c, "id": f"{m['fileName']}:{c['id']}"}
                    for m in models for c in m["parsed"]["verification"]["checks"]],

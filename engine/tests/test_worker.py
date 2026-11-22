@@ -171,3 +171,22 @@ def test_an_invalid_document_is_refused_every_time(monkeypatch):
     for _ in range(2):
         with pytest.raises(ValueError, match="dictionary"):
             worker.validate(bad, "dictionary")
+
+
+def test_a_run_refuses_a_model_scope_with_a_typo(tmp_path):
+    """TF-074: `exlude` was ignored and the furniture measured."""
+    storage = LocalStorage(tmp_path)
+    rules, _ = presets.load_rule_set("as-modelled")
+    job = {"models": [{"id": "v", "name": "Architecture", "parsedKey": "missing.json.gz", "scope": {"exlude": [{"ifcClass": "IfcFurnishingElement"}]}}],
+           "ruleSet": {"doc": rules}}
+    failed = execute(envelope("run", job, "r/"), storage)
+    assert failed["status"] == "failed" and failed["error"]["code"] == "invalid_input" and "exlude" in failed["error"]["message"]
+
+
+def test_the_edits_import_checks_refs_against_the_workbooks_own_grouping():
+    """TF-051 follow-up: `groupCodesBySystem[groupBy]` (the grouping the workbook was exported with), else `groupCodes`."""
+    from ifc_boq.worker import _group_codes
+    job = {"groupBy": "trades", "groupCodes": ["A.01"], "groupCodesBySystem": {"acme": ["A.01"], "trades": ["01", "02"]}}
+    assert _group_codes(job) == ["01", "02"]
+    assert _group_codes({**job, "groupBy": "other"}) == ["A.01"]
+    assert _group_codes({"groupCodes": ["A.01"]}) == ["A.01"]

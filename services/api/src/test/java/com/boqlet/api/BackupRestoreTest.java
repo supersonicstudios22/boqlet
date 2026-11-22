@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
@@ -93,5 +96,50 @@ class BackupRestoreTest {
                 assertThat(grants.getBoolean(1)).as("queue grants survive the restore").isTrue();
             }
         }
+    }
+
+    /** The object half of backup.sh: a tar of the storage volume, restored into another SeaweedFS, serves every object (TF-186). */
+    @Test
+    void aTarOfTheObjectVolumeRestoresEveryObject() throws Exception {
+        var seaweed = DockerImageName.parse("chrislusf/seaweedfs:4.53");
+        String bucket = "boqlet-restore-check";
+        var tar = java.nio.file.Files.createTempFile("objects", ".tgz");
+        var objects = Map.of("orgs/a/models/v/1/attempt-1/parsed.json.gz", "parsed model", "orgs/a/exports/e/attempt-1/export.xlsx", "workbook");
+        try (var live = new GenericContainer<>(seaweed).withEnv("AWS_ACCESS_KEY_ID", "restore").withEnv("AWS_SECRET_ACCESS_KEY", "restore-only")
+                .withEnv("S3_BUCKET", bucket).withExposedPorts(8333).waitingFor(Wait.forHttp("/").forPort(8333).forStatusCode(403))) {
+            live.start();
+            try (var client = s3(live)) {
+                objects.forEach((key, body) -> client.putObject(request -> request.bucket(bucket).key(key),
+                        software.amazon.awssdk.core.sync.RequestBody.fromString(body)));
+            }
+            // backup.sh: `tar czf objects.tgz -C /data .` of the stopped writer's volume (here: the running one, after the writes).
+            var result = live.execInContainer("sh", "-c", "tar czf /tmp/objects.tgz -C /data .");
+            assertThat(result.getExitCode()).as(result.getStderr()).isZero();
+            live.copyFileFromContainer("/tmp/objects.tgz", tar.toString());
+        }
+        try (var restored = new GenericContainer<>(seaweed).withEnv("AWS_ACCESS_KEY_ID", "restore").withEnv("AWS_SECRET_ACCESS_KEY", "restore-only")
+                .withCopyFileToContainer(MountableFile.forHostPath(tar), "/restore/objects.tgz")
+                .withCreateContainerCmdModifier(command -> command.withEntrypoint("sh", "-c",
+                        "tar xzf /restore/objects.tgz -C /data && exec /entrypoint.sh mini -dir=/data"))
+                .withExposedPorts(8333).waitingFor(Wait.forHttp("/").forPort(8333).forStatusCode(403))) {
+            restored.start();
+            try (var client = s3(restored)) {
+                for (var object : objects.entrySet()) {
+                    assertThat(client.getObjectAsBytes(request -> request.bucket(bucket).key(object.getKey())).asUtf8String())
+                            .as(object.getKey()).isEqualTo(object.getValue());
+                }
+            }
+        } finally {
+            java.nio.file.Files.deleteIfExists(tar);
+        }
+    }
+
+    private static software.amazon.awssdk.services.s3.S3Client s3(GenericContainer<?> storage) {
+        return software.amazon.awssdk.services.s3.S3Client.builder()
+                .endpointOverride(java.net.URI.create("http://" + storage.getHost() + ":" + storage.getMappedPort(8333)))
+                .region(software.amazon.awssdk.regions.Region.US_EAST_1).forcePathStyle(true)
+                .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("restore", "restore-only")))
+                .build();
     }
 }

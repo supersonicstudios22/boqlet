@@ -86,6 +86,7 @@ mvn -B -ntp -f services/api/pom.xml verify
 | `BOQLET_NATIVE_SCENARIOS=1` | `sharedScenariosPassAgainstJava` (`BOQLET_SCENARIO_FILTER=library,versions` runs some files) |
 | `BOQLET_BROWSER_SMOKE=1` | `browserSmokeAgainstJava`: a second Java with `BOQLET_NATIVE_AUTH=true`, the app on 3100 (`NEXT_DIST_DIR=.next-java`), `npm run e2e:java`; `BOQLET_BROWSER_SMOKE_FILTER` narrows it |
 | `BOQLET_NATIVE_QUEUE_TEST=1` | Jobs go through the Postgres queue with queue workers (as on the pilot) instead of HTTP dispatch. CI sets it |
+| `BOQLET_NATIVE_RESILIENCE=1` | `jobsSurviveTheWorkerAndTheDatabaseGoingAway`: the worker killed mid-parse for 25 s, then the database restarted mid-parse; each job ends with at most 2 attempts (TF-186). About 1.5 min. CI sets it |
 | `BOQLET_API_PERF=1` | `apiPerformanceAgainstJava`: `tests/perf/api.test.ts` plus 50k-line ingestion; results appended to `PERF_OUT=<file>`. Not in CI |
 
 Inside the harness the suites get `API_URL`, `SUITE_TARGET=java`, `BOQLET_JAVA_SUITE_USERS` (six users
@@ -113,12 +114,13 @@ Results go into [../architecture/nfr.md](../architecture/nfr.md). Never load-tes
 
 | Job | Runs | Deploy gate |
 |---|---|---|
-| `api` | `mvn verify` with `BOQLET_NATIVE_WORKER_PYTHON`, `BOQLET_NATIVE_NODE`, `BOQLET_NATIVE_QUEUE_TEST=1`, `BOQLET_NATIVE_SCENARIOS=1`, `BOQLET_BROWSER_SMOKE=1`: every Java test, the contract and scenario suites, SSE across two API instances, the browser smoke | yes |
+| `api` | `mvn verify` with `BOQLET_NATIVE_WORKER_PYTHON`, `BOQLET_NATIVE_NODE`, `BOQLET_NATIVE_QUEUE_TEST=1`, `BOQLET_NATIVE_RESILIENCE=1`, `BOQLET_NATIVE_SCENARIOS=1`, `BOQLET_BROWSER_SMOKE=1`: every Java test, the contract and scenario suites, SSE across two API instances, a worker and a database going away mid-job, the browser smoke | yes |
+| `rollback` | builds this revision's API image and the previous release's (`git describe --tags --match 'v*' HEAD^`), migrates a fresh database with the first and starts the second on it (`scripts/ci-rollback-check.sh`) | yes |
 | `contract` | `api:lint`, `api:check`, `codegen` + `git diff --exit-code packages/types/schema` | yes |
 | `typecheck` | `typecheck`, `lint`, `test:app`, `build:app`, `bundle:check` | yes |
 | `engine` | `test:engine` | yes |
 | `local` | `local:up` + `local:check` (the Docker stack) | no |
-| `deploy` | On a push to `main` after the four gates: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
+| `deploy` | On a push to `main` after the five gates: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
 
 Not in CI: the performance suite, engine timing, the corpus run, other browsers, accessibility, a
 nightly job, Python or Java linters. There is no separate "core only" build job; the pricing

@@ -1,5 +1,8 @@
 package com.boqlet.api.maintenance;
 
+import com.boqlet.api.audit.AuditWriter;
+import com.boqlet.api.db.StoredJson;
+import com.boqlet.api.model.Models;
 import com.boqlet.api.storage.ObjectStorage;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -16,15 +19,19 @@ public class Maintenance {
     private final JdbcTemplate database;
     private final TransactionTemplate transactions;
     private final ObjectStorage storage;
+    private final StoredJson json;
+    private final AuditWriter audit;
     private final long purgeHours;
     private final int indexDays;
 
-    Maintenance(JdbcTemplate database, TransactionTemplate transactions, ObjectStorage storage,
+    Maintenance(JdbcTemplate database, TransactionTemplate transactions, ObjectStorage storage, StoredJson json, AuditWriter audit,
                 @Value("${BOQLET_ORG_PURGE_HOURS:24}") long purgeHours,
                 @Value("${BOQLET_RUN_INDEX_DAYS:30}") int indexDays) {
         this.database = database;
         this.transactions = transactions;
         this.storage = storage;
+        this.json = json;
+        this.audit = audit;
         this.purgeHours = Math.clamp(purgeHours, 2, 696);
         this.indexDays = Math.max(1, indexDays);
     }
@@ -59,6 +66,7 @@ public class Maintenance {
         leader(6, this::expiredExports);
         leader(7, this::expiredEphemeralJobs);
         leader(8, this::purgeOrganisation);
+        leader(9, this::expiredTemplates);
     }
 
     private void pruneIndex() {
@@ -89,15 +97,31 @@ public class Maintenance {
                 """);
     }
 
+    /** An upload not completed within 24 h fails (`upload_expired`, audited), it isn't hidden (TF-031). */
     private void abandonedUploads() {
         var uploads = database.query("""
-                SELECT v.id, v.org_id FROM model_versions v WHERE v.status = 'awaiting_upload'
-                    AND v.created_at < now() - interval '24 hours' AND v.deleted_at IS NULL
-                ORDER BY v.created_at LIMIT 20 FOR NO KEY UPDATE SKIP LOCKED
-                """, (row, index) -> new Owned(row.getObject("id", UUID.class), row.getObject("org_id", UUID.class)));
+                SELECT v.id, v.org_id, m.project_id, v.upload_key, v.multipart_id FROM model_versions v
+                JOIN models m ON m.id = v.model_id
+                WHERE v.status = 'awaiting_upload' AND v.created_at < now() - interval '24 hours' AND v.deleted_at IS NULL
+                ORDER BY v.created_at LIMIT 20 FOR NO KEY UPDATE OF v SKIP LOCKED
+                """, (row, index) -> new Abandoned(row.getObject("id", UUID.class), row.getObject("org_id", UUID.class),
+                row.getObject("project_id", UUID.class), row.getString("upload_key"), row.getString("multipart_id")));
         for (var upload : uploads) {
+            if (upload.multipart() != null) storage.abort(upload.key(), upload.multipart());
             storage.deletePrefix(ObjectStorage.orgPrefix(upload.org()) + "uploads/" + upload.id() + "/");
-            database.update("UPDATE model_versions SET deleted_at = now() WHERE id = ?", upload.id());
+            Models.expireUpload(database, json, audit, upload.org(), upload.project(), upload.id());
+        }
+    }
+
+    /**
+     * A preset's Excel template is written to storage only to be downloaded through a 5-minute signed URL
+     * (`LibraryFiles.template`): after a day it is deleted (TF-061; it was kept for ever).
+     */
+    private void expiredTemplates() {
+        var before = java.time.Instant.now().minus(java.time.Duration.ofDays(1));
+        storage.deleteOlderThan("system/templates/", before);
+        for (UUID org : database.queryForList("SELECT id FROM orgs", UUID.class)) {
+            storage.deleteOlderThan(ObjectStorage.orgPrefix(org) + "templates/", before);
         }
     }
 
@@ -153,5 +177,6 @@ public class Maintenance {
     }
 
     private record Owned(UUID id, UUID org) {}
+    private record Abandoned(UUID id, UUID org, UUID project, String key, String multipart) {}
     private record Ephemeral(UUID id, UUID org, String output, String upload) {}
 }

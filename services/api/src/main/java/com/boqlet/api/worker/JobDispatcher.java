@@ -19,7 +19,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
 
 @Component
 class JobDispatcher {
@@ -110,7 +115,7 @@ class JobDispatcher {
         }
     }
 
-    private void execute(Jobs.Attempt attempt) {
+    void execute(Jobs.Attempt attempt) {
         var subscriber = new java.util.function.Consumer<JsonNode>() {
             private String lastStage = "";
             private long updated;
@@ -128,7 +133,16 @@ class JobDispatcher {
         };
         Future<JsonNode> exchange = running.submit(() -> worker.run(attempt.type(), attempt.envelope(), subscriber));
         try {
-            jobs.finish(attempt, id, await(attempt, exchange));
+            JsonNode result = await(attempt, exchange);
+            if (result == UNREACHABLE) {
+                if (persist(() -> jobs.postpone(attempt, id))) return;
+                result = failed("engine_unavailable", "The processing service was not available.", true);
+            }
+            JsonNode outcome = result;
+            persist(() -> {
+                jobs.finish(attempt, id, outcome);
+                return true;
+            });
         } catch (InterruptedException failure) {
             Thread.currentThread().interrupt();
         } catch (RuntimeException failure) {
@@ -152,10 +166,42 @@ class JobDispatcher {
             try {
                 return exchange.get(Math.min(TimeUnit.SECONDS.toNanos(1), remaining), TimeUnit.NANOSECONDS);
             } catch (TimeoutException ignored) {
-                if (!jobs.heartbeat(attempt, id)) return json.object(Map.of("status", "cancelled"));
+                try {
+                    if (!jobs.heartbeat(attempt, id)) return json.object(Map.of("status", "cancelled"));
+                } catch (DataAccessException blip) {
+                    // A database restart: the worker's exchange is healthy, so keep it; the next beat tries again
+                    // (the job is re-queued only if the beats stay away for 30 s, TF-184).
+                    LOG.warn("Could not record the heartbeat of job {}; retrying.", attempt.id(), blip);
+                }
             } catch (ExecutionException failure) {
+                if (unreachable(failure.getCause())) {
+                    LOG.warn("The worker was unreachable for job {}; the job waits for it.", attempt.id());
+                    return UNREACHABLE;
+                }
                 LOG.warn("Worker exchange failed for job {}.", attempt.id(), failure.getCause());
                 return failed("engine_unavailable", "The worker could not finish this job.", true);
+            }
+        }
+    }
+
+    /** Marks an exchange that never reached the worker. */
+    private static final JsonNode UNREACHABLE = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+
+    /** The connection itself failed: nothing ran on the worker, so the attempt isn't used up (TF-184). */
+    static boolean unreachable(Throwable cause) {
+        return cause instanceof java.net.ConnectException || cause instanceof java.net.http.HttpConnectTimeoutException;
+    }
+
+    /** A write that a database restart may refuse for a moment: tried for up to 15 s (TF-184). */
+    private boolean persist(java.util.function.BooleanSupplier write) throws InterruptedException {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return write.getAsBoolean();
+            } catch (TransientDataAccessException | DataAccessResourceFailureException | RecoverableDataAccessException
+                     | CannotCreateTransactionException blip) {
+                if (attempt >= 15) throw blip;
+                LOG.warn("Database unavailable while recording a job; retrying.", blip);
+                Thread.sleep(1000);
             }
         }
     }

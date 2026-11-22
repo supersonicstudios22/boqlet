@@ -216,6 +216,9 @@ def _run_result(job, storage, prefix, progress, *, check_result=True, models=Non
     for doc in manual_items:
         validate(doc, "manual-item")
 
+    for model in job["models"]:
+        if problems := presets.scope_problems(model.get("scope") or {}):
+            raise JobError("invalid_input", f"The scope of model {model.get('name') or model.get('id')}: {problems[0]}")
     if models is None:
         models = _load_models(job, storage)
     result = get_boq(models, flat, classifications, dictionaries, job.get("resolution"), decisions,
@@ -350,6 +353,12 @@ def _public_workbook_result(result, include_log):
     return result
 
 
+def _group_codes(job):
+    """The grouping code list's codes for the workbook's own grouping (`groupBy`), else the default one's."""
+    by_system = job.get("groupCodesBySystem") or {}
+    return by_system.get(job.get("groupBy"), job.get("groupCodes"))
+
+
 def _import_boq_edits(job, storage, prefix, progress):
     progress("import", 25, "Reading workbook edits")
     with storage.open(job["fileKey"]) as stream:
@@ -361,7 +370,7 @@ def _import_boq_edits(job, storage, prefix, progress):
     if lines is None:
         lines = read_json_gzip(storage, job["resultKey"])["lines"]
     report = boq_import.read(workbook, {"boqId": str(job["boqId"]), "primary": job.get("groupBy"), "lines": lines,
-                                        "codes": job.get("groupCodes")})
+                                        "codes": _group_codes(job)})
     key = prefix + "edits.json.gz"
     write_json_gzip(storage, key, report)
     return {"reportKey": key, "counts": {field: len(values) for field, values in report.items()}}, {}

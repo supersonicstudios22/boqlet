@@ -118,16 +118,18 @@ describe("limits on a Free org (F14-AC1)", () => {
   });
 });
 
-describe("processingMinutesPerMonth used up (BR-61, TF-132)", () => {
-  beforeAll(() => override({ processingMinutesPerMonth: 0 }));
-
-  it("new parse, run and preview jobs are 402", async () => {
+describe("processingMinutesPerMonth used up (BR-61, TF-132, TF-076)", () => {
+  it("a new upload, and new parse, run and preview jobs are 402", async () => {
+    // A version staged and uploaded while minutes were left, completed after they ran out.
     const staged = await api.POST("/models/{modelId}/versions", { params: { path: { modelId } }, body: { fileName: "Duplex_B.ifc", sizeBytes: (await duplexBytes()).byteLength } });
     expect(staged.response.status).toBe(201);
     const bytes = await duplexBytes();
     bytes[bytes.length - 1] = 0x20; // another file (no deduplication), still an IFC
     const { upload, version } = staged.data!;
     expect((await fetch(upload.url, { method: upload.method, headers: upload.headers, body: new Blob([bytes as BlobPart]) })).ok).toBe(true);
+    await override({ processingMinutesPerMonth: 0 });
+    // TF-076: refused before any bytes go to storage.
+    limited(await api.POST("/models/{modelId}/versions", { params: { path: { modelId } }, body: { fileName: "Duplex_C.ifc", sizeBytes: bytes.byteLength } }), "processingMinutesPerMonth");
     limited(await api.POST("/model-versions/{versionId}/complete", { params: { path: { versionId: version.id } }, body: {} }), "processingMinutesPerMonth");
     const revision = (await api.GET("/boqs/{boqId}", { params: { path: { boqId: boq.id } } })).data!.currentRevision;
     limited(await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: revision.id } } }), "processingMinutesPerMonth");

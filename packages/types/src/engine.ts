@@ -272,6 +272,11 @@ export interface BoqResult {
   lines: BoqLine[];
   /** All questions; `blocking` ones are why status is "needs_input". */
   questions: Question[];
+  /**
+   * The questions this run raised that a decision answered (they are not in `questions`), so a run's
+   * question list shows the decisions it used, not every decision of the project (TF-137).
+   */
+  answeredQuestionIds: string[];
   warnings: Warning[];
   /** Verification checks from parsing (volume mismatches, overlaps, ...). */
   checks: Check[];

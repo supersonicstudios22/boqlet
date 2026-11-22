@@ -201,6 +201,22 @@ public class ObjectStorage {
         }
     }
 
+    /** Deletes the objects under `prefix` last written before `before`, e.g. the throwaway preset templates. */
+    public int deleteOlderThan(String prefix, java.time.Instant before) {
+        configured();
+        if (!prefix.endsWith("/") || !(prefix.startsWith("orgs/") || prefix.startsWith("system/"))) {
+            throw new IllegalArgumentException("Expected an artifact prefix.");
+        }
+        int deleted = 0;
+        for (var page : client.listObjectsV2Paginator(request -> request.bucket(bucket).prefix(prefix))) {
+            var old = page.contents().stream().filter(object -> object.lastModified().isBefore(before))
+                    .map(object -> ObjectIdentifier.builder().key(object.key()).build()).toList();
+            deleteBatch(old);
+            deleted += old.size();
+        }
+        return deleted;
+    }
+
     private void deleteBatch(List<ObjectIdentifier> objects) {
         if (objects.isEmpty()) return;
         var result = client.deleteObjects(request -> request.bucket(bucket).delete(delete -> delete.objects(objects).quiet(true)));

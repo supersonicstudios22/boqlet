@@ -183,7 +183,7 @@ to run the shared HTTP contract suite against that same temporary Java API; add
 `BOQLET_NATIVE_SCENARIOS=1` for the scenario suite (`BOQLET_SCENARIO_FILTER` narrows it),
 `BOQLET_BROWSER_SMOKE=1` for the browser smoke (`BOQLET_BROWSER_SMOKE_FILTER`) and
 `BOQLET_API_PERF=1` for the API performance suite. The test JWT decoder, the test-only routes
-(`com.boqlet.suite.SuiteSupport`: users, clock, mail settle, setup links) and fixtures live in
+(`com.boqlet.suite.SuiteSupport`: users, clock, mail settle, setup links, `/_test/auth-limits/reset`) and fixtures live in
 the test sources, so these suites cannot run against the local Docker stack
 (`docs/testing/README.md`).
 

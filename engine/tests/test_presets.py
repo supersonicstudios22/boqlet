@@ -176,3 +176,11 @@ def test_check_validates_the_shipped_presets_once_not_on_every_call(monkeypatch)
     monkeypatch.setattr(presets, "validate", lambda *a, **k: calls.append(a[1]) or real(*a, **k))
     assert presets.check("rules", draft) == []
     assert calls == []
+
+
+def test_a_model_scope_is_checked_against_its_schema():
+    """TF-074: a typo in a model's scope (`exlude`) was stored and ignored; the furniture was measured."""
+    from ifc_boq import rpc
+    assert rpc.call("check", {"kind": "model-scope", "doc": {"exclude": [{"ifcClass": "IfcFurnishingElement"}]}}, None) == {"ok": True, "problems": []}
+    bad = rpc.call("check", {"kind": "model-scope", "doc": {"exlude": [{"ifcClass": "IfcFurnishingElement"}]}}, None)
+    assert not bad["ok"] and any("exlude" in p for p in bad["problems"]), bad

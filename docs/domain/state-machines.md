@@ -9,7 +9,7 @@ rejects them with `409 invalid_transition` and names the current state.
 stateDiagram-v2
   [*] --> awaiting_upload: POST versions (presigned URL issued)
   awaiting_upload --> queued: POST complete (file present, size and header ok)
-  awaiting_upload --> failed: upload not completed within 24 h
+  awaiting_upload --> failed: upload not completed within 24 h (error.code upload_expired)
   queued --> processing: worker claims parse job
   queued --> failed: parse cancelled (error.code cancelled)
   processing --> ready: parse succeeded
@@ -18,13 +18,15 @@ stateDiagram-v2
   ready --> [*]
 ```
 
-- A `ready` version is immutable. Deleting is allowed only when no run references it (then it
-  is soft-deleted).
+- A `ready` version is immutable. Deleting is allowed only when no BoQ uses it, in its inputs or a
+  run (then it is soft-deleted); else `409 version_in_use` with `details.usedBy` (TF-032).
+- An upload not completed within 24 h fails with `upload_expired`, by the hourly sweep or by a late
+  `complete`, which then queues nothing (TF-031). Every `failed` is audited as `model_version.failed`.
 - **Same content hash:** if a `ready` version with the same sha256 exists anywhere in the
   same org, the parse artifacts are reused and the version goes straight to `ready` (event
   still recorded).
 - `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `too_large`,
-  `parse_timeout`, `parse_error`, `cancelled`. A job failure with another code (the worker's or the
+  `parse_timeout`, `parse_error`, `cancelled`, `upload_expired`. A job failure with another code (the worker's or the
   backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`…) is stored as
   `parse_timeout` (timeouts) or `parse_error`, its own code kept in `error.details.cause` (`ParseJob`, TF-037).
 
@@ -38,10 +40,13 @@ stateDiagram-v2
   running --> succeeded
   running --> failed
   running --> cancelled: user cancels (worker checks between stages)
+  running --> queued: the worker couldn't be reached (no attempt used; the job's first 30 min)
   failed --> queued: automatic retry if error.retryable and attempts < 3
 ```
 
-A job never "needs input" (P13). It always ends.
+A job never "needs input" (P13). It always ends. A worker that refuses the connection (HTTP
+transport) leaves the job waiting with `progress.stage = waiting_for_worker` instead of using up
+its attempts (TF-184). A cancel is audited as `job.cancelled` (TF-034).
 
 ## Run
 
@@ -58,7 +63,10 @@ stateDiagram-v2
 
 Runs are immutable once finished. Answering a question doesn't change a run. The UI offers
 "Re-generate", which creates a new run with the current decisions and adjustments. The
-revision's `currentRunId` moves to the newest **finished** run (complete or needs_input).
+revision's `currentRunId` moves to the newest **finished** run (complete or needs_input): a run
+started earlier that finishes later doesn't replace it. Generate while a run is active answers
+that run when the inputs are the same, else starts a new one beside it (TF-094). A failed or
+cancelled run is audited as `run.failed` / `run.cancelled`.
 
 ## BoqRevision (working and saved versions, P29)
 

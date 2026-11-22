@@ -56,5 +56,5 @@ Full reference with what each does: [services/api/README.md](../../services/api/
 
 The variables that switch on the shared suites, the browser smoke and the performance suite inside
 `mvn verify` (`BOQLET_NATIVE_WORKER_PYTHON`, `BOQLET_NATIVE_NODE`, `BOQLET_NATIVE_SCENARIOS`,
-`BOQLET_BROWSER_SMOKE`, `BOQLET_NATIVE_QUEUE_TEST`, `BOQLET_API_PERF`, the filters, `API_URL`,
+`BOQLET_BROWSER_SMOKE`, `BOQLET_NATIVE_QUEUE_TEST`, `BOQLET_NATIVE_RESILIENCE`, `BOQLET_API_PERF`, the filters, `API_URL`,
 `PERF_OUT`) are listed in [../testing/README.md](../testing/README.md#how-to-run-each-layer).

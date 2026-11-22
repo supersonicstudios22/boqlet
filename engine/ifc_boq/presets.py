@@ -313,15 +313,31 @@ def slot_problem(slot: dict) -> str | None:
     return None
 
 
+@lru_cache(maxsize=1)
+def _scope_validator():
+    import jsonschema
+    schema = _schema("run-request")
+    return jsonschema.validators.validator_for(schema)({"$ref": "#/definitions/ModelScope", "definitions": schema["definitions"]})
+
+
+def scope_problems(scope) -> list[str]:
+    """Problems with a model's scope (`ModelScope` in run-request.schema.json): unknown keys included (TF-074)."""
+    validator = _scope_validator()
+    return [f"{'/'.join(str(p) for p in e.absolute_path) or '(root)'}: {e.message[:300]}"
+            for e in sorted(validator.iter_errors(scope), key=lambda e: list(map(str, e.absolute_path)))[:25]]
+
+
 def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
     """Problems with a draft preset, as messages. [] = the engine would accept it.
 
-    kind: rules | dictionaries | classifications ({"codeList", "map"}).
+    kind: rules | dictionaries | classifications ({"codeList", "map"}) | model-scope (a model's `scope`).
     `library`: other unsaved drafts of the same kind, so a draft patch can extend a draft.
     Uses the same checks as loading and the preset tests; never runs a model.
     """
     from .classify import code_targets
     from .rules import flatten, integrity
+    if kind == "model-scope":
+        return scope_problems(doc)
     if kind == "rules":
         problems = _schema_problems(doc, "rules", "")
         if not problems:

@@ -45,10 +45,16 @@ class ParseJob implements JobHandler {
                 error = json.object(Map.of("code", "cancelled", "message", "The parse was cancelled.", "retryable", true));
             }
             error = versionError(error);
-            database.update("""
+            int failed = database.update("""
                     UPDATE model_versions SET status = 'failed', error = CAST(? AS jsonb)
                     WHERE id = ? AND parse_job_id = ?
                     """, error.toString(), attempt.subject(), attempt.id());
+            // BR-51, F09: a failed or cancelled parse is in the audit, with the version's error code (TF-034).
+            if (failed == 1) {
+                audit.record(new RequestContext(attempt.actor(), null, attempt.org(), null), AuditWriter.ActorKind.SYSTEM,
+                        attempt.project(), "model_version.failed", "modelVersion", attempt.subject(),
+                        json.object(Map.of("code", error.path("code").asText(), "jobId", attempt.id().toString())));
+            }
             return Map.of("modelVersionId", attempt.subject());
         }
         var output = result.path("output");
@@ -65,7 +71,7 @@ class ParseJob implements JobHandler {
 
     /** The codes a failed version answers (state-machines.md ModelVersion, TF-037); the app translates each. */
     static final java.util.Set<String> VERSION_ERRORS = java.util.Set.of("not_ifc", "unsupported_schema", "corrupt_file",
-            "too_large", "parse_timeout", "parse_error", "cancelled");
+            "too_large", "parse_timeout", "parse_error", "cancelled", "upload_expired");
 
     /**
      * A job's error as a version's: a code of the list, the job's own code kept as `cause` (for support).
@@ -109,10 +115,11 @@ class ParseJob implements JobHandler {
                 WHERE id = ? AND parse_job_id IS NOT DISTINCT FROM ? AND deleted_at IS NULL
                 """, sha, summary.toString(), sharedArtifacts, duplicate, version, job);
         if (updated != 1) return false;
-        // "detect": the first parsed version's guess becomes the model's discipline (F03 §1).
+        // "detect": the first parsed version's guess becomes the model's discipline (F03 §1), when it is one of
+        // the disciplines; a guess that isn't ("unknown", "mixed", "infrastructure") becomes architecture (TF-128).
         String guess = summary.path("disciplineGuess").asText("");
         database.update("UPDATE models SET discipline = ? WHERE id = ? AND discipline = 'detect'",
-                guess.isBlank() ? "architecture" : guess, model);
+                Models.disciplines(database, org).contains(guess) ? guess : "architecture", model);
         database.update("""
                 UPDATE models SET latest_version_id = ?, updated_at = now()
                 WHERE id = ? AND coalesce((SELECT number FROM model_versions WHERE id = models.latest_version_id), 0)

@@ -62,6 +62,8 @@ class NativeWorkerTest {
     private static final int S3_PORT = 8333;
     private static final Path ROOT = Path.of("../..").toAbsolutePath().normalize();
     private static Process worker;
+    /** How the HTTP worker was started, to start it again after a test stops it (TF-186). */
+    private static ProcessBuilder workerStart;
     private static final java.util.List<Process> queueWorkers = new java.util.ArrayList<>();
     private static final boolean POSTGRES_QUEUE = "1".equals(System.getenv("BOQLET_NATIVE_QUEUE_TEST"));
     private static final HttpClient NETWORK = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
@@ -96,6 +98,7 @@ class NativeWorkerTest {
         start.environment().put("AWS_ACCESS_KEY_ID", ACCESS);
         start.environment().put("AWS_SECRET_ACCESS_KEY", SECRET);
         start.environment().put("AWS_DEFAULT_REGION", "us-east-1");
+        workerStart = start;
         worker = start.start();
         try {
             com.boqlet.suite.SuiteSupport.installClock(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
@@ -537,8 +540,15 @@ class NativeWorkerTest {
         assertThat(storage.exists(artifact)).isFalse();
     }
 
+    private static boolean queueRole;
+
     private synchronized void startQueueWorkers() throws Exception {
         if (!queueWorkers.isEmpty()) return;
+        if (queueRole) {
+            launchQueueWorkers();
+            return;
+        }
+        queueRole = true;
         database.execute("CREATE ROLE boqlet_queue_test LOGIN PASSWORD 'local-queue-test-only'");
         database.execute("GRANT EXECUTE ON FUNCTION queue_claim(uuid,text,text[]) TO boqlet_queue_test");
         database.execute("GRANT EXECUTE ON FUNCTION queue_renew(uuid,uuid,integer,jsonb) TO boqlet_queue_test");
@@ -548,6 +558,10 @@ class NativeWorkerTest {
             org.assertj.core.api.Assertions.assertThatThrownBy(() -> statement.execute("SELECT id FROM orgs"))
                     .isInstanceOf(java.sql.SQLException.class).hasMessageContaining("permission denied");
         }
+        launchQueueWorkers();
+    }
+
+    private void launchQueueWorkers() throws Exception {
         var dsn = "postgresql://boqlet_queue_test:local-queue-test-only@" + POSTGRES.getHost() + ":"
                 + POSTGRES.getMappedPort(5432) + "/" + POSTGRES.getDatabaseName();
         var endpoint = "http://" + S3.getHost() + ":" + S3.getMappedPort(S3_PORT);
@@ -555,7 +569,7 @@ class NativeWorkerTest {
             var start = new ProcessBuilder(System.getenv("BOQLET_NATIVE_WORKER_PYTHON"), "-m", "ifc_boq.worker_queue", "--pool", pool,
                     "--concurrency", pool.equals("ifc") ? "2" : "1", "--poll-seconds", "0.2")
                     .directory(ROOT.resolve("engine").toFile()).redirectErrorStream(true)
-                    .redirectOutput(Path.of("target/queue-worker-" + pool + ".log").toFile());
+                    .redirectOutput(ProcessBuilder.Redirect.appendTo(Path.of("target/queue-worker-" + pool + ".log").toFile()));
             start.environment().put("ENGINE_QUEUE_DSN", dsn);
             start.environment().put("ENGINE_STORAGE", "s3://" + BUCKET);
             start.environment().put("ENGINE_S3_ENDPOINT", endpoint);
@@ -845,8 +859,182 @@ class NativeWorkerTest {
         assertThat(published.path("number").asInt()).isEqualTo(1);
     }
 
+    /**
+     * TF-009 (F14-AC4, BR-62): the month's processing minutes are the time of the jobs that ran: a parse, a run
+     * and a preview of one org, each against its start and end.
+     */
+    @Test
+    void usageMinutesAreTheTimeOfTheJobsThatRan() throws Exception {
+        if (POSTGRES_QUEUE) startQueueWorkers();
+        Cookie cookie = person("usage-minutes@example.test");
+        String org = id(perform(post("/api/v1/orgs").content("{\"name\":\"Usage\",\"slug\":\"usage-minutes\"}"), cookie, 201));
+        String project = id(perform(post("/api/v1/orgs/" + org + "/projects").content("{\"name\":\"Usage\"}"), cookie, 201));
+        String model = id(perform(post("/api/v1/projects/" + project + "/models")
+                .content("{\"name\":\"Architecture\",\"discipline\":\"architecture\"}"), cookie, 201));
+        var jobs = new java.util.ArrayList<String>();
+        String parse = startParse(cookie, model, variant(11));
+        awaitJob(parse, cookie);
+        jobs.add(parse);
+        var boq = perform(post("/api/v1/projects/" + project + "/boqs").content("{\"name\":\"Usage\"}"), cookie, 201);
+        String run = perform(post("/api/v1/revisions/" + boq.path("currentRevision").path("id").asText() + "/runs"), cookie, 202)
+                .path("job").path("id").asText();
+        awaitJob(run, cookie);
+        jobs.add(run);
+        String rules = id(perform(get("/api/v1/orgs/" + org + "/presets?kind=rule_set&layer=system"), cookie, 200).get(0));
+        String version = perform(get("/api/v1/models/" + model + "/versions"), cookie, 200).get(0).path("id").asText();
+        String preview = id(perform(post("/api/v1/presets/" + rules + "/preview").content("{\"modelVersionIds\":[\"" + version + "\"]}"),
+                cookie, 202));
+        awaitJob(preview, cookie);
+        jobs.add(preview);
+        long ran = 0;
+        for (String job : jobs) {
+            var state = perform(get("/api/v1/jobs/" + job), cookie, 200);
+            ran += Duration.between(java.time.OffsetDateTime.parse(state.path("startedAt").asText()),
+                    java.time.OffsetDateTime.parse(state.path("finishedAt").asText())).toMillis();
+        }
+        var usage = perform(get("/api/v1/orgs/" + org + "/usage"), cookie, 200);
+        double minutes = usage.path("processingMinutes").asDouble();
+        // The engine's own durations (what is metered) sit inside each job's start and end: over HTTP allow a second
+        // of transport and ingestion per job and the 0.01-minute rounding. The queue worker also starts a process
+        // per job before its clock runs (a fork on Linux, a spawn with imports on Windows): only the upper bound.
+        double floor = POSTGRES_QUEUE ? 1 : ran - 1_000.0 * jobs.size() - 600;
+        assertThat(minutes * 60_000).isBetween(floor, ran + 600.0);
+        assertThat(usage.path("byKind").path("parse").isMissingNode()).isFalse();
+    }
+
+    /**
+     * TF-186 (nfr.md "Availability and recovery") and TF-184: a job survives its worker going away for 25 s and
+     * the database dropping every connection, with at most one attempt used up; the wait isn't metered. Opt-in with
+     * `BOQLET_NATIVE_RESILIENCE=1` (about a minute and a half; CI sets it).
+     */
+    @Test
+    @EnabledIfEnvironmentVariable(named = "BOQLET_NATIVE_RESILIENCE", matches = "1")
+    void jobsSurviveTheWorkerAndTheDatabaseGoingAway() throws Exception {
+        if (POSTGRES_QUEUE) startQueueWorkers();
+        Cookie cookie = person("resilience@example.test");
+        String org = id(perform(post("/api/v1/orgs").content("{\"name\":\"Resilience\",\"slug\":\"resilience\"}"), cookie, 201));
+        String project = id(perform(post("/api/v1/orgs/" + org + "/projects").content("{\"name\":\"Resilience\"}"), cookie, 201));
+        String model = id(perform(post("/api/v1/projects/" + project + "/models")
+                .content("{\"name\":\"Architecture\",\"discipline\":\"architecture\"}"), cookie, 201));
+
+        // The worker is killed in the middle of a parse and is back 25 s later.
+        String parse = startParse(cookie, model, variant(21));
+        awaitRunning(parse);
+        long stopped = System.nanoTime();
+        stopWorkers();
+        Thread.sleep(25_000);
+        startWorkers();
+        awaitJob(parse, cookie, Duration.ofSeconds(180));
+        long waited = (System.nanoTime() - stopped) / 1_000_000;
+        assertThat(database.queryForObject("SELECT attempts FROM jobs WHERE id = ?", Integer.class, java.util.UUID.fromString(parse)))
+                .as("attempts").isLessThanOrEqualTo(2);
+        if (!POSTGRES_QUEUE) {
+            // TF-009: the attempt the worker dropped counts its own processing, not the 25 s the job waited.
+            long metered = database.queryForObject("SELECT duration_ms FROM usage_events WHERE job_id = ?", Long.class,
+                    java.util.UUID.fromString(parse));
+            assertThat(metered).as("metered ms").isLessThan(waited - 20_000);
+        }
+
+        // The database goes away for a moment while a parse runs, as in a restart: it stops answering for 2 s, then
+        // every connection is dropped (a real restart would move the container's mapped port). Hikari reconnects;
+        // the exchange with the worker goes on.
+        String second = startParse(cookie, model, variant(22));
+        awaitRunning(second);
+        var docker = POSTGRES.getDockerClient();
+        docker.pauseContainerCmd(POSTGRES.getContainerId()).exec();
+        Thread.sleep(2_000);
+        docker.unpauseContainerCmd(POSTGRES.getContainerId()).exec();
+        try (var admin = java.sql.DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+             var statement = admin.createStatement()) {
+            statement.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND backend_type = 'client backend'");
+        }
+        awaitDatabase();
+        awaitJob(second, cookie, Duration.ofSeconds(180));
+        assertThat(database.queryForObject("SELECT attempts FROM jobs WHERE id = ?", Integer.class, java.util.UUID.fromString(second)))
+                .as("attempts after a database restart").isLessThanOrEqualTo(2);
+    }
+
+    /** A person of their own (the shared owner's session belongs to the other tests). */
+    private Cookie person(String email) throws Exception {
+        String token = com.boqlet.suite.SuiteSupport.TOKEN_PREFIX + java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(email.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        database.update("INSERT INTO users (id, auth_subject, email, name) VALUES (?, ?, ?, ?)", Ids.newId(), token, email, email);
+        var cookie = http.perform(post("/api/v1/sessions").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"deviceLabel\":\"Resilience\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
+        personTokens.put(cookie.getValue(), token);
+        return cookie;
+    }
+
+    private static final java.util.Map<String, String> personTokens = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The Duplex with `n` trailing blank lines: another file, so it is parsed and not taken from an earlier version (BR-08). */
+    private static byte[] variant(int n) throws IOException {
+        var bytes = new java.io.ByteArrayOutputStream();
+        bytes.write(java.nio.file.Files.readAllBytes(ROOT.resolve("fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc")));
+        bytes.write("\n".repeat(n).getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        return bytes.toByteArray();
+    }
+
+    /** Registers a version, PUTs the bytes, completes it; answers the parse job. */
+    private String startParse(Cookie cookie, String model, byte[] bytes) throws Exception {
+        var staged = perform(post("/api/v1/models/" + model + "/versions")
+                .content("{\"fileName\":\"Duplex.ifc\",\"sizeBytes\":" + bytes.length + "}"), cookie, 201);
+        var put = HttpRequest.newBuilder(URI.create(staged.path("upload").path("url").asText()))
+                .PUT(HttpRequest.BodyPublishers.ofByteArray(bytes)).timeout(Duration.ofSeconds(30)).build();
+        assertThat(NETWORK.send(put, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+        return perform(post("/api/v1/model-versions/" + id(staged.path("version")) + "/complete"), cookie, 200)
+                .path("parseJobId").asText();
+    }
+
+    /** Waits until the worker is at work on the job (past its download). */
+    private void awaitRunning(String job) throws Exception {
+        long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
+        while (System.nanoTime() < until) {
+            var row = database.queryForMap("SELECT status, progress->>'stage' AS stage FROM jobs WHERE id = ?", java.util.UUID.fromString(job));
+            if ("running".equals(row.get("status")) && row.get("stage") != null && !"download".equals(row.get("stage"))) return;
+            Thread.sleep(100);
+        }
+        throw new AssertionError("The job never ran.");
+    }
+
+    private void stopWorkers() throws Exception {
+        if (POSTGRES_QUEUE) {
+            for (var process : queueWorkers) process.destroyForcibly().waitFor();
+            queueWorkers.clear();
+        } else {
+            worker.destroyForcibly().waitFor();
+        }
+    }
+
+    private void startWorkers() throws Exception {
+        if (POSTGRES_QUEUE) {
+            startQueueWorkers();
+        } else {
+            workerStart.redirectOutput(ProcessBuilder.Redirect.appendTo(Path.of("target/native-worker.log").toFile()));
+            worker = workerStart.start();
+        }
+    }
+
+    private void awaitDatabase() throws Exception {
+        long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
+        while (System.nanoTime() < until) {
+            try {
+                database.queryForObject("SELECT 1", Integer.class);
+                return;
+            } catch (org.springframework.dao.DataAccessException restarting) {
+                Thread.sleep(250);
+            }
+        }
+        throw new AssertionError("The database did not come back.");
+    }
+
     private JsonNode awaitJob(String job, Cookie cookie) throws Exception {
-        long until = System.nanoTime() + Duration.ofSeconds(120).toNanos();
+        return awaitJob(job, cookie, Duration.ofSeconds(120));
+    }
+
+    private JsonNode awaitJob(String job, Cookie cookie, Duration timeout) throws Exception {
+        long until = System.nanoTime() + timeout.toNanos();
         while (System.nanoTime() < until) {
             var state = perform(get("/api/v1/jobs/" + job), cookie, 200);
             String status = state.path("status").asText();
@@ -863,7 +1051,8 @@ class NativeWorkerTest {
     }
 
     private static MockHttpServletRequestBuilder auth(MockHttpServletRequestBuilder request, Cookie cookie) {
-        return request.header(HttpHeaders.AUTHORIZATION, "Bearer owner").cookie(cookie).contentType(MediaType.APPLICATION_JSON);
+        String token = cookie == null ? "owner" : personTokens.getOrDefault(cookie.getValue(), "owner");
+        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).cookie(cookie).contentType(MediaType.APPLICATION_JSON);
     }
 
     private static String id(JsonNode node) {

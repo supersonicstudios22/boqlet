@@ -65,12 +65,6 @@ public class Runs {
         if (revisionInputs.getModels().isEmpty()) {
             throw BoqAccess.failure(HttpStatus.CONFLICT, "no_models", "Choose at least one model for this BoQ.");
         }
-        UUID existing = database.query("SELECT id FROM runs WHERE revision_id = ? AND status IN ('queued','running')",
-                (row, index) -> row.getObject("id", UUID.class), revision).stream().findFirst().orElse(null);
-        if (existing != null) {
-            Run run = catalog.require(existing).run();
-            return new GenerateRun202Response(run, jobs.get(run.getJobId(), actor));
-        }
         Project project = scope.project();
         if (!metered && !Boolean.TRUE.equals(project.getSample())) throw new IllegalArgumentException("Expected a sample project.");
         inputs.validate(project, actor, revisionInputs);
@@ -96,6 +90,18 @@ public class Runs {
         var versionsDoc = Map.of("ruleSetVersionId", revisionInputs.getRuleSetVersionId(), "models", versions,
                 "dictionaryVersionIds", dictionary.stream().map(PresetCatalog.Version::id).toList(),
                 "classificationVersionIds", revisionInputs.getClassificationVersionIds());
+        // A run already working on exactly these inputs is the answer; after a change a new run starts beside it,
+        // and the newest finished becomes current (F04 edge cases, TF-094).
+        UUID existing = database.query("""
+                SELECT id FROM runs WHERE revision_id = ? AND status IN ('queued','running')
+                    AND input_snapshot = CAST(? AS jsonb) AND snapshot_versions = CAST(? AS jsonb)
+                ORDER BY created_at DESC LIMIT 1
+                """, (row, index) -> row.getObject("id", UUID.class), revision, snapshot.toString(),
+                json.object(versionsDoc).toString()).stream().findFirst().orElse(null);
+        if (existing != null) {
+            Run run = catalog.require(existing).run();
+            return new GenerateRun202Response(run, jobs.get(run.getJobId(), actor));
+        }
         var ruleSet = presets.selected(org, projectId, revisionInputs.getRuleSetVersionId(), PresetKind.RULE_SET);
         UUID federation = revisionInputs.getFederationVersionId().orElse(null);
         UUID resolution = revisionInputs.getResolutionVersionId().orElse(null);

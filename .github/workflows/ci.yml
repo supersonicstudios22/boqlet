@@ -43,6 +43,8 @@ jobs:
           mvn -B -ntp -f services/api/pom.xml verify
         env:
           BOQLET_NATIVE_QUEUE_TEST: "1"
+          # The worker killed for 25 s and the database restarted mid-job (NativeWorkerTest, TF-186).
+          BOQLET_NATIVE_RESILIENCE: "1"
           # The shared scenario suite against Java (FE-041); its workbook scenarios run this Python.
           BOQLET_NATIVE_SCENARIOS: "1"
           # The app with native sign-in in a browser against Java (FE-041/FE-043).
@@ -123,11 +125,30 @@ jobs:
       - if: failure()
         run: docker compose -f ops/local/compose.yaml logs --tail 300
 
+  rollback:
+    name: The previous release's API on the current schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build this revision's API and the previous release's
+        run: |
+          set -euo pipefail
+          previous=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
+          echo "previous release: $previous"
+          docker build --tag boqlet-api:current --file services/api/Dockerfile .
+          git worktree add /tmp/previous "$previous"
+          docker build --tag boqlet-api:previous --file /tmp/previous/services/api/Dockerfile /tmp/previous
+      # TF-186: a deploy can be rolled back to the previous image after this revision's migrations ran.
+      - run: scripts/ci-rollback-check.sh boqlet-api:current boqlet-api:previous
+
   deploy:
     name: Deploy Boqlet pilot
     # Since the v1 release (FE-047) the one environment (P51) deploys from main; v_1 is kept as it was.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [api, contract, typecheck, engine]
+    needs: [api, contract, typecheck, engine, rollback]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: boqlet-pilot

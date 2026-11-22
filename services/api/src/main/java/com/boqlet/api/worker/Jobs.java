@@ -1,9 +1,11 @@
 package com.boqlet.api.worker;
 
+import com.boqlet.api.audit.AuditWriter;
 import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.http.ApiException;
+import com.boqlet.api.http.RequestContext;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
 import com.boqlet.api.realtime.Notifications;
@@ -45,13 +47,14 @@ public class Jobs {
     private final OrgAccess orgs;
     private final ObjectStorage storage;
     private final Notifications notifications;
+    private final AuditWriter audit;
     private final Map<String, JobHandler> handlers;
     private final String transport;
     private final String modelPool;
     private final String generalPool;
 
     Jobs(JdbcTemplate database, StoredJson json, EntitlementService limits, ProjectAccess projects, OrgAccess orgs, ObjectStorage storage,
-         List<JobHandler> handlers, Notifications notifications, io.micrometer.core.instrument.MeterRegistry meters,
+         List<JobHandler> handlers, Notifications notifications, AuditWriter audit, io.micrometer.core.instrument.MeterRegistry meters,
          @Value("${BOQLET_ENGINE_TRANSPORT:http}") String transport,
          @Value("${BOQLET_ENGINE_MODEL_POOL:default}") String modelPool,
          @Value("${BOQLET_ENGINE_GENERAL_POOL:default}") String generalPool) {
@@ -62,6 +65,7 @@ public class Jobs {
         this.orgs = orgs;
         this.storage = storage;
         this.notifications = notifications;
+        this.audit = audit;
         this.meters = meters;
         if (!Set.of("http", "postgres").contains(transport)) throw new IllegalArgumentException("Invalid BOQLET_ENGINE_TRANSPORT.");
         this.transport = transport;
@@ -136,8 +140,15 @@ public class Jobs {
         } else if (current == JobStatus.RUNNING) {
             database.update("UPDATE jobs SET cancel_requested = true WHERE id = ?", id);
         } else {
-            throw new ApiException(HttpStatus.CONFLICT, "invalid_transition", "This job has already finished.", Map.of());
+            // TF-030: the refusal names the job's current state (state-machines.md).
+            throw new ApiException(HttpStatus.CONFLICT, "invalid_transition", "This job has already finished.",
+                    Map.of("state", current.getValue()));
         }
+        // BR-51: who cancelled what, and when (TF-034). The job's own end (cancelled, or finished first) follows.
+        audit.record(new RequestContext(actor, null, row.org(), null), AuditWriter.ActorKind.USER, row.project(),
+                "job.cancelled", "job", id, json.object(Map.of("type", row.job().getType(),
+                        "subjectType", String.valueOf(row.job().getSubjectType()), "subjectId", String.valueOf(row.job().getSubjectId()),
+                        "status", current.getValue())));
         return record(id).job();
     }
 
@@ -191,6 +202,24 @@ public class Jobs {
                         OffsetDateTime.now(ZoneOffset.UTC));
             }
         }
+    }
+
+    /**
+     * The worker could not be reached before the job started (connection refused or timed out): the job waits
+     * for it without using up an attempt, for at most the first 30 minutes of the job's life; answers false
+     * when it may not wait any longer (TF-184).
+     */
+    @Transactional
+    public boolean postpone(Attempt attempt, UUID dispatcher) {
+        return database.update("""
+                UPDATE jobs SET status = 'queued', attempts = attempts - 1, available_at = now() + interval '10 seconds',
+                                started_at = NULL, worker_id = NULL, heartbeat_at = NULL, worker_result = NULL,
+                                worker_announced = false, progress = CAST(? AS jsonb)
+                WHERE id = ? AND attempts = ? AND worker_id = ? AND status = 'running' AND NOT cancel_requested
+                    AND created_at > now() - interval '30 minutes'
+                """, json.object(Map.of("stage", "waiting_for_worker", "pct", 0,
+                        "message", "Waiting for the processing service.")).toString(),
+                attempt.id(), attempt.number(), dispatcher) == 1;
     }
 
     @Transactional

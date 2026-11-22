@@ -159,10 +159,17 @@ public class Decisions {
             var question = json.read(row.getString(1), ObjectNode.class);
             rows.put(question.path("id").asText(), question);
         }, run.run().getId());
+        // The questions this run raised that a decision answered (the engine says which, TF-137); a run made before
+        // that is known lists every decision of its snapshot, as before.
+        var answered = new java.util.HashSet<String>();
+        String used = database.queryForObject("SELECT answered_questions::text FROM runs WHERE id = ?", String.class, run.run().getId());
+        if (used != null) json.read(used, JsonNode.class).forEach(id -> answered.add(id.asText()));
         for (JsonNode applied : run.snapshot().path("decisions")) {
             var key = applied.path("questionId").asText();
             original.put(key, applied.get("answer"));
-            if (applied.path("question").isObject()) rows.putIfAbsent(key, json.object(applied.path("question")));
+            if (applied.path("question").isObject() && (used == null || answered.contains(key))) {
+                rows.putIfAbsent(key, json.object(applied.path("question")));
+            }
         }
         var ordered = new ArrayList<>(rows.values());
         ordered.sort(Comparator.<ObjectNode, Boolean>comparing(row -> current.containsKey(row.path("id").asText()))

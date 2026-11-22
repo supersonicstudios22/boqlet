@@ -89,10 +89,10 @@ public class Models {
     public Model create(UUID project, UUID actor, ModelCreate request) {
         Project p = projects.lock(project, actor, "editModels");
         UUID id = Ids.newId();
+        String discipline = request.getDiscipline() == null ? DETECT : discipline(p.getOrgId(), request.getDiscipline());
         database.update("""
                 INSERT INTO models (id, project_id, name, discipline, scope) VALUES (?, ?, ?, ?, CAST(? AS jsonb))
-                """, id, project, nonblank(request.getName()), request.getDiscipline() == null ? "detect" : nonblank(request.getDiscipline()),
-                request.getScope() == null ? null : json.object(request.getScope()).toString());
+                """, id, project, nonblank(request.getName()), discipline, scope(request.getScope()));
         event(p, actor, "model.created", "model", id);
         return model(id).tree();
     }
@@ -106,8 +106,8 @@ public class Models {
                 UPDATE models SET name = coalesce(?, name), discipline = coalesce(?, discipline),
                     scope = coalesce(CAST(? AS jsonb), scope), updated_at = now() WHERE id = ?
                 """, request.getName() == null ? null : nonblank(request.getName()),
-                request.getDiscipline() == null ? null : nonblank(request.getDiscipline()),
-                request.getScope() == null ? null : json.object(request.getScope()).toString(), id);
+                request.getDiscipline() == null ? null : discipline(project.getOrgId(), request.getDiscipline()),
+                scope(request.getScope()), id);
         event(project, actor, "model.updated", "model", id);
         return withLatest(model(id));
     }
@@ -163,6 +163,9 @@ public class Models {
         if (size > uploadLimit) throw failure(HttpStatus.PAYLOAD_TOO_LARGE, "model_too_large", "The file exceeds the worker upload limit.");
         UUID org = project.getOrgId();
         limits.checkSize(org, actor, "maxModelVersionMb", BigDecimal.valueOf(size).divide(MIB));
+        // F03: refused before any bytes go to storage, not only when the parse is enqueued (TF-076).
+        limits.checkConsumption(org, actor, "processingMinutesPerMonth",
+                limits.processingMillis(org, java.time.YearMonth.now(java.time.ZoneOffset.UTC)), 60_000);
         UUID id = Ids.newId();
         String prefix = ObjectStorage.orgPrefix(org) + "uploads/" + id + "/";
         String incoming = prefix + "incoming";
@@ -221,6 +224,14 @@ public class Models {
         VersionRow row = version(id);
         checkModelActive(model(row.tree().getModelId()));
         if (row.tree().getStatus() != ModelVersionStatus.AWAITING_UPLOAD) return row.tree();
+        // An upload not completed within 24 h has failed (state-machines.md), also before the hourly sweep (TF-031):
+        // nothing is queued; the answer is the failed version, as for a file that isn't IFC.
+        if (Boolean.TRUE.equals(database.queryForObject(
+                "SELECT created_at <= now() - interval '24 hours' FROM model_versions WHERE id = ?", Boolean.class, id))) {
+            storage.abort(row.upload(), row.multipart());
+            expireUpload(database, json, audit, project.getOrgId(), project.getId(), id);
+            return version(id).tree();      // failed, as a not_ifc upload: nothing is queued
+        }
         try {
             storage.seal(row.upload(), row.source(), row.multipart(), request == null ? null : request.getParts(),
                     row.tree().getSizeBytes(), row.source().endsWith(".ifczip"));
@@ -247,7 +258,7 @@ public class Models {
         VersionRow row = version(id);
         checkModelActive(model(row.tree().getModelId()));
         if (row.tree().getStatus() != ModelVersionStatus.FAILED || !row.retryable()) {
-            throw failure(HttpStatus.CONFLICT, "invalid_transition", "Only a failed version with a retryable error can be retried.");
+            throw transition("Only a failed version with a retryable error can be retried.", row.tree().getStatus());
         }
         return enqueue(project, row, actor);
     }
@@ -258,7 +269,14 @@ public class Models {
         var row = version(id);
         var status = row.tree().getStatus();
         if (status == ModelVersionStatus.QUEUED || status == ModelVersionStatus.PROCESSING) {
-            throw failure(HttpStatus.CONFLICT, "invalid_transition", "Wait for parsing to finish before deleting the version.");
+            throw transition("Wait for parsing to finish before deleting the version.", status);
+        }
+        // A version a BoQ uses (its inputs or a run) stays: deleting it left the BoQ unable to regenerate (TF-032).
+        var usedBy = withUsage(row).getUsedBy();
+        if (!usedBy.isEmpty()) {
+            throw new ApiException(HttpStatus.CONFLICT, "version_in_use", "A BoQ uses this model version.",
+                    Map.of("usedBy", usedBy.stream().map(ref -> Map.of("boqId", ref.getBoqId().toString(), "boqName", ref.getBoqName(),
+                            "revisionId", ref.getRevisionId().toString(), "label", ref.getLabel())).toList()));
         }
         if (status == ModelVersionStatus.AWAITING_UPLOAD) storage.abort(row.upload(), row.multipart());
         database.update("UPDATE model_versions SET deleted_at = now() WHERE id = ?", id);
@@ -422,6 +440,56 @@ public class Models {
                 result.getObject("deleted_at") != null);
     }
 
+    static final String DETECT = "detect";
+
+    /**
+     * The disciplines a model may have (F03 §1): the keys of the federation settings the org can use (the
+     * system default and the org's own), besides "detect", which leaves it to the first version (TF-128).
+     */
+    static java.util.Set<String> disciplines(JdbcTemplate database, UUID org) {
+        return new java.util.HashSet<>(database.queryForList("""
+                SELECT DISTINCT jsonb_object_keys(v.doc->'disciplines') FROM presets p
+                JOIN preset_versions v ON v.id = p.latest_published_version_id
+                WHERE p.kind = 'federation' AND NOT p.archived AND (p.layer = 'system' OR p.org_id = ?)
+                    AND jsonb_typeof(v.doc->'disciplines') = 'object'
+                """, String.class, org));
+    }
+
+    private String discipline(UUID org, String value) {
+        String discipline = nonblank(value);
+        if (discipline.equals(DETECT)) return discipline;
+        var allowed = disciplines(database, org);
+        if (!allowed.contains(discipline)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_discipline", "Choose one of the disciplines of the federation settings.",
+                    Map.of("allowed", allowed.stream().sorted().toList()));
+        }
+        return discipline;
+    }
+
+    /** A model's scope, checked against its schema by the engine (`ModelScope`): a typo is refused, not ignored (TF-074). */
+    private String scope(Map<String, Object> scope) {
+        if (scope == null) return null;
+        var checked = worker.rpc("check", Map.of("kind", "model-scope", "doc", scope), CheckResponse.class);
+        if (!Boolean.TRUE.equals(checked.getOk())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_scope", "The model's scope is not valid.",
+                    Map.of("problems", checked.getProblems()));
+        }
+        return json.object(scope).toString();
+    }
+
+    /** An upload not completed within 24 h: the version fails with `upload_expired`, audited (TF-031). */
+    public static void expireUpload(JdbcTemplate database, StoredJson json, AuditWriter audit, UUID org, UUID project, UUID version) {
+        int changed = database.update("""
+                UPDATE model_versions SET status = 'failed', error = CAST(? AS jsonb), multipart_id = NULL
+                WHERE id = ? AND status = 'awaiting_upload'
+                """, json.object(Map.of("code", "upload_expired", "message", "The upload was not completed within 24 hours.",
+                        "retryable", false)).toString(), version);
+        if (changed == 1) {
+            audit.record(new RequestContext(null, null, org, null), AuditWriter.ActorKind.SYSTEM, project,
+                    "model_version.failed", "modelVersion", version, json.object(Map.of("code", "upload_expired")));
+        }
+    }
+
     private void event(Project project, UUID actor, String action, String type, UUID subject) {
         audit.record(new RequestContext(actor, null, project.getOrgId(), null), AuditWriter.ActorKind.USER,
                 project.getId(), action, type, subject, json.object(Map.of()));
@@ -436,6 +504,11 @@ public class Models {
     private static String nonblank(String value) {
         if (value.isBlank()) throw failure(HttpStatus.BAD_REQUEST, "invalid_body", "Provide a non-empty value.");
         return value.strip();
+    }
+
+    /** `409 invalid_transition` naming the version's current state (state-machines.md, TF-030). */
+    private static ApiException transition(String message, ModelVersionStatus state) {
+        return new ApiException(HttpStatus.CONFLICT, "invalid_transition", message, Map.of("state", state.getValue()));
     }
 
     private static ApiException failure(HttpStatus status, String code, String message) {

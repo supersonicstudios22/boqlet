@@ -76,3 +76,13 @@ def test_every_kind_of_line_edit_survives_a_changed_model_version(duplex_parsed,
     assert "Door 864 mm, edited text" in rows
     partition_row = next(row for row in rows.values() if row[3] == 117.04)
     assert "Site survey" in (partition_row[7] or "")
+
+
+def test_a_run_lists_the_questions_its_decisions_answered(duplex_parsed):
+    """TF-137: the result names the questions that decisions answered, so a run's question list shows those
+    and not every decision of the project; a decision for a question the run never raised is not one."""
+    first = run(duplex_parsed)
+    decided = answers(first) + [{"questionId": "name:space_name:Not in this model", "scope": "project", "answer": "space.living"}]
+    result = run(duplex_parsed, decisions=decided)
+    assert result["answeredQuestionIds"] == sorted(q["id"] for q in first["questions"])
+    assert run(duplex_parsed)["answeredQuestionIds"] == []

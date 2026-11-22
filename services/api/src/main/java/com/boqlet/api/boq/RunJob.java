@@ -38,9 +38,16 @@ class RunJob implements JobHandler {
     public Map<String, Object> finished(Jobs.Attempt attempt, String status, JsonNode result) {
         UUID run = attempt.subject();
         if (!status.equals("succeeded")) {
-            database.update("""
+            int ended = database.update("""
                     UPDATE runs SET status = ?, error = CAST(? AS jsonb), finished_at = now() WHERE id = ? AND job_id = ?
                     """, status, result.has("error") ? result.get("error").toString() : null, run, attempt.id());
+            // A run that fails or is cancelled is in the audit too, with its error code (BR-51, TF-034).
+            if (ended == 1) {
+                var data = json.object(Map.of("runId", run.toString(), "status", status));
+                if (result.path("error").hasNonNull("code")) data.put("code", result.path("error").path("code").asText());
+                audit.record(new RequestContext(attempt.actor(), null, attempt.org(), null), AuditWriter.ActorKind.SYSTEM,
+                        attempt.project(), status.equals("cancelled") ? "run.cancelled" : "run.failed", "run", run, data);
+            }
             return Map.of("runId", run);
         }
         var output = result.path("output");
@@ -59,14 +66,17 @@ class RunJob implements JobHandler {
         String runStatus = blocking > 0 || doc.path("status").asText().equals("needs_input") ? "needs_input" : "complete";
         database.update("""
                 UPDATE runs SET status = ?, result_key = ?, stats = CAST(? AS jsonb), models = CAST(? AS jsonb),
-                    building = CAST(? AS jsonb), engine_version = ?, finished_at = now()
+                    building = CAST(? AS jsonb), engine_version = ?, answered_questions = CAST(? AS jsonb), finished_at = now()
                 WHERE id = ? AND job_id = ?
                 """, runStatus, key, stats.toString(), optional(doc, "models"), optional(doc, "building"),
-                output.path("engineVersion").asText("worker"), run, attempt.id());
+                output.path("engineVersion").asText("worker"), optional(doc, "answeredQuestionIds"), run, attempt.id());
+        // The newest finished run is current (F04): a run started before the current one doesn't replace it (TF-094).
         database.update("""
                 UPDATE boq_revisions SET current_run_id = ?, updated_at = now()
                 WHERE id = (SELECT revision_id FROM runs WHERE id = ?) AND status <> 'issued'
-                """, run, run);
+                    AND (current_run_id IS NULL OR (SELECT created_at FROM runs WHERE id = current_run_id)
+                        <= (SELECT created_at FROM runs WHERE id = ?))
+                """, run, run, run);
         var ids = database.queryForMap("""
                 SELECT r.id AS "revisionId", r.boq_id AS "boqId" FROM runs n JOIN boq_revisions r ON r.id = n.revision_id
                 WHERE n.id = ?
