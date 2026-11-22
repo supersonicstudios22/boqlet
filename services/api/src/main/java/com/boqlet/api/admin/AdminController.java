@@ -5,6 +5,7 @@ import com.boqlet.contract.api.AdminApi;
 import com.boqlet.contract.model.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,13 +30,25 @@ class AdminController implements AdminApi {
     }
 
     @Override
-    public ResponseEntity<AdminOverview> adminOverview(LocalDate from, LocalDate to) { return ok(reports.overview(from, to)); }
+    public ResponseEntity<AdminOverview> adminOverview(LocalDate from, LocalDate to) {
+        var overview = reports.overview(from, to);
+        viewed("admin.overview_viewed", "platform", null, period(from, to));
+        return ok(overview);
+    }
 
     @Override
-    public ResponseEntity<AdminFunnel> adminFunnel(LocalDate from, LocalDate to) { return ok(reports.funnel(from, to)); }
+    public ResponseEntity<AdminFunnel> adminFunnel(LocalDate from, LocalDate to) {
+        var funnel = reports.funnel(from, to);
+        viewed("admin.funnel_viewed", "platform", null, period(from, to));
+        return ok(funnel);
+    }
 
     @Override
-    public ResponseEntity<AdminHealth200Response> adminHealth() { return ok(reports.health()); }
+    public ResponseEntity<AdminHealth200Response> adminHealth() {
+        var health = reports.health();
+        viewed("admin.health_viewed", "platform", null, Map.of());
+        return ok(health);
+    }
 
     @Override
     public ResponseEntity<AdminListOrgs200Response> adminListOrgs(String cursor, Integer limit, String plan, String status,
@@ -43,6 +56,7 @@ class AdminController implements AdminApi {
         int start = offset(cursor);
         int size = size(limit);
         var rows = orgs.list(new AdminOrganisations.Filter(plan, status, country, tag, signal, stuck, query, sort), size + 1, start);
+        viewed("admin.orgs_listed", "org", null, filters(plan, status, country, tag, signal, stuck, query, Math.min(rows.size(), size)));
         return ok(new AdminListOrgs200Response(rows.stream().limit(size).toList()).nextCursor(next(start, size, rows.size())));
     }
 
@@ -50,6 +64,8 @@ class AdminController implements AdminApi {
     public ResponseEntity<String> adminExportOrgs(String plan, String status, String country, String tag, String signal,
             AdminFunnelStep stuck, String query, String sort) {
         var rows = orgs.list(new AdminOrganisations.Filter(plan, status, country, tag, signal, stuck, query, sort), null, 0);
+        // Every org with its owner's email: the export is audited like every admin read (P54 Q59, TF-156).
+        viewed("admin.orgs_exported", "org", null, filters(plan, status, country, tag, signal, stuck, query, rows.size()));
         // The fields of AdminOrgRow by their contract names, as the contract names them (F19 "orgs table, CSV").
         var csv = new StringBuilder("﻿id,name,country,planId,status,subscriptionStatus,trialEndsAt,seatsUsed,seatsMax,activeProjects,")
                 .append("activeProjectsMax,processingMinutes,processingMinutesMax,limitHits30d,lastActivityAt,createdAt,ownerEmail,tags\r\n");
@@ -84,7 +100,11 @@ class AdminController implements AdminApi {
     }
 
     @Override
-    public ResponseEntity<List<AdminNote>> adminListNotes(UUID org) { return ok(orgs.notes(org)); }
+    public ResponseEntity<List<AdminNote>> adminListNotes(UUID org) {
+        var notes = orgs.notes(org);
+        viewed("admin.notes_viewed", "org", org, Map.of("orgId", org));
+        return ok(notes);
+    }
 
     @Override
     public ResponseEntity<AdminNote> adminAddNote(UUID org, AdminAddNoteRequest request) {
@@ -97,6 +117,7 @@ class AdminController implements AdminApi {
         int start = offset(cursor);
         int size = size(limit);
         var rows = users.list(Objects.toString(query, "").strip(), size + 1, start);
+        viewed("admin.users_listed", "user", null, Map.of("query", Objects.toString(query, ""), "rows", Math.min(rows.size(), size)));
         return ok(new AdminListUsers200Response(rows.stream().limit(size).toList()).nextCursor(next(start, size, rows.size())));
     }
 
@@ -107,6 +128,32 @@ class AdminController implements AdminApi {
     }
 
     private static UUID actor() { return Login.current().userId(); }
+
+    /** P54 Q59 (TF-156): every platform-admin read is audited, out of any org's log (org null), as the detail view is. */
+    private void viewed(String action, String entity, UUID id, Map<String, ?> data) {
+        orgs.viewed(actor(), action, entity, id, data);
+    }
+
+    private static Map<String, Object> period(LocalDate from, LocalDate to) {
+        var data = new java.util.LinkedHashMap<String, Object>();
+        if (from != null) data.put("from", from.toString());
+        if (to != null) data.put("to", to.toString());
+        return data;
+    }
+
+    private static Map<String, Object> filters(String plan, String status, String country, String tag, String signal,
+                                               AdminFunnelStep stuck, String query, int rows) {
+        var data = new java.util.LinkedHashMap<String, Object>();
+        if (plan != null) data.put("plan", plan);
+        if (status != null) data.put("status", status);
+        if (country != null) data.put("country", country);
+        if (tag != null) data.put("tag", tag);
+        if (signal != null) data.put("signal", signal);
+        if (stuck != null) data.put("stuck", stuck.getValue());
+        if (query != null) data.put("query", query);
+        data.put("rows", rows);
+        return data;
+    }
 
     private static <T> ResponseEntity<T> ok(T body) { return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(body); }
 

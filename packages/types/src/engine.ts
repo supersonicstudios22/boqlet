@@ -134,7 +134,7 @@ export interface TraceStep {
   /**
    * Message code (EN-004) of the step's sentence: `trace.start.area|volume|length|count|mass|perimeter|value|missing`,
    * `trace.add.reveals|minimum`, `trace.deduct.all|over_threshold|excess`, `trace.factor`, `trace.round`,
-   * `trace.derive`, `trace.derive.missing`, `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`,
+   * `trace.derive`, `trace.derive.missing`, `trace.derive.excluded` (an excluded source line, value 0), `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`,
    * `trace.result`.
    */
   code: string;

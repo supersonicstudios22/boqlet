@@ -324,7 +324,8 @@ public class Jobs {
                 error == null ? null : error.toString(), attempt.id());
         // A usage event for every parse, run and preview that ends, cancelled ones too (BR-62, TF-036): the
         // earlier attempts' processing time plus this attempt's (none for a job cancelled while it waited).
-        if (attempt.metered() && METERED.contains(attempt.type())) {
+        // An unmetered job (the sample project's) writes one with zero minutes: shown, not billed (P54, Q62).
+        if (METERED.contains(attempt.type())) {
             var metrics = result.path("metrics");
             long earlier = Objects.requireNonNullElse(database.queryForObject("SELECT processing_ms FROM jobs WHERE id = ?",
                     Long.class, attempt.id()), 0L);
@@ -332,7 +333,7 @@ public class Jobs {
                     : result.path("durationMs").asLong(java.time.Duration.between(attempt.startedAt(), finished).toMillis());
             limits.recordUsage(attempt.org(), attempt.project(), attempt.id(), attempt.type(),
                     attempt.startedAt() == null ? finished : attempt.startedAt(),
-                    Math.max(0, earlier) + Math.max(0, current), metric(metrics, "modelBytes"), metric(metrics, "elementCount"), status);
+                    attempt.metered() ? Math.max(0, earlier) + Math.max(0, current) : 0, metric(metrics, "modelBytes"), metric(metrics, "elementCount"), status);
         }
         notifyFinished(attempt, status, result);
     }

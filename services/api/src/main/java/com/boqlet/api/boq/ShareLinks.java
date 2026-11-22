@@ -103,6 +103,7 @@ class ShareLinks {
             }
             run = version.run();
         }
+        future(request.getExpiresAt().orElse(null));
         UUID id = Ids.newId();
         String token = token(id, replayKey);
         database.update("""
@@ -116,6 +117,13 @@ class ShareLinks {
         ObjectNode response = json.object(view(link, actor, project, orgAdmin(link, actor)));
         response.put("url", appUrl + "/s/" + token);
         return json.read(response.toString(), ShareLinkCreated.class);
+    }
+
+    /** By the database's clock, the one that says a link is `expired`. */
+    private void future(OffsetDateTime expiry) {
+        if (expiry != null && !Boolean.TRUE.equals(database.queryForObject("SELECT ?::timestamptz > now()", Boolean.class, expiry))) {
+            throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_body", "Choose an expiry in the future.");
+        }
     }
 
     void authorizeCreation(UUID boq, UUID actor) { boqs.lockBill(boq, actor, "share"); }
@@ -151,6 +159,8 @@ class ShareLinks {
         if (current.getStatus() == ShareLink.StatusEnum.REVOKED) {
             throw Boqs.transition("The link is revoked.", current.getStatus().getValue());
         }
+        // An expired link is revived by a later expiry (P54 Q46, TF-038); an expiry is never set in the past.
+        if (request.getExpiresAt().isPresent()) future(request.getExpiresAt().get());
         database.update("UPDATE share_links SET options = ?::jsonb, label = ?, expires_at = ? WHERE id = ?",
                 json.object(options(request.getInclude(), current.getInclude())).toString(),
                 request.getLabel() == null ? current.getLabel() : label(request.getLabel()),

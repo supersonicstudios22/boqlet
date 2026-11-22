@@ -117,6 +117,11 @@ public class Invitations {
         Row row = get(org, id);
         if (row.invitation().getRole() == OWNER) OrgAccess.checkRole(scope.role(), OWNER);
         if (!Set.of("pending", "expired").contains(row.storedStatus())) throw invalidStatus(row.storedStatus());
+        // TF-076: a resend or an acceptance needs a seat under the plan. A pending invitation already holds
+        // one (seats() counts it), so it is refused only when the org is over its seats, e.g. after a downgrade.
+        if (row.invitation().getStatus() == OrgInvitation.StatusEnum.PENDING) {
+            limits.checkCapacity(org, actor, "seats", limits.seats(org) - 1);
+        }
         if (row.invitation().getStatus() == OrgInvitation.StatusEnum.EXPIRED) {
             limits.checkCapacity(org, actor, "seats", limits.seats(org));
             if (exists("""
@@ -170,6 +175,7 @@ public class Invitations {
             throw new ApiException(HttpStatus.CONFLICT, "email_mismatch",
                     "The invitation was sent to another email address.", Map.of("invitedEmail", invite.getEmail()));
         }
+        limits.checkCapacity(row.org(), actor, "seats", limits.seats(row.org()) - 1);
         int joined = database.update("""
                 INSERT INTO memberships (org_id, user_id, role) VALUES (?, ?, ?) ON CONFLICT DO NOTHING
                 """, row.org(), actor, invite.getRole().getValue());

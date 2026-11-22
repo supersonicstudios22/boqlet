@@ -136,6 +136,7 @@
       "export_created": "Exported",
       "export_downloaded": "Downloaded a saved version's Excel",
       "preset_published": "Published a preset version",
+      "preset_rebased": "Updated a preset's draft to its parent's new version",
       "org_setup_done": "Finished the setup",
       "run_completed": "Generated a BoQ",
       "run_cancelled": "Cancelled a BoQ run",
@@ -163,6 +164,13 @@
       "admin_note_added": "Added an admin note",
       "admin_org_tagged": "Tagged the organisation",
       "admin_org_viewed": "Viewed the organisation (platform admin)",
+      "admin_users_listed": "Listed the users (platform admin)",
+      "admin_overview_viewed": "Viewed the platform overview (platform admin)",
+      "admin_orgs_listed": "Listed the organisations (platform admin)",
+      "admin_orgs_exported": "Exported the organisations list (platform admin)",
+      "admin_notes_viewed": "Viewed the admin notes (platform admin)",
+      "admin_health_viewed": "Viewed the platform health (platform admin)",
+      "admin_funnel_viewed": "Viewed the sign-up funnel (platform admin)",
       "admin_session_ended": "Ended a session (platform admin)"
     },
     "unknownAction": "Another change"

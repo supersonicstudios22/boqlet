@@ -29,20 +29,28 @@ class NativeAuthController {
 
     @PostMapping("/sign-in")
     ResponseEntity<Session> signIn(@RequestBody SignIn body, HttpServletRequest request) {
-        credentials.limit("source:" + NativeCredentials.hash(request.getRemoteAddr()), 45);
+        String address = NativeCredentials.hash(request.getRemoteAddr());
+        credentials.requireUnder("source:" + address, NativeCredentials.FAILURES_PER_SOURCE);
+        credentials.requireUnder("source-ok:" + address, NativeCredentials.SUCCESSES_PER_SOURCE);
         String email = body.email() == null ? "" : IdentityService.normalizeEmail(body.email());
         if (email.length() > 254 || email.isBlank()) {
             throw IdentityService.failure(HttpStatus.BAD_REQUEST, "invalid_body", "Enter an email and password.");
         }
-        credentials.limit("email:" + NativeCredentials.hash(email), 12);
+        String account = "email:" + NativeCredentials.hash(email);
+        credentials.requireUnder(account, NativeCredentials.FAILURES_PER_EMAIL);
         String secret = NativeCredentials.token();
         Session session;
         try {
             session = credentials.signIn(email, body.password(), secret, body.deviceLabel(), body.takeover());
         } catch (com.boqlet.api.http.ApiException refused) {
-            if ("unauthenticated".equals(refused.body().code())) credentials.signInFailed(email);
+            if ("unauthenticated".equals(refused.body().code())) {
+                credentials.count("source:" + address);
+                credentials.count(account);
+                credentials.signInFailed(email);
+            }
             throw refused;
         }
+        credentials.count("source-ok:" + address);
         return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE,
                 ResponseCookie.from(SessionController.COOKIE, secret).secure(secure).httpOnly(true)
                         .sameSite("Lax").path("/api/v1").build().toString())
@@ -51,8 +59,16 @@ class NativeAuthController {
 
     @PostMapping("/set-password")
     ResponseEntity<Void> setPassword(@RequestBody Setup body, HttpServletRequest request) {
-        credentials.limit("source:" + NativeCredentials.hash(request.getRemoteAddr()), 45);
-        credentials.setPassword(body.token(), body.password(), body.name());
+        String address = NativeCredentials.hash(request.getRemoteAddr());
+        credentials.requireUnder("source:" + address, NativeCredentials.FAILURES_PER_SOURCE);
+        credentials.requireUnder("source-ok:" + address, NativeCredentials.SUCCESSES_PER_SOURCE);
+        try {
+            credentials.setPassword(body.token(), body.password(), body.name());
+        } catch (com.boqlet.api.http.ApiException refused) {
+            if ("invalid_setup".equals(refused.body().code())) credentials.count("source:" + address);
+            throw refused;
+        }
+        credentials.count("source-ok:" + address);
         return ResponseEntity.noContent().header(HttpHeaders.CACHE_CONTROL, "no-store").build();
     }
 

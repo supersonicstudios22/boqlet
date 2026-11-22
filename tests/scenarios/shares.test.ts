@@ -111,6 +111,10 @@ describe("create and the public page (F18 §1–2)", () => {
     const lines = (await (await pub(token, "/lines")).json()) as Schemas["LinesPage"];
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);
+    // P54 Q52 (TF-086): the edit shows as an edit, with the engine's value, and nothing of who or why.
+    const edited = lines.items.find((l) => l.key === editedKey)!;
+    expect(edited.overridden).toMatchObject({ fields: ["quantity"], quantity: 1234, engineQuantity: expect.any(Number) });
+    expect(edited.overridden).not.toHaveProperty("reason");
     expect(lines.items.every((l) => Array.isArray(l.notes) && l.notes.length === 0)).toBe(true); // TF-085: required, never the team's notes
     // TF-033: an excluded line is listed, marked excluded (its reason stays private), and opens.
     expect(lines.items.find((l) => l.key === excludedKey)).toMatchObject({ excluded: true });
@@ -134,7 +138,7 @@ describe("create and the public page (F18 §1–2)", () => {
     bodies.push(await (await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).text());
     bodies.push(await (await pub(token, "/scene")).text());
     const all = bodies.join("\n");
-    for (const banned of ["Lena Sharer", "Erik Estimator", "Ana Approver", lead.email, SECRET_REASON, '"overridden"', '"decision', '"questions"', '"reviewComments"', '"createdBy"', '"price', '"rate"']) expect(all, banned).not.toContain(banned);
+    for (const banned of ["Lena Sharer", "Erik Estimator", "Ana Approver", lead.email, SECRET_REASON, '"reason"', '"engineDescription"', '"decision', '"questions"', '"reviewComments"', '"createdBy"', '"price', '"rate"']) expect(all, banned).not.toContain(banned);
   });
 
   it("editing changes includes and expiry, never the token; the Excel when included", async () => {
@@ -180,10 +184,19 @@ describe("revoke, org switch, expiry (F18 §3–4, BR-56)", () => {
     expect((await pub(token)).status).toBe(200);
   });
 
-  it("an expired link is 404", async () => {
-    const { data } = await share(lead, { mode: "pinned", expiresAt: new Date(Date.now() - 60_000).toISOString() });
-    expect(data!.status).toBe("expired");
-    expect((await pub(tokenOf(data!.url))).status).toBe(404);
+  it("an expired link is 404; a later expiry revives it; a past expiry is refused (P54 Q46, TF-038)", async () => {
+    const past = await share(lead, { mode: "pinned", expiresAt: new Date(Date.now() - 60_000).toISOString() });
+    expect(past.response.status).toBe(400);
+    expect(past.error).toMatchObject({ code: "invalid_body" });
+    const { data } = await share(lead, { mode: "pinned", expiresAt: new Date(Date.now() + 2_000).toISOString() });
+    await new Promise((r) => setTimeout(r, 2_500));
+    const token = tokenOf(data!.url);
+    expect((await pub(token)).status).toBe(404);
+    const { data: list } = await as(lead).GET("/boqs/{boqId}/share-links", { params: { path: { boqId } } });
+    expect(list!.find((l) => l.id === data!.id)!.status).toBe("expired");
+    const revived = await as(lead).PATCH("/share-links/{shareLinkId}", { params: { path: { shareLinkId: data!.id } }, body: { expiresAt: new Date(Date.now() + 86_400_000).toISOString() } });
+    expect(revived.data).toMatchObject({ status: "active" });
+    expect((await pub(token)).status).toBe(200);
   });
 
   it("who may: viewers can't share; estimators revoke their own only; approvers revoke any; the org list is the owners' and admins'", async () => {

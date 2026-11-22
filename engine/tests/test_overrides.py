@@ -28,6 +28,23 @@ def test_quantity_edit_flows_into_element_derived_formula(duplex_parsed):
     assert any(log["code"] == "log.decision.line_override" and log["lineKey"] == wall["key"] for log in result["log"])
 
 
+def test_an_excluded_source_line_no_longer_feeds_derived_lines(duplex_parsed):
+    """P54 (Q48, TF-056): excluding a source line drops it from its derived lines, as an edit to 0 does."""
+    before = run(duplex_parsed)
+    wall = next(line for line in before["lines"] if line["ruleId"] == "walls" and "Foundation - Concrete" in line["description"])
+    original = next(line for line in before["lines"] if line["ruleId"] == "formwork-walls")
+    zeroed = run(duplex_parsed, decisions=[edit(wall["key"], quantity=0, reason="Not in this package")])
+    excluded = run(duplex_parsed, decisions=[edit(wall["key"], excluded=True, reason="Not in this package")])
+    as_zero = next(line for line in zeroed["lines"] if line["key"] == original["key"])
+    derived = next(line for line in excluded["lines"] if line["key"] == original["key"])
+    assert as_zero["quantity"] < original["quantity"]
+    assert derived["quantity"] == pytest.approx(as_zero["quantity"], abs=0.011)
+    assert any("source line excluded" in trace["note"] for trace in derived["trace"]["elements"])
+    step = next(s for s in derived["trace"]["steps"] if s["code"] == "trace.derive.excluded")
+    assert step["value"] == 0 and step["params"]["sourceLine"] == wall["key"]
+    assert "_excluded" not in next(line for line in excluded["lines"] if line["key"] == wall["key"])
+
+
 def test_codes_exclusion_orphans_and_xlsx(duplex_parsed):
     systems = ("acme-cost-codes", "demo-trades")
     original = run(duplex_parsed, classes=systems)

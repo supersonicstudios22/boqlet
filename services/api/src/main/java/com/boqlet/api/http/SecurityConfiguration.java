@@ -41,6 +41,17 @@ class SecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 // Native cookie requests have an exact Origin check in NativeIdentityFilter.
                 .csrf(AbstractHttpConfigurer::disable)
+                // TF-046: nosniff, frame DENY and no-cache are Spring's defaults. HSTS is sent on every answer
+                // when the app is served over https: TLS ends at the proxy, so the request Java sees is plain
+                // HTTP and Spring's default (secure requests only) never sent it.
+                .headers(headers -> {
+                    headers.contentTypeOptions(org.springframework.security.config.Customizer.withDefaults());
+                    if (origin.startsWith("https://")) {
+                        headers.httpStrictTransportSecurity(hsts -> hsts.requestMatcher(
+                                org.springframework.security.web.util.matcher.AnyRequestMatcher.INSTANCE)
+                                .includeSubDomains(true).maxAgeInSeconds(31_536_000));
+                    }
+                })
                 .authorizeHttpRequests(requests -> requests
                         // The error page answers what failed on the request dispatch (TF-071): it must not ask to sign in.
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()

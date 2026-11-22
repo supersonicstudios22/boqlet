@@ -95,6 +95,9 @@ class NativeAuthTest {
         for (String admin : List.of("/api/v1/admin/orgs", "/api/v1/%61dmin/orgs", "/api/v1/adm%69n/overview", "/api/v1/%61dmin/users")) {
             http.perform(get(URI.create(admin)).cookie(third)).andExpect(status().isNotFound());
         }
+        // P54 Q51 (TF-081): not signed in, or with an ended session, /admin/* asks to sign in like every other route.
+        http.perform(get("/api/v1/admin/orgs")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("unauthenticated"));
+        http.perform(get(URI.create("/api/v1/%61dmin/overview")).cookie(second)).andExpect(status().isUnauthorized());
         String self = db.queryForObject("SELECT id::text FROM users WHERE email = ?", String.class, EMAIL);
         http.perform(delete(URI.create("/api/v1/%61dmin/users/" + self + "/session")).header("Origin", ORIGIN).cookie(third))
                 .andExpect(status().isNotFound());

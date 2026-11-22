@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
+import { federationKeys } from "@/features/models/disciplines";
 
 export function useModels(projectId: string) {
   return useQuery({
@@ -61,5 +62,25 @@ export function usePlans() {
     queryKey: keys.plans(),
     staleTime: Infinity,
     queryFn: async () => (await api.GET("/plans")).data!,
+  });
+}
+
+/**
+ * The disciplines the org's federation settings allow (system and org federation presets, their published
+ * versions' `doc.disciplines` keys): what a model form offers (TF-128).
+ */
+export function useFederationDisciplines(orgId: string) {
+  return useQuery({
+    queryKey: [...keys.presets(orgId), "federation-disciplines"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const presets = (await api.GET("/orgs/{orgId}/presets", { params: { path: { orgId }, query: { kind: "federation" } } })).data!;
+      const versions = await Promise.all(
+        presets
+          .filter((p) => !p.archived && p.latestPublishedVersion)
+          .map(async (p) => (await api.GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: p.latestPublishedVersion!.id } } })).data!),
+      );
+      return federationKeys(versions.map((v) => v.doc));
+    },
   });
 }

@@ -52,8 +52,22 @@ sh check-private.sh
 | `ENGINE_QUEUE_CONCURRENCY` | 1 job slot |
 | `ENGINE_QUEUE_CPUS`, `ENGINE_QUEUE_MEMORY` | 2 CPUs, 4 GiB |
 | `ENGINE_QUEUE_POOL`, `ENGINE_QUEUE_JOB_TIMEOUT_SECONDS` | `default`, 1,800 seconds |
+| `ENGINE_INTERACTIVE_CONCURRENCY`, `ENGINE_INTERACTIVE_CPUS`, `ENGINE_INTERACTIVE_MEMORY` | 1 slot, 1 CPU, 2 GiB (`queue-interactive`: runs and previews only) |
 | `ENGINE_HTTP_CONCURRENCY`, `ENGINE_HTTP_CPUS`, `ENGINE_HTTP_MEMORY` | 1, 1 CPU, 1.5 GiB |
 | `MAX_UPLOAD_MIB` | 512 MiB |
+
+`queue-interactive` (P54, TF-180) claims only `run` and `preview` jobs from the same pool, so an
+interactive run doesn't wait behind a parse; `queue` still takes every type, runs included when
+it is free. A run reads the parsed model, not the IFC, so it needs less memory than a parse; 2 GiB
+is an assumption to check against peak run memory of real pilot models. **Memory budget:** the
+default services' limits add up to about 11.75 GiB (db 1, storage 1, web 0.75, API 1.5, engine
+1.5, queue 4, queue-interactive 2) of the host's 24 GB, which it shares with Narudzbe; the
+assumption is that Boqlet keeps within 12 GiB (`engine/tests/test_pilot_capacity.py` checks the
+Compose file against it) and leaves the rest to Narudzbe and the OS. CPU limits add up to 6 of the
+8 shared vCPUs. **Rollout:** a Compose change is an operator task (`auth-and-deploys.md`): point
+`/srv/boqlet/current` at a release with this file, install its `deploy-release.sh`, then
+`docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps queue-interactive`;
+`check-private.sh` checks the slot once it runs, and later deploys recreate it with the others.
 
 Set values in `pilot.env`. On a drained queue, apply slot, CPU or memory changes with `docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps queue`. Pool, timeout and maximum upload size must be kept in sync with the API and relevant engine services. Review queue wait time, job duration, peak memory and host headroom with actual pilot IFCs before increasing parallelism. The proxy has a 60-second read timeout and a 120-second write timeout. The upload API uses a single PUT through 100 MiB and 16 MiB parts above that, so check slow connections with actual pilot models before promising supported transfer times.
 
@@ -64,6 +78,8 @@ Keycloak registration and password reset start disabled. Keep `PILOT_EMAILS` lim
 ## Shared proxy and rollback
 
 The live proxy reads a merged dynamic route file at `/srv/boqlet/edge/routes.json` and uses the overlay at `/srv/boqlet/edge/compose.yaml`. The original Narudzbe release Compose and route files remain the source for Narudzbe settings. A future release that recreates the proxy must include the overlay last and regenerate the merged route file from the new Narudzbe source and [Boqlet routes](../../ops/pilot/traefik-routes.json). Test the merge with [check-edge-candidate.sh](../../ops/pilot/check-edge-candidate.sh) before modifying the shared container. Scope proxy operations to the proxy service. The Boqlet stack stays on its own Compose project.
+
+The four Boqlet routers in [traefik-routes.json](../../ops/pilot/traefik-routes.json) name the `private-headers` middleware. It is not defined in this repo: [merge-routes.py](../../ops/pilot/merge-routes.py) adds the Boqlet routers to the Narudzbe release route file, and the middleware comes from that file, so what it sets can't be known from here. Boqlet doesn't rely on it: the app sets its own response headers (`apps/app/next.config.ts`) and the API sends HSTS, nosniff and frame denial itself (`docs/architecture/security.md`, TF-046). If a Narudzbe release drops the middleware, the merged Boqlet routers fail, and the route probes in [check-edge-candidate.sh](../../ops/pilot/check-edge-candidate.sh) should fail before the proxy changes.
 
 [edge.sh](../../ops/pilot/edge.sh) captures the exact baseline Compose files and arms a four-minute rollback before applying ingress. Confirm that both applications answer over public HTTPS and that the Docker DNAT destination matches the firewall's expected proxy-egress IP before confirming. An observed initial parser error caused a brief Narudzbe 404; baseline rollback restored HTTPS, and the corrected schema passed the exact-image candidate test before the successful retry.
 

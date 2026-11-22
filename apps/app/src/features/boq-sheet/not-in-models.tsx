@@ -1,14 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { SheetLine } from "./edits";
 import { countsBySource } from "./model";
-
-/** Collapsing the notice is remembered per user (F06-AC8), in this browser. */
-const storageKey = (userId: string) => `boqlet:not-in-models-collapsed:${userId}`;
 
 /** The "not in the models" paragraph (P15, BR-12): the notice, the empty sheet and the "Add line" help say the same. */
 export function NotInModelsText({ className }: { className?: string }) {
@@ -20,28 +16,16 @@ export function NotInModelsText({ className }: { className?: string }) {
  * F06 §12: the app measures only what the models contain, and says so at the top of every sheet,
  * with the counts by source and "Add line". Collapsible to the counts line; never removed.
  */
-export function NotInModelsNotice({ lines, userId, onAddLine }: { lines: readonly SheetLine[]; userId: string | undefined; onAddLine?: () => void }) {
+export function NotInModelsNotice({ lines, collapsed, onCollapsedChange, onAddLine }: {
+  lines: readonly SheetLine[];
+  /** The user's saved preference (`GET /me` preferences, F06-AC8, TF-109): the same in every browser. */
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+  onAddLine?: () => void;
+}) {
   const t = useTranslations("boqs.notInModels");
-  // The sheet renders on the client only (its lines are fetched), and the parent keys this by user.
-  const [collapsed, setCollapsed] = useState(() => {
-    if (!userId || typeof window === "undefined") return false;
-    try {
-      return window.localStorage.getItem(storageKey(userId)) === "1";
-    } catch {
-      return false; // Storage blocked: the notice stays open.
-    }
-  });
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    if (!userId) return;
-    try {
-      if (next) window.localStorage.setItem(storageKey(userId), "1");
-      else window.localStorage.removeItem(storageKey(userId));
-    } catch {
-      // Remembered for this page only.
-    }
-  };
+  // The save updates the cached preference at once (useUpdatePreferences), so the toggle shows immediately.
+  const toggle = () => onCollapsedChange(!collapsed);
   const counts = countsBySource(lines);
 
   return (

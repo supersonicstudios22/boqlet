@@ -6,6 +6,7 @@ import com.boqlet.api.db.StoredJson;
 import com.boqlet.api.storage.ObjectStorage;
 import com.boqlet.api.worker.WorkerClient;
 import com.boqlet.contract.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.net.URI;
@@ -164,11 +165,20 @@ class PublicShares {
 
     private ObjectNode line(String value, int index, boolean detail) {
         ObjectNode source = json.read(value, ObjectNode.class);
+        JsonNode edit = source.get("overridden");
         // An excluded line is shown as excluded, like the sheet shows it (TF-033); why stays private (BR-56).
         source.retain("key", "ruleId", "ruleKind", "description", "unit", "quantity", "source",
                 "family", "keys", "trace", "codes", "location", "tags", "excluded");
         source.put("sortIndex", index);
         source.putArray("notes"); // the team's notes stay private; the field is required (TF-085)
+        // P54 Q52 (TF-086): an edited quantity is shown as edited, with the engine's value; who and why stay private.
+        if (edit != null && edit.path("fields").isArray()
+                && java.util.stream.StreamSupport.stream(edit.path("fields").spliterator(), false).anyMatch(f -> f.asText().equals("quantity"))) {
+            var shown = source.putObject("overridden");
+            shown.putArray("fields").add("quantity");
+            shown.set("engineQuantity", edit.get("engineQuantity"));
+            shown.set("quantity", edit.get("quantity"));
+        }
         if (source.get("trace") instanceof ObjectNode trace) {
             trace.retain("formula", "params", "elements", "sourceLine", "steps");
             for (var step : trace.path("steps")) {

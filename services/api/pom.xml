@@ -139,7 +139,9 @@
                                 <copy todir="${project.build.directory}/contract/types/schema">
                                     <fileset dir="${project.basedir}/../../packages/types/schema"/>
                                 </copy>
-                                <!-- Keep forwarded engine documents opaque to Java. The worker validates their schema. -->
+                                <!-- Keep forwarded engine documents opaque to Java. The engine checks them: a model scope through the
+                                     `check` rpc (kind model-scope) on createModel, updateModel, createBoq and updateRevisionInputs
+                                     (TF-074), the rest when a job reads them. -->
                                 <replace file="${project.build.directory}/contract/api/openapi.yaml">
                                     <replacefilter
                                             token="$ref: &quot;../types/schema/run-request.schema.json#/definitions/ModelScope&quot;"

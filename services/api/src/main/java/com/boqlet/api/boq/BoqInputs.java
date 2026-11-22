@@ -19,8 +19,11 @@ class BoqInputs {
     private final StoredJson json;
     private final PresetCatalog catalog;
     private final EntitlementService limits;
+    private final com.boqlet.api.worker.WorkerClient worker;
 
-    BoqInputs(JdbcTemplate database, StoredJson json, PresetCatalog catalog, EntitlementService limits) {
+    BoqInputs(JdbcTemplate database, StoredJson json, PresetCatalog catalog, EntitlementService limits,
+              com.boqlet.api.worker.WorkerClient worker) {
+        this.worker = worker;
         this.database = database;
         this.json = json;
         this.catalog = catalog;
@@ -168,6 +171,20 @@ class BoqInputs {
             }
         }
         return data;
+    }
+
+    /** A model's scope in a revision's inputs is checked by the engine like the model's own (TF-074): a typo is refused. */
+    void scopes(RevisionInputs input) {
+        for (RevisionModelInput model : input.getModels()) scope(model.getScope());
+    }
+
+    private void scope(Map<String, Object> scope) {
+        if (scope == null || scope.isEmpty()) return;
+        var checked = worker.rpc("check", Map.of("kind", "model-scope", "doc", scope), CheckResponse.class);
+        if (!Boolean.TRUE.equals(checked.getOk())) {
+            throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_scope", "A model's scope is not valid.",
+                    Map.of("problems", checked.getProblems()));
+        }
     }
 
     /** A revision's inputs answer `invalid_inputs` (F04 §2), like every other input problem of a revision. */

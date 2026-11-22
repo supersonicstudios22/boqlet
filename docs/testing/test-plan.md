@@ -324,7 +324,7 @@ the UI state (loading, empty, error, read-only), audit events written (BR-51), n
 **J. Versions, review, confirm (F09; S12h)**
 - J1 Approval off: Save version gives a labelled snapshot (A, B, … then AA), work goes on in a new working version (F09-AC1, BR-26). The save dialog has the "not in the models" tick (BR-12).
 - J2 A saved version stays byte-identical (sheet, position numbers, Excel) while the working version changes (F09-AC2, BR-25). Every write to it, by every role including owner, gets `409 revision_locked` (v1-5).
-- J3 Approval on: Submit → Approve → Save; request changes needs a comment; any edit during review withdraws it; four-eyes on: the submitter can't approve (`403`, `reason: "four_eyes"`), even as lead (F09-AC3, BR-24).
+- J3 Approval on: Submit → Approve → Save; request changes needs a comment; any edit during review withdraws it; four-eyes on: the submitter can't approve (`403`, `code: four_eyes`), even as lead (F09-AC3, BR-24).
 - J4 Confirm: every write `409 boq_confirmed`, owner included; saved versions, exports and share links keep working; reopen with a reason gives a working version, audited (F09-AC4, BR-27).
 - J5 Every transition writes an audit event with actor and time, shown in project activity (F09-AC5).
 - J6 Saving needs a finished run on the current inputs (BR-22); open blocking questions are allowed and counted on the version.

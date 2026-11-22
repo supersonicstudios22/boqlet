@@ -258,7 +258,38 @@ public class Library {
                 WHERE id = ?
                 """, draft.id(), actor, id);
         event(head, actor, "preset.published");
+        followers(id, draft.id(), actor);
         return catalog.version(draft.id()).response(checked.getFlattened().orElse(null));
+    }
+
+    /**
+     * P54 Q58 (TF-140): the "Based on it" clones of a preset follow it at once. Each clone whose draft or latest
+     * version extends an earlier version of it gets a draft that extends the version just published (its own
+     * draft rebased, or a new one from its latest version), checked again, for its editors to publish.
+     */
+    private void followers(UUID preset, UUID published, UUID actor) {
+        var clones = database.queryForList("""
+                SELECT DISTINCT p.id FROM presets p
+                JOIN preset_versions v ON v.id = coalesce(p.draft_version_id, p.latest_published_version_id)
+                JOIN preset_versions parent ON parent.id = v.extends_version_id
+                WHERE parent.preset_id = ? AND p.id <> ? AND NOT p.archived AND v.extends_version_id <> ?
+                """, UUID.class, preset, preset, published);
+        for (UUID clone : clones) {
+            var head = catalog.head(clone);
+            if (head.draft() != null) {
+                var prior = catalog.version(head.draft());
+                database.update("""
+                        UPDATE preset_versions SET extends_version_id = ?, problems = CAST(? AS jsonb), etag = etag + 1,
+                            updated_at = now() WHERE id = ?
+                        """, published, encodeProblems(check(head.kind(), prior.doc(), published).getProblems()), prior.id());
+            } else {
+                var latest = catalog.version(head.published());
+                UUID draft = Ids.newId();
+                insertDraft(draft, clone, latest.doc().deepCopy(), published, check(head.kind(), latest.doc(), published).getProblems(), actor);
+                database.update("UPDATE presets SET draft_version_id = ?, updated_at = now() WHERE id = ?", draft, clone);
+            }
+            event(head, actor, "preset.rebased");
+        }
     }
 
     @Transactional

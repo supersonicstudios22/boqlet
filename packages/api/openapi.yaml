@@ -69,6 +69,7 @@ paths:
               properties:
                 name: { type: string, maxLength: 120 }
                 locale: { type: string, maxLength: 64 }
+                preferences: { $ref: "#/components/schemas/UserPreferences", description: "merged into the stored preferences: a key left out keeps its value (Q55, TF-109)" }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
   /me/notification-preferences:
@@ -91,6 +92,7 @@ paths:
     get:
       tags: [orgs]
       operationId: listOrgs
+      description: "API-only (Q50, TF-080): the app doesn't call it; it reads the user's orgs from `GET /me` memberships."
       responses:
         "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Org" } } } } }
     post:
@@ -107,6 +109,7 @@ paths:
     get:
       tags: [orgs]
       operationId: getOrg
+      description: "API-only (Q50, TF-080): the app doesn't call it; it reads the org from `GET /me` memberships."
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Org" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -119,6 +122,7 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Org" } } } }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "402": { $ref: "#/components/responses/LimitReached" }
     delete:
       tags: [orgs]
       operationId: deleteOrg
@@ -223,6 +227,7 @@ paths:
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/OrgInvitation" } } } }
+        "402": { $ref: "#/components/responses/LimitReached" }
   /invitations/{token}:
     parameters: [{ $ref: "#/components/parameters/Token" }]
     get:
@@ -250,6 +255,7 @@ paths:
       operationId: acceptOrgInvitation
       responses:
         "200": { description: Joined, content: { application/json: { schema: { $ref: "#/components/schemas/Membership" } } } }
+        "402": { $ref: "#/components/responses/LimitReached" }
         "409": { $ref: "#/components/responses/Conflict" }
   /orgs/{orgId}/attention:
     parameters: [{ $ref: "#/components/parameters/OrgId" }]
@@ -529,6 +535,7 @@ paths:
         content: { application/json: { schema: { $ref: "#/components/schemas/ModelCreate" } } }
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Model" } } } }
+        "400": { description: "`invalid_discipline` (one of the federation settings' disciplines, `details.allowed`) or `invalid_scope` (the engine's `details.problems`)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /models/{modelId}:
     parameters: [{ $ref: "#/components/parameters/ModelId" }]
     get:
@@ -544,9 +551,11 @@ paths:
         content: { application/json: { schema: { $ref: "#/components/schemas/ModelUpdate" } } }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Model" } } } }
+        "400": { description: "`invalid_discipline` (one of the federation settings' disciplines, `details.allowed`) or `invalid_scope` (the engine's `details.problems`)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
     delete:
       tags: [models]
       operationId: archiveModel
+      description: "Remove a model (Q50, TF-080): it is archived and leaves the models list; its versions stay for the BoQs and saved versions that use them."
       responses:
         "204": { description: Archived }
   /models/{modelId}/versions:
@@ -596,6 +605,7 @@ paths:
       operationId: deleteModelVersion
       responses:
         "204": { description: Deleted or archived }
+        "409": { description: "`version_in_use`: a BoQ uses this version (TF-032)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /model-versions/{versionId}/complete:
     parameters: [{ $ref: "#/components/parameters/VersionId" }]
     post:
@@ -620,6 +630,7 @@ paths:
       responses:
         "200": { description: Version queued or ready (deduplicated), content: { application/json: { schema: { $ref: "#/components/schemas/ModelVersion" } } } }
         "400": { $ref: "#/components/responses/BadRequest" }
+        "402": { $ref: "#/components/responses/LimitReached" }
   /model-versions/{versionId}/retry:
     parameters: [{ $ref: "#/components/parameters/VersionId" }]
     post:
@@ -629,6 +640,7 @@ paths:
       responses:
         "200": { description: Re-queued, content: { application/json: { schema: { $ref: "#/components/schemas/ModelVersion" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
+        "402": { $ref: "#/components/responses/LimitReached" }
   /model-versions/{versionId}/geometry:
     parameters: [{ $ref: "#/components/parameters/VersionId" }]
     get:
@@ -1019,6 +1031,7 @@ paths:
     get:
       tags: [boqs]
       operationId: getRevision
+      description: "API-only (Q50, TF-080): the app doesn't call it; it reads the current revision with its BoQ (`GET /boqs/{boqId}`)."
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BoqRevision" } } } }
     patch:
@@ -1036,6 +1049,7 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BoqRevision" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
+        "400": { description: "`invalid_inputs`, or `invalid_scope` for a model scope the engine refuses (TF-074)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /revisions/{revisionId}/runs:
     parameters: [{ $ref: "#/components/parameters/RevisionId" }]
     get:
@@ -1182,6 +1196,7 @@ paths:
       tags: [adjustments]
       operationId: setOverride
       summary: Create or replace the edits of one line (by lineKey); see F06 §6
+      description: "API-only (Q50, TF-080): the app doesn't call it; it edits through `applyLineEdits` (`POST /boqs/{boqId}/overrides/batch`)."
       requestBody:
         required: true
         content:
@@ -1195,6 +1210,7 @@ paths:
     delete:
       tags: [adjustments]
       operationId: removeOverride
+      description: "API-only (Q50, TF-080): the app doesn't call it; it restores a line through `applyLineEdits`."
       responses:
         "204": { description: Removed }
         "409": { $ref: "#/components/responses/Conflict" }
@@ -1243,6 +1259,7 @@ paths:
     get:
       tags: [runs]
       operationId: getRunResult
+      description: "API-only (Q50, TF-080): the app doesn't call it; it reads lines, line details and questions through the run's paged endpoints."
       responses:
         "302": { description: Redirect to a signed URL of the full BoqResult JSON (gzip) }
   /runs/{runId}/lines:
@@ -2420,9 +2437,10 @@ components:
         platformRole: { type: string, enum: [admin], description: Operators of the product only (F19) }
     Me:
       type: object
-      required: [user, memberships]
+      required: [user, memberships, preferences]
       properties:
         user: { $ref: "#/components/schemas/User" }
+        preferences: { $ref: "#/components/schemas/UserPreferences" }
         memberships:
           type: array
           items:
@@ -2436,6 +2454,12 @@ components:
           type: object
           description: Fields added by installed modules under their key (e.g. `pricing`); empty when none are installed (P36).
           additionalProperties: { type: object, additionalProperties: true }
+    UserPreferences:
+      type: object
+      description: The signed-in user's interface preferences, kept on the server so they follow the user to every browser (F06-AC8, Q55).
+      additionalProperties: false
+      properties:
+        notInModelsCollapsed: { type: boolean, description: "the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12)" }
     OrgRole: { type: string, enum: [owner, admin, library_editor, member] }
     Org:
       type: object

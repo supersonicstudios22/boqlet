@@ -72,6 +72,7 @@
     "description": "Description",
     "unit": "Unit",
     "quantity": "Quantity",
+    "edited": "Edited (measured: {engine})",
     "noLines": "No lines match.",
     "detail": "How it is calculated",
     "close": "Close",

@@ -28,7 +28,11 @@ public class ProjectAccess {
             WHERE o.status <> 'deleting' AND (m.role IN ('owner', 'admin') OR pm.role IS NOT NULL)
             """;
 
-    private static final Set<String> ARCHIVED_ACTIONS = Set.of("view", "seeAudit", "archive");
+    /**
+     * What an archived project still allows (permissions.md, P54): reading, unarchiving it (`archive`, Q53) and
+     * revoking its share links (`revokeShares`, Q42). Promoting a name answer is an org action and stays allowed too.
+     */
+    private static final Set<String> ARCHIVED_ACTIONS = Set.of("view", "seeAudit", "archive", "revokeShares");
     private static final Set<ProjectRole> EDITING = Set.of(LEAD, ESTIMATOR);
     private static final Set<ProjectRole> APPROVAL = Set.of(LEAD, APPROVER);
     private static final Map<String, Set<ProjectRole>> ACTIONS = Map.ofEntries(

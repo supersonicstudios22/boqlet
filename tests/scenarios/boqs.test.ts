@@ -97,6 +97,13 @@ describe("BoQ create and inputs (F04 §1, §2)", () => {
       body: { inputs: { models: [{ modelId: "00000000-0000-4000-8000-000000000000", modelVersionId: models[0]!.versionId, discipline: "architecture" }] } },
     });
     expect(foreign.response.status).toBe(400);
+    // TF-074 (Batch 7): a model scope in the revision's inputs is checked like the model's own.
+    const typo = await client(owner.token).PATCH("/revisions/{revisionId}", {
+      params: { path: { revisionId: id } },
+      body: { inputs: { models: [{ modelId: models[0]!.modelId, modelVersionId: models[0]!.versionId, discipline: "architecture", scope: { exlude: [{ ifcClass: "IfcFurnishingElement" }] } }] } },
+    });
+    expect(typo.response.status).toBe(400);
+    expect(typo.error).toMatchObject({ code: "invalid_scope" });
   });
 
   it("maxModelsPerBoq: more models than the plan allows answers 402 (free plan: 2)", async () => {

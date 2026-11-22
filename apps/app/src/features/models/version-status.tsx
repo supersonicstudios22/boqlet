@@ -44,7 +44,7 @@ export function VersionStatus({ version, detailed = false }: { version: Schemas[
       {busy && detailed && (
         <DimensionRule
           progress={(progress.data?.pct ?? 0) / 100}
-          label={stage ? t(`stages.${stage}`) : t("waiting")}
+          label={stage && t.has(`stages.${stage}`) ? t(`stages.${stage}`) : t("waiting")}
           className="max-w-md"
         />
       )}

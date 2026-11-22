@@ -15,7 +15,7 @@ import { keys as queryKeys } from "@/api/keys";
 import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
 import { useExportRun } from "@/api/hooks/exports";
-import { useMe } from "@/api/hooks/me";
+import { useMe, useUpdatePreferences } from "@/api/hooks/me";
 import { useLines } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
@@ -116,6 +116,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const message = useErrorMessage();
   const lines = useLines(run.id);
   const me = useMe();
+  const savePreferences = useUpdatePreferences();
   const searchParams = useSearchParams();
   const exporting = useExportRun(run.id);
   // F12: the run's Excel, grouped as the sheet is; a toast while the job runs, then the download.
@@ -587,7 +588,12 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
     <div className="flex flex-col gap-3" data-testid="sheet" data-editable={editable ? "true" : "false"}>
       <WarningsBar runId={run.id} systemNames={systemNames} />
       <SystemRulesHint run={run} userId={me.data?.user.id} />
-      <NotInModelsNotice key={me.data?.user.id ?? "anonymous"} lines={all} userId={me.data?.user.id} onAddLine={editable ? () => setManualDialog({}) : undefined} />
+      <NotInModelsNotice
+        lines={all}
+        collapsed={me.data?.preferences?.notInModelsCollapsed ?? false}
+        onCollapsedChange={(notInModelsCollapsed) => savePreferences.mutate({ notInModelsCollapsed })}
+        onAddLine={editable ? () => setManualDialog({}) : undefined}
+      />
       <div className="flex flex-wrap items-end gap-3" data-testid="sheet-toolbar">
         <label className="flex flex-col gap-1">
           <span className="label-caps text-muted-foreground">{t("groupBy")}</span>

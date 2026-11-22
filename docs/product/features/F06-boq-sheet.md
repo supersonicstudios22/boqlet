@@ -78,7 +78,8 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    - **Reorder** lines within a section by dragging. Order is presentation only.
    - **Exclude** a line: it leaves the totals and the exports' BoQ sheet, but stays in the sheet
      struck through under the "Excluded" filter, and in an "Excluded lines" sheet of the
-     Excel (BR-03).
+     Excel (BR-03). Its derived lines leave it out too, as for an edit to 0 (P54); "How it is
+     calculated" shows the source as excluded.
    - **Bulk:** select lines (checkboxes, shift-click, a section, a filter result or elements in
      the 3D view) → move to section, exclude, plus any action a module adds (extension point
      `sheet.selectionActions`; pricing: request offers).
@@ -86,7 +87,7 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    is required for quantity changes and exclusions, optional for text, unit, moves and order.
    Edits are saved as they are made (`POST /boqs/{boqId}/overrides`), show at once, and apply
    on the next run; quantity edits feed derived lines (formwork follows an edited concrete
-   area, EN-003). Edited cells carry a marker; hovering shows the engine's value; "Restore"
+   area, EN-003), and so do exclusions. Edited cells carry a marker; hovering shows the engine's value; "Restore"
    per field or per line removes the edit. The last 20 edits can be undone (Ctrl+Z). Filter
    "Edited" lists them. Edits are carried to new revisions and appear in the change report
    (`override_changed`), the review screen (F09) and the Excel (F12).
@@ -164,7 +165,7 @@ points (pricing: offer requests, F11).
 - [ ] Every line's detail starts with a plain-words "How it is calculated" whose steps add up to the line quantity, with each rule-set value linked to its Settings question.
 - [ ] A manual line added under group "9 Preliminaries" appears there after regeneration, with the code of that group.
 - [ ] With a classification that has item texts, Description shows the filled item texts; switching "Group by" to a system without texts shows the rule set's line texts; the line detail shows both.
-- [ ] The "not in the models" notice and the counts by source are visible on every draft BoQ sheet, and collapsing it is remembered per user.
+- [ ] The "not in the models" notice and the counts by source are visible on every draft BoQ sheet, and collapsing it is remembered per user, on the server, so in every browser (`GET /me` `preferences`, Q55, P54).
 - [ ] Position numbers renumber at once after a move or exclusion in the working version and stay unchanged in a saved version.
 - [ ] Two browsers on the same BoQ: an edit in one appears in the other within 1 s; editing the same line in both keeps the later edit and tells the earlier editor.
 - [ ] The sheet scrolls smoothly at 20,000 lines (60 fps target on a mid-range laptop; measured in a perf test).

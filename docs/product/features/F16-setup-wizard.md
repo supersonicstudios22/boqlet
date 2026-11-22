@@ -30,7 +30,8 @@ later be edited in the Library like any preset.
 ## When it appears
 
 1. **On first start, required** (P18, FL-1): right after creating the org, the owner goes
-   straight into the wizard, and the org's dashboard opens only when it is finished. Signing
+   straight into the wizard, and until it is finished every page of the org except the settings
+   and the wizard itself leads to the wizard (Q57, P54; `features/setup/setup-gate.tsx`). Signing
    out and back in returns to the step they left. Because it is required, it must be quick:
    every question comes with a suggested answer, and **"Use the suggested answers"** on each
    step finishes the whole wizard in under three minutes. Members invited later never see it;
@@ -254,7 +255,7 @@ New: `GET /orgs/{orgId}/setup`, `PUT /orgs/{orgId}/setup`.
 - [ ] After "Publish all", a new project's BoQ uses the three presets without further choices and its Excel shows the item numbers and filled item texts.
 - [ ] Leaving at step 2 and coming back the next day reopens step 2 with the answers of step 1 kept.
 - [ ] A free-plan org finishes the wizard without hitting `libraryOrgPresets`.
-- [ ] A new owner cannot reach the org dashboard before finishing; "Use the suggested answers" on every step finishes in under three minutes.
+- [ ] A new owner cannot reach the org dashboard, projects or Library before finishing (settings stay open); "Use the suggested answers" on every step finishes in under three minutes.
 - [ ] Changing which slots are `setup` in the system rule set, or adding a new item-switching yes/no slot, changes the wizard's screens with no frontend change.
 - [ ] Starting from "As modelled", the wizard shows the 14-switch checklist, a detail screen only for switches turned on, and the six measuring screens of the table above.
 - [ ] Turning on reinforcement estimates cannot be finished without entering kg per m³ for slabs, walls and footings.

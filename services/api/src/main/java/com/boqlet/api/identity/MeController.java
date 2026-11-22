@@ -8,6 +8,7 @@ import com.boqlet.contract.model.MeMembershipsInner;
 import com.boqlet.contract.model.NotificationPreferences;
 import com.boqlet.contract.model.UpdateMeRequest;
 import com.boqlet.contract.model.User;
+import com.boqlet.contract.model.UserPreferences;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
@@ -42,7 +43,8 @@ class MeController implements MeApi {
         var login = Login.current();
         var memberships = orgs.list(login.userId()).stream()
                 .map(membership -> new MeMembershipsInner(membership.org(), membership.role())).toList();
-        return ResponseEntity.ok(new Me(identities.user(login.userId()), memberships)
+        return ResponseEntity.ok(new Me().user(identities.user(login.userId())).memberships(memberships)
+                .preferences(interfacePreferences(login.userId()))
                 .session(login.session()).modules(modules.profile(login.userId())));
     }
 
@@ -57,10 +59,13 @@ class MeController implements MeApi {
             throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
                     "The locale must be a language tag such as en or sr-Latn.", Map.of("field", "locale"));
         }
+        // Preferences merge: a key the request leaves out keeps its stored value (TF-109).
+        String preferences = request.getPreferences() == null ? null : json.valueToTree(request.getPreferences()).toString();
         database.update("""
-                UPDATE users SET name = coalesce(?, name), locale = coalesce(?, locale), updated_at = now()
+                UPDATE users SET name = coalesce(?, name), locale = coalesce(?, locale),
+                    preferences = preferences || coalesce(CAST(? AS jsonb), '{}'), updated_at = now()
                 WHERE id = ?
-                """, name == null ? null : name.trim(), request.getLocale(), user);
+                """, name == null ? null : name.trim(), request.getLocale(), preferences, user);
         return ResponseEntity.ok(identities.user(user));
     }
 
@@ -97,6 +102,17 @@ class MeController implements MeApi {
                     """, json.valueToTree(provided).toString(), Login.current().userId());
         }
         return getNotificationPreferences();
+    }
+
+    /** The interface preferences (Q55, TF-109): stored keys the contract no longer has are left out. */
+    private UserPreferences interfacePreferences(UUID user) {
+        var stored = read(database.queryForObject("SELECT preferences::text FROM users WHERE id = ?", String.class, user),
+                com.fasterxml.jackson.databind.JsonNode.class);
+        var preferences = new UserPreferences();
+        if (stored != null && stored.path("notInModelsCollapsed").isBoolean()) {
+            preferences.notInModelsCollapsed(stored.path("notInModelsCollapsed").asBoolean());
+        }
+        return preferences;
     }
 
     private NotificationPreferences preferences(UUID user) {

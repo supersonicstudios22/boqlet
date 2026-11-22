@@ -32,18 +32,18 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S12 | `/{org}/projects/[p]/boqs/[b]` | project roles | BoQ workspace (tabs below; modules may add tabs) | generate, save version, confirm, reopen; with approval: submit, approve |
 | S12i | … `?tab=review` | project roles, while a version is in review or approved | review status, reviewers, comments | approve, request changes, comment, withdraw |
 | S12a | … `?tab=sheet` | | lines, warnings, scene | sheet + 3D side by side, shared filters, detail with "How it is calculated", inline edits, move, reorder, exclude, add line, request prices, share |
-| S12b | … `?tab=questions` | lead, estimator, approver | questions + decisions | answer, bulk, dismiss, promote |
+| S12b | … `?tab=questions` | lead, estimator, approver; viewer read-only | questions + decisions | answer, bulk, dismiss, promote |
 | S12c | … `?tab=viewer` | all | geometry, scene, coverage | select, colour modes |
 | S12d | … `?tab=changes` | lead, estimator, approver | diff | filter, export |
-| S12e | … `?tab=log` | lead, estimator, approver | log | filter |
-| S12f | … `?tab=setup` | lead, estimator (edit in draft) | revision inputs, presets | change inputs |
+| S12e | … `?tab=log` | lead, estimator, approver; viewer read-only | log | filter |
+| S12f | … `?tab=setup` | lead, estimator (edit in draft); approver, viewer read-only | revision inputs, presets | change inputs |
 | S12g | … `?tab=exports` | project roles | exports | export, download, import edits from Excel |
 | S12h | … `?tab=versions` | project roles | saved versions, runs, review comments | open a saved version, compare, download its Excel, share |
-| S13 | `/{org}/projects/[p]/decisions` | lead, estimator, approver | decisions | edit, clear, export CSV |
+| S13 | `/{org}/projects/[p]/decisions` | lead, estimator, approver; viewer read-only | decisions | edit, clear, export CSV |
 | S14 | (pricing module) `/{org}/projects/[p]/pricing/offers` | lead, estimator, approver | offer requests | open |
 | S15 | (pricing module) `/{org}/projects/[p]/pricing/offers/[r]` | same | request, lines, vendors' status, offers, comparison | remind, send update, extend, close, use rates |
-| S16 | `/{org}/projects/[p]/library` | lead, estimator | project-layer presets | edit project dictionary / patches |
-| S17 | `/{org}/projects/[p]/settings` | lead | project, members | edit, members, archive |
+| S16 | `/{org}/projects/[p]/library` | lead, estimator; approver, viewer read-only | project-layer presets | edit project dictionary / patches |
+| S17 | `/{org}/projects/[p]/settings` | lead; other project roles read-only | project, members | edit, members, archive |
 | S18 | `/{org}/projects/[p]/activity` | lead, approver | project audit | filter |
 | S19 | `/{org}/library` | members (edit: library editors) | presets by kind | new, open |
 | S41 | `/{org}/library/[kind]/new` | library editors | presets of the kind (to start from) | create a preset: empty, copy or patch (F10 §2) |

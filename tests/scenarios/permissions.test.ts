@@ -383,12 +383,9 @@ function expected(row: Pick<Row, "table" | "allow" | "write" | "visible">, p: Pe
 }
 
 /** Cells that fail because of an open finding (Stage 3 matrix, results.json): `phase:row:persona`. */
-const KNOWN: Record<string, string> = {
-  ...Object.fromEntries([
-    // TF-012 (c, d), owner question Q42: revoking a share link and promoting a decision in an archived project.
-    ["O10", ["OWN", "ADM"]], ["P15", ["OWN", "ADM", "LEAD", "APR"]],
-  ].flatMap(([row, personas]) => (personas as string[]).map((p) => [`archived:${row}:${p}`, "TF-012"]))),
-};
+const KNOWN: Record<string, string> = {};
+/** Writes an archived project still allows (permissions.md, P54: Q42 revoke a share link, promote a name answer; TF-012 c, d). */
+const ARCHIVED_ALLOWED = ["P2c", "P15", "O10"];
 
 const PHASES: (Phase & { setup: () => Promise<unknown>; teardown?: () => Promise<unknown> })[] = [
   { name: "off", approval: false, setup: () => setApproval(false) },
@@ -414,16 +411,15 @@ function specKeys(p: Persona, phase: Phase) {
   const leadRole = role === "lead", estimator = role === "estimator", approver = role === "approver";
   const w = (v: boolean) => v && !phase.archived;
   return {
-    view: true, edit: w(leadRole), archive: w(leadRole), manageMembers: w(leadRole),
+    // P54 Q53 (TF-090): `archive` stays true on an archived project, to unarchive it.
+    view: true, edit: w(leadRole), archive: leadRole, manageMembers: w(leadRole),
     editModels: w(leadRole || estimator), editBoqs: w(leadRole || estimator), answerQuestions: w(leadRole || estimator), editLines: w(leadRole || estimator),
     editPresets: w(leadRole || estimator), saveVersion: w(leadRole || estimator),
     approve: w(phase.approval && (leadRole || approver)), confirm: w(leadRole || (phase.approval && approver)), reopen: w(leadRole),
-    share: w(leadRole || estimator || approver), revokeShares: w(leadRole || approver), seeAudit: leadRole || approver,
+    share: w(leadRole || estimator || approver), revokeShares: leadRole || approver, seeAudit: leadRole || approver,
   };
 }
-const KNOWN_KEYS: Record<string, string> = {
-  "archived:OWN": "TF-090", "archived:ADM": "TF-090", "archived:LEAD": "TF-090",
-};
+const KNOWN_KEYS: Record<string, string> = {};
 
 for (const phase of PHASES) {
   describe(`role matrix, ${phase.name === "off" ? "approval off" : phase.name === "on" ? "approval on" : "project archived"} (permissions.md, TF-092)`, () => {
@@ -448,16 +444,16 @@ for (const phase of PHASES) {
         const rev = (await lead.get(`/boqs/${await T.reviewBoq.get()}`)).json.currentRevision.permissions;
         expect(Object.entries(rev).filter(([, v]) => v === true).map(([k]) => k).sort()).toEqual(["seeAudit", "view"]);
       });
-      it("a share link's keys in an archived project are false", async () => {
+      it("a share link's keys in an archived project: no edit, but the lead may revoke it (P54 Q42)", async () => {
         const link = (await lead.get(`/boqs/${S.boq}/share-links`)).json.find((l: any) => l.id === T.link.peek());
-        expect(link?.permissions).toMatchObject({ edit: false, revoke: false });
+        expect(link?.permissions).toMatchObject({ edit: false, revoke: true });
       });
     }
 
     for (const row of order.filter((r) => phasesOf(r).includes(phase.name))) {
       for (const p of PERSONAS) {
         const known = KNOWN[`${phase.name}:${row.id}:${p}`];
-        const exp = phase.archived && row.id === "P2c" ? expected({ ...row, write: false }, p, phase) : expected(row, p, phase);
+        const exp = phase.archived && ARCHIVED_ALLOWED.includes(row.id) ? expected({ ...row, write: false }, p, phase) : expected(row, p, phase);
         const want = "ok" in exp ? "2xx" : exp.status.join("/") + (exp.code ? ` ${exp.code}` : "");
         (known ? it.fails : it)(`${known ? `${known}: ` : ""}${row.id} ${row.action}: ${p} → ${want}`, async () => {
           const target = row.target ? await row.target.get() : undefined;
@@ -560,7 +556,7 @@ describe("keys and refusals beyond the tables", () => {
     expect((await as(p).get(`/projects/${P()}`)).json.permissions.editModels).toBe(false);
     expect((await as(p).post(`/model-versions/${S.version}/retry`)).status).toBe(403);
   });
-  it.fails("TF-014: a library editor who is a viewer on the project previews an org rule set on its version", async () => {
+  it("TF-014: a library editor who is a viewer on the project previews an org rule set on its version", async () => {
     must(await own.post(`/projects/${P()}/members`, { userId: ids.LIB, role: "viewer" }), "LIB viewer");
     try {
       expect((await as("LIB").post(`/presets/${S.orgRuleSet}/preview`, { modelVersionIds: [S.version] })).status).toBeLessThan(300);

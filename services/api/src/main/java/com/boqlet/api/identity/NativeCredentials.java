@@ -32,16 +32,33 @@ public class NativeCredentials {
         this.sessions = sessions;
     }
 
-    public void limit(String bucket, int maximum) {
-        int attempts = db.queryForObject("""
+    /**
+     * Sign-in limits (security.md, Q56/P54, TF-122): failed sign-ins and password setups count, 45 per
+     * address and 12 per email in 15 minutes; successes count separately against a generous cap, so an
+     * office behind one address isn't locked out by its own sign-ins.
+     */
+    public static final int FAILURES_PER_SOURCE = 45;
+    public static final int FAILURES_PER_EMAIL = 12;
+    public static final int SUCCESSES_PER_SOURCE = 600;
+
+    /** `429 auth_throttled` when this window's count for the bucket has reached the maximum. */
+    public void requireUnder(String bucket, int maximum) {
+        Integer attempts = db.query("""
+                SELECT attempts FROM native_auth_limits
+                WHERE bucket = ? AND window_start = date_bin(interval '15 minutes', now(), timestamptz '2000-01-01')
+                """, (row, index) -> row.getInt(1), bucket).stream().findFirst().orElse(0);
+        if (attempts >= maximum) {
+            throw IdentityService.failure(HttpStatus.TOO_MANY_REQUESTS, "auth_throttled", "Try again in a few minutes.");
+        }
+    }
+
+    /** Counts one attempt in this window's bucket. */
+    public void count(String bucket) {
+        db.update("""
                 INSERT INTO native_auth_limits (bucket, window_start, attempts)
                 VALUES (?, date_bin(interval '15 minutes', now(), timestamptz '2000-01-01'), 1)
                 ON CONFLICT (bucket, window_start) DO UPDATE SET attempts = native_auth_limits.attempts + 1
-                RETURNING attempts
-                """, Integer.class, bucket);
-        if (attempts > maximum) {
-            throw IdentityService.failure(HttpStatus.TOO_MANY_REQUESTS, "auth_throttled", "Try again in a few minutes.");
-        }
+                """, bucket);
     }
 
     @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 3600000)

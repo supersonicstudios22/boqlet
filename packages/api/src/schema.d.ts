@@ -43,6 +43,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @description API-only (Q50, TF-080): the app doesn't call it; it reads the user's orgs from `GET /me` memberships. */
         get: operations["listOrgs"];
         put?: never;
         post: operations["createOrg"];
@@ -61,6 +62,7 @@ export interface paths {
             };
             cookie?: never;
         };
+        /** @description API-only (Q50, TF-080): the app doesn't call it; it reads the org from `GET /me` memberships. */
         get: operations["getOrg"];
         put?: never;
         post?: never;
@@ -597,6 +599,7 @@ export interface paths {
         get: operations["getModel"];
         put?: never;
         post?: never;
+        /** @description Remove a model (Q50, TF-080): it is archived and leaves the models list; its versions stay for the BoQs and saved versions that use them. */
         delete: operations["archiveModel"];
         options?: never;
         head?: never;
@@ -1134,6 +1137,7 @@ export interface paths {
             };
             cookie?: never;
         };
+        /** @description API-only (Q50, TF-080): the app doesn't call it; it reads the current revision with its BoQ (`GET /boqs/{boqId}`). */
         get: operations["getRevision"];
         put?: never;
         post?: never;
@@ -1302,7 +1306,10 @@ export interface paths {
         };
         get: operations["listOverrides"];
         put?: never;
-        /** Create or replace the edits of one line (by lineKey); see F06 §6 */
+        /**
+         * Create or replace the edits of one line (by lineKey); see F06 §6
+         * @description API-only (Q50, TF-080): the app doesn't call it; it edits through `applyLineEdits` (`POST /boqs/{boqId}/overrides/batch`).
+         */
         post: operations["setOverride"];
         delete?: never;
         options?: never;
@@ -1322,6 +1329,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /** @description API-only (Q50, TF-080): the app doesn't call it; it restores a line through `applyLineEdits`. */
         delete: operations["removeOverride"];
         options?: never;
         head?: never;
@@ -1391,6 +1399,7 @@ export interface paths {
             };
             cookie?: never;
         };
+        /** @description API-only (Q50, TF-080): the app doesn't call it; it reads lines, line details and questions through the run's paged endpoints. */
         get: operations["getRunResult"];
         put?: never;
         post?: never;
@@ -2672,6 +2681,7 @@ export interface components {
         };
         Me: {
             user: components["schemas"]["User"];
+            preferences: components["schemas"]["UserPreferences"];
             memberships: {
                 org: components["schemas"]["Org"];
                 role: components["schemas"]["OrgRole"];
@@ -2683,6 +2693,11 @@ export interface components {
                     [key: string]: unknown;
                 };
             };
+        };
+        /** @description The signed-in user's interface preferences, kept on the server so they follow the user to every browser (F06-AC8, Q55). */
+        UserPreferences: {
+            /** @description the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12) */
+            notInModelsCollapsed?: boolean;
         };
         /** @enum {string} */
         OrgRole: "owner" | "admin" | "library_editor" | "member";
@@ -4044,7 +4059,7 @@ export interface components {
         TraceStep: {
             /** @enum {string} */
             kind: "start" | "add" | "deduct" | "factor" | "round" | "derive" | "edit" | "result";
-            /** @description Message code (EN-004) of the step's sentence: `trace.start.area|volume|length|count|mass|perimeter|value|missing`, `trace.add.reveals|minimum`, `trace.deduct.all|over_threshold|excess`, `trace.factor`, `trace.round`, `trace.derive`, `trace.derive.missing`, `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`, `trace.result`. */
+            /** @description Message code (EN-004) of the step's sentence: `trace.start.area|volume|length|count|mass|perimeter|value|missing`, `trace.add.reveals|minimum`, `trace.deduct.all|over_threshold|excess`, `trace.factor`, `trace.round`, `trace.derive`, `trace.derive.missing`, `trace.derive.excluded` (an excluded source line, value 0), `trace.manual`, `trace.manual.missing`, `trace.edit.quantity|flagged`, `trace.result`. */
             code: string;
             /** @description Values the sentence names (count, surface, what, mode, threshold, formula, sourceLine, by, reason…). */
             params: {
@@ -4295,6 +4310,8 @@ export interface operations {
                 "application/json": {
                     name?: string;
                     locale?: string;
+                    /** @description merged into the stored preferences: a key left out keeps its value (Q55, TF-109) */
+                    preferences?: components["schemas"]["UserPreferences"];
                 };
             };
         };
@@ -4473,6 +4490,7 @@ export interface operations {
                     "application/json": components["schemas"]["Org"];
                 };
             };
+            402: components["responses"]["LimitReached"];
             403: components["responses"]["Forbidden"];
         };
     };
@@ -4708,6 +4726,7 @@ export interface operations {
                     "application/json": components["schemas"]["OrgInvitation"];
                 };
             };
+            402: components["responses"]["LimitReached"];
         };
     };
     previewOrgInvitation: {
@@ -4759,6 +4778,7 @@ export interface operations {
                     "application/json": components["schemas"]["Membership"];
                 };
             };
+            402: components["responses"]["LimitReached"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -5403,6 +5423,15 @@ export interface operations {
                     "application/json": components["schemas"]["Model"];
                 };
             };
+            /** @description `invalid_discipline` (one of the federation settings' disciplines, `details.allowed`) or `invalid_scope` (the engine's `details.problems`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     getModel: {
@@ -5469,6 +5498,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Model"];
+                };
+            };
+            /** @description `invalid_discipline` (one of the federation settings' disciplines, `details.allowed`) or `invalid_scope` (the engine's `details.problems`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };
@@ -5570,6 +5608,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description `version_in_use`: a BoQ uses this version (TF-032) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     completeModelUpload: {
@@ -5605,6 +5652,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            402: components["responses"]["LimitReached"];
         };
     };
     retryModelVersion: {
@@ -5630,6 +5678,7 @@ export interface operations {
                     "application/json": components["schemas"]["ModelVersion"];
                 };
             };
+            402: components["responses"]["LimitReached"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -6486,6 +6535,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BoqRevision"];
+                };
+            };
+            /** @description `invalid_inputs`, or `invalid_scope` for a model scope the engine refuses (TF-074) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             409: components["responses"]["Conflict"];

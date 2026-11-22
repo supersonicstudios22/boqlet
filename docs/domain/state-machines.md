@@ -135,7 +135,12 @@ stateDiagram-v2
   active --> expired: expiresAt passes
   active --> suspended: org turns publicLinksAllowed off
   suspended --> active: turned on again (if not expired)
+  expired --> active: expiry edited to a later date (P54 Q46)
+  expired --> revoked: revoke
 ```
+
+An expiry is always in the future when it is set: creating or editing a link with a past
+`expiresAt` answers `400 invalid_body` (TF-038).
 
 ## Pricing module (P36)
 

@@ -49,7 +49,7 @@ are stored once per project and applied to every run, every BoQ and every new mo
    Regenerate". Regenerate is one click and fast. (Auto-regenerate after a pause of inactivity
    can be added later behind a user setting.)
 4. **Suggestion:** if the question carries `suggestion`, it is preselected and marked
-   "suggested".
+   "suggested"; a click on the preselected answer accepts it (writes the decision; Q60, P54).
 5. **Name answers** (`unknown_name`): the picked term becomes a decision. "Also add to the
    project dictionary" (default on) writes an entry to the project dictionary preset (new
    draft auto-published, project layer). The decision stays as the record.

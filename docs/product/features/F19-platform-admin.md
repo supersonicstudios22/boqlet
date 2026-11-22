@@ -72,8 +72,11 @@ of delay, the org detail is live.
 
 - `/admin/*` endpoints check `platformRole` on every request and return `404` to anyone else,
   so the console's existence isn't revealed.
-- Every admin action and every view of an org's detail page writes an audit event with
-  `actorKind: "platform_admin"`. Actions (not views) also appear in that org's own audit log.
+- Every admin action and every admin read (overview, funnel, health, orgs list and CSV, an org's
+  detail and notes, users list; P54 Q59, TF-156) writes an audit event with
+  `actorKind: "platform_admin"` (`admin.overview_viewed`, `admin.funnel_viewed`, `admin.health_viewed`,
+  `admin.orgs_listed`, `admin.orgs_exported`, `admin.org_viewed`, `admin.notes_viewed`,
+  `admin.users_listed`). Actions (not reads) also appear in that org's own audit log.
 - The admin role grants no access to org endpoints: an admin who wants to use the product
   signs up an org like anyone else.
 

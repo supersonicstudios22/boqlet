@@ -31,6 +31,7 @@ isn't built (P48), so the vendor sections below are specification only.
 | See all projects | ✓ | ✓ | | |
 | Library: view org presets | ✓ | ✓ | ✓ | ✓ |
 | Library: create, edit, publish, archive org presets | ✓ | ✓ | ✓ | |
+| Library: preview a preset on a model of a project they can see (any project role; P54 Q43) | ✓ | ✓ | ✓ | ✓ |
 | Promote a decision to the company dictionary | ✓ | ✓ | ✓ | |
 | Finish the setup wizard (F16) | ✓ | ✓ | ✓ | |
 | See org usage | ✓ | ✓ | | |
@@ -65,9 +66,15 @@ Org owners and admins act as `lead` on every project. The creator of a project b
 
 ² Approvers confirm only when approval is on; otherwise confirming is the lead's.
 
+**An archived project** is read-only (`409 project_archived`), with three exceptions (P54): the
+lead may still restore it (`archive` stays `true`, Q53), the lead or an approver may revoke its
+share links (`revokeShares` stays `true`, Q42), and an org owner, admin or library editor may
+promote a name answer of it to a company dictionary (an org action, Q42). Everything else is
+refused, its BoQs' archive and restore and review comments included (TF-012).
+
 **Permission keys** in the `permissions` object of a `Project` (UI hints; the API enforces
 anyway). Every implementation returns exactly these keys, `false` for every write while the
-project is archived (added in FE-006):
+project is archived except `archive` and `revokeShares` (above; added in FE-006):
 
 | Key | Rows above |
 |---|---|
@@ -103,7 +110,8 @@ link includes (F18, BR-56). Nothing else, and no writes.
 
 `User.platformRole = "admin"`. They reach only `/admin/*` (F19): metadata, counts, usage,
 subscription and entitlement changes, notes, ending a user's session. They have no access to
-org endpoints or project content by that role (BR-57). Non-admins get `404` on `/admin/*`.
+org endpoints or project content by that role (BR-57). Signed-in non-admins get `404` on `/admin/*`; without a session (or with one that ended) it
+answers `401` like every other route, in native and OIDC mode alike (P54 Q51, TF-081).
 
 ## Pricing module (P36)
 

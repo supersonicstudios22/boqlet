@@ -307,6 +307,11 @@ class ApiFoundationTest {
         assertThat(database.queryForObject("""
                 SELECT count(*) FROM audit_events WHERE org_id = ? AND actor_kind = 'platform_admin' AND action = 'org.plan_changed'
                 """, Long.class, UUID.fromString(org))).isEqualTo(1L);
+        // P54 Q59 (TF-156): every platform-admin read is audited, outside the org's own log.
+        assertThat(database.queryForList("""
+                SELECT DISTINCT action FROM audit_events WHERE actor_kind = 'platform_admin' AND org_id IS NULL
+                """, String.class)).contains("admin.org_viewed", "admin.orgs_listed", "admin.overview_viewed", "admin.funnel_viewed",
+                "admin.health_viewed", "admin.users_listed", "admin.orgs_exported", "admin.notes_viewed");
     }
 
     /** TF-174: strings, arrays and bodies are bounded, so one member can't make responses (or the heap) huge. */
@@ -383,6 +388,33 @@ class ApiFoundationTest {
         jobs.cancel(job, actor);
         assertThat(database.queryForMap("SELECT outcome, duration_ms FROM usage_events WHERE job_id = ?", job))
                 .containsEntry("outcome", "cancelled").containsEntry("duration_ms", 5000L);
+    }
+
+    /** P54 (Q62, TF-036): an unmetered job (the sample project's) writes a usage event with zero minutes: shown, not billed. */
+    @Test
+    void anUnmeteredJobWritesAZeroMinuteUsageEvent() throws Exception {
+        var owner = session("owner");
+        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "owner", owner)
+                .content("{\"name\":\"Sample firm\",\"slug\":\"sample-usage-firm\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "owner", owner)
+                .content("{\"name\":\"Unmetered\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        UUID job = transactions.execute(status -> {
+            UUID id = jobs.enqueue("run", UUID.fromString(org), UUID.fromString(project), actor, "run", Ids.newId(),
+                    "orgs/" + org + "/test/", java.util.Map.of(), 0, false);
+            database.update("UPDATE jobs SET available_at = now() + interval '1 hour', attempts = 1, processing_ms = 5000 WHERE id = ?", id);
+            return id;
+        });
+        jobs.cancel(job, actor);
+        assertThat(database.queryForMap("SELECT kind, outcome, duration_ms FROM usage_events WHERE job_id = ?", job))
+                .containsEntry("kind", "run").containsEntry("outcome", "cancelled").containsEntry("duration_ms", 0L);
+        var usage = json.readTree(http.perform(auth(get("/api/v1/orgs/" + org + "/usage"), "owner", owner))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(usage.path("processingMinutes").asDouble()).isZero();
+        assertThat(usage.path("byProject").get(0).path("projectId").asText()).isEqualTo(project);
+        assertThat(usage.path("byProject").get(0).path("minutes").asDouble()).isZero();
     }
 
     private Cookie session(String token) throws Exception {

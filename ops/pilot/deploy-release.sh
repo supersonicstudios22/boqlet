@@ -53,12 +53,17 @@ verify() {
   done
   return 1
 }
-if compose "$revision" up -d --no-deps --pull never api boqlet-web engine queue && verify; then
+services=(api boqlet-web engine queue)
+# The runs-and-previews slot (P54, TF-180) is recreated too once the trusted Compose file defines it.
+if compose "$revision" config --services | grep -qx queue-interactive; then
+  services+=(queue-interactive)
+fi
+if compose "$revision" up -d --no-deps --pull never "${services[@]}" && verify; then
   sed "s/^PILOT_RELEASE=.*/PILOT_RELEASE=$revision/" "$envfile" > "$work/pilot.env"
   mv -f "$work/pilot.env" "$envfile"
   printf 'Boqlet %s deployed.\n' "$revision"
 else
   printf 'Verification failed. Restoring the preceding Boqlet images.\n' >&2
-  compose "$previous" up -d --no-deps --pull never api boqlet-web engine queue
+  compose "$previous" up -d --no-deps --pull never "${services[@]}"
   exit 1
 fi

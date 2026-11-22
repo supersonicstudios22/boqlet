@@ -43,9 +43,8 @@ jobs:
           mvn -B -ntp -f services/api/pom.xml verify
         env:
           BOQLET_NATIVE_QUEUE_TEST: "1"
-          # The worker killed for 25 s and the database restarted mid-job (NativeWorkerTest, TF-186) is off here
-          # until it runs on Linux too (TF-192: its second parse never started on the runner); it runs locally.
-          BOQLET_NATIVE_RESILIENCE: "0"
+          # The worker killed for 25 s and the database restarted mid-job (NativeWorkerTest, TF-186, TF-192).
+          BOQLET_NATIVE_RESILIENCE: "1"
           # The shared scenario suite against Java (FE-041); its workbook scenarios run this Python.
           BOQLET_NATIVE_SCENARIOS: "1"
           # The app with native sign-in in a browser against Java (FE-041/FE-043).
@@ -130,8 +129,6 @@ jobs:
     name: The previous release's API on the current schema
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Not required by deploy until it has passed on the runner once (TF-192).
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -151,7 +148,7 @@ jobs:
     name: Deploy Boqlet pilot
     # Since the v1 release (FE-047) the one environment (P51) deploys from main; v_1 is kept as it was.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [api, contract, typecheck, engine]
+    needs: [api, contract, typecheck, engine, rollback]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: boqlet-pilot

@@ -33,7 +33,8 @@ class LibraryPreview {
         var head = library.visible(presetId, actor);
         if (request.getModelVersionIds().isEmpty()) throw invalid("no_models", "Pick at least one model.");
         var selected = request.getModelVersionIds().stream().map(id -> models.workerModel(id, actor)).toList();
-        var project = projects.lock(selected.getFirst().project(), actor, "editPresets");
+        // P54 Q43 (TF-014): previewing needs only access to the project whose models it reads (F10 §6).
+        var project = projects.lock(selected.getFirst().project(), actor, "view");
         UUID org = project.getOrgId();
         if (selected.stream().anyMatch(model -> !model.project().equals(project.getId()))
                 || (head.org() != null && !head.org().equals(org))

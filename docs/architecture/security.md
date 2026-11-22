@@ -16,9 +16,11 @@ email and password on the boqlet domain; the Java API owns the credentials:
   **setup link** (`native_setup_links`, only the token's sha256 is stored), issued on the server
   (`ops/pilot/issue-setup-link.sh`; locally `npm run local:user`). Invited users set their
   password from the invitation. Runbook: `docs/operations/auth-and-deploys.md`.
-- Rate limits on sign-in and set-password (`native_auth_limits`, 15-minute windows): 45 per
-  source address for both, and 12 per email for sign-in (`NativeAuthController`); over the limit
-  the API answers `429 auth_throttled`, without a `Retry-After` header.
+- Rate limits on sign-in and set-password (`native_auth_limits`, 15-minute windows; Q56, P54,
+  TF-122): only failures count, 45 failed sign-ins and password setups per source address and 12
+  failed sign-ins per email; successes count separately against a generous cap of 600 per address,
+  so an office behind one address isn't locked out by its own sign-ins (`NativeAuthController`).
+  Over a limit the API answers `429 auth_throttled`, without a `Retry-After` header.
 - The session is an opaque cookie `boqlet_session`: `HttpOnly`, `SameSite=Lax`, `Path=/api/v1`,
   `Secure` unless `BOQLET_SECURE_COOKIE=false` (local plain HTTP only). `NativeIdentityFilter`
   refuses bearer tokens and requires the exact app origin (`BOQLET_APP_URL`) on state-changing
@@ -77,6 +79,19 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   (`docs/architecture/engine-worker.md`). Job timeouts: `BOQLET_ENGINE_JOB_TIMEOUT` (default
   30 min) for HTTP jobs and `ENGINE_QUEUE_JOB_TIMEOUT_SECONDS` (default 1800 s) for queue jobs.
   Container CPU and memory limits are set in `ops/pilot/compose.yaml`.
+- **Engine workers: the network boundary is the control (accepted for the pilot, P54 Q47,
+  TF-045).** The HTTP worker (`engine`, port 8788 on all its interfaces) takes jobs and rpc calls
+  without a credential (`worker_http.py`; `WorkerClient.java` sends none), and an rpc such as
+  `codelist-read` reads whatever storage key it is given. The `engine`, `queue` and
+  `queue-interactive` containers hold the same full-bucket storage key as the API
+  (`x-engine-environment` in `ops/pilot/compose.yaml`). What keeps them apart from callers is the
+  Compose networks: `backend` and `database` are `internal: true`, no Boqlet container publishes a
+  host port, and of the backend containers only the API and the storage also sit on the ingress
+  network. The edge (`ops/pilot/traefik-routes.json`) routes `/api/v1` to the API and only signed
+  GET/PUT requests under the bucket on `files.booqlet.com` to the storage; nothing reaches a worker. A parser exploit or a foothold on the backend network could therefore
+  read, write or delete every org's files. Before a wider rollout the workers get a storage identity
+  limited to model sources and job output prefixes, and the API and the HTTP worker a shared
+  secret (a known limitation, `docs/product/known-limitations.md`).
 - Spreadsheets (code lists, preset templates, BoQ edits; in the planned module also offers and
   pricebooks): parsed only in the worker or rpc, with openpyxl in read-only, data-only mode (no
   formulas evaluated, no macros: `.xlsm` rejected). Size ≤ 20 MB. Before openpyxl reads anything,
@@ -103,9 +118,12 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 ## Data protection
 
 - TLS everywhere (Traefik on the pilot). HSTS (`max-age=31536000; includeSubDomains`) is sent by the
-  app's production build on every page (`apps/app/next.config.ts`, TF-046). **Gap:** not by the API
-  responses or the checked-in Traefik configuration (the routers name a `private-headers` middleware
-  that is defined outside the repo).
+  app's production build on every page (`apps/app/next.config.ts`, TF-046) and by the API on every
+  answer when `BOQLET_APP_URL` is https (`http/SecurityConfiguration`; TLS ends at Traefik, so Spring's
+  default of secure requests only never sent it), with `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY` and `Cache-Control: no-cache` (Spring defaults). The Traefik routers name a
+  `private-headers` middleware that comes from the Narudzbe route file, outside this repo
+  (`docs/operations/pilot.md` "Shared proxy and rollback"); neither the app nor the API depends on it.
 - Encryption at rest: storage and database encryption are the host's (provider-managed).
 - Secrets via environment or a secret manager, never in the repo. The values in
   `ops/local/compose.yaml` are fixed local-only values; never reuse them on the pilot.

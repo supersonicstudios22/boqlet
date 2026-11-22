@@ -599,6 +599,11 @@ class NativeWorkerTest {
                     var after = perform(get(orgPath + "/entitlements"), cookie, 200).path("usage");
                     assertThat(after.path("activeProjects")).isEqualTo(before.path("activeProjects"));
                     assertThat(after.path("processingMinutesThisMonth")).isEqualTo(before.path("processingMinutesThisMonth"));
+                    // P54 (Q62, TF-036): the sample's parse and run still write usage events, with zero minutes.
+                    var events = database.queryForList("SELECT kind, duration_ms FROM usage_events WHERE project_id = ? ORDER BY kind",
+                            java.util.UUID.fromString(project));
+                    assertThat(events).extracting(e -> e.get("kind")).containsExactly("parse", "run");
+                    assertThat(events).extracting(e -> ((Number) e.get("duration_ms")).longValue()).containsOnly(0L);
                     return;
                 }
             }
@@ -988,11 +993,23 @@ class NativeWorkerTest {
     }
 
     /** Waits until the worker is at work on the job (past its download). */
+    /**
+     * Waits until the worker is on the job past its download, its result not yet given: what follows (a killed worker,
+     * the database going away) happens in the middle of the job. On the queue transport a stage reaches the database
+     * within 0.5 s (worker_queue.STAGE_SECONDS); before TF-192 it waited for the 3 s heartbeat, and a warm Linux
+     * parse of the Duplex (2.8 s) ended without one.
+     */
     private void awaitRunning(String job) throws Exception {
         long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
         while (System.nanoTime() < until) {
-            var row = database.queryForMap("SELECT status, progress->>'stage' AS stage FROM jobs WHERE id = ?", java.util.UUID.fromString(job));
-            if ("running".equals(row.get("status")) && row.get("stage") != null && !"download".equals(row.get("stage"))) return;
+            var row = database.queryForMap("""
+                    SELECT status, progress->>'stage' AS stage, worker_result IS NOT NULL AS answered FROM jobs WHERE id = ?
+                    """, java.util.UUID.fromString(job));
+            String status = (String) row.get("status");
+            if ("running".equals(status) && !Boolean.TRUE.equals(row.get("answered"))
+                    && row.get("stage") != null && !"download".equals(row.get("stage"))) return;
+            if (!"queued".equals(status) && !"running".equals(status) || Boolean.TRUE.equals(row.get("answered")))
+                throw new AssertionError("The job ended (" + status + ") before it was seen running past its download.");
             Thread.sleep(100);
         }
         throw new AssertionError("The job never ran.");

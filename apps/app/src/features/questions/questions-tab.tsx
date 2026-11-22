@@ -255,7 +255,8 @@ function QuestionRow({
             testId="answer-control"
             onChange={(v, commit) => {
               setValue(v);
-              if (commit) onAnswer(v);
+              // Choosing the answer already saved changes nothing; choosing the preselected suggestion saves it.
+              if (commit && !(answered && JSON.stringify(answered.answer) === JSON.stringify(v))) onAnswer(v);
             }}
           />
           {!answered && !q.blocking && (

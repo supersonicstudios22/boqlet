@@ -57,7 +57,11 @@ public final class NativeIdentityFilter extends OncePerRequestFilter {
                             UsernamePasswordAuthenticationToken.authenticated(login.userId(), null, List.of()));
                 }
             } catch (ApiException failure) {
-                if (admin) failure = IdentityService.failure(HttpStatus.NOT_FOUND, "not_found", "The resource was not found.");
+                // Not signed in (or the session ended) is a 401 on /admin/* too, as in OIDC mode (P54 Q51, TF-081);
+                // a signed-in non-admin, or another refusal there, is a 404 that doesn't reveal the console.
+                if (admin && failure.status() != HttpStatus.UNAUTHORIZED) {
+                    failure = IdentityService.failure(HttpStatus.NOT_FOUND, "not_found", "The resource was not found.");
+                }
                 response.setStatus(failure.status().value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 json.writeValue(response.getOutputStream(), failure.body());

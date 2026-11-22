@@ -38,7 +38,7 @@ from .overrides import apply_final, apply_quantity, from_decisions
 from .trace_steps import finish as finish_trace
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
 
-INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind", "_manual_codes", "_text_context")
+INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind", "_manual_codes", "_text_context", "_excluded")
 
 
 def element_boxes(parsed: dict) -> dict[str, tuple]:
@@ -261,6 +261,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     for line in item_lines:
         if (edit := overrides.get(line["key"])) is not None:
             apply_quantity(line, edit)
+            if edit.get("excluded"):                        # derived lines leave it out (P54, Q48)
+                line["_excluded"] = True
     derived_lines = eng.run_derived()
     manual_lines = eng.run_manual(manual_keys)
     for line in derived_lines + manual_lines:

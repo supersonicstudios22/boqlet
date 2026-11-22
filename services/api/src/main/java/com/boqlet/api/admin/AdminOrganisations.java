@@ -292,6 +292,12 @@ class AdminOrganisations {
         return new AdminOrgRowSeats().used(used).max(max.isNumber() ? max.asInt() : null);
     }
 
+    /** A platform-admin read (P54 Q59, TF-156), in a transaction of its own: the reads themselves have none. */
+    @Transactional
+    public void viewed(UUID actor, String action, String entity, UUID id, Map<String, ?> data) {
+        record(actor, null, action, entity, id, data);
+    }
+
     void record(UUID actor, UUID org, String action, String entity, UUID id, Map<String, ?> data) {
         audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.PLATFORM_ADMIN,
                 null, action, entity, id, json.object(data));

@@ -56,7 +56,8 @@
       "rules": "Applying rules",
       "classify": "Classifying",
       "export": "Writing the result",
-      "index": "Indexing lines"
+      "index": "Indexing lines",
+      "waiting_for_worker": "Waiting for the processing service"
     },
     "waiting": "Waiting to start",
     "notGenerated": "Not generated yet",
@@ -358,6 +359,7 @@
       "trace_round": "Rounded as the rule set says",
       "trace_derive": "Derived from {count, plural, one {# element} other {# elements}} of {lines, plural, =0 {its source line} one {the line <line>{source}</line>} other {# lines}}",
       "trace_derive_missing": "Derived from {lines, plural, =0 {its source line} one {the line <line>{source}</line>} other {# lines}}: no value",
+      "trace_derive_excluded": "From the line <line>{source}</line>: excluded, so it counts 0",
       "trace_manual": "Entered by hand",
       "trace_manual_missing": "Entered by hand; the quantity is still to be entered",
       "trace_edit_quantity": "{hasBy, select, yes {Edited by {by}} other {Edited}}: {quantity} instead of the engine's {engineQuantity}",

@@ -262,8 +262,9 @@ current rows only.
 | createdBy, createdAt | | |
 
 Sent to the engine as a decision with `questionId = "override:{lineKey}"` and the edited fields
-(engine task EN-003): quantity before derived rules (derived lines follow it), codes as the
-line's classification decision, description, unit and exclusion on the final line. `sortAfter`
+(engine task EN-003): quantity and exclusion before derived rules (derived lines follow an edited
+quantity, and count an excluded source as 0, P54), codes as the line's classification decision,
+description, unit and the exclusion mark on the final line. `sortAfter`
 is applied by the backend when ordering lines (no number involved).
 The engine applies it, logs it, marks the line, and raises an `orphan_override` question if the
 line no longer exists.

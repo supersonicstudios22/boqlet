@@ -43,7 +43,7 @@ migration wins**; tables added during the build are listed above but not all are
 
 | Table | Columns | Keys and indexes |
 |---|---|---|
-| `users` | id, email (PII), name (PII), locale, platform_role null (`admin`), auth_subject, notification_preferences jsonb, deleted_at | unique(lower(email)), unique(auth_subject) |
+| `users` | id, email (PII), name (PII), locale, platform_role null (`admin`), auth_subject, notification_preferences jsonb, preferences jsonb (interface preferences, `GET /me`; V22), deleted_at | unique(lower(email)), unique(auth_subject) |
 | `sessions` | id, user_id, status (`active`,`ended`,`replaced`,`expired`), device_label, place (PII; never written today), last_seen_at, replaced_by_session_id, ended_at | partial unique(user_id) where status = 'active' (BR-54), idx(user_id, created_at desc) |
 | `orgs` | id, name, slug, settings jsonb (incl. approvalRequired, fourEyes, formats), setup jsonb, status (`active`,`suspended`,`deleting`), tags text[], deleting_at | unique(slug) |
 | `limit_events` | id, org_id, user_id, limit_name, current, max, action, at | idx(org_id, at), idx(at) |

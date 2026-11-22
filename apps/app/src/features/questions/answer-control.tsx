@@ -135,7 +135,19 @@ function ChoiceAnswer({ options, value, onPick, disabled, label, testId }: { opt
     <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-x-4 gap-y-1" data-testid={testId}>
       {options.map((o) => (
         <label key={o.value} className={cn("flex items-center gap-1.5", disabled ? "opacity-60" : "cursor-pointer")}>
-          <input type="radio" name={name} value={o.value} checked={value === o.value} disabled={disabled} onChange={() => onPick(o.value)} className="accent-[var(--link)]" />
+          <input
+            type="radio"
+            name={name}
+            value={o.value}
+            checked={value === o.value}
+            disabled={disabled}
+            onChange={() => onPick(o.value)}
+            // A click on the option already checked (the preselected suggestion) accepts it: no change event fires (Q60, TF-173).
+            onClick={() => {
+              if (value === o.value) onPick(o.value);
+            }}
+            className="accent-[var(--link)]"
+          />
           <span>{o.label}</span>
           {o.recommended && <span className="label-caps text-muted-foreground">{t("recommended")}</span>}
         </label>

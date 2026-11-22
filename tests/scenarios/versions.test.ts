@@ -197,6 +197,10 @@ describe("confirm and reopen (F09 §5–6, BR-27)", () => {
     expect((await as(lead).POST("/boqs/{boqId}/confirm", { params: { path: { boqId } }, body: {} })).response.status).toBe(400);
     const res = await as(lead).POST("/boqs/{boqId}/confirm", { params: { path: { boqId } }, body: { notModelledConfirmed: true, note: "Final" } });
     expect(res.data).toMatchObject({ status: "confirmed", currentRevision: { label: "C", status: "issued", issueNote: "Final" } });
+    // P54 Q54 (TF-096): a confirmed BoQ may be archived and restored; archived, it can't be reopened.
+    expect((await as(lead).POST("/boqs/{boqId}/archive", { params: { path: { boqId } } })).data).toMatchObject({ status: "confirmed", archived: true });
+    expect((await as(lead).POST("/boqs/{boqId}/reopen", { params: { path: { boqId } }, body: { reason: "Archived" } })).error).toMatchObject({ code: "boq_archived" });
+    expect((await as(lead).PATCH("/boqs/{boqId}", { params: { path: { boqId } }, body: { archived: false } })).data).toMatchObject({ status: "confirmed", archived: false });
     await as(lead).POST("/boqs/{boqId}/reopen", { params: { path: { boqId } }, body: { reason: "Review round" } });
   });
 });

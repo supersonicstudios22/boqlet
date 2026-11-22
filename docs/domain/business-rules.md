@@ -15,7 +15,7 @@ rule has an id. Tests and code comments cite it (`// BR-07`).
 | BR-06 | **Runs are immutable.** A run's request, snapshot and result never change after it finishes. | D67 |
 | BR-07 | **Every run stores a snapshot** of the flattened presets it used. Publishing a new preset version never changes an existing run or revision. | D15, doc 10 |
 | BR-08 | **Model versions are immutable.** A new file is always a new version. Identical content (same sha256 in the org) reuses parse artifacts. | D16, D41 |
-| BR-09 | **Edits are explicit.** A line edit (quantity, text, unit, section, position, exclusion; P20) is kept per line key across runs and model versions. An edited line shows the engine's value and the edit, with the reason where one is required, in the sheet, the exports, share links and the change report. An excluded line stays listed as excluded. An edit whose line disappears becomes an `orphan_override` question, never silently dropped. | BR-03 |
+| BR-09 | **Edits are explicit.** A line edit (quantity, text, unit, section, position, exclusion; P20) is kept per line key across runs and model versions. An edited line shows the engine's value and the edit, with the reason where one is required, in the sheet, the exports and the change report; share links show the edit and the engine's value, not the reason (BR-56). An excluded line stays listed as excluded. An edit whose line disappears becomes an `orphan_override` question, never silently dropped. | BR-03 |
 | BR-10 | Only `blocking` questions keep a run in `needs_input`. Informative questions are listed but don't block submission. | D20 |
 | BR-11 | **Item texts never change a number.** An item text belongs to a code in a classification (P14). Its blanks are filled by the engine only (BR-01), from the line's values. A blank the line has no value for stays visible and raises a run warning, never an empty or guessed text. | P14 |
 | BR-12 | **The app says what it cannot see.** Quantities come only from what the models contain; work not modelled as objects is the user's to add (manual lines) unless the rule set derives it. The sheet, the save-version dialog and the exports say so (F06 §12, F09 §2, F12). The app never claims a BoQ is complete. | P15 |
@@ -31,7 +31,7 @@ rule has an id. Tests and code comments cite it (`// BR-07`).
 | BR-24 | With approval and four-eyes on, the submitter cannot approve or save the same version. |
 | BR-25 | Saving writes an Excel export and the position numbers frozen with the version. Later exports of a saved version return that same file. |
 | BR-26 | Version labels are sequential per BoQ (A, B, C... then AA, AB). They are never reused. |
-| BR-27 | **A confirmed BoQ is read-only** (`409 boq_confirmed`) until a lead reopens it with a reason. Confirming and reopening are audited. |
+| BR-27 | **A confirmed BoQ is read-only** (`409 boq_confirmed`) until a lead reopens it with a reason. Confirming and reopening are audited. The lead may still archive and restore it (P54 Q54); archived, it answers `409 boq_archived`. |
 | BR-28 | **Position numbers are unique within a BoQ version**: section code + running number in line order (P30). They renumber in the working version as lines are added, moved, reordered or excluded, and never change in a saved version. |
 | BR-29 | **Concurrent edits are per line** (P31): the later edit of the same line wins, the earlier editor is told, and nothing is merged silently across fields of different lines. |
 
@@ -65,12 +65,12 @@ refer to them.
 | ID | Rule |
 |---|---|
 | BR-50 | Every read and write is scoped to the caller's org and project role, or (pricing module) to the vendor's own data and invitations. Cross-tenant access returns `404`. |
-| BR-51 | Everything a user does that changes data writes an audit event. Audit events are never edited or deleted, except when the whole org is deleted. |
+| BR-51 | Everything a user does that changes data writes an audit event. Audit events are never edited or deleted, except when the whole org is deleted and when they are older than the plan's `auditLogRetentionDays` (the daily retention task deletes them; P54 Q45, TF-035). |
 | BR-52 | Deleting an org removes all its data, files included, within 30 days. (Pricing module) vendors keep a read-only copy of the offers they submitted to it. |
 | BR-53 | No licensed standard content is shipped. System presets are illustrative placeholders. UI copy never claims compliance with a standard. | D30–D32 |
 | BR-54 | **One active session per account** (P22). A second sign-in must end the first (takeover, audited) or give up. Every authenticated request checks that its session is the active one. | P22 |
 | BR-55 | (Pricing module) **A vendor link belongs to one org**; one org never sees another org's links, shared lists, requests or offers, even for the same vendor. |
-| BR-56 | **Share links are read-only, revocable and minimal.** They show only what the creator included, never member names, decisions, questions, vendors or prices; unknown, expired or revoked tokens and orgs with `publicLinksAllowed` off return `404`. Tokens are stored hashed. | P26 |
+| BR-56 | **Share links are read-only, revocable and minimal.** They show only what the creator included, never member names, decisions, questions, vendors or prices; an edited quantity shows as edited with the engine's value but without its reason, and an excluded line as excluded (P54 Q52, TF-086, TF-033); unknown, expired or revoked tokens and orgs with `publicLinksAllowed` off return `404`. Tokens are stored hashed. | P26 |
 | BR-57 | **Platform admins see metadata, not content.** The admin console never returns project content (models, file and project names, lines, texts, decisions, offers, prices). Every admin action and org detail view is audited; actions also appear in the org's audit log. | P27 |
 
 ## Limits
@@ -79,4 +79,4 @@ refer to them.
 |---|---|
 | BR-60 | Limits are checked before the action and reported as `402 limit_reached` with the limit name, current value and maximum. |
 | BR-61 | Limits never block reading, exporting, answering questions, or (pricing module) acting on an open offer request. |
-| BR-62 | A usage event is written for every parse, run and preview job that ends, whatever the plan. |
+| BR-62 | A usage event is written for every parse, run and preview job that ends, whatever the plan. A sample project's jobs write one with zero minutes (shown, not billed; P54). |

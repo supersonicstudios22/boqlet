@@ -176,7 +176,7 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
       <div aria-live="polite" className="flex flex-col gap-2" data-testid="run-state">
         {state.kind === "none" && <p className="text-muted-foreground">{t("run.notGenerated")}</p>}
         {state.kind === "active" && (
-          <DimensionRule progress={(progress.data?.pct ?? 0) / 100} label={stage ? t(`run.stages.${stage}`) : t("run.waiting")} className="max-w-xl" />
+          <DimensionRule progress={(progress.data?.pct ?? 0) / 100} label={stage && t.has(`run.stages.${stage}`) ? t(`run.stages.${stage}`) : t("run.waiting")} className="max-w-xl" />
         )}
         {state.kind === "failed" && (
           <div className="flex flex-col gap-1 border-l-2 border-[var(--status-error)] pl-3">

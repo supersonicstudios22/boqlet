@@ -46,6 +46,7 @@ public class Boqs {
         var scope = projects.lock(project, actor, "editBoqs");
         var parameters = inputs.merge(inputs.defaults(scope), request.getInputs());
         inputs.validate(scope, actor, parameters);
+        if (request.getInputs() != null && request.getInputs().getModels() != null) inputs.scopes(parameters);
         UUID boq = Ids.newId();
         UUID revision = Ids.newId();
         database.update("INSERT INTO boqs (id, project_id, name, description, current_revision_id, created_by) VALUES (?, ?, ?, ?, ?, ?)",
@@ -100,6 +101,8 @@ public class Boqs {
         live(scope);
         var input = inputs.merge(scope.revision().inputs(), patch);
         inputs.validate(scope.project(), actor, input);
+        // A scope given here is checked like a model's own (TF-074); the models' stored scopes were checked already.
+        if (patch != null && patch.getModels() != null) inputs.scopes(input);
         if (!input.equals(scope.revision().inputs())) {
             database.update("UPDATE boq_revisions SET inputs = CAST(? AS jsonb), updated_at = now() WHERE id = ?",
                     json.object(input).toString(), revision);

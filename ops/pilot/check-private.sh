@@ -38,3 +38,10 @@ docker inspect boqlet-pilot-queue-1 | jq -r '
   .[0] | .HostConfig | {memoryBytes: .Memory, cpus: (.NanoCpus / 1000000000), pidLimit: .PidsLimit}
 '
 docker inspect boqlet-pilot-queue-1 | jq -r '.[0].Config.Env[] | select(startswith("ENGINE_QUEUE_CONCURRENCY="))'
+# The runs-and-previews slot (P54, TF-180), once the operator has started it from the current Compose file.
+if docker inspect boqlet-pilot-queue-interactive-1 >/dev/null 2>&1; then
+  docker inspect boqlet-pilot-queue-interactive-1 | jq -e '
+    .[0] | .State.Running and (.HostConfig.Memory > 0) and (.HostConfig.NanoCpus > 0) and
+    (.Config.Env | map(select(. == "ENGINE_QUEUE_TYPES=run,preview")) | length == 1)
+  '
+fi

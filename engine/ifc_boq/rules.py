@@ -790,6 +790,9 @@ class RuleEngine:
                                     v *= srcline["quantity"] / original
                                 else:
                                     txt += "; no measured total to distribute the edit across elements"
+                        if srcline.get("_excluded"):              # an excluded source counts 0 (P54, Q48)
+                            txt += "; source line excluded"
+                            v = 0.0
                         factor = self.val(d.get("factor"))
                         if v is not None and factor not in (None, 1):
                             txt += f" x factor {fmt(factor)}"
@@ -824,7 +827,8 @@ class RuleEngine:
                         if model_id := sctx.get("model_id"):
                             trace["model"] = model_id
                         line["trace"]["elements"].append(trace)
-                        collect(line, [step("derive", "derive.missing" if v is None else "derive", v, {
+                        code = "derive.excluded" if srcline.get("_excluded") else "derive.missing" if v is None else "derive"
+                        collect(line, [step("derive", code, v, {
                             "formula": self.val(d["quantity"]), "sourceLine": srcline["key"],
                             "sourceDescription": srcline["description"], "sourceLines": [srcline["key"]],
                             "lines": 1, "count": 1,

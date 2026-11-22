@@ -71,6 +71,7 @@ class AccountSecurityTest {
     @Autowired JdbcTemplate db;
     @Autowired MockMvc http;
     @Autowired ObjectMapper json;
+    @Autowired com.boqlet.api.org.Invitations invitations;
 
     @BeforeEach
     void forgetSignInAttempts() {
@@ -248,6 +249,64 @@ class AccountSecurityTest {
             assertThat(other.getStatus()).isEqualTo(404);
             return;
         }
+    }
+
+    @Test
+    void tf109PreferencesFollowTheUser() throws Exception {
+        Cookie session = account(email("preferences"), "Laptop");
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.preferences").isMap()).andExpect(jsonPath("$.preferences.notInModelsCollapsed").doesNotExist());
+        http.perform(patchMe(session, "{\"preferences\":{\"notInModelsCollapsed\":true}}")).andExpect(status().isOk());
+        http.perform(patchMe(session, "{\"name\":\"Renamed Person\"}")).andExpect(status().isOk());
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.notInModelsCollapsed").value(true));
+        http.perform(patchMe(session, "{\"preferences\":{\"somethingElse\":1}}")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void tf122SuccessfulSignInsDontLockAnOfficeOut() throws Exception {
+        String email = email("office");
+        account(email, "Desk");
+        for (int signIn = 0; signIn < 50; signIn++) {
+            http.perform(signIn(email, PASSWORD, "Desk", true)).andExpect(status().isCreated());
+        }
+        for (int failure = 0; failure < 45; failure++) {
+            http.perform(signIn(email("nobody"), "not anyone's password", "Desk", false)).andExpect(status().isUnauthorized());
+        }
+        http.perform(signIn(email, PASSWORD, "Desk", true)).andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("auth_throttled"));
+    }
+
+    @Test
+    void tf046ApiAnswersSendHstsAndNosniff() throws Exception {
+        http.perform(get("/api/v1/plans")).andExpect(status().isOk())
+                .andExpect(header().string("Strict-Transport-Security", org.hamcrest.Matchers.containsString("max-age=31536000")))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"));
+        http.perform(get("/api/v1/me")).andExpect(status().isUnauthorized())
+                .andExpect(header().exists("Strict-Transport-Security"));
+    }
+
+    @Test
+    void tf076AnInvitationNeedsASeatUnderThePlan() throws Exception {
+        Cookie owner = account(email("seats"), "Laptop");
+        UUID org = org(owner, "seats");
+        String invitee = email("seat-invitee");
+        String invitation = json.readTree(http.perform(post("/api/v1/orgs/" + org + "/invitations").header("Origin", ORIGIN)
+                .cookie(owner).contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"" + invitee + "\",\"role\":\"member\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).path("id").asText();
+        // Free has 2 seats: the owner and the pending invitation. A member added past it (as a downgrade leaves).
+        UUID extra = UUID.randomUUID();
+        db.update("INSERT INTO users (id, auth_subject, email, name) VALUES (?, ?, ?, 'Extra')", extra, "test:" + extra, email("extra"));
+        db.update("INSERT INTO memberships (org_id, user_id, role) VALUES (?, ?, 'member')", org, extra);
+        http.perform(post("/api/v1/orgs/" + org + "/invitations/" + invitation + "/resend").header("Origin", ORIGIN).cookie(owner))
+                .andExpect(status().isPaymentRequired()).andExpect(jsonPath("$.code").value("limit_reached"));
+        UUID nonce = db.queryForObject("SELECT delivery_nonce FROM org_invitations WHERE id = ?::uuid", UUID.class, invitation);
+        String token = invitations.deliveryToken(UUID.fromString(invitation), nonce);
+        Cookie person = account(invitee, "Phone");
+        http.perform(post("/api/v1/invitations/" + token + "/accept").header("Origin", ORIGIN).cookie(person))
+                .andExpect(status().isPaymentRequired());
+        db.update("DELETE FROM memberships WHERE user_id = ?", extra);
+        http.perform(post("/api/v1/invitations/" + token + "/accept").header("Origin", ORIGIN).cookie(person))
+                .andExpect(status().isOk());
     }
 
     private Cookie account(String email, String device) throws Exception {

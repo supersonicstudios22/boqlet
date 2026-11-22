@@ -139,13 +139,13 @@ services:
     cpus: ${ENGINE_HTTP_CPUS:-1.0}
     pids_limit: 128
 
-  queue:
+  queue: &queue
     <<: *service
     image: boqlet-engine:${PILOT_RELEASE:?}
     command: ["boqlet-worker"]
     depends_on:
       db: {condition: service_healthy}
-    environment:
+    environment: &queue-environment
       <<: *engine-environment
       ENGINE_QUEUE_DSN: postgresql://boqlet_queue:${QUEUE_PASSWORD:?}@db:5432/boqlet
       ENGINE_QUEUE_CONCURRENCY: ${ENGINE_QUEUE_CONCURRENCY:-1}
@@ -157,6 +157,18 @@ services:
     mem_limit: ${ENGINE_QUEUE_MEMORY:-4g}
     cpus: ${ENGINE_QUEUE_CPUS:-2.0}
     pids_limit: 256
+
+  # P54 (Q61, TF-180): a slot only for runs and previews, so a run never waits behind a parse. The
+  # queue worker above still takes runs and previews when it is free.
+  queue-interactive:
+    <<: *queue
+    environment:
+      <<: *queue-environment
+      ENGINE_QUEUE_TYPES: run,preview
+      ENGINE_QUEUE_CONCURRENCY: ${ENGINE_INTERACTIVE_CONCURRENCY:-1}
+    mem_limit: ${ENGINE_INTERACTIVE_MEMORY:-2g}
+    cpus: ${ENGINE_INTERACTIVE_CPUS:-1.0}
+    pids_limit: 128
 
 networks:
   database: {internal: true}

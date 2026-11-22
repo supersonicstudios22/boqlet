@@ -46,6 +46,9 @@ def configure_logging():
         handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
     logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
 HEARTBEAT_SECONDS = 3
+# A new stage is reported this soon after the last report instead of at the next heartbeat, so a job that
+# ends within one heartbeat still shows where it is (a warm parse of the Duplex takes about 3 s, TF-192).
+STAGE_SECONDS = 0.5
 
 
 def _process(envelope, send):
@@ -95,6 +98,8 @@ def _execute(connection, worker, envelope, stopping, timeout):
     started = time.monotonic()
     deadline = time.monotonic() + timeout
     heartbeat = 0.0
+    renewed = 0.0
+    stage = None
     progress = None
     result = None
     child.start()
@@ -113,7 +118,7 @@ def _execute(connection, worker, envelope, stopping, timeout):
                     if state == "cancel":
                         result = {"jobId": job_id, "status": "cancelled"}
                         break
-                    heartbeat = now + HEARTBEAT_SECONDS
+                    renewed, heartbeat = now, now + HEARTBEAT_SECONDS
                     progress = None
                 if now >= deadline:
                     result = _timeout(envelope)
@@ -127,6 +132,9 @@ def _execute(connection, worker, envelope, stopping, timeout):
                         result = update
                         break
                     progress = update
+                    if update.get("stage") != stage:
+                        stage = update.get("stage")
+                        heartbeat = min(heartbeat, renewed + STAGE_SECONDS)
         if stopping.is_set():
             return
         if result is None:

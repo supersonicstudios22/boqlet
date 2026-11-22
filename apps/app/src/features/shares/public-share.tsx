@@ -219,7 +219,15 @@ export function PublicSharePage({ token }: { token: string }) {
                             )}
                           </TableCell>
                           <TableCell>{unitLabel(l.unit)}</TableCell>
-                          <TableCell className="text-right tabular-nums">{l.quantity === null ? "—" : format.quantity(l.quantity)}</TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {l.quantity === null ? "—" : format.quantity(l.quantity)}
+                            {/* P54 Q52 (TF-086): an edited quantity says so, with the engine's value. */}
+                            {l.overridden?.fields?.includes("quantity") && (
+                              <span className="block text-xs text-muted-foreground" data-testid="share-edited">
+                                {t("edited", { engine: l.overridden.engineQuantity == null ? "—" : format.quantity(l.overridden.engineQuantity) })}
+                              </span>
+                            )}
+                          </TableCell>
                         </TableRow>
                       )),
                     ])}

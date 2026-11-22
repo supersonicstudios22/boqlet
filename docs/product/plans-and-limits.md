@@ -20,7 +20,8 @@ the decision.
 - Charge for what tracks value and cost: **seats**, **active projects**, **processing** (big
   files cost real compute).
 - Vendors and public-link visitors are always free and never count as seats.
-- Record a usage event for every parse, run and preview from day one, even on the free plan.
+- Record a usage event for every parse, run and preview from day one, even on the free plan. The sample
+  project's jobs record one with zero minutes (P54).
 - Regional price levels later. Prices are not in the product spec, only limits.
 
 ## Plans (placeholder limits)

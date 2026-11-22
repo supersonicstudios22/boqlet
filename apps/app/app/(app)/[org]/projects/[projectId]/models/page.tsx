@@ -7,7 +7,9 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
-import { useModels } from "@/api/hooks/models";
+import { useFederationDisciplines, useModels } from "@/api/hooks/models";
+import { isApiError } from "@/api/errors";
+import { disciplineOptions } from "@/features/models/disciplines";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
@@ -21,8 +23,6 @@ import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 
-const DISCIPLINES = ["detect", "architecture", "structure", "mep"] as const;
-
 /** S08: the project's models with their latest version, add a model, upload (F03). */
 export default function ModelsPage() {
   const t = useTranslations("models");
@@ -30,6 +30,7 @@ export default function ModelsPage() {
   const { org } = useOrg();
   const { project, can } = useProjectScope();
   const models = useModels(project.id);
+  const federation = useFederationDisciplines(org.id);
   const router = useRouter();
   const client = useQueryClient();
   const base = `/${org.slug}/projects/${project.id}/models`;
@@ -61,9 +62,10 @@ export default function ModelsPage() {
           </Field>
           <Field id="model-discipline" label={t("list.discipline")}>
             <NativeSelect id="model-discipline" value={discipline} onChange={(e) => setDiscipline(e.target.value)}>
-              {DISCIPLINES.map((d) => (
+              <option value="detect">{t("disciplines.detect")}</option>
+              {disciplineOptions({ allowed: isApiError(create.error) ? create.error.details?.allowed : undefined, federation: federation.data }).map((d) => (
                 <option key={d} value={d}>
-                  {t(`disciplines.${d}`)}
+                  {t.has(`disciplines.${d}`) ? t(`disciplines.${d}`) : d}
                 </option>
               ))}
             </NativeSelect>

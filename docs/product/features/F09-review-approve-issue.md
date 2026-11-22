@@ -60,6 +60,8 @@ active.
    dialog as §2; with approval on, the last saved version must already be approved and saved).
    The BoQ becomes `confirmed`: read-only for everyone, the working version is closed, the
    project overview shows it as done, open offer requests can still be answered and compared.
+   A confirmed BoQ may still be archived and restored by the lead (P54 Q54, TF-096); while it is
+   archived, reopening it and every write answer `409 boq_archived`.
 6. **Reopen BoQ** (lead): reason required, audited; a new working version is created from the
    last saved one. Confirmation is never a contract lock; it is the firm's own "done".
 7. **Archive project** (F02 §7): every BoQ in it becomes read-only, confirmed or not.
@@ -80,12 +82,13 @@ Action names (minimum set):
 `run.finished`, `decision.set`, `decision.cleared`, `decision.promoted`, `override.set`,
 `override.removed`, `manual_item.added`, `manual_item.changed`, `manual_item.removed`,
 `revision.submitted`, `revision.changes_requested`, `revision.approved`, `revision.reopened`,
-`version.saved`, `export.created`, `export.downloaded`, `edits.imported`, `preset.created`,
+`revision.commented`, `version.saved`, `export.created`, `export.downloaded`, `edits.imported`, `preset.created`,
 `preset_version.published`, `preset.archived`, `share_link.created`, `share_link.revoked`,
 `vendor.invited`, `vendor.linked`, `vendor.removed`, `pricebook.changed`, `estimate.changed`,
 `offer_request.sent`, `offer_request.updated`, `offer_request.closed`, `offer_invitation.viewed`,
 `offer_invitation.declined`, `offer.submitted`, `offer.withdrawn`, `subscription.changed`,
-`setup.completed`.
+`setup.completed`, `job.cancelled`, `run.failed`, `run.cancelled`, and the account events
+`user.password_set`, `user.password_reset`, `session.opened`, `session.ended`, `auth.sign_in_failed`.
 
 ## API
 
@@ -99,6 +102,6 @@ Action names (minimum set):
 
 - [ ] With approval off, "Save version" from the working version locks a labelled snapshot and work continues in a new working version without any other step.
 - [ ] A saved version stays byte-identical (sheet, position numbers, Excel) while the working version changes.
-- [ ] With approval on, Save is replaced by Submit → Approve → Save, and with four-eyes on the submitter cannot approve (`403` with `reason: "four_eyes"`).
+- [ ] With approval on, Save is replaced by Submit → Approve → Save, and with four-eyes on the submitter cannot approve (`403` with `code: four_eyes`).
 - [ ] Confirming a BoQ makes every write to it return `409 boq_confirmed`, including for an owner; Reopen (with a reason) restores a working version and is audited.
 - [ ] Every transition writes an audit event with actor and time, visible in the project activity.

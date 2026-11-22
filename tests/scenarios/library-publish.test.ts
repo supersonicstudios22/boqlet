@@ -113,9 +113,20 @@ describe("F10-AC7 clone", () => {
     const copyDraft = (await api(ivana).GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: copy.draft!.id } } })).data!;
     expect((copyDraft.doc as { params: Record<string, unknown> }).params).toMatchObject({ window_measure: { value: "area" } });
 
-    // The original publishes version 2: the clone based on it follows from its next save.
+    // A second clone based on it is published as it is (it has no draft then).
+    const followed = (await create("patch")).data!;
+    expect((await publish(ivana, followed.id, "As the original")).response.status).toBe(200);
+
+    // The original publishes version 2: its clones follow at once (P54 Q58, TF-140), a draft each that extends v2.
     await saveParams(parent.id, { window_measure: { value: "area" }, lines_by_storey: { value: true } });
     const p2 = (await publish(ivana, parent.id, "Second")).data!;
+    const draftOf = async (presetId: string) => {
+      const head = (await api(ivana).GET("/presets/{presetId}", { params: { path: { presetId } } })).data!;
+      return (await api(ivana).GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: head.draft!.id } } })).data!;
+    };
+    expect((await draftOf(based.id)).extendsVersionId).toBe(p2.id);
+    expect((await draftOf(followed.id)).extendsVersionId).toBe(p2.id);
+    expect((await publish(ivana, followed.id, "Follows v2")).response.status).toBe(200);
     const saved = await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: based.id } }, body: { doc: basedDraft.doc } });
     expect(saved.data!.extendsVersionId).toBe(p2.id);
     expect(((saved.data!.flattened ?? (await api(ivana).GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: saved.data!.id } } })).data!.flattened) as { params: Record<string, { value: unknown }> }).params.lines_by_storey!.value).toBe(true);

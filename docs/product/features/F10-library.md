@@ -42,7 +42,9 @@ Also editable as advanced documents: **federation settings** (discipline ownersh
    - **Clone** (P19): every preset, system or org, has "Clone" in its header. For a rule set
      the user picks **Independent copy** (a full copy, unaffected by later changes to the
      original) or **Based on it** (a patch: only the differences are stored, and the clone
-     follows the original's future versions). Classifications and dictionaries are copied.
+     follows the original's future versions: publishing the original gives each clone based on
+     it a draft that extends the new version at once, for its editors to check and publish;
+     P54 Q58, TF-140). Classifications and dictionaries are copied.
      The clone opens as a draft named "{name} (copy)".
    - **Guided creation** (P24): a new rule set or classification opens in **guided mode**: the
      setup wizard's step for that kind (F16 steps 1 and 2), one question at a time with the live

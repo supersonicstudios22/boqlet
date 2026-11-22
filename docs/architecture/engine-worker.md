@@ -188,7 +188,8 @@ Excel (`boq/PublicShares.java`).
   EXECUTE these functions; it touches no other table.
 - Each lease runs the IFC work in a child process of its own, started by a fork server that has
   imported the engine once (Linux; Windows spawns, importing it per job). **Heartbeat** every 3 s
-  (`HEARTBEAT_SECONDS`). The API treats a `running` job whose heartbeat is older than 30 s as
+  (`HEARTBEAT_SECONDS`); a new stage goes to `jobs.progress` within 0.5 s (`STAGE_SECONDS`), not at
+  the next heartbeat, so a job shorter than one heartbeat still shows its stages (TF-192). The API treats a `running` job whose heartbeat is older than 30 s as
   lost and re-queues it, up to `max_attempts` = 3 (`Jobs.java`); a result for a lease the worker
   no longer owns is dropped.
 - **Cancel:** the API sets `cancel_requested=true`; the next renew reports it and the job ends
@@ -197,7 +198,14 @@ Excel (`boq/PublicShares.java`).
   `diff` go to `BOQLET_ENGINE_MODEL_POOL`, the rest to `BOQLET_ENGINE_GENERAL_POOL` (both default
   `default`). Workers start with `--pool` / `ENGINE_QUEUE_POOL`, `--types` / `ENGINE_QUEUE_TYPES`
   (default all six), `--concurrency`, `--timeout-seconds` (default 1800) and `--poll-seconds`;
-  `ENGINE_QUEUE_DSN` is required.
+  `ENGINE_QUEUE_DSN` is required. A claim takes the lowest `priority` first (runs 0, previews 1,
+  parses 5).
+- **Slots on the pilot** (P54, Q61, TF-180): `queue` takes every type; `queue-interactive` claims
+  only `run,preview` from the same pool, so a run or preview never waits behind a parse
+  (`ops/pilot/compose.yaml`, sizes in [pilot operations](../operations/pilot.md#worker-capacity)).
+  The local stack and the HTTP transport keep one slot: `ENGINE_HTTP_CONCURRENCY` runs jobs as
+  threads of one Python process, so a second HTTP slot would share it with the parse rather than
+  reserve one; there a run can still wait behind a parse.
 - The API ingests results (`JobDispatcher.ingestQueue`, woken by `QueueWakeup` on `LISTEN job_finished`).
 
 ## Versioning and validation

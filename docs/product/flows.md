@@ -18,7 +18,8 @@ system interaction where it isn't obvious. Screens are defined in [screens.md](s
 | 5 | Owner | Sample project: a copy of the Duplex project (model, BoQ, a few answered questions) to explore | `/{org}/projects/{p}` | `POST /orgs/{id}/projects?sample=duplex` |
 | 6 | Owner | Later: refine the presets in the Library (guided mode, full editors or Excel templates, F10) | `/{org}/library` | Library endpoints |
 
-The sample project doesn't count as an active project, and its processing doesn't count as usage.
+The sample project doesn't count as an active project, and its processing doesn't count as usage: its
+jobs write usage events with zero minutes, so the usage page shows the work without billing it (P54).
 Step 2a is required before the dashboard opens. Steps 3, 5 and 6 are optional. Previews run by
 the wizard count as processing (BR-62), except on the sample Duplex.
 

@@ -65,14 +65,27 @@ public class BoqExports {
         }
         // BR-25: a saved version's run (unless it is also the working version's current run) answers the file
         // frozen with it, every time: the job that wrote that file.
-        UUID frozenJob = database.query("""
-                SELECT e.job_id FROM boq_revisions r JOIN exports e ON e.id = (r.frozen->'exportIds'->>0)::uuid
+        var frozen = database.query("""
+                SELECT e.job_id, j.status, r.id AS revision_id FROM boq_revisions r
+                JOIN exports e ON e.id = (r.frozen->'exportIds'->>0)::uuid LEFT JOIN jobs j ON j.id = e.job_id
                 WHERE r.status = 'issued' AND r.frozen->>'runId' = ? AND e.job_id IS NOT NULL
                   AND NOT EXISTS (SELECT 1 FROM boqs b JOIN boq_revisions w ON w.id = b.current_revision_id
                                   WHERE b.id = r.boq_id AND w.status <> 'issued' AND w.current_run_id = ?)
                 ORDER BY r.number LIMIT 1
-                """, (row, index) -> row.getObject(1, UUID.class), runId.toString(), runId).stream().findFirst().orElse(null);
-        if (frozenJob != null) return jobs.get(frozenJob, actor);
+                """, (row, index) -> new Frozen(row.getObject("job_id", UUID.class), row.getString("status"),
+                        row.getObject("revision_id", UUID.class)), runId.toString(), runId).stream().findFirst().orElse(null);
+        if (frozen != null && Set.of("failed", "cancelled").contains(frozen.status())) {
+            // P54 Q49 (TF-057): a saved version's Excel that couldn't be built is built again from its stored run and
+            // the version's own label, note, issuer and time, so the file is the one saving would have written.
+            var saved = boqs.revision(frozen.revision(), actor);
+            var version = saved.revision();
+            var rebuilt = schedule(saved, run, actor, null, true, version.label(), version.issueNote(), version.issued(), version.issuer());
+            database.update("""
+                    UPDATE boq_revisions SET frozen = jsonb_set(frozen, '{exportIds,0}', to_jsonb(?::text)), updated_at = now() WHERE id = ?
+                    """, rebuilt.export().toString(), version.id());
+            return jobs.get(rebuilt.job(), actor);
+        }
+        if (frozen != null) return jobs.get(frozen.job(), actor);
         var scope = boqs.bill(run.boq(), actor);
         if (!runId.equals(scope.revision().run()) || scope.revision().status() == RevisionStatus.ISSUED) {
             scope = boqs.revision(run.run().getRevisionId(), actor);
@@ -83,6 +96,13 @@ public class BoqExports {
 
     Scheduled schedule(BoqAccess.Scope scope, RunCatalog.Entry run, UUID actor, String groupBy, boolean frozen,
                        String label, String note, OffsetDateTime issued) {
+        return schedule(scope, run, actor, groupBy, frozen, label, note, issued, actor);
+    }
+
+    private record Frozen(UUID job, String status, UUID revision) {}
+
+    Scheduled schedule(BoqAccess.Scope scope, RunCatalog.Entry run, UUID actor, String groupBy, boolean frozen,
+                       String label, String note, OffsetDateTime issued, UUID issuer) {
         if (run.resultKey() == null) throw BoqAccess.failure(HttpStatus.CONFLICT, "no_run", "Generate the BoQ before exporting.");
         var project = scope.project();
         var revision = scope.revision();
@@ -109,7 +129,8 @@ public class BoqExports {
         if (limits.enabled(project.getOrgId(), "exportWatermark")) metadata.put("watermark", true);
         if (issued != null) {
             metadata.put("issuedAt", issued.toString());
-            metadata.put("issuedBy", boqs.user(actor).getName());
+            var by = boqs.user(issuer == null ? actor : issuer);
+            metadata.put("issuedBy", by == null ? "" : by.getName());
         }
         if (note != null && !note.isBlank()) metadata.put("issueNote", note.strip());
         OffsetDateTime time = issued == null ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : issued;

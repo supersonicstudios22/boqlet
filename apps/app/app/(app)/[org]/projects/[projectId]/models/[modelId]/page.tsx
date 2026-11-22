@@ -6,13 +6,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { api } from "@/api/client";
-import { useModel, useModelVersions } from "@/api/hooks/models";
+import { useFederationDisciplines, useModel, useModelVersions } from "@/api/hooks/models";
+import { isApiError } from "@/api/errors";
+import { disciplineOptions } from "@/features/models/disciplines";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { RemoveModel } from "@/features/models/remove-model";
 import { UploadButton } from "@/features/models/upload-button";
 import { VersionStatus } from "@/features/models/version-status";
 import { useOrg } from "@/features/orgs/org-context";
@@ -20,8 +23,6 @@ import { useProjectScope } from "@/features/projects/project-context";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
-
-const DISCIPLINES = ["architecture", "structure", "mep"];
 
 /** S09: a model's versions and settings (F03 §6, §7). Scope rules come with the Library selectors (FE-021). */
 export default function ModelPage({ params }: { params: Promise<{ modelId: string }> }) {
@@ -46,7 +47,12 @@ export default function ModelPage({ params }: { params: Promise<{ modelId: strin
           </h2>
           <span className="label-caps text-muted-foreground">{t.has(`disciplines.${model.data.discipline}`) ? t(`disciplines.${model.data.discipline}`) : model.data.discipline}</span>
         </div>
-        {can("editModels") && <UploadButton modelId={modelId} label={t("list.uploadNew")} onUploaded={(v) => router.push(`${base}/versions/${v.id}`)} />}
+        {can("editModels") && (
+          <div className="flex items-center gap-2">
+            <RemoveModel modelId={modelId} name={model.data.name} projectId={project.id} listHref={`/${org.slug}/projects/${project.id}/models`} />
+            <UploadButton modelId={modelId} label={t("list.uploadNew")} onUploaded={(v) => router.push(`${base}/versions/${v.id}`)} />
+          </div>
+        )}
       </div>
       <Table data-testid="versions-table">
         <TableHeader>
@@ -100,7 +106,9 @@ function ModelSettings({ modelId, name: initialName, discipline: initialDiscipli
     onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ["model", modelId] }), client.invalidateQueries({ queryKey: ["models"] })]),
     onError: () => {},
   });
-  const options = DISCIPLINES.includes(initialDiscipline) || initialDiscipline === "detect" ? DISCIPLINES : [...DISCIPLINES, initialDiscipline];
+  const { org } = useOrg();
+  const federation = useFederationDisciplines(org.id);
+  const options = disciplineOptions({ allowed: isApiError(save.error) ? save.error.details?.allowed : undefined, federation: federation.data, current: initialDiscipline });
   return (
     <form
       className="flex max-w-2xl items-end gap-3 border-t border-border pt-6"

@@ -33,7 +33,8 @@
       "read": "Reading the model",
       "geometry": "Building the geometry",
       "verify": "Checking the model",
-      "write": "Saving the results"
+      "write": "Saving the results",
+      "waiting_for_worker": "Waiting for the processing service"
     },
     "retry": "Try again",
     "errors": {
@@ -128,5 +129,11 @@
     "elements": "Elements",
     "willAsk": "Will ask",
     "unresolved": "Not resolved"
+  },
+  "remove": {
+    "action": "Remove model",
+    "title": "Remove {name}?",
+    "body": "The model leaves the models list and can't take new versions. BoQs and saved versions that use its versions keep them.",
+    "done": "{name} was removed."
   }
 }
