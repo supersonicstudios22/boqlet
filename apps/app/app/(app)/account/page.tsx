@@ -17,6 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmailPreferences } from "@/features/notifications/email-preferences";
 import { LOCALE_COOKIE, LOCALES } from "@/i18n/config";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S04: my name and language, email notifications (F13), my organisations, leaving one (F01). */
 export default function AccountPage() {
@@ -41,6 +44,8 @@ export default function AccountPage() {
         <Wordmark />
       </Link>
       <h1 className="text-title">{t("title")}</h1>
+      {me.isError && <InlineError error={me.error} onRetry={() => me.refetch()} />}
+      {me.isPending && <LoadingLines />}
       {me.data && <ProfileForm user={me.data.user} />}
       {me.data && <EmailPreferences />}
       <section className="flex flex-col gap-3">
@@ -101,7 +106,7 @@ function ProfileForm({ user }: { user: { name: string; email: string; locale: st
     >
       <h2 className="label-caps">{t("profile")}</h2>
       <Field id="account-name" label={t("name")}>
-        <Input id="account-name" value={name} onChange={(e) => setName(e.target.value)} required data-testid="account-name" />
+        <Input id="account-name" maxLength={LIMITS.personName} value={name} onChange={(e) => setName(e.target.value)} required data-testid="account-name" />
       </Field>
       <Field id="account-email" label={t("email")} hint={t("emailHint")}>
         <Input id="account-email" value={user.email} readOnly />

@@ -326,7 +326,7 @@ function TypeSettings({ p, set, slots, onRenameOption }: {
               />
               <Text
                 value={p.optionLabels?.[o]}
-                placeholder={o.replace(/_/g, " ")}
+                placeholder={t("optionTextPlaceholder", { option: o })}
                 aria-label={t("optionText")}
                 onChange={(v) => {
                   const labels = put({ ...(p.optionLabels ?? {}) }, o, v);

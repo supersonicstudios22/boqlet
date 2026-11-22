@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { presetHref } from "./kinds";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * Clone (F10 §2, P19): every preset can be cloned into the org's Library. A rule set is cloned as an
@@ -60,7 +61,7 @@ export function CloneDialog({ preset, orgId, orgSlug }: { preset: Preset; orgId:
               <DialogDescription>{t(isRuleSet ? "bodyRuleSet" : "body")}</DialogDescription>
             </DialogHeader>
             <Field id="clone-name" label={t("name")} error={create.error ? message(create.error) : undefined}>
-              <Input id="clone-name" value={name} onChange={(e) => setName(e.target.value)} data-testid="clone-name" />
+              <Input id="clone-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} data-testid="clone-name" />
             </Field>
             {isRuleSet && (
               <fieldset className="flex flex-col gap-2">

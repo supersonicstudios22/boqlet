@@ -14,6 +14,5 @@ export const EXAMPLE = {
   derivedLine: "qty * 1.05",
   derivedElement: 'SUM(faces.gross_area WHERE side = "a")',
   manualFormula: "building.gross_volume / 100",
-  lineText: "Wall, {type_name}, {thickness*1000} mm",
   bandEdges: "3.5, p.high",
 } as const;

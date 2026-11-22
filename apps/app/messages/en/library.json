@@ -315,8 +315,8 @@
     "layer": "Layer",
     "allLayers": "All layers",
     "showArchived": "Show archived",
-    "empty": "Nothing here yet.",
-    "emptyProject": "This project has no presets of its own.",
+    "empty": "Nothing here yet. Create one with the “New” button above, or let the setup wizard make the firm's first ones.",
+    "emptyProject": "This project has no presets of its own: it uses the organisation's. Create one here when this project needs its own.",
     "new": {
       "rule_set": "New rule set",
       "classification": "New classification",

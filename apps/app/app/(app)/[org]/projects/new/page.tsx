@@ -13,6 +13,7 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
+import { LIMITS } from "@/lib/limits";
 
 /** S06: a new project; currency, units and language default to the org's (F02 §1). */
 export default function NewProjectPage() {
@@ -63,19 +64,19 @@ export default function NewProjectPage() {
     >
       <h1 className="text-title">{t("title")}</h1>
       <Field id="project-name" label={t("name")}>
-        <Input id="project-name" value={form.name} onChange={set("name")} required autoFocus data-testid="project-name" />
+        <Input id="project-name" maxLength={LIMITS.name} value={form.name} onChange={set("name")} required autoFocus data-testid="project-name" />
       </Field>
       <div className="grid grid-cols-2 gap-4">
         <Field id="project-code" label={t("code")} hint={t("optional")}>
-          <Input id="project-code" value={form.code} onChange={set("code")} />
+          <Input id="project-code" maxLength={LIMITS.name} value={form.code} onChange={set("code")} />
         </Field>
         <Field id="project-client" label={t("client")} hint={t("optional")}>
-          <Input id="project-client" value={form.client} onChange={set("client")} />
+          <Input id="project-client" maxLength={LIMITS.name} value={form.client} onChange={set("client")} />
         </Field>
       </div>
       <div className="grid grid-cols-[2fr_1fr] gap-4">
         <Field id="project-address" label={t("address")} hint={t("optional")}>
-          <Input id="project-address" value={form.address} onChange={set("address")} />
+          <Input id="project-address" maxLength={LIMITS.text} value={form.address} onChange={set("address")} />
         </Field>
         <Field id="project-country" label={t("country")} hint={t("optional")}>
           <Input id="project-country" value={form.country} maxLength={2} onChange={set("country")} />

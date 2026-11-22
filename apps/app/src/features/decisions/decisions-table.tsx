@@ -17,6 +17,9 @@ import { AnswerControl } from "@/features/questions/answer-control";
 import { useAnswerFlow } from "@/features/questions/answer-flow";
 import { describeAnswer } from "@/features/questions/model";
 import { PromoteDialog } from "@/features/questions/promote-dialog";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * S13 Decisions (F05 §7): every answer of the project, who gave it and when, whether the latest
@@ -58,8 +61,8 @@ export function DecisionsTable() {
     }
   }
 
-  if (decisions.isError) return <p role="alert" className="text-error">{message(decisions.error)}</p>;
-  if (!decisions.data) return <div className="h-40" aria-busy="true" />;
+  if (decisions.isError) return <InlineError error={decisions.error} onRetry={() => decisions.refetch()} />;
+  if (!decisions.data) return <LoadingLines />;
 
   return (
     <section className="flex flex-col gap-4" data-testid="decisions-page">
@@ -175,7 +178,7 @@ function EditDialog({ decision, terms, busy, onSave, onClose }: { decision: Deci
         <AnswerControl type={type} value={value} context={{ terms }} label={t("answer")} testId="decision-edit-answer" onChange={(v) => setValue(v)} />
         <label className="flex flex-col gap-1">
           <span className="label-caps text-muted-foreground">{t("note")}</span>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="rounded-[var(--radius)] border border-input bg-transparent px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+          <textarea value={note} maxLength={LIMITS.text} onChange={(e) => setNote(e.target.value)} rows={2} className="rounded-[var(--radius)] border border-input bg-transparent px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring" />
         </label>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

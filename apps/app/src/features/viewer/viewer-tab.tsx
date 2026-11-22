@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { Run } from "@/api/hooks/boqs";
 import { useLines } from "@/api/hooks/sheet";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { ModelViewer, type ViewerModel } from "./model-viewer";
+import { InlineError } from "@/components/errors/inline-error";
 
 /** Most GlobalIds a "Show in 3D" link carries in its URL (F07 §7). */
 export const MAX_LINK_GUIDS = 300;
@@ -31,7 +31,6 @@ export function viewerModels(run: Run | undefined): ViewerModel[] {
 /** The BoQ workspace's Viewer tab (F07): the current run's models, linked to its lines. */
 export function ViewerTab({ run, base }: { run: Run | undefined; base: string }) {
   const t = useTranslations("boqs.sheet");
-  const message = useErrorMessage();
   const search = useSearchParams();
   const router = useRouter();
   const lines = useLines(run?.id);
@@ -40,7 +39,7 @@ export function ViewerTab({ run, base }: { run: Run | undefined; base: string })
   const guids = useMemo(() => search.get("guids")?.split(",").filter(Boolean) ?? null, [search]);
 
   if (!run) return <p className="text-muted-foreground">{t("empty")}</p>;
-  if (lines.isError) return <p role="alert" className="text-error">{message(lines.error)}</p>;
+  if (lines.isError) return <InlineError error={lines.error} onRetry={() => lines.refetch()} />;
   return (
     <ModelViewer
       key={run.id}

@@ -305,7 +305,7 @@ function OrderedPresets({
       </ol>
       {editable && addable.length > 0 && (
         <NativeSelect
-          aria-label={`${title}: ${t("add")}`}
+          aria-label={t("addTo", { title })}
           className="max-w-sm"
           value=""
           onChange={(e) => {

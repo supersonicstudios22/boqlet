@@ -2,19 +2,16 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { useProjectAudit } from "@/api/hooks/projects";
-import { useErrorMessage } from "@/components/errors/use-error-message";
+import { InlineError } from "@/components/errors/inline-error";
 
 /** The project's audit log, newest first (S18). Unknown actions show their code. */
 export function ActivityList({ projectId, limit }: { projectId: string; limit?: number }) {
   const t = useTranslations("projects.activity");
   const format = useFormatter();
-  const message = useErrorMessage();
   const audit = useProjectAudit(projectId);
   if (audit.isError) {
     return (
-      <p role="alert" className="text-error">
-        {message(audit.error)}
-      </p>
+      <InlineError error={audit.error} onRetry={() => audit.refetch()} />
     );
   }
   // Audit codes contain dots (`project.created`); catalogue keys can't, so they use underscores.

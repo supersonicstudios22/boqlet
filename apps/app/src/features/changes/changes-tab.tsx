@@ -18,14 +18,17 @@ import { viewerModels } from "@/features/viewer/viewer-tab";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
 import { useLines } from "@/api/hooks/sheet";
-import { candidates, DEFAULT_THRESHOLD, elementLineChanges, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
+import { candidates, DEFAULT_THRESHOLD, elementLineChanges, engineChange, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat, type BoqFormatter } from "@/i18n/boq-format";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const CHANGE_CLASS: Record<string, string> = {
-  added: "border-[var(--blue)] text-[var(--blue)]",
-  changed: "border-[var(--orange)] text-[var(--orange)]",
-  removed: "border-[var(--red)] text-[var(--red)]",
+  // Blue and red may be text; orange only a fill, with ink text (design-guidelines.md, TF-022).
+  added: "border-[var(--link)] text-link",
+  changed: "border-transparent bg-[var(--status-attention)] text-on-fill",
+  removed: "border-[var(--status-error)] text-error",
 };
 
 /**
@@ -119,7 +122,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
     return out;
   }, [elements.data]);
 
-  if (diff.isError) return <p role="alert" className="text-error">{message(diff.error)}</p>;
+  if (diff.isError) return <InlineError error={diff.error} onRetry={() => diff.refetch()} />;
   if (!diff.data) return <p className="text-muted-foreground" aria-busy="true" data-testid="changes-loading">{t("comparing")}</p>;
   const s = diff.data.summary;
   const n = (v: number | undefined) => format.number(v ?? 0);
@@ -231,7 +234,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
         <p className="text-muted-foreground" data-testid="changes-legend">
           {t("lines.legend")}
         </p>
-        {lines.isError && <p role="alert" className="text-error">{message(lines.error)}</p>}
+        {lines.isError && <InlineError error={lines.error} onRetry={() => lines.refetch()} />}
         {lines.data && shown.length === 0 && <p className="text-muted-foreground" data-testid="changes-no-lines">{all.length ? t("lines.noneFiltered") : t("lines.none")}</p>}
         {shown.length > 0 && (
           <Table data-testid="changes-lines-table">
@@ -294,6 +297,13 @@ function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty:
   const t = useTranslations("boqs.changes");
   const side = (l.after ?? l.before)!;
   const renamed = l.before && l.after && l.before.description !== l.after.description;
+  // An edited line: the engine's value under the edit, which the models moved (BR-09, TF-093).
+  const engine = engineChange(l);
+  const underEdit = (text: string) => (
+    <span className="block text-muted-foreground" title={t("lines.engineHint")} data-testid="change-engine">
+      {t("lines.engine", { value: text })}
+    </span>
+  );
   return (
     <TableRow data-testid="change-line" data-key={l.lineKey} data-change={l.change}>
       <TableCell className="max-w-[420px]">
@@ -309,9 +319,18 @@ function LineRow({ line: l, qty, format, openInSheet }: { line: LineChange; qty:
       <TableCell>
         <span className={cn("label-caps rounded-[var(--radius)] border px-1", CHANGE_CLASS[l.change])}>{t(`change.${l.change}`)}</span>
       </TableCell>
-      <TableCell className="text-right tabular-nums">{qty(l.before?.quantity)}</TableCell>
-      <TableCell className="text-right tabular-nums">{qty(l.after?.quantity)}</TableCell>
-      <TableCell className="text-right tabular-nums">{l.delta === null || l.delta === undefined ? "—" : `${l.delta > 0 ? "+" : ""}${qty(l.delta)}`}</TableCell>
+      <TableCell className="text-right tabular-nums">
+        {qty(l.before?.quantity)}
+        {engine && underEdit(qty(engine.before))}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">
+        {qty(l.after?.quantity)}
+        {engine && underEdit(qty(engine.after))}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">
+        {l.delta === null || l.delta === undefined ? "—" : `${l.delta > 0 ? "+" : ""}${qty(l.delta)}`}
+        {engine && engine.delta !== null && underEdit(`${engine.delta > 0 ? "+" : ""}${qty(engine.delta)}`)}
+      </TableCell>
       <TableCell className="text-right tabular-nums">{l.deltaPct === null || l.deltaPct === undefined ? "—" : `${l.deltaPct > 0 ? "+" : ""}${format.number(l.deltaPct, { maximumFractionDigits: 1 })} %`}</TableCell>
       <TableCell>{side.unit ? unitLabel(side.unit) : ""}</TableCell>
       <TableCell className="text-muted-foreground" data-testid="change-causes">
@@ -399,6 +418,6 @@ function ChangesViewer({
     const current = new Map((toLines ?? []).map((l) => [l.key, l]));
     return { ...byChange, ghostModels, linesOf: (guid: string) => elementLineChanges(guid, elements ?? [], lineChanges ?? [], current) };
   }, [byChange, ghostModels, toLines, elements, lineChanges]);
-  if (byChange.removed.length && !fromRun) return <div className="h-40" aria-busy="true" />;
+  if (byChange.removed.length && !fromRun) return <LoadingLines />;
   return <ModelViewer key={`${toRun.id}|${fromRunId}|${ghostModels.length}`} models={models} runId={toRun.id} lines={toLines} systems={toRun.classifications ?? []} changes={changes} focusGuids={focus} onOpenLine={onOpenLine} className="h-[560px]" />;
 }

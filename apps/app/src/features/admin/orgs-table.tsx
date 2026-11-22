@@ -9,11 +9,12 @@ import { useFormatter, useTranslations } from "next-intl";
 import { adminOrgsCsv, useAdminOrgs, type AdminFunnelStep, type AdminOrgFilters, type AdminOrgRow } from "@/api/hooks/admin";
 import { saveFile } from "@/api/hooks/exports";
 import { usePlans } from "@/api/hooks/models";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const SIGNALS = ["hit_limit", "inactive_30d", "trial_ending_7d", "stuck_in_setup"] as const;
 const STATUSES = ["active", "suspended", "trialing"] as const;
@@ -37,7 +38,6 @@ export function AdminOrgsTable() {
   const t = useTranslations("admin.orgs");
   const tf = useTranslations("admin.funnel");
   const format = useFormatter();
-  const message = useErrorMessage();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -158,11 +158,10 @@ export function AdminOrgsTable() {
         </p>
       )}
       {orgs.isError && (
-        <p role="alert" className="text-error">
-          {message(orgs.error)}
-        </p>
+        <InlineError error={orgs.error} onRetry={() => orgs.refetch()} />
       )}
-      {orgs.isPending && <div className="h-40" aria-busy="true" />}
+      {csv.isError && <InlineError error={csv.error} onRetry={() => csv.mutate()} />}
+      {orgs.isPending && <LoadingLines />}
       {orgs.data && rows.length === 0 && <p className="text-muted-foreground">{t("none")}</p>}
       {rows.length > 0 && (
         <div className="overflow-x-auto">

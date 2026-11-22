@@ -9,9 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "@/config";
 import { safeReturnTo, type AuthAdapter, type Session } from "../AuthAdapter";
+import { LIMITS } from "@/lib/limits";
 
 const LOADING: Session = { status: "loading" };
 const ANONYMOUS: Session = { status: "anonymous" };
+const UNAVAILABLE: Session = { status: "unavailable" };
+/** Asked again this long after the API couldn't be reached. */
+const RETRY_MS = 5000;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+/** The API didn't answer (no answer, or a 5xx gateway or server error): not a signed-out session. */
+class Unavailable extends Error {}
 let state = LOADING;
 let sessionId: string | null = null;
 let restoring: Promise<void> | undefined;
@@ -35,17 +42,38 @@ function authPost(path: string, body: object) {
   return request(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 }
 
+/**
+ * Restores the session: a 4xx means signed out; no answer or a 5xx means the API is away (a restart, a
+ * deploy), which must not sign anyone out: "unavailable", asked again shortly (TF-019).
+ */
 function restore() {
   restoring ??= (async () => {
-    const session = await request("/sessions/current");
+    const session = await request("/sessions/current").catch(() => null);
+    if (!session || session.status >= 500) throw new Unavailable();
     if (!session.ok) return publish(ANONYMOUS);
-    const me = await request("/me");
+    const me = await request("/me").catch(() => null);
+    if (!me || me.status >= 500) throw new Unavailable();
     if (!me.ok) return publish(ANONYMOUS);
     const { user } = await me.json() as { user: { name: string; email: string } };
     sessionId = (await session.json() as { id: string }).id;
     publish({ status: "authenticated", email: user.email, name: user.name });
-  })().catch(() => publish(ANONYMOUS));
+  })().catch((e) => {
+    if (!(e instanceof Unavailable)) return publish(ANONYMOUS);
+    publish(UNAVAILABLE);
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(retrySession, RETRY_MS);
+  });
   return restoring;
+}
+
+/** For tests: restore once and read the session. */
+export const restoreSession = () => restore().then(() => state);
+
+function retrySession() {
+  clearTimeout(retryTimer);
+  restoring = undefined;
+  publish(LOADING);
+  void restore();
 }
 
 function useNativeSession() {
@@ -78,6 +106,7 @@ export const nativeAuthAdapter: AuthAdapter = {
   },
   appSession: () => sessionId === null ? null : { id: sessionId },
   bindAppSession(id) { sessionId = id; },
+  retrySession,
   SignInPage: NativeSignIn,
   SignUpPage: NativeSetup,
 };
@@ -87,6 +116,7 @@ function NativeSetup() { return <NativeForm setup />; }
 
 function NativeForm({ setup }: { setup: boolean }) {
   const t = useTranslations("auth.native");
+  const te = useTranslations("errors");
   const query = useSearchParams();
   const returnTo = safeReturnTo(query.get("returnTo"));
   const email = query.get("email") ?? "";
@@ -117,7 +147,9 @@ function NativeForm({ setup }: { setup: boolean }) {
       }
       const failure = await response.json().catch(() => ({})) as { code?: string; message?: string };
       setConflict(failure.code === "session_active");
-      setError(failure.code === "unauthenticated" ? t("invalidLogin") : failure.message ?? t("retry"));
+      // By code from the catalogue (api-conventions.md, TF-077); the server's English only as a last resort.
+      const known = failure.code ? `codes.${failure.code}` : null;
+      setError(failure.code === "unauthenticated" ? t("invalidLogin") : known && te.has(known) ? te(known) : (failure.message ?? t("retry")));
     } catch {
       setError(t("unavailable"));
     } finally {
@@ -133,7 +165,7 @@ function NativeForm({ setup }: { setup: boolean }) {
       {setup && !token ? <p>{t("setupLink")}</p> : (
         <form onSubmit={submit} onChange={() => setConflict(false)} className="flex flex-col gap-4">
           {setup ? (
-            <label className="grid gap-2">{t("name")} <Input name="name" autoComplete="name" maxLength={120} /></label>
+            <label className="grid gap-2">{t("name")} <Input name="name" autoComplete="name" maxLength={LIMITS.personName} /></label>
           ) : (
             <label className="grid gap-2">{t("email")} <Input type="email" name="email" autoComplete="username" defaultValue={email} required /></label>
           )}

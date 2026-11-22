@@ -10,6 +10,7 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * Reopen a confirmed BoQ (F09 §6, lead): a reason is required and audited; a new working version is
@@ -48,6 +49,7 @@ export function ReopenBoqDialog({ boq, open, onOpenChange, forUpdate }: { boq: B
           <Field id="reopen-reason" label={t("reason")} error={reopen.error ? message(reopen.error) : undefined}>
             <textarea
               id="reopen-reason"
+              maxLength={LIMITS.text}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}

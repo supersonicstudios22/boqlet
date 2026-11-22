@@ -55,7 +55,8 @@
     "elements": "Elements",
     "v": "v{number}",
     "identical": "identical to v{number}",
-    "save": "Save"
+    "save": "Save",
+    "none": "No version yet. Upload the model's IFC file to start."
   },
   "report": {
     "title": "{model} · v{number}",

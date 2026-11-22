@@ -17,6 +17,9 @@ import { UploadButton } from "@/features/models/upload-button";
 import { VersionStatus } from "@/features/models/version-status";
 import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const DISCIPLINES = ["detect", "architecture", "structure", "mep"] as const;
 
@@ -54,7 +57,7 @@ export default function ModelsPage() {
           data-testid="add-model"
         >
           <Field id="model-name" label={t("list.name")} className="flex-1" error={create.error ? message(create.error) : undefined}>
-            <Input id="model-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("list.namePlaceholder")} data-testid="model-name" />
+            <Input id="model-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("list.namePlaceholder")} data-testid="model-name" />
           </Field>
           <Field id="model-discipline" label={t("list.discipline")}>
             <NativeSelect id="model-discipline" value={discipline} onChange={(e) => setDiscipline(e.target.value)}>
@@ -71,10 +74,9 @@ export default function ModelsPage() {
         </form>
       )}
       {models.isError && (
-        <p role="alert" className="text-error">
-          {message(models.error)}
-        </p>
+        <InlineError error={models.error} onRetry={() => models.refetch()} />
       )}
+      {models.isPending && <LoadingLines />}
       {models.data?.length === 0 && <p className="text-muted-foreground">{t("list.empty")}</p>}
       <ul className="flex flex-col divide-y divide-border border-y border-border" data-testid="models-list">
         {models.data?.map((m) => (

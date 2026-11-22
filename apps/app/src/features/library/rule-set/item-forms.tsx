@@ -206,7 +206,7 @@ function DescriptionEditor({ value, onChange, slots, inserts = true }: { value: 
   const lit = isRef(value) ? null : (value ?? "");
   return (
     <>
-      <TextValue label={t("lineText")} value={value} onChange={onChange} slots={slots} placeholder={EXAMPLE.lineText} hint={t("lineTextHint")} />
+      <TextValue label={t("lineText")} value={value} onChange={onChange} slots={slots} placeholder={t("lineTextExample")} hint={t("lineTextHint")} />
       {inserts && lit !== null && (
         <Field label={t("insert")} group wide>
           <div className="flex flex-wrap gap-1">

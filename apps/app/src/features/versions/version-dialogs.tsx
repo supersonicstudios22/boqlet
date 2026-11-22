@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NotInModelsText } from "@/features/boq-sheet/not-in-models";
+import { LIMITS } from "@/lib/limits";
 
 const TEXTAREA = "rounded-[var(--radius)] border border-input bg-transparent px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -90,10 +91,10 @@ export function SaveVersionDialog({ boq, mode, open, onOpenChange, base, approva
           {fields && (
             <>
               <Field id="version-label" label={t("label")} hint={mode === "confirm" ? t("labelConfirmHint") : t("labelHint")}>
-                <Input id="version-label" value={label} onChange={(e) => setLabel(e.target.value)} className="max-w-48" data-testid="version-label" />
+                <Input id="version-label" maxLength={LIMITS.name} value={label} onChange={(e) => setLabel(e.target.value)} className="max-w-48" data-testid="version-label" />
               </Field>
               <Field id="version-note" label={t("note")}>
-                <textarea id="version-note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} className={TEXTAREA} data-testid="version-note" />
+                <textarea id="version-note" maxLength={LIMITS.text} rows={2} value={note} onChange={(e) => setNote(e.target.value)} className={TEXTAREA} data-testid="version-note" />
               </Field>
               <OpenQuestions boq={boq} base={base} />
               {needsTick && <NotModelled boqId={boq.id} checked={ticked} onChange={setTicked} />}
@@ -162,7 +163,7 @@ export function SubmitDialog({ boq, open, onOpenChange, base }: { boq: Boq; open
             ))}
           </fieldset>
           <Field id="submit-message" label={t("message")}>
-            <textarea id="submit-message" rows={2} value={text} onChange={(e) => setText(e.target.value)} className={TEXTAREA} data-testid="submit-message" />
+            <textarea id="submit-message" maxLength={LIMITS.text} rows={2} value={text} onChange={(e) => setText(e.target.value)} className={TEXTAREA} data-testid="submit-message" />
           </Field>
           <OpenQuestions boq={boq} base={base} />
           <NotModelled boqId={boq.id} checked={ticked} onChange={setTicked} />
@@ -204,7 +205,7 @@ export function RequestChangesDialog({ boq, open, onOpenChange }: { boq: Boq; op
             <DialogDescription>{t("requestText")}</DialogDescription>
           </DialogHeader>
           <Field id="request-comment" label={t("comment")}>
-            <textarea id="request-comment" rows={3} autoFocus value={comment} onChange={(e) => setComment(e.target.value)} className={TEXTAREA} data-testid="request-comment" />
+            <textarea id="request-comment" maxLength={LIMITS.text} rows={3} autoFocus value={comment} onChange={(e) => setComment(e.target.value)} className={TEXTAREA} data-testid="request-comment" />
           </Field>
           {send.error ? (
             <p role="alert" className="text-error">

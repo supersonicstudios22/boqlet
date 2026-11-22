@@ -12,6 +12,8 @@ import { isPatch } from "@/features/library/shared/doc";
 import { ANSWER_SAVE_MS, type Draft } from "@/features/library/shared/use-draft";
 import { cn } from "@/lib/utils";
 import { measureScreens, missingAnswers, sectionTitle, type Screen } from "./steps";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * F16 step 1 "How you measure": the checklist of what the BoQ includes (1a), a detail screen for each
@@ -39,7 +41,8 @@ export function MeasureStep({ preset, draft, orgSlug, onDone, screenIndex, onScr
     if (!parent) return null;
     return { ...parent, params: effectiveSlots(doc, parent), setupSteps: (doc as RuleSetPatch).setupSteps ?? parent.setupSteps };
   }, [doc, parent, patch]);
-  if (!doc || !rs) return <div aria-busy="true" className="h-40" />;
+  if (draft.loadError) return <InlineError error={draft.loadError} onRetry={draft.retryLoad} />;
+  if (!doc || !rs) return <LoadingLines />;
 
   const slots = rs.params;
   const screens = measureScreens(rs, slots);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useMemo, useRef, useState } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 export interface PickItem {
@@ -26,6 +27,7 @@ export function SearchPicker({
   className,
   autoFocus,
   onDismiss,
+  portal = false,
   "data-testid": testId,
 }: {
   items: readonly PickItem[];
@@ -41,6 +43,11 @@ export function SearchPicker({
   autoFocus?: boolean;
   /** Called when the person leaves without picking (Escape or moving away). */
   onDismiss?: () => void;
+  /**
+   * Draw the list over the page (a portal at the input's place) instead of inside its parent: for a
+   * picker inside a virtualised row, whose own stacking would put the list under the next rows (TF-103).
+   */
+  portal?: boolean;
   "data-testid"?: string;
 }) {
   const id = useId();
@@ -54,6 +61,27 @@ export function SearchPicker({
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     return items.filter((i) => words.every((w) => `${i.label} ${i.value} ${i.hint ?? ""}`.toLowerCase().includes(w))).slice(0, 50);
   }, [items, query, search]);
+
+  // Where the portalled list goes: under the input, following it on scroll and resize.
+  const [place, setPlace] = useState<CSSProperties | null>(null);
+  useLayoutEffect(() => {
+    if (!portal || !open) return;
+    const follow = () => {
+      const r = input.current?.getBoundingClientRect();
+      if (!r) return;
+      // Above the input when there is more room there than below (the list is at most 18rem high).
+      const below = window.innerHeight - r.bottom;
+      const up = below < 288 + 8 && r.top > below;
+      setPlace({ position: "fixed", left: r.left, width: Math.max(r.width, 288), ...(up ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+    };
+    follow();
+    window.addEventListener("scroll", follow, true);
+    window.addEventListener("resize", follow);
+    return () => {
+      window.removeEventListener("scroll", follow, true);
+      window.removeEventListener("resize", follow);
+    };
+  }, [portal, open]);
 
   const pick = (item: PickItem) => {
     onPick(item.value);
@@ -109,12 +137,19 @@ export function SearchPicker({
         className="h-8 w-full rounded-[var(--radius)] border border-input bg-transparent px-2 text-ui outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
         data-testid={testId}
       />
-      {open && (
+      {open && (portal ? place && typeof document !== "undefined" && createPortal(list(place), document.body) : list(null))}
+    </div>
+  );
+
+  function list(style: CSSProperties | null) {
+    return (
         <ul
           id={`${id}-list`}
           role="listbox"
           aria-label={label}
-          className="absolute top-full left-0 z-20 mt-1 max-h-72 w-full min-w-72 overflow-auto rounded-[var(--radius)] border border-border bg-background py-1 shadow-sm"
+          style={style ?? undefined}
+          className={cn("max-h-72 overflow-auto rounded-[var(--radius)] border border-border bg-background py-1 shadow-sm", style ? "z-50" : "absolute top-full left-0 z-20 mt-1 w-full min-w-72")}
+          data-testid={testId ? `${testId}-list` : undefined}
         >
           {shown.length === 0 && <li className="px-2 py-1 text-muted-foreground">{empty}</li>}
           {shown.map((item, i) => (
@@ -133,7 +168,6 @@ export function SearchPicker({
             </li>
           ))}
         </ul>
-      )}
-    </div>
-  );
+    );
+  }
 }

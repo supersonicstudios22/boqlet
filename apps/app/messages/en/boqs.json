@@ -216,7 +216,8 @@
       "org": "Organisation",
       "project": "Project"
     },
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "addTo": "Add to {title}…"
   },
   "versions": {
     "runs": "Runs of this version",
@@ -455,7 +456,8 @@
     "retrying": "Saving… The server is not answering; trying again.",
     "notSaved": "{count, plural, one {An edit was not saved: the server did not answer.} other {# edits were not saved: the server did not answer.}} It is kept here and sent again when the server is back.",
     "retry": "Save again",
-    "discard": "Discard"
+    "discard": "Discard",
+    "codeCell": "Item code"
   },
   "manual": {
     "addTitle": "Add a line",
@@ -567,7 +569,9 @@
       "deltaPct": "Δ %",
       "unit": "Unit",
       "causes": "Why",
-      "was": "Was: {text}"
+      "was": "Was: {text}",
+      "engine": "engine {value}",
+      "engineHint": "The line is edited: the quantity above is the person's. Below it, the engine's value from the models, which changed."
     },
     "change": {
       "added": "Added",
@@ -638,7 +642,7 @@
     "exported": "{file} is downloaded",
     "saved": "Saved version {label}",
     "workingFiles": "Files of version {label}",
-    "none": "No files yet.",
+    "none": "No files yet. Use “Export Excel” on the working version; each saved version keeps its own file here.",
     "file": "File",
     "kind": "Kind",
     "by": "By",

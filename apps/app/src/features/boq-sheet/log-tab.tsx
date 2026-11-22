@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Run } from "@/api/hooks/boqs";
 import { useLog, type LogFilters } from "@/api/hooks/sheet";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEngineMessage } from "@/i18n/engine-message";
 import { cn } from "@/lib/utils";
+import { InlineError } from "@/components/errors/inline-error";
 
 const STAGES = ["parse", "names", "measure", "match", "quantity", "derived", "manual", "classify", "decision", "summary"] as const;
 const LEVELS = ["info", "detail", "warning"] as const;
@@ -17,7 +17,6 @@ const LEVELS = ["info", "detail", "warning"] as const;
 /** S12e: the run's calculation log, paged and filtered on the server (F06 §9). */
 export function LogTab({ run }: { run: Run | undefined }) {
   const t = useTranslations("boqs.log");
-  const message = useErrorMessage();
   const engineMessage = useEngineMessage();
   const [filters, setFilters] = useState<LogFilters>({});
   const log = useLog(run?.id, filters);
@@ -59,9 +58,7 @@ export function LogTab({ run }: { run: Run | undefined }) {
         </label>
       </div>
       {log.isError && (
-        <p role="alert" className="text-error">
-          {message(log.error)}
-        </p>
+        <InlineError error={log.error} onRetry={() => log.refetch()} />
       )}
       {log.data && items.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
       {items.length > 0 && (

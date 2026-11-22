@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useRelativeTime } from "@/i18n/use-relative-time";
+import { LIMITS } from "@/lib/limits";
 
 const EXPIRY = ["never", "7", "30", "90"] as const;
 type Expiry = (typeof EXPIRY)[number];
@@ -125,7 +126,7 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
             </NativeSelect>
           </Field>
           <Field id="share-label" label={t("label")}>
-            <Input id="share-label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("labelPlaceholder")} data-testid="share-label" />
+            <Input id="share-label" maxLength={LIMITS.name} value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("labelPlaceholder")} data-testid="share-label" />
           </Field>
           <p className="text-muted-foreground sm:col-span-2">{t("anyone")}</p>
           {create.error ? (
@@ -194,7 +195,7 @@ export function LinkRow({ link, systems = [], showBoq }: { link: ShareLink; syst
         </span>
       </div>
       <p className="text-muted-foreground">
-        {[t("sheet"), ...included].join(", ")} · {t("by", { name: link.createdBy?.name ?? "" })} ·{" "}
+        {format.list([t("sheet"), ...included], { type: "unit" })} · {t("by", { name: link.createdBy?.name ?? "" })} ·{" "}
         {link.expiresAt ? t("expiresOn", { date: format.dateTime(new Date(link.expiresAt), { dateStyle: "medium" }) }) : t("noExpiry")} ·{" "}
         <span data-testid="share-views">{t("views", { count: link.views ?? 0, when: link.lastViewedAt ? relative(link.lastViewedAt) : "" })}</span>
       </p>

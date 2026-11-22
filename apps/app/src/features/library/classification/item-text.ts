@@ -11,7 +11,11 @@ import type { PreviewResult } from "@/api/hooks/library";
 import { LINE_SPLITS } from "../shared/vocab";
 import { outcomeFor, sourceCode, type LineKind } from "./model";
 
-export type PreviewLine = PreviewResult["lines"][number];
+/**
+ * A preview line. `codes`: each classification's code and item text as the engine filled it (TF-136;
+ * optional until every engine sends it).
+ */
+export type PreviewLine = PreviewResult["lines"][number] & { codes?: Record<string, { code?: string; text?: string | null } | undefined> };
 
 /** The names an item text's insert buttons offer: the values a line can carry, its unit and quantity. */
 export const ITEM_TEXT_NAMES: readonly string[] = [...LINE_SPLITS, "unit", "quantity"];
@@ -40,15 +44,50 @@ export function lineValue(line: PreviewLine, name: string): string | undefined {
   return undefined;
 }
 
-/** The template as pieces; with a line, plain blanks carry that line's values. */
-export function itemTextPieces(template: string, line?: PreviewLine | null): ItemTextPiece[] {
+/** The item text the engine filled for `code` in a line of the preview, when the line got that code (TF-136). */
+export function engineText(line: PreviewLine, systemId: string, code: string): string | undefined {
+  const c = line.codes?.[systemId];
+  return c && c.code === code && typeof c.text === "string" ? c.text : undefined;
+}
+
+/**
+ * What the engine put in each blank of `template` (by the blank as written), read back from the text
+ * it filled; null when the text doesn't follow the template (it was edited since the preview). Nothing
+ * is evaluated: the values are the engine's.
+ */
+export function blankValuesFrom(template: string, filled: string): Map<string, string> | null {
+  const blanks: string[] = [];
+  let pattern = "";
+  let last = 0;
+  for (const m of template.matchAll(BLANK)) {
+    pattern += escape(template.slice(last, m.index)) + "([\\s\\S]*?)";
+    blanks.push(m[0]);
+    last = m.index + m[0].length;
+  }
+  pattern += escape(template.slice(last));
+  const hit = new RegExp(`^${pattern}$`).exec(filled);
+  if (!hit) return null;
+  const out = new Map<string, string>();
+  blanks.forEach((b, i) => {
+    if (!out.has(b)) out.set(b, hit[i + 1]!);
+  });
+  return out;
+}
+
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The template as pieces; with a line, plain blanks carry that line's values. `filled` (from
+ * `blankValuesFrom`) gives the engine's value of any blank, expressions too, and wins.
+ */
+export function itemTextPieces(template: string, line?: PreviewLine | null, filled?: ReadonlyMap<string, string> | null): ItemTextPiece[] {
   const out: ItemTextPiece[] = [];
   let last = 0;
   for (const m of template.matchAll(BLANK)) {
     if (m.index > last) out.push({ text: template.slice(last, m.index) });
     const inner = m[1]!.trim();
     const name = NAME.test(inner) ? inner : undefined;
-    const value = name && line ? lineValue(line, name) : undefined;
+    const value = filled?.get(m[0]) ?? (name && line ? lineValue(line, name) : undefined);
     out.push({ blank: m[0], ...(name ? { name } : {}), ...(value !== undefined ? { value } : {}) });
     last = m.index + m[0].length;
   }

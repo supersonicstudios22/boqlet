@@ -23,11 +23,14 @@ import { cn } from "@/lib/utils";
 import type { PreviewResult } from "@/api/hooks/library";
 import { MeasureStep } from "./measure-step";
 import { ReviewStep } from "./review-step";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 type Step = OrgSetup["step"];
 const STEPS: Step[] = ["start", "measure", "items", "names", "review"];
 
-const loading = () => <div aria-busy="true" className="h-40" />;
+const loading = () => <LoadingLines />;
 type AnyEditor = ComponentType<EditorProps>;
 const ClassificationEditor = dynamic(() => import("@/features/library/classification/classification-editor").then((m) => m.ClassificationEditor as unknown as AnyEditor), { loading });
 const DictionaryEditor = dynamic(() => import("@/features/library/dictionary/dictionary-editor").then((m) => m.DictionaryEditor as unknown as AnyEditor), { loading });
@@ -45,6 +48,7 @@ export function SetupWizard() {
   const save = useSaveOrgSetup(org.id);
   const [restart, setRestart] = useState(false);
   if (!can("finishSetup")) return <p className="text-muted-foreground">{t("notAllowed")}</p>;
+  if (setup.isError && !setup.data) return <InlineError error={setup.error} onRetry={() => setup.refetch()} />;
   if (setup.isPending) return loading();
   const current = setup.data;
   const started = current && current.ruleSetPresetId && !restart;
@@ -87,6 +91,9 @@ function Wizard({ setup, onStep }: { setup: OrgSetup; onStep: (step: Step) => vo
   const items = usePreset(setup.classificationPresetId!);
   const names = usePreset(setup.dictionaryPresetId!);
   const model = useModelOf(setup.modelVersionId ?? null);
+  // A preset that can't be loaded is said, with a retry, not loaded forever (TF-019).
+  const failed = [rules, items, names].find((q) => q.isError && !q.data);
+  if (failed) return <InlineError error={failed.error} onRetry={() => failed.refetch()} />;
   if (!rules.data || !items.data || !names.data) return loading();
   const go = (s: Step) => {
     setScreen(0);
@@ -163,6 +170,7 @@ function DraftStep({ preset, render, preview, otherInputs, onResult }: {
 }) {
   const t = useTranslations("setup");
   const draft = useDraft<unknown>(preset);
+  if (draft.loadError) return <InlineError error={draft.loadError} onRetry={draft.retryLoad} />;
   if (draft.doc === undefined) return loading();
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(300px,2fr)]">
@@ -305,7 +313,7 @@ function StartStep({ onStarted }: { onStarted: (ids: { ruleSetPresetId: string; 
           </p>
         ) : (
           <Field key={k} id={`setup-name-${k}`} label={t(`names.${k}`)}>
-            <Input id={`setup-name-${k}`} value={names[k]} onChange={(e) => setNames({ ...names, [k]: e.target.value })} data-testid={`setup-name-${k}`} />
+            <Input id={`setup-name-${k}`} maxLength={LIMITS.name} value={names[k]} onChange={(e) => setNames({ ...names, [k]: e.target.value })} data-testid={`setup-name-${k}`} />
           </Field>
         );
       })}

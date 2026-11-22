@@ -11,6 +11,7 @@ import { useSession } from "@/auth";
 import { AuthGate } from "@/auth/auth-gate";
 import { Wordmark } from "@/components/shell/wordmark";
 import { lastOrg } from "@/features/orgs/org-context";
+import { InlineError } from "@/components/errors/inline-error";
 
 /**
  * Where people land after sign-in (F01 §3): their only org, the last one they used, a picker when
@@ -48,8 +49,9 @@ function StartRedirect() {
 
   const pick = me.data && memberships.length > 1 && !target;
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center gap-6 px-8" aria-busy={!pick}>
+    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center gap-6 px-8" aria-busy={!pick && !me.isError}>
       <Wordmark className="text-display" />
+      {me.isError && !me.data && <InlineError error={me.error} onRetry={() => me.refetch()} />}
       {pick && (
         <nav aria-label={t("pick")} className="flex flex-col gap-2" data-testid="org-picker">
           <p className="label-caps text-muted-foreground">{t("pick")}</p>

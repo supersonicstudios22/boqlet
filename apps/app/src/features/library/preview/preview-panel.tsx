@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import { usePreview, type Preset, type PreviewResult } from "@/api/hooks/library";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,8 @@ export function PreviewPanel({ preset, saves, onResult, fixed, otherInputs }: {
 }) {
   const t = useTranslations("library.preview");
   const message = useErrorMessage();
-  const format = useFormatter();
+  // Quantities in the firm's number format (TF-021).
+  const boqFormat = useBoqFormat();
   const [chosen, setPicked] = useState<PickedModelVersion | null>(() => {
     try {
       const raw = window.localStorage.getItem(PICK_KEY);
@@ -90,7 +92,7 @@ export function PreviewPanel({ preset, saves, onResult, fixed, otherInputs }: {
     ...(data?.lines ?? []).map((line) => ({ line, change: changes.get(line.key) })),
     ...removed.map((c) => ({ line: c.before!, change: c })),
   ].filter((r) => !onlyChanged || r.change);
-  const qty = (q: number | null) => (q === null ? t("toConfirm") : format.number(q, { maximumFractionDigits: 3 }));
+  const qty = (q: number | null) => (q === null ? t("toConfirm") : boqFormat.number(q, { maximumFractionDigits: 3 }));
 
   return (
     <aside className="flex min-w-0 flex-col gap-3 rounded-[var(--radius)] border border-border p-3" data-testid="preview-panel" data-state={preview.isPending ? "running" : data ? "done" : "idle"}>

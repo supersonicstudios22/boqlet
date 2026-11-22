@@ -16,7 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
-import type { OrgRole } from "@/lib/permissions";
+import { orgCan, type OrgRole } from "@/lib/permissions";
+import { InlineError } from "@/components/errors/inline-error";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 const ROLES: OrgRole[] = ["owner", "admin", "library_editor", "member"];
 
@@ -31,7 +33,8 @@ export function MembersSettings() {
   const me = useMe();
   const client = useQueryClient();
   const manage = can("manageMembers");
-  const assignable = ROLES.filter((r) => r !== "owner" || myRole === "owner");
+  // Only those who may make owners (src/lib/permissions.ts, TF-024) give or change the owner role.
+  const assignable = ROLES.filter((r) => r !== "owner" || orgCan(myRole, "makeOwner"));
 
   const members = useQuery({
     queryKey: keys.members(org.id),
@@ -48,7 +51,7 @@ export function MembersSettings() {
   const [email, setEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<OrgRole>("member");
   const invite = useMutation({
-    mutationFn: async () => (await api.POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org.id } }, body: { email: email.trim(), role: inviteRole } })).data!,
+    mutationFn: async () => (await api.POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org.id } }, body: { email: email.trim(), role: inviteRole }, headers: idempotencyHeaders(`inviteMember:${org.id}`, { email: email.trim(), role: inviteRole }) })).data!,
     onSuccess: async (inv) => {
       toast(t("invited", { email: inv.email }));
       setEmail("");
@@ -74,7 +77,7 @@ export function MembersSettings() {
   });
   const resend = useMutation({
     mutationFn: async (invitationId: string) =>
-      api.POST("/orgs/{orgId}/invitations/{invitationId}/resend", { params: { path: { orgId: org.id, invitationId } } }),
+      api.POST("/orgs/{orgId}/invitations/{invitationId}/resend", { params: { path: { orgId: org.id, invitationId } }, headers: idempotencyHeaders(`resendOrgInvitation:${invitationId}`) }),
     onSuccess: async () => {
       toast(t("resent"));
       await refresh();
@@ -120,9 +123,7 @@ export function MembersSettings() {
       <section className="flex flex-col gap-3">
         <h2 className="label-caps">{t("members")}</h2>
         {members.isError && (
-          <p role="alert" className="text-error">
-            {message(members.error)}
-          </p>
+          <InlineError error={members.error} onRetry={() => members.refetch()} />
         )}
         <Table data-testid="members-table">
           <TableHeader>
@@ -138,7 +139,7 @@ export function MembersSettings() {
           <TableBody>
             {(members.data ?? []).map((m) => {
               const self = m.user.id === me.data?.user.id;
-              const canEdit = manage && !self && (m.role !== "owner" || myRole === "owner");
+              const canEdit = manage && !self && (m.role !== "owner" || orgCan(myRole, "makeOwner"));
               return (
                 <TableRow key={m.user.id} data-testid={`member-${m.user.email}`}>
                   <TableCell>{m.user.name}</TableCell>

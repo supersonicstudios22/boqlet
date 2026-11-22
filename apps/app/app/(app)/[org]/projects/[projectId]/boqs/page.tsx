@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useBoqs } from "@/api/hooks/boqs";
 import { useModels } from "@/api/hooks/models";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tag } from "@/features/boqs/boq-header";
@@ -13,11 +12,12 @@ import { CreateBoqDialog } from "@/features/boqs/create-boq-dialog";
 import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
 import { useRelativeTime } from "@/i18n/use-relative-time";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S11: the project's BoQs with their working version and current run (F04). Archived ones on request. */
 export default function BoqsPage() {
   const t = useTranslations("boqs");
-  const message = useErrorMessage();
   const relative = useRelativeTime();
   const { org } = useOrg();
   const { project, can } = useProjectScope();
@@ -47,11 +47,9 @@ export default function BoqsPage() {
         )}
       </div>
       {boqs.isError && (
-        <p role="alert" className="text-error">
-          {message(boqs.error)}
-        </p>
+        <InlineError error={boqs.error} onRetry={() => boqs.refetch()} />
       )}
-      {boqs.isPending && <div className="h-32" aria-busy="true" />}
+      {boqs.isPending && <LoadingLines />}
       {boqs.data && shown.length === 0 && <p className="text-muted-foreground">{hasReadyModel || all.length ? t("list.empty") : t("list.emptyNoModels")}</p>}
       {shown.length > 0 && (
         <Table data-testid="boqs-table">

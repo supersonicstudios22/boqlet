@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useMe } from "@/api/hooks/me";
 import { NotFoundView } from "@/components/errors/not-found-view";
 import { orgCan, type OrgAction, type OrgRole } from "@/lib/permissions";
+import { InlineError } from "@/components/errors/inline-error";
 
 export interface OrgScope {
   org: Schemas["Org"];
@@ -44,6 +45,14 @@ export function OrgProvider({ slug, children }: { slug: string; children: ReactN
   }, [membership, slug]);
 
   if (me.isPending) return <div className="min-h-dvh" aria-busy="true" />;
+  // `/me` failed (TF-019): not "not found", which is only for an org the person isn't in.
+  if (me.isError && !me.data) {
+    return (
+      <main className="mx-auto max-w-3xl px-8 py-16">
+        <InlineError error={me.error} onRetry={() => me.refetch()} />
+      </main>
+    );
+  }
   if (!membership) {
     return (
       <main className="mx-auto max-w-3xl px-8">

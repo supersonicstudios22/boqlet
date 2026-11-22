@@ -5,13 +5,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { usePresetVersion, usePresetVersions, useSaveDraft, type Preset, type PresetVersionInfo } from "@/api/hooks/library";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { DocumentView } from "./document-view";
 import { diffDocs } from "./json-diff";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * Versions (F10 §5): the history (number, note, by, at), any version read-only (`?version=`), two
@@ -20,7 +21,6 @@ import { diffDocs } from "./json-diff";
 export function PresetVersions({ preset, editable }: { preset: Preset; editable: boolean }) {
   const t = useTranslations("library");
   const format = useFormatter();
-  const message = useErrorMessage();
   const versions = usePresetVersions(preset.id);
   const router = useRouter();
   const pathname = usePathname();
@@ -32,9 +32,7 @@ export function PresetVersions({ preset, editable }: { preset: Preset; editable:
 
   if (versions.isError) {
     return (
-      <p role="alert" className="text-error">
-        {message(versions.error)}
-      </p>
+      <InlineError error={versions.error} onRetry={() => versions.refetch()} />
     );
   }
   const list = versions.data ?? [];
@@ -107,7 +105,7 @@ function VersionView({ preset, versionId, editable, etag }: { preset: Preset; ve
   const t = useTranslations("library");
   const version = usePresetVersion(versionId, etag);
   const restore = useSaveDraft(preset.id);
-  if (!version.data) return <div aria-busy="true" />;
+  if (!version.data) return <LoadingLines />;
   const v = version.data;
   const restorable = editable && v.status === "published";
   const doRestore = async () => {
@@ -145,7 +143,7 @@ function VersionDiff({ preset, older, newer, label }: { preset: Preset; older: s
   const etags = new Map([[preset.draft?.id, preset.draft?.etag]]);
   const a = usePresetVersion(older, etags.get(older));
   const b = usePresetVersion(newer, etags.get(newer));
-  if (!a.data || !b.data) return <div aria-busy="true" />;
+  if (!a.data || !b.data) return <LoadingLines />;
   const { rows, added, removed } = diffDocs(a.data.doc, b.data.doc);
   return (
     <section className="flex flex-col gap-3" data-testid="version-diff">

@@ -1,5 +1,6 @@
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 /** Client-side checks before anything is sent (F03 §2.1, F03-AC6). */
 export function checkFile(file: File, maxMb: number | undefined): "not_ifc" | "too_large" | null {
@@ -31,5 +32,5 @@ export async function uploadModelVersion(modelId: string, file: File, onProgress
   ).data!;
   await putWithProgress(created.upload.url, created.upload.headers ?? {}, file, onProgress);
   onProgress(1);
-  return (await api.POST("/model-versions/{versionId}/complete", { params: { path: { versionId: created.version.id } }, body: {} })).data!;
+  return (await api.POST("/model-versions/{versionId}/complete", { params: { path: { versionId: created.version.id } }, body: {}, headers: idempotencyHeaders(`completeModelUpload:${created.version.id}`) })).data!;
 }

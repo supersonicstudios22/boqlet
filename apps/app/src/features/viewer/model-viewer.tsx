@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { buildLinks, colorsFor, elementOfMesh, type ColorMode, type LegendEntry, type LinkLine } from "./links";
 import type { Box, SceneView } from "./scene-view";
 import { useUnit } from "@/i18n/units";
+import { hasWebGL } from "./webgl";
 import { useBoqFormat } from "@/i18n/boq-format";
 
 /** A line of a changed element, before and after (the Changes tab, F07 §9). */
@@ -123,12 +124,24 @@ export function ModelViewer({
   }, [scenesIn]);
   const links = useMemo(() => buildLinks(lines ?? [], elements), [lines, elements]);
 
-  // The three.js view lives as long as the component; three is loaded on demand.
+  // The three.js view lives as long as the component; three is loaded on demand. Without WebGL the
+  // viewer says so and lists the elements instead (TF-106).
+  const [noWebgl, setNoWebgl] = useState(false);
   useEffect(() => {
     let disposed = false;
+    if (!hasWebGL()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- known only in the browser, once
+      setNoWebgl(true);
+      return;
+    }
     void import("./scene-view").then(({ SceneView }) => {
       if (disposed || !host.current) return;
-      view.current = new SceneView(host.current);
+      try {
+        view.current = new SceneView(host.current);
+      } catch {
+        setNoWebgl(true);
+        return;
+      }
       setReady(true);
     });
     return () => {
@@ -297,7 +310,8 @@ export function ModelViewer({
     >
       <div className="relative min-h-[420px] flex-1 border border-border bg-muted/40">
         <div ref={host} className="absolute inset-0" data-testid="viewer-canvas" />
-        {!allLoaded && (
+        {noWebgl && <NoWebgl elements={elements} onPick={(g) => setPicked(new Set([g]))} picked={picked} />}
+        {!allLoaded && !noWebgl && (
           <p className="absolute left-3 top-3 text-muted-foreground" aria-busy="true">
             {models.filter((m) => !loaded.has(m.versionId)).map((m) => t("loading", { name: m.label })).join(" ")}
           </p>
@@ -468,6 +482,31 @@ export function ModelViewer({
           </section>
         )}
       </aside>
+    </div>
+  );
+}
+
+/** Without WebGL: say so, and list the elements (by storey), each one pickable for its lines (TF-106). */
+function NoWebgl({ elements, onPick, picked }: { elements: SceneIndex["elements"]; onPick: (guid: string) => void; picked: ReadonlySet<string> }) {
+  const t = useTranslations("viewer");
+  const rows = useMemo(
+    () => Object.entries(elements).sort(([, a], [, b]) => (a.storey ?? "").localeCompare(b.storey ?? "") || (a.ifcClass ?? "").localeCompare(b.ifcClass ?? "") || (a.name ?? "").localeCompare(b.name ?? "")),
+    [elements],
+  );
+  return (
+    <div className="absolute inset-0 flex flex-col gap-2 overflow-auto bg-background p-3" data-testid="viewer-no-webgl">
+      <p role="status">{t("noWebgl")}</p>
+      <ul className="flex flex-col" aria-label={t("elementList")}>
+        {rows.map(([guid, e]) => (
+          <li key={guid}>
+            <button type="button" className={cn("flex w-full gap-3 px-1 text-left hover:bg-accent", picked.has(guid) && "bg-selection")} onClick={() => onPick(guid)} data-testid="viewer-list-element">
+              <span className="min-w-0 flex-1 truncate">{e.name ?? guid}</span>
+              <span className="text-muted-foreground">{e.ifcClass}</span>
+              <span className="w-32 truncate text-muted-foreground">{e.storey}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

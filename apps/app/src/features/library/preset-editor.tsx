@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { JsonTab } from "./shared/json-tab";
 import type { Draft, SaveStatus } from "./shared/use-draft";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** What every kind's editor gets (F10 §3). */
 export interface EditorProps<D = unknown> {
@@ -26,7 +28,7 @@ function AdvancedJson({ doc, onChange }: EditorProps) {
   return <JsonTab value={doc} onChange={onChange} />;
 }
 
-const loading = () => <div aria-busy="true" className="h-40" />;
+const loading = () => <LoadingLines />;
 
 type AnyEditor = ComponentType<EditorProps>;
 
@@ -47,6 +49,7 @@ export function PresetEditor({ preset, draft, editable, question }: { preset: Pr
   const t = useTranslations("library.edit");
   const message = useErrorMessage();
   const Editor = EDITORS[preset.kind];
+  if (draft.loadError) return <InlineError error={draft.loadError} onRetry={draft.retryLoad} />;
   if (draft.doc === undefined) return loading();
   return (
     <div className="flex flex-col gap-4" data-testid="preset-editor" data-status={draft.status}>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import type { Boq, Run } from "@/api/hooks/boqs";
 import { useManualItems, useOverrides } from "@/api/hooks/edits";
 import { useLines } from "@/api/hooks/sheet";
@@ -11,6 +12,7 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { ChangesTab } from "@/features/changes/changes-tab";
 import { useRelativeTime } from "@/i18n/use-relative-time";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * The review screen (F09 §4), under the header's review strip (the actions): the comments (overall or on a line), what the version
@@ -19,7 +21,7 @@ import { useRelativeTime } from "@/i18n/use-relative-time";
  */
 export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefined; base: string }) {
   const t = useTranslations("boqs.review");
-  const format = useFormatter();
+  const boqFormat = useBoqFormat();
   const relative = useRelativeTime();
   const message = useErrorMessage();
   const revision = boq.currentRevision;
@@ -77,6 +79,7 @@ export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefin
             </label>
             <textarea
               aria-label={t("addComment")}
+              maxLength={LIMITS.text}
               placeholder={t("addComment")}
               rows={2}
               value={text}
@@ -105,7 +108,7 @@ export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefin
             {edited.map((o) => (
               <li key={o.lineKey}>
                 {describe.get(o.lineKey) ?? o.lineKey}
-                {o.quantity !== undefined && o.quantity !== null ? ` → ${format.number(o.quantity, { maximumFractionDigits: 3 })}` : ""}
+                {o.quantity !== undefined && o.quantity !== null ? ` → ${boqFormat.number(o.quantity, { maximumFractionDigits: 3 })}` : ""}
                 {o.reason ? <span className="text-muted-foreground"> · {o.reason}</span> : null}
               </li>
             ))}

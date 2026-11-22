@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { localJobs } from "@/realtime/local-jobs";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 type Job = Schemas["Job"];
 
@@ -49,13 +50,13 @@ export async function downloadWhenDone(job: Job) {
 export function useExportRun(runId: string) {
   return useMutation({
     mutationFn: async ({ groupBy }: { groupBy?: string | null }) =>
-      downloadWhenDone((await api.POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx", ...(groupBy ? { groupBy } : {}) } })).data!),
+      downloadWhenDone((await api.POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx", ...(groupBy ? { groupBy } : {}) }, headers: idempotencyHeaders(`exportRun:${runId}`, groupBy ?? null) })).data!),
   });
 }
 
 /** F08 §7: a change report's Excel, downloaded when it is written. */
 export function useExportDiff(diffId: string | undefined) {
   return useMutation({
-    mutationFn: async () => downloadWhenDone((await api.POST("/diffs/{diffId}/export", { params: { path: { diffId: diffId! } } })).data!),
+    mutationFn: async () => downloadWhenDone((await api.POST("/diffs/{diffId}/export", { params: { path: { diffId: diffId! } }, headers: idempotencyHeaders(`exportDiff:${diffId}`) })).data!),
   });
 }

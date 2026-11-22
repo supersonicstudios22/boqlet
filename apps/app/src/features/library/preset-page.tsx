@@ -26,6 +26,9 @@ import { PublishDialog } from "./publish-dialog";
 import { useDraft } from "./shared/use-draft";
 import { PresetUsage } from "./preset-usage";
 import { PresetVersions } from "./preset-versions";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const TABS = ["edit", "versions", "usage"] as const;
 type Tab = (typeof TABS)[number];
@@ -37,7 +40,6 @@ type Tab = (typeof TABS)[number];
  */
 export function PresetPage({ presetId }: { presetId: string }) {
   const t = useTranslations("library");
-  const message = useErrorMessage();
   const { org, can } = useOrg();
   const preset = usePreset(presetId);
   const router = useRouter();
@@ -53,12 +55,10 @@ export function PresetPage({ presetId }: { presetId: string }) {
 
   if (preset.isError) {
     return (
-      <p role="alert" className="text-error">
-        {message(preset.error)}
-      </p>
+      <InlineError error={preset.error} onRetry={() => preset.refetch()} />
     );
   }
-  if (!preset.data) return <div aria-busy="true" />;
+  if (!preset.data) return <LoadingLines />;
   const p = preset.data;
   const editable = p.permissions?.edit === true;
   return (
@@ -173,6 +173,7 @@ function PresetHeader({ preset: p, canCopy, orgId, orgSlug }: { preset: Preset; 
 /** Name, description and "based on" (free text, BR-53). */
 function DetailsDialog({ preset: p }: { preset: Preset }) {
   const t = useTranslations("library");
+  const tc = useTranslations("common");
   const message = useErrorMessage();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(p.name);
@@ -209,13 +210,13 @@ function DetailsDialog({ preset: p }: { preset: Preset }) {
               <DialogDescription>{t("preset.detailsHint")}</DialogDescription>
             </DialogHeader>
             <Field id="details-name" label={t("create.name")} error={update.error ? message(update.error) : undefined}>
-              <Input id="details-name" value={name} onChange={(e) => setName(e.target.value)} data-testid="details-name" />
+              <Input id="details-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} data-testid="details-name" />
             </Field>
-            <Field id="details-description" label={`${t("create.description")} (${t("create.optional")})`}>
-              <Input id="details-description" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Field id="details-description" label={tc("optionalLabel", { label: t("create.description") })}>
+              <Input id="details-description" maxLength={LIMITS.text} value={description} onChange={(e) => setDescription(e.target.value)} />
             </Field>
-            <Field id="details-based-on" label={`${t("create.basedOn")} (${t("create.optional")})`} hint={t("create.basedOnHint")}>
-              <Input id="details-based-on" value={basedOn} onChange={(e) => setBasedOn(e.target.value)} />
+            <Field id="details-based-on" label={tc("optionalLabel", { label: t("create.basedOn") })} hint={t("create.basedOnHint")}>
+              <Input id="details-based-on" maxLength={LIMITS.name} value={basedOn} onChange={(e) => setBasedOn(e.target.value)} />
             </Field>
             <DialogFooter>
               <DialogClose render={<Button variant="outline" type="button" />}>{t("create.cancel")}</DialogClose>

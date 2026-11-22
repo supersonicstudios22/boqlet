@@ -17,6 +17,9 @@ import { UploadButton } from "@/features/models/upload-button";
 import { VersionStatus } from "@/features/models/version-status";
 import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const DISCIPLINES = ["architecture", "structure", "mep"];
 
@@ -25,7 +28,6 @@ export default function ModelPage({ params }: { params: Promise<{ modelId: strin
   const { modelId } = use(params);
   const t = useTranslations("models");
   const format = useFormatter();
-  const message = useErrorMessage();
   const { org } = useOrg();
   const { project, can } = useProjectScope();
   const model = useModel(modelId);
@@ -33,8 +35,8 @@ export default function ModelPage({ params }: { params: Promise<{ modelId: strin
   const router = useRouter();
   const base = `/${org.slug}/projects/${project.id}/models/${modelId}`;
 
-  if (model.isError) return <p role="alert" className="text-error">{message(model.error)}</p>;
-  if (!model.data) return <div className="h-40" aria-busy="true" />;
+  if (model.isError) return <InlineError error={model.error} onRetry={() => model.refetch()} />;
+  if (!model.data) return <LoadingLines />;
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-start gap-6">
@@ -79,6 +81,9 @@ export default function ModelPage({ params }: { params: Promise<{ modelId: strin
           ))}
         </TableBody>
       </Table>
+      {versions.isError && <InlineError error={versions.error} onRetry={() => versions.refetch()} />}
+      {versions.isPending && <LoadingLines />}
+      {versions.data?.length === 0 && <p className="text-muted-foreground">{t("versions.none")}</p>}
       {can("editModels") && <ModelSettings key={model.data.name + model.data.discipline} modelId={modelId} name={model.data.name} discipline={model.data.discipline} />}
     </div>
   );
@@ -105,7 +110,7 @@ function ModelSettings({ modelId, name: initialName, discipline: initialDiscipli
       }}
     >
       <Field id="m-name" label={t("list.name")} className="flex-1" error={save.error ? message(save.error) : undefined}>
-        <Input id="m-name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input id="m-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} />
       </Field>
       <Field id="m-discipline" label={t("list.discipline")}>
         <NativeSelect id="m-discipline" value={discipline} onChange={(e) => setDiscipline(e.target.value)}>

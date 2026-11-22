@@ -5,17 +5,17 @@ import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useAdminEndSession, useAdminUsers } from "@/api/hooks/admin";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S36 users (F19 §5): orgs and roles, last sign-in, the active session; end it for a support case. */
 export function AdminUsersView() {
   const t = useTranslations("admin.users");
   const tr = useTranslations("common.roles");
   const format = useFormatter();
-  const message = useErrorMessage();
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
   useEffect(() => {
@@ -34,11 +34,9 @@ export function AdminUsersView() {
         <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} data-testid="users-search" />
       </label>
       {users.isError && (
-        <p role="alert" className="text-error">
-          {message(users.error)}
-        </p>
+        <InlineError error={users.error} onRetry={() => users.refetch()} />
       )}
-      {users.isPending && <div className="h-40" aria-busy="true" />}
+      {users.isPending && <LoadingLines />}
       {users.data && rows.length === 0 && <p className="text-muted-foreground">{t("none")}</p>}
       {rows.length > 0 && (
         <Table data-testid="users-table">

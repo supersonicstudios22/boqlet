@@ -20,10 +20,32 @@ export function groupOf(l: LineChange, system: string | null): { code: string; t
   return codes?.[system]?.path?.[0] ?? null;
 }
 
-/** A changed line whose quantity moved, but by less than the threshold: kept out by default. */
+/**
+ * An edited line's engine value under the edit, before and after (BR-09, TF-093): its shown quantity
+ * is the person's, but the models still moved under it. Null when neither run carries one or it didn't move.
+ */
+export function engineChange(l: LineChange): { before: number | null; after: number | null; delta: number | null } | null {
+  const before = l.before?.engineQuantity;
+  const after = l.after?.engineQuantity;
+  if (before === undefined && after === undefined) return null;
+  if (before === after) return null;
+  const b = before ?? null;
+  const a = after ?? null;
+  return { before: b, after: a, delta: b !== null && a !== null ? a - b : null };
+}
+
+/** |Δ%| of the engine value under an edit; Infinity when it appears or goes. */
+function enginePct(l: LineChange): number {
+  const e = engineChange(l);
+  if (!e) return 0;
+  if (e.before === null || e.after === null || e.delta === null) return Infinity;
+  return e.before === 0 ? (e.delta === 0 ? 0 : Infinity) : Math.abs((e.delta / e.before) * 100);
+}
+
+/** A changed line whose quantity (and engine value under an edit) moved, but by less than the threshold: kept out by default. */
 export function passes(l: LineChange, f: ChangeFilters, system: string | null): boolean {
   if (f.change && l.change !== f.change) return false;
-  if (l.change === "changed" && l.deltaPct !== null && l.deltaPct !== undefined && Math.abs(l.deltaPct) < f.minDeltaPct && l.delta !== null && sameText(l)) return false;
+  if (l.change === "changed" && l.deltaPct !== null && l.deltaPct !== undefined && Math.abs(l.deltaPct) < f.minDeltaPct && l.delta !== null && sameText(l) && enginePct(l) < f.minDeltaPct) return false;
   if (f.group !== undefined && (groupOf(l, system)?.code ?? "") !== f.group) return false;
   return true;
 }

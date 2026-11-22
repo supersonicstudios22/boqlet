@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
 import { presetHref } from "./kinds";
 import { hasTemplate, useDownloadTemplate } from "./template-tools";
+import { LIMITS } from "@/lib/limits";
 
 type Mode = "empty" | "copy" | "patch";
 
@@ -25,6 +26,7 @@ type Mode = "empty" | "copy" | "patch";
  */
 export function CreatePreset({ kind }: { kind: PresetKind }) {
   const t = useTranslations("library");
+  const tc = useTranslations("common");
   const message = useErrorMessage();
   const router = useRouter();
   const params = useSearchParams();
@@ -90,13 +92,13 @@ export function CreatePreset({ kind }: { kind: PresetKind }) {
         {project.data && <p className="text-muted-foreground">{t("create.forProject", { project: project.data.name })}</p>}
       </div>
       <Field id="preset-name" label={t("create.name")} error={create.error ? message(create.error) : undefined}>
-        <Input id="preset-name" value={shownName} onChange={(e) => setName(e.target.value)} autoFocus data-testid="preset-name-input" />
+        <Input id="preset-name" maxLength={LIMITS.name} value={shownName} onChange={(e) => setName(e.target.value)} autoFocus data-testid="preset-name-input" />
       </Field>
-      <Field id="preset-description" label={`${t("create.description")} (${t("create.optional")})`}>
-        <Input id="preset-description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <Field id="preset-description" label={tc("optionalLabel", { label: t("create.description") })}>
+        <Input id="preset-description" maxLength={LIMITS.text} value={description} onChange={(e) => setDescription(e.target.value)} />
       </Field>
-      <Field id="preset-based-on" label={`${t("create.basedOn")} (${t("create.optional")})`} hint={t("create.basedOnHint")}>
-        <Input id="preset-based-on" value={basedOn} onChange={(e) => setBasedOn(e.target.value)} />
+      <Field id="preset-based-on" label={tc("optionalLabel", { label: t("create.basedOn") })} hint={t("create.basedOnHint")}>
+        <Input id="preset-based-on" maxLength={LIMITS.name} value={basedOn} onChange={(e) => setBasedOn(e.target.value)} />
       </Field>
       <fieldset className="flex flex-col gap-2">
         <legend className="label-caps mb-1.5 text-muted-foreground">{t("create.start")}</legend>

@@ -18,7 +18,6 @@ import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useLibraryPresets, type Preset } from "@/api/hooks/library";
 import { useProjects } from "@/api/hooks/projects";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
@@ -28,6 +27,7 @@ import { useStoryWords } from "../shared/story";
 import { useVocab } from "../shared/use-vocab";
 import { useDictWords } from "./dict-story";
 import { LAYER_RANK, assignNames, commonPrefix, forgetName, rowOrder, rowsOf, suggestTerm, type Group, type KnownTerm, type Row, type Status } from "./names";
+import { InlineError } from "@/components/errors/inline-error";
 
 /** The system dictionary every other dictionary builds on. */
 export const GLOBAL_SEED_SLUG = "global-seed";
@@ -153,7 +153,6 @@ export function NamesTab({ preset, doc, onChange, known, pick, onPick }: {
 }) {
   const t = useTranslations("dictionaryEditor.names");
   const format = useFormatter();
-  const message = useErrorMessage();
   const words = useDictWords();
   const story = useStoryWords();
   const vocab = useVocab();
@@ -286,9 +285,7 @@ export function NamesTab({ preset, doc, onChange, known, pick, onPick }: {
           </div>
 
           {names.isError && (
-            <p className="text-error" role="alert">
-              {message(names.error)}
-            </p>
+            <InlineError error={names.error} onRetry={() => names.refetch()} />
           )}
           {names.data && inGroup.some((r) => !r.term) && <p className="prose-text text-muted-foreground">{inGroup.some((r) => !r.term && r.worthAsking) ? t("worthHint") : t("notWorthHint")}</p>}
 

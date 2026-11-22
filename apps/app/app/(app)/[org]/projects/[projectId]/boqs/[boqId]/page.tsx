@@ -4,10 +4,9 @@ import { use } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import { useBoq, useRuns, type Run } from "@/api/hooks/boqs";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { DimensionRule } from "@/components/dimension-rule";
-import { Button } from "@/components/ui/button";
 import { BoqHeader } from "@/features/boqs/boq-header";
 import { BoqPresenceProvider, PresenceAvatars } from "@/features/boqs/presence";
 import { useRevisions } from "@/api/hooks/diffs";
@@ -24,6 +23,8 @@ import { ViewerTab } from "@/features/viewer/viewer-tab";
 import { useProjectScope } from "@/features/projects/project-context";
 import { extensions } from "@/extensions";
 import { cn } from "@/lib/utils";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const TABS = ["review", "sheet", "questions", "viewer", "changes", "log", "setup", "exports", "versions"] as const;
 /** Tabs that show a saved version opened read-only (`?version=`, F09 §3). */
@@ -37,11 +38,9 @@ type Tab = (typeof TABS)[number];
 export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: string }> }) {
   const { boqId } = use(params);
   const t = useTranslations("boqs");
-  const tc = useTranslations("common");
-  const message = useErrorMessage();
   const orgScope = useOrg();
   const { org } = orgScope;
-  const format = useFormatter();
+  const boqFormat = useBoqFormat();
   const { project, can } = useProjectScope();
   const search = useSearchParams();
   const boq = useBoq(boqId);
@@ -68,14 +67,11 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   // refetches when the API answers again (the realtime provider). Only a BoQ never loaded is an error.
   if (boq.isError && !boq.data)
     return (
-      <div role="alert" className="flex flex-col items-start gap-3" data-testid="boq-error">
-        <p className="text-error">{message(boq.error)}</p>
-        <Button variant="outline" onClick={() => void boq.refetch()} disabled={boq.isFetching}>
-          {tc("retry")}
-        </Button>
+      <div data-testid="boq-error">
+        <InlineError error={boq.error} onRetry={() => boq.refetch()} />
       </div>
     );
-  if (!boq.data) return <div className="h-40" aria-busy="true" />;
+  if (!boq.data) return <LoadingLines />;
   const current = viewing ? viewing.currentRun : boq.data.currentRevision.currentRun;
   const href = (key: string) => `${base}?${new URLSearchParams({ tab: key, ...(viewing ? { version: viewing.id } : {}) }).toString()}`;
   return (
@@ -85,7 +81,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
       <BoqHeader boq={boq.data} runs={runs.data} base={base} canArchive={can("archive")} approval={approval} />
       {viewing && (
         <p className="flex flex-wrap items-center gap-x-3 border-l-2 border-foreground pl-3" role="status" data-testid="viewing-version" data-label={viewing.label}>
-          <span>{t("versions.viewing", { label: viewing.label, when: viewing.issuedAt ? format.dateTime(new Date(viewing.issuedAt), { dateStyle: "medium", timeStyle: "short" }) : "", by: viewing.issuedBy?.name ?? "" })}</span>
+          <span>{t("versions.viewing", { label: viewing.label, when: viewing.issuedAt ? boqFormat.dateTime(new Date(viewing.issuedAt), { dateStyle: "medium", timeStyle: "short" }) : "", by: viewing.issuedBy?.name ?? "" })}</span>
           <Link href={`${base}?tab=sheet`} className="text-link hover:underline" data-testid="back-to-working">
             {t("versions.backToWorking")}
           </Link>

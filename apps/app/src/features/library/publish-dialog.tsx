@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Draft } from "./shared/use-draft";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * Publish (F10 §4): a change note, then the draft becomes version n+1. Impossible while the draft has
@@ -63,7 +64,7 @@ export function PublishDialog({ preset, draft }: { preset: Preset; draft: Draft<
               </p>
             ) : (
               <Field id="publish-note" label={t("note")} hint={t("noteHint")} error={publish.error ? message(publish.error) : undefined}>
-                <Input id="publish-note" value={note} onChange={(e) => setNote(e.target.value)} autoFocus data-testid="publish-note" />
+                <Input id="publish-note" maxLength={LIMITS.text} value={note} onChange={(e) => setNote(e.target.value)} autoFocus data-testid="publish-note" />
               </Field>
             )}
             <DialogFooter>

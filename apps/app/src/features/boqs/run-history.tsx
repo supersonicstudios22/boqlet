@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import type { Run } from "@/api/hooks/boqs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * S12h, basic (F04 §5): the runs of the working version, newest first. Saved versions come with F09.
@@ -15,6 +17,7 @@ import { cn } from "@/lib/utils";
 export function RunHistory({ runs, currentRunId, base, canCompare }: { runs: Run[] | undefined; currentRunId?: string; base: string; canCompare: boolean }) {
   const t = useTranslations("boqs");
   const format = useFormatter();
+  const boqFormat = useBoqFormat();
   const router = useRouter();
   const [ticked, setTicked] = useState<string[]>([]);
   const finished = (r: Run) => r.status === "complete" || r.status === "needs_input";
@@ -22,7 +25,7 @@ export function RunHistory({ runs, currentRunId, base, canCompare }: { runs: Run
     const [a, b] = ticked.map((id) => runs!.find((r) => r.id === id)!).sort((x, y) => x.createdAt.localeCompare(y.createdAt));
     router.push(`${base}?${new URLSearchParams({ tab: "changes", from: a!.id, to: b!.id }).toString()}`);
   };
-  if (!runs) return <div className="h-24" aria-busy="true" />;
+  if (!runs) return <LoadingLines />;
   return (
     <section className="flex flex-col gap-3" data-testid="run-history">
       <div className="flex items-center gap-3">
@@ -66,7 +69,7 @@ export function RunHistory({ runs, currentRunId, base, canCompare }: { runs: Run
                   </TableCell>
                 )}
                 <TableCell className="tabular-nums">
-                  {format.dateTime(new Date(r.createdAt), { dateStyle: "medium", timeStyle: "medium" })}
+                  {boqFormat.dateTime(new Date(r.createdAt), { dateStyle: "medium", timeStyle: "medium" })}
                   {r.id === currentRunId && <span className="label-caps ml-2 rounded-[var(--radius)] border border-foreground px-1">{t("versions.current")}</span>}
                 </TableCell>
                 <TableCell>{r.createdBy?.name}</TableCell>

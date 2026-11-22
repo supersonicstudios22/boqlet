@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { createContext, createElement, useContext, useMemo, type ReactNode } from "react";
 import { useLocale } from "next-intl";
 import type { Schemas } from "@ifc-boq/api";
 import { useOrgScope } from "@/features/orgs/org-context";
@@ -82,18 +82,26 @@ export function boqFormatter(uiLocale: string, settings: BoqFormatSettings): Boq
   return { number, dateTime };
 }
 
+const BoqFormatContext = createContext<BoqFormatSettings | null>(null);
+
+/** The firm's formats for everything inside, where there is no org route (a share page shows the firm's own). */
+export function BoqFormatProvider({ settings, children }: { settings: BoqFormatSettings | null; children: ReactNode }) {
+  return createElement(BoqFormatContext.Provider, { value: settings }, children);
+}
+
 /**
- * The formatter for BoQ values on this screen: the org's settings and the project's locale where
- * there are such (an org or project route), else the defaults. `override` gives them where there is
- * no org context (a share page).
+ * The formatter for BoQ values on this screen: `override`, else a `BoqFormatProvider`'s settings,
+ * else the org's settings and the project's locale where there are such (an org or project route),
+ * else the defaults.
  */
 export function useBoqFormat(override?: BoqFormatSettings): BoqFormatter {
   const uiLocale = useLocale();
+  const provided = useContext(BoqFormatContext);
   const org = useOrgScope()?.org.settings;
   const project = useOptionalProjectScope()?.project;
-  const numberFormat = override?.numberFormat ?? org?.numberFormat;
-  const dateFormat = override?.dateFormat ?? org?.dateFormat;
-  const locale = override?.locale ?? project?.locale;
+  const numberFormat = override?.numberFormat ?? provided?.numberFormat ?? org?.numberFormat;
+  const dateFormat = override?.dateFormat ?? provided?.dateFormat ?? org?.dateFormat;
+  const locale = override?.locale ?? provided?.locale ?? project?.locale;
   const key = JSON.stringify([numberFormat, dateFormat, locale]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the settings by value
   return useMemo(() => boqFormatter(uiLocale, { numberFormat, dateFormat, locale }), [uiLocale, key]);

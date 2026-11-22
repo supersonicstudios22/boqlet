@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { textareaClass } from "../shared/fields";
 import { useVocab } from "../shared/use-vocab";
-import { ITEM_TEXT_NAMES, insertBlank, itemTextPieces, type PreviewLine } from "./item-text";
+import { blankValuesFrom, engineText, ITEM_TEXT_NAMES, insertBlank, itemTextPieces, type PreviewLine } from "./item-text";
 import { useCodes } from "./nav";
 
 /** The words for a name an item text can use. */
@@ -22,18 +22,33 @@ function useNameLabel() {
 }
 
 /**
- * An item text in words, in quotes. Without a line, each plain blank reads as its name; with one,
- * as that line's value (a blank the line has no value for stays as written, as in a run).
- * Expressions always stay as written.
+ * The engine's value of each blank for `code` in a preview line (TF-136): read back from the item text
+ * the engine filled, against the saved template or the one being typed. Null without one.
  */
-export function ItemTextWords({ template, line }: { template: string; line?: PreviewLine | null }) {
+function useFilled(code: string, line: PreviewLine | null | undefined, ...templates: (string | undefined)[]) {
+  const { systemId } = useCodes();
+  const text = line && systemId ? engineText(line, systemId, code) : undefined;
+  if (!text) return null;
+  for (const template of templates) {
+    const values = template ? blankValuesFrom(template, text) : null;
+    if (values) return values;
+  }
+  return null;
+}
+
+/**
+ * An item text in words, in quotes. Without a line, each plain blank reads as its name; with one,
+ * as the engine filled it (`filled`, TF-136) or else that line's value (a blank the line has no value
+ * for stays as written, as in a run). Expressions stay as written unless the engine filled them.
+ */
+export function ItemTextWords({ template, line, filled }: { template: string; line?: PreviewLine | null; filled?: ReadonlyMap<string, string> | null }) {
   const t = useTranslations("classificationEditor.itemText");
   const label = useNameLabel();
   return (
     <span>
       {t.rich("quoted", {
         q: () =>
-          itemTextPieces(template, line).map((p, i) =>
+          itemTextPieces(template, line, filled).map((p, i) =>
             "text" in p ? (
               <span key={i}>{p.text}</span>
             ) : p.value !== undefined ? (
@@ -79,6 +94,7 @@ export function ItemTextBox({ code, value, onCommit, active, onActivate, sample 
   const label = useNameLabel();
   const area = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState(value ?? "");
+  const filled = useFilled(code, sample?.line, value, draft);
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
     setSeen(value);
@@ -139,7 +155,7 @@ export function ItemTextBox({ code, value, onCommit, active, onActivate, sample 
           </span>
           {sample && (
             <span data-testid="item-text-sample">
-              {t("sample", { item: sample.item })} <ItemTextWords template={draft} line={sample.line} />
+              {t("sample", { item: sample.item })} <ItemTextWords template={draft} line={sample.line} filled={filled} />
             </span>
           )}
         </div>
@@ -156,10 +172,11 @@ export function LineSample({ code, line }: { code: string | null | undefined; li
   const t = useTranslations("classificationEditor.itemText");
   const { texts } = useCodes();
   const template = code ? texts.get(code) : undefined;
+  const filled = useFilled(code ?? "", line, template);
   if (!code || !template) return null;
   return (
     <span className="text-muted-foreground" data-testid="line-sample-text" data-code={code}>
-      {t("lineSample", { filled: line ? "yes" : "no" })} <ItemTextWords template={template} line={line} />
+      {t("lineSample", { filled: line ? "yes" : "no" })} <ItemTextWords template={template} line={line} filled={filled} />
     </span>
   );
 }

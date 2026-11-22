@@ -10,4 +10,9 @@ describe("error texts", () => {
   it("TF-183: an API that doesn't answer has its own text", () => {
     expect(errors.codes.api_unavailable).toBeTruthy();
   });
+
+  it("TF-174: the request limits' refusals have their own texts", () => {
+    expect(errors.codes.invalid_body).toBeTruthy();
+    expect(errors.codes.too_large).toBeTruthy();
+  });
 });

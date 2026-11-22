@@ -4,17 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useMarkAllRead, useMarkRead, useNotificationPages } from "@/api/hooks/notifications";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { useNotificationText } from "@/features/notifications/use-notification-text";
 import { cn } from "@/lib/utils";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S26: every notification, newest first; unread only on request; mark one or all read (F13). */
 export default function NotificationsPage() {
   const t = useTranslations("notifications");
   const format = useFormatter();
-  const message = useErrorMessage();
   const text = useNotificationText();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const pages = useNotificationPages(unreadOnly);
@@ -39,10 +39,9 @@ export default function NotificationsPage() {
         </Button>
       </div>
       {pages.isError && (
-        <p role="alert" className="text-error">
-          {message(pages.error)}
-        </p>
+        <InlineError error={pages.error} onRetry={() => pages.refetch()} />
       )}
+      {pages.isPending && <LoadingLines />}
       {pages.data && items.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
       <ul className="flex flex-col divide-y divide-border border-y border-border">
         {items.map((n) => (

@@ -363,6 +363,7 @@
     "answersHint": "Each answer has a stored name (what items and follow-ups refer to) and the text people see.",
     "optionName": "Stored name",
     "optionText": "Text people see",
+    "optionTextPlaceholder": "Text for “{option}”",
     "moveUp": "Move up",
     "removeOption": "Remove {name}",
     "addAnswer": "+ Add an answer",
@@ -462,6 +463,7 @@
     "removeSplit": "Remove {what}",
     "lineText": "Line text",
     "lineTextHint": "A name in '{'curly brackets'}' is replaced by each line's own value.",
+    "lineTextExample": "Wall, '{'type_name'}', '{'thickness*1000'}' mm",
     "insert": "Insert a value",
     "insertValue": "+ {what}",
     "inserts": {

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useAdminFunnel, type AdminFunnelStep } from "@/api/hooks/admin";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PeriodSelect, usePeriod } from "./period-select";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** Steps where a list of organisations makes sense (an org exists from "Organisation created" on). */
 const LISTABLE: AdminFunnelStep[] = ["setup_done", "first_model_ready", "first_boq", "first_saved_version", "first_export_or_share"];
@@ -14,7 +15,6 @@ const LISTABLE: AdminFunnelStep[] = ["setup_done", "first_model_ready", "first_b
 export function AdminFunnelView() {
   const t = useTranslations("admin.funnel");
   const format = useFormatter();
-  const message = useErrorMessage();
   const period = usePeriod();
   const funnel = useAdminFunnel(period.period);
   const duration = (h: number | null | undefined) =>
@@ -30,11 +30,9 @@ export function AdminFunnelView() {
         <PeriodSelect state={period} />
       </div>
       {funnel.isError && (
-        <p role="alert" className="text-error">
-          {message(funnel.error)}
-        </p>
+        <InlineError error={funnel.error} onRetry={() => funnel.refetch()} />
       )}
-      {!funnel.data && !funnel.isError && <div className="h-40" aria-busy="true" />}
+      {!funnel.data && !funnel.isError && <LoadingLines />}
       {funnel.data && (
         <>
           <Table>

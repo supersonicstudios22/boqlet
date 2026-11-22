@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useNames } from "@/api/hooks/models";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InlineError } from "@/components/errors/inline-error";
 
 /**
  * The names preview (F03 §5): distinct material and type names in the model and whether the
@@ -14,7 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export function NamesPreview({ versionId }: { versionId: string }) {
   const t = useTranslations("models.names");
   const format = useFormatter();
-  const message = useErrorMessage();
   const [open, setOpen] = useState(false);
   const names = useNames(versionId, open);
   const rows = useMemo(() => [...(names.data?.names ?? [])].sort((a, b) => Number(!!a.term) - Number(!!b.term) || b.count - a.count), [names.data]);
@@ -32,9 +31,7 @@ export function NamesPreview({ versionId }: { versionId: string }) {
       </div>
       <p className="prose-text text-muted-foreground">{t("intro")}</p>
       {names.isError && (
-        <p role="alert" className="text-error">
-          {message(names.error)}
-        </p>
+        <InlineError error={names.error} onRetry={() => names.refetch()} />
       )}
       {names.isFetching && <p className="text-muted-foreground">{t("loading")}</p>}
       {names.data && (

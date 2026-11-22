@@ -2,21 +2,21 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { useEntitlements, useUsage } from "@/api/hooks/billing";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S24 (owner, admin): this month's processing minutes by project and by kind, seats, active projects. F14. */
 export function UsageSettings() {
   const t = useTranslations("settings.usage");
   const format = useFormatter();
-  const message = useErrorMessage();
   const { org, can } = useOrg();
   const usage = useUsage(org.id);
   const entitlements = useEntitlements(org.id);
   if (!can("seeUsage")) return <p className="text-muted-foreground">{t("notAllowed")}</p>;
-  if (usage.isError) return <p role="alert" className="text-error">{message(usage.error)}</p>;
-  if (!usage.data) return <div className="h-40" aria-busy="true" />;
+  if (usage.isError) return <InlineError error={usage.error} onRetry={() => usage.refetch()} />;
+  if (!usage.data) return <LoadingLines />;
   const u = usage.data;
   const ent = entitlements.data?.usage;
   const mins = (v: number) => t("minutes", { n: format.number(v, { maximumFractionDigits: 1 }) });

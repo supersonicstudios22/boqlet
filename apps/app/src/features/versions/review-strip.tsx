@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import type { Boq } from "@/api/hooks/boqs";
 import { useApprove, useWithdrawReview } from "@/api/hooks/versions";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -18,6 +18,7 @@ import { RequestChangesDialog } from "./version-dialogs";
  */
 export function ReviewStrip({ boq, base, compact }: { boq: Boq; base: string; compact?: boolean }) {
   const t = useTranslations("boqs.review");
+  const format = useFormatter();
   const relative = useRelativeTime();
   const message = useErrorMessage();
   const revision = boq.currentRevision;
@@ -26,7 +27,7 @@ export function ReviewStrip({ boq, base, compact }: { boq: Boq; base: string; co
   const withdraw = useWithdrawReview(revision.id, boq.id, boq.projectId);
   const [requesting, setRequesting] = useState(false);
   if (revision.status !== "in_review" && revision.status !== "approved") return null;
-  const reviewers = (revision.reviewers ?? []).map((r) => r.name).join(", ");
+  const reviewers = format.list((revision.reviewers ?? []).map((r) => r.name), { type: "conjunction" });
   const error = approve.error ?? withdraw.error;
 
   return (

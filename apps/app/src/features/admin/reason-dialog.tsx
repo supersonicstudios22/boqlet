@@ -6,6 +6,7 @@ import { Field } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * Every admin action needs a reason (F19 §4): the dialog asks for the action's own fields and the
@@ -72,7 +73,7 @@ export function ReasonDialog({
           </DialogHeader>
           {children}
           <Field id={`${testId}-reason`} label={t("reason")} hint={t("reasonHint")}>
-            <Input id={`${testId}-reason`} value={reason} onChange={(e) => setReason(e.target.value)} required data-testid={`${testId}-reason`} />
+            <Input id={`${testId}-reason`} maxLength={LIMITS.text} value={reason} onChange={(e) => setReason(e.target.value)} required data-testid={`${testId}-reason`} />
           </Field>
           <DialogFooter>
             <Button type="button" variant="outline" disabled={busy} onClick={() => setOpen(false)}>

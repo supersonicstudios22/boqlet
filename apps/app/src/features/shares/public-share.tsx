@@ -18,7 +18,10 @@ import { lexicon } from "@/features/library/lib/readable";
 import { ModelViewer } from "@/features/viewer/model-viewer";
 import { cn } from "@/lib/utils";
 import { useUnit } from "@/i18n/units";
-import { useBoqFormat } from "@/i18n/boq-format";
+import { BoqFormatProvider, useBoqFormat, type BoqFormatSettings } from "@/i18n/boq-format";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
+import { isApiError } from "@/api/errors";
 
 /** The line's text in the grouping system (P14 item text), else the rule set's. */
 const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[system]?.text : undefined) ?? l.description;
@@ -31,10 +34,16 @@ const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[sys
 export function PublicSharePage({ token }: { token: string }) {
   const unitLabel = useUnit();
   const t = useTranslations("shares.public");
-  // BoQ values and the run date in the BoQ format (TF-021): the defaults until the share carries the firm's.
-  const format = useBoqFormat();
   const message = useErrorMessage();
   const share = usePublicShare(token);
+  // BoQ values and the run date in the firm's format (TF-021, `PublicShare.numberFormat` / `dateFormat`;
+  // optional: the defaults where the API doesn't send them). The line detail inside gets them too.
+  const firm = share.data;
+  const formats = useMemo<BoqFormatSettings | null>(
+    () => (firm ? { numberFormat: firm.numberFormat ?? undefined, dateFormat: firm.dateFormat ?? undefined } : null),
+    [firm],
+  );
+  const format = useBoqFormat(formats ?? undefined);
   const shown = !!share.data?.revisionLabel;
   const lines = usePublicLines(token, shown);
   const [q, setQ] = useState("");
@@ -82,6 +91,15 @@ export function PublicSharePage({ token }: { token: string }) {
   }, [filtered, system]);
   const models = useMemo(() => (share.data?.modelVersionIds ?? []).map((id, i) => ({ versionId: id, label: t("viewerModel", { n: i + 1 }) })), [share.data?.modelVersionIds, t]);
 
+  // A link revoked, expired or never made answers 404: "no longer available". Anything else (the
+  // network, a rate limit, the server) is not the link's fault: say so and offer to try again (TF-017).
+  if (share.isError && !(isApiError(share.error) && (share.error.status === 404 || share.error.status === 410))) {
+    return (
+      <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center gap-3 p-8" data-testid="share-error">
+        <InlineError error={share.error} onRetry={() => share.refetch()} />
+      </main>
+    );
+  }
   if (share.isError) {
     return (
       <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center gap-3 p-8" data-testid="share-gone">
@@ -90,11 +108,12 @@ export function PublicSharePage({ token }: { token: string }) {
       </main>
     );
   }
-  if (!share.data) return <div className="h-40" aria-busy="true" />;
+  if (!share.data) return <LoadingLines className="mx-auto max-w-[1400px] p-6" />;
   const s = share.data;
   const working = s.revisionStatus !== null && s.revisionStatus !== "issued";
 
   return (
+    <BoqFormatProvider settings={formats}>
     <div className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
       {working && (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
@@ -252,5 +271,6 @@ export function PublicSharePage({ token }: { token: string }) {
         )}
       </footer>
     </div>
+    </BoqFormatProvider>
   );
 }

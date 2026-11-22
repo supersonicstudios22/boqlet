@@ -12,6 +12,8 @@ import { useSaveOrgSetup, type OrgSetup } from "@/api/hooks/setup";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { useOrg } from "@/features/orgs/org-context";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 type Kind = "rules" | "items" | "names";
 const STEP_OF: Record<Kind, OrgSetup["step"]> = { rules: "measure", items: "items", names: "names" };
@@ -46,7 +48,9 @@ export function ReviewStep({ rules, items, names, modelProjectId, onEdit }: { ru
   const r = usePresetVersion(docOf(rules)?.id, rules.draft?.etag);
   const i = usePresetVersion(docOf(items)?.id, items.draft?.etag);
   const n = usePresetVersion(docOf(names)?.id, names.draft?.etag);
-  if (!r.data || !i.data || !n.data) return <div aria-busy="true" className="h-40" />;
+  const failed = [r, i, n].find((q) => q.isError && !q.data);
+  if (failed) return <InlineError error={failed.error} onRetry={() => failed.refetch()} />;
+  if (!r.data || !i.data || !n.data) return <LoadingLines />;
   const rd = r.data.doc as Doc;
   const id = i.data.doc as Doc;
   const nd = n.data.doc as Doc;

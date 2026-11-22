@@ -38,6 +38,9 @@ export interface Draft<D> {
   /** Save now (before publishing or leaving). */
   flush: () => Promise<void>;
   error: unknown;
+  /** The document (or a rule-set patch's parent) could not be loaded: shown with a retry, not loaded forever (TF-019). */
+  loadError: unknown;
+  retryLoad: () => void;
 }
 
 type Saved = Schemas["PresetVersion"];
@@ -195,5 +198,10 @@ export function useDraft<D>(preset: Preset): Draft<D> {
     overwrite: () => save(true),
     flush: () => (timer.current || status === "pending" ? save() : Promise.resolve()),
     error,
+    loadError: (loaded.isError && !loaded.data ? loaded.error : null) ?? (parentVersion.isError && !parentVersion.data ? parentVersion.error : null),
+    retryLoad: () => {
+      void loaded.refetch();
+      void parentVersion.refetch();
+    },
   };
 }

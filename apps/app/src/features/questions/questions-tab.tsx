@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import { useGenerate, type Boq } from "@/api/hooks/boqs";
 import { useQuestions, type Answer, type Question } from "@/api/hooks/decisions";
 import { useErrorMessage } from "@/components/errors/use-error-message";
@@ -18,6 +19,8 @@ import { useAnswerFlow } from "./answer-flow";
 import { counts, describeAnswer, filterQuestions, initialValue, kindsOf, selectable, type AnswerState } from "./model";
 import { PromoteDialog } from "./promote-dialog";
 import { useAnswerContext } from "./use-answer-context";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * S12b Questions (F05 §1–6): the current run's questions joined with the project's decisions,
@@ -49,8 +52,8 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
   const n = counts(list);
 
   if (!run) return <p className="text-muted-foreground">{t("noRun")}</p>;
-  if (questions.isError) return <p role="alert" className="text-error">{message(questions.error)}</p>;
-  if (!questions.data) return <div className="h-40" aria-busy="true" />;
+  if (questions.isError) return <InlineError error={questions.error} onRetry={() => questions.refetch()} />;
+  if (!questions.data) return <LoadingLines />;
 
   const toggle = (q: Question) =>
     setSelected((s) => {
@@ -197,7 +200,7 @@ function QuestionRow({
   onPromote?: () => void;
 }) {
   const t = useTranslations("questions");
-  const format = useFormatter();
+  const boqFormat = useBoqFormat();
   const message = useEngineMessage()(q);
   const initial = initialValue(q);
   const [value, setValue] = useState<Answer | undefined>(initial.value);
@@ -273,7 +276,7 @@ function QuestionRow({
         </div>
       )}
       {!canAnswer && answered === undefined && q.suggestion !== undefined && (
-        <span className="col-span-3 text-muted-foreground">{t("suggestion", { value: typeof q.suggestion === "number" ? format.number(q.suggestion) : String(q.suggestion) })}</span>
+        <span className="col-span-3 text-muted-foreground">{t("suggestion", { value: typeof q.suggestion === "number" ? boqFormat.number(q.suggestion) : String(q.suggestion) })}</span>
       )}
     </li>
   );

@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 /**
  * F09 version actions (FE-031): save, submit, approve, request changes, withdraw, comment, confirm.
@@ -32,7 +33,7 @@ export interface SaveInput {
 }
 
 export function useSaveVersion(revisionId: string, boqId: string, projectId: string) {
-  return useVersionAction(boqId, projectId, async (body: SaveInput) => (await api.POST("/revisions/{revisionId}/issue", { params: { path: { revisionId } }, body })).data!);
+  return useVersionAction(boqId, projectId, async (body: SaveInput) => (await api.POST("/revisions/{revisionId}/issue", { params: { path: { revisionId } }, body, headers: idempotencyHeaders(`issueRevision:${revisionId}`, body) })).data!);
 }
 
 export function useSubmitForReview(revisionId: string, boqId: string, projectId: string) {
@@ -58,5 +59,5 @@ export function useReviewComment(revisionId: string, boqId: string, projectId: s
 }
 
 export function useConfirmBoq(boqId: string, projectId: string) {
-  return useVersionAction(boqId, projectId, async (body: SaveInput) => (await api.POST("/boqs/{boqId}/confirm", { params: { path: { boqId } }, body })).data!);
+  return useVersionAction(boqId, projectId, async (body: SaveInput) => (await api.POST("/boqs/{boqId}/confirm", { params: { path: { boqId } }, body, headers: idempotencyHeaders(`confirmBoq:${boqId}`, body) })).data!);
 }

@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
+import { LIMITS } from "@/lib/limits";
 
 type ProjectRole = Schemas["ProjectRole"];
 const ROLES: ProjectRole[] = ["lead", "estimator", "approver", "viewer"];
@@ -90,19 +91,19 @@ function GeneralForm() {
       <h2 className="label-caps">{t("general")}</h2>
       <fieldset disabled={!editable || save.isPending} className="flex flex-col gap-4">
         <Field id="p-name" label={t("name")}>
-          <Input id="p-name" value={form.name} onChange={set("name")} required data-testid="project-settings-name" />
+          <Input id="p-name" maxLength={LIMITS.name} value={form.name} onChange={set("name")} required data-testid="project-settings-name" />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field id="p-code" label={t("code")}>
-            <Input id="p-code" value={form.code} onChange={set("code")} />
+            <Input id="p-code" maxLength={LIMITS.name} value={form.code} onChange={set("code")} />
           </Field>
           <Field id="p-client" label={t("client")}>
-            <Input id="p-client" value={form.client} onChange={set("client")} />
+            <Input id="p-client" maxLength={LIMITS.name} value={form.client} onChange={set("client")} />
           </Field>
         </div>
         <div className="grid grid-cols-[2fr_1fr] gap-4">
           <Field id="p-address" label={t("address")}>
-            <Input id="p-address" value={form.address} onChange={set("address")} />
+            <Input id="p-address" maxLength={LIMITS.text} value={form.address} onChange={set("address")} />
           </Field>
           <Field id="p-country" label={t("country")}>
             <Input id="p-country" value={form.country} maxLength={2} onChange={set("country")} />

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { rememberOrg } from "@/features/orgs/org-context";
 import { SLUG_PATTERN, suggestSlug } from "@/features/orgs/slug";
+import { LIMITS } from "@/lib/limits";
 
 /** S02: create the firm's organisation (F01 §4). The setup wizard follows from FE-028 on. */
 export default function OnboardingPage() {
@@ -69,7 +70,7 @@ export default function OnboardingPage() {
           <p className="prose-text text-muted-foreground">{t("intro")}</p>
         </div>
         <Field id="org-name" label={t("name")}>
-          <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} required autoFocus data-testid="org-name" />
+          <Input id="org-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} required autoFocus data-testid="org-name" />
         </Field>
         <Field
           id="org-slug"

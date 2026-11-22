@@ -2,6 +2,7 @@
   "toasts": "Notifications",
   "loading": "Loading…",
   "retry": "Try again",
+  "optionalLabel": "{label} (optional)",
   "close": "Close",
   "cancel": "Cancel",
   "ok": "OK",

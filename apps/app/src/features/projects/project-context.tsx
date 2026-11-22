@@ -4,6 +4,8 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { Schemas } from "@ifc-boq/api";
 import { useProject } from "@/api/hooks/projects";
 import { can } from "@/lib/permissions";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 export type ProjectPermission =
   | "view"
@@ -33,7 +35,9 @@ const ProjectContext = createContext<ProjectScope | null>(null);
 /** Loads the project once for every page under it; 404 goes to the error boundary (not found). */
 export function ProjectProvider({ projectId, children }: { projectId: string; children: ReactNode }) {
   const project = useProject(projectId);
-  if (!project.data) return <div className="min-h-40" aria-busy="true" />;
+  // A 404 goes to the not-found page (the query client throws it); any other failure offers a retry (TF-019).
+  if (project.isError && !project.data) return <InlineError error={project.error} onRetry={() => project.refetch()} />;
+  if (!project.data) return <LoadingLines />;
   const scope: ProjectScope = { project: project.data, can: (p) => can(project.data.permissions, p) };
   return <ProjectContext.Provider value={scope}>{children}</ProjectContext.Provider>;
 }

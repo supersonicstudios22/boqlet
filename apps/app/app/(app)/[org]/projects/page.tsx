@@ -5,18 +5,18 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { useProjects } from "@/api/hooks/projects";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** All projects I can see, active or archived, with a search (F02). */
 export default function ProjectsPage() {
   const t = useTranslations("projects.list");
   const relativeTime = useRelativeTime();
-  const message = useErrorMessage();
   const { org, can } = useOrg();
   const [status, setStatus] = useState<"active" | "archived">("active");
   const [q, setQ] = useState("");
@@ -39,10 +39,9 @@ export default function ProjectsPage() {
         </NativeSelect>
       </div>
       {projects.isError && (
-        <p role="alert" className="text-error">
-          {message(projects.error)}
-        </p>
+        <InlineError error={projects.error} onRetry={() => projects.refetch()} />
       )}
+      {projects.isPending && <LoadingLines />}
       {projects.data?.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
       {!!projects.data?.length && (
         <Table data-testid="projects-table">

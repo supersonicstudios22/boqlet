@@ -4,6 +4,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 export type Boq = Schemas["Boq"];
 export type Revision = Schemas["BoqRevision"];
@@ -115,7 +116,7 @@ export function useUpdateInputs(revisionId: string, boqId: string) {
 export function useGenerate(revisionId: string, boqId: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async () => (await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId } } })).data!,
+    mutationFn: async () => (await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId } }, headers: idempotencyHeaders(`generateRun:${revisionId}`) })).data!,
     onSuccess: async () => {
       await Promise.all([client.invalidateQueries({ queryKey: keys.runs(revisionId) }), client.invalidateQueries({ queryKey: keys.boq(boqId) })]);
     },

@@ -13,6 +13,7 @@ import { SearchPicker } from "@/features/questions/search-picker";
 import type { CodeLists } from "./edits";
 import { NotInModelsText } from "./not-in-models";
 import { useUnit } from "@/i18n/units";
+import { LIMITS } from "@/lib/limits";
 
 /** A reason for a quantity change or an exclusion (F06 §6: required for both). */
 export function ReasonDialog({ title, summary, initial, onConfirm, onClose }: { title: string; summary: string; initial?: string; onConfirm: (reason: string) => void; onClose: () => void }) {
@@ -35,7 +36,7 @@ export function ReasonDialog({ title, summary, initial, onConfirm, onClose }: { 
         >
           <label className="flex flex-col gap-1">
             <span className="label-caps text-muted-foreground">{t("reason")}</span>
-            <Input autoFocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("reasonHint")} data-testid="reason-input" />
+            <Input autoFocus value={reason} maxLength={LIMITS.text} onChange={(e) => setReason(e.target.value)} placeholder={t("reasonHint")} data-testid="reason-input" />
           </label>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
@@ -157,7 +158,7 @@ export function ManualLineDialog({
         >
           <label className="flex flex-col gap-1">
             <span className="label-caps text-muted-foreground">{t("description")}</span>
-            <Input autoFocus value={description} onChange={(e) => setDescription(e.target.value)} data-testid="manual-description" />
+            <Input autoFocus value={description} maxLength={LIMITS.lineText} onChange={(e) => setDescription(e.target.value)} data-testid="manual-description" />
           </label>
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col gap-1">

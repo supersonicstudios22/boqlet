@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import { api } from "@/api/client";
 import type { Boq, Run } from "@/api/hooks/boqs";
 import { useRevisions } from "@/api/hooks/diffs";
@@ -12,6 +13,8 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RunHistory } from "@/features/boqs/run-history";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * S12h (F09 §3): the saved versions (label, note, who, when, lines, open questions; open read-only,
@@ -20,6 +23,8 @@ import { RunHistory } from "@/features/boqs/run-history";
 export function VersionsTab({ boq, runs, base, canCompare }: { boq: Boq; runs: Run[] | undefined; base: string; canCompare: boolean }) {
   const t = useTranslations("boqs.versions");
   const format = useFormatter();
+  // A version's date in the firm's date format (TF-021); counts stay in the UI's.
+  const boqFormat = useBoqFormat();
   const message = useErrorMessage();
   const revisions = useRevisions(boq.id);
   const saved = (revisions.data ?? []).filter((r) => r.status === "issued");
@@ -37,6 +42,8 @@ export function VersionsTab({ boq, runs, base, canCompare }: { boq: Boq; runs: R
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3" data-testid="saved-versions">
         <h3 className="label-caps">{t("saved")}</h3>
+        {revisions.isError && <InlineError error={revisions.error} onRetry={() => revisions.refetch()} />}
+        {revisions.isPending && <LoadingLines />}
         {revisions.data && saved.length === 0 && <p className="text-muted-foreground">{t("noSaved")}</p>}
         {saved.length > 0 && (
           <Table>
@@ -68,7 +75,7 @@ export function VersionsTab({ boq, runs, base, canCompare }: { boq: Boq; runs: R
                       {r.issueNote ?? ""}
                     </TableCell>
                     <TableCell>{r.issuedBy?.name}</TableCell>
-                    <TableCell className="tabular-nums">{r.issuedAt ? format.dateTime(new Date(r.issuedAt), { dateStyle: "medium", timeStyle: "short" }) : ""}</TableCell>
+                    <TableCell className="tabular-nums">{r.issuedAt ? boqFormat.dateTime(new Date(r.issuedAt), { dateStyle: "medium", timeStyle: "short" }) : ""}</TableCell>
                     <TableCell className="text-right tabular-nums">{r.currentRun?.stats ? format.number(r.currentRun.stats.lines ?? 0) : "—"}</TableCell>
                     <TableCell className="flex flex-wrap justify-end gap-2">
                       <Link href={`${base}?${new URLSearchParams({ tab: "sheet", version: r.id }).toString()}`} className="text-link hover:underline" data-testid="open-version">

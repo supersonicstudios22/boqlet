@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -10,12 +10,19 @@ import { publishApiResumed, publishLineEdited, type LineEdited } from "./boq-eve
 import { invalidationsFor } from "./invalidation";
 import { localJobs } from "./local-jobs";
 import { connectRealtime } from "./sse";
+import { useNotificationText } from "@/features/notifications/use-notification-text";
 
 /** Opens the tab's SSE connection while signed in and turns events into query refetches. */
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const client = useQueryClient();
   const { status } = useSession();
   const t = useTranslations("notifications");
+  // The latest text function, read when an event arrives (it isn't stable; the connection must be).
+  const text = useNotificationText();
+  const textRef = useRef(text);
+  useLayoutEffect(() => {
+    textRef.current = text;
+  });
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -42,12 +49,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         // A toast for each notification (F13), except a job's this tab shows itself (an export's toast).
         const jobId = (e.data.params as { jobId?: unknown } | undefined)?.jobId;
         if (e.event === "notification.created" && typeof e.data.kind === "string" && !(typeof jobId === "string" && localJobs.has(jobId))) {
-          const key = `kinds.${e.data.kind.replaceAll(".", "_")}`;
-          const params = (e.data.params ?? {}) as Record<string, string | number>;
+          const params = (e.data.params ?? {}) as Record<string, unknown>;
           const url = typeof e.data.url === "string" ? e.data.url : null;
           // Keyed by the notification id: the same notification never shows twice (e.g. replayed after a reconnect).
           const id = typeof e.data.id === "string" ? e.data.id : undefined;
-          toast(t.has(key) ? t(key, params) : e.data.kind, { id, ...(url ? { action: { label: t("open"), onClick: () => window.location.assign(url) } } : {}) });
+          toast(textRef.current({ kind: e.data.kind, params }), { id, ...(url ? { action: { label: t("open"), onClick: () => window.location.assign(url) } } : {}) });
         }
       },
       // A page with nothing else to ask learns here that its session was taken over or expired.

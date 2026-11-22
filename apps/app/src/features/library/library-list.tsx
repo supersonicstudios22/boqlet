@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLibraryPresets, type Preset, type PresetKind, type PresetLayer } from "@/api/hooks/library";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +11,8 @@ import { useOrg } from "@/features/orgs/org-context";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
 import { createHref, isLibraryKind, LIBRARY_KINDS, presetHref, Tag } from "./kinds";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * The Library's tables (F10 §1): one tab per kind; name, layer, based on, latest version, draft, last
@@ -20,7 +21,6 @@ import { createHref, isLibraryKind, LIBRARY_KINDS, presetHref, Tag } from "./kin
  */
 export function LibraryList({ projectId, canCreate }: { projectId?: string; canCreate: boolean }) {
   const t = useTranslations("library");
-  const message = useErrorMessage();
   const relativeTime = useRelativeTime();
   const { org } = useOrg();
   const router = useRouter();
@@ -78,10 +78,9 @@ export function LibraryList({ projectId, canCreate }: { projectId?: string; canC
         )}
       </div>
       {presets.isError && (
-        <p role="alert" className="text-error">
-          {message(presets.error)}
-        </p>
+        <InlineError error={presets.error} onRetry={() => presets.refetch()} />
       )}
+      {presets.isPending && <LoadingLines />}
       {presets.data && rows.length === 0 && <p className="text-muted-foreground">{t(projectId ? "home.emptyProject" : "home.empty")}</p>}
       {rows.length > 0 && (
         <Table data-testid="library-table">

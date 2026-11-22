@@ -2,9 +2,10 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { useAdminOverview } from "@/api/hooks/admin";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { PeriodSelect, usePeriod } from "./period-select";
 import { Sparkline } from "./sparkline";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** The tiles in the order F19 §1 lists them; modules add theirs through `admin.metrics` later (P36). */
 const TILES = ["signUps", "newOrgs", "activeOrgs", "payingOrgs", "revenue", "seatsUsed", "seatsAvailable", "activeProjects", "modelsParsed", "runs", "processingMinutes", "exports", "savedVersions", "confirmedBoqs", "shareLinkViews"] as const;
@@ -13,7 +14,6 @@ const TILES = ["signUps", "newOrgs", "activeOrgs", "payingOrgs", "revenue", "sea
 export function AdminOverviewView() {
   const t = useTranslations("admin.overview");
   const format = useFormatter();
-  const message = useErrorMessage();
   const period = usePeriod();
   const overview = useAdminOverview(period.period);
   const num = (v: number | null | undefined) => (v === null || v === undefined ? t("noValue") : format.number(v, { maximumFractionDigits: 1 }));
@@ -24,11 +24,9 @@ export function AdminOverviewView() {
         <PeriodSelect state={period} />
       </div>
       {overview.isError && (
-        <p role="alert" className="text-error">
-          {message(overview.error)}
-        </p>
+        <InlineError error={overview.error} onRetry={() => overview.refetch()} />
       )}
-      {!overview.data && !overview.isError && <div className="h-40" aria-busy="true" />}
+      {!overview.data && !overview.isError && <LoadingLines />}
       {overview.data && (
         <>
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-px border border-border bg-border">

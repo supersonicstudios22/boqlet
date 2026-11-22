@@ -73,6 +73,8 @@ export interface CodesInfo {
   /** Item texts (`Code.description`) by code, for codes that have one. */
   texts: Map<string, string>;
   listId: string;
+  /** The code list's id: the system a preview line's `codes` are keyed by. */
+  systemId: string;
 }
-export const CodesContext = createContext<CodesInfo>({ titles: new Map(), texts: new Map(), listId: "" });
+export const CodesContext = createContext<CodesInfo>({ titles: new Map(), texts: new Map(), listId: "", systemId: "" });
 export const useCodes = () => useContext(CodesContext);

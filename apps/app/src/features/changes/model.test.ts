@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ElementChange, LineChange } from "@/api/hooks/diffs";
-import { candidates, elementLineChanges, groupLines, groupsIn, passes, DEFAULT_THRESHOLD } from "./model";
+import { candidates, elementLineChanges, engineChange, groupLines, groupsIn, passes, DEFAULT_THRESHOLD } from "./model";
 
 /** F08 §3–4, §6 in the Changes tab (FE-030): filters, grouping like the sheet, what to compare with. */
 
@@ -93,5 +93,24 @@ describe("TF-102: a changed element's lines before and after (F07 §9, F07-AC6)"
   });
   it("is empty for an element the report doesn't list", () => {
     expect(elementLineChanges("nope", [door], changes, current)).toEqual([]);
+  });
+});
+
+describe("TF-093: an edited line whose engine value moved (BR-09)", () => {
+  // The partition edited to 117.04 in both runs; under the edit the engine went 106.4 -> 96.38.
+  const edited: LineChange = {
+    ...line("partition", "changed", 117.04, 117.04),
+    before: { quantity: 117.04, engineQuantity: 106.4, unit: "m2", description: "partition", codes: codes("02") },
+    after: { quantity: 117.04, engineQuantity: 96.38, unit: "m2", description: "partition", codes: codes("02") },
+    delta: 0,
+    deltaPct: 0,
+  };
+  it("passes the threshold by its engine change, though the shown quantity didn't move", () => {
+    expect(passes(edited, { minDeltaPct: DEFAULT_THRESHOLD }, "s")).toBe(true);
+    expect(passes(edited, { minDeltaPct: 20 }, "s")).toBe(false);
+  });
+  it("tells the engine's values before and after", () => {
+    expect(engineChange(edited)).toEqual({ before: 106.4, after: 96.38, delta: 96.38 - 106.4 });
+    expect(engineChange(line("a", "changed", 100, 101))).toBeNull();
   });
 });

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useBoqFormat } from "@/i18n/boq-format";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
@@ -16,6 +17,8 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EditsImport } from "./edits-import";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 type Export = Schemas["Export"];
 
@@ -26,7 +29,7 @@ type Export = Schemas["Export"];
  */
 export function ExportsTab({ boq }: { boq: Boq }) {
   const t = useTranslations("boqs.exports");
-  const format = useFormatter();
+  const boqFormat = useBoqFormat();
   const message = useErrorMessage();
   const revisions = useRevisions(boq.id);
   const list = revisions.data ?? [];
@@ -80,8 +83,13 @@ export function ExportsTab({ boq }: { boq: Boq }) {
         </section>
       )}
       {working && working.permissions.editLines && working.currentRun && <EditsImport boq={boq} />}
+      {revisions.isError && <InlineError error={revisions.error} onRetry={() => revisions.refetch()} />}
+      {revisions.isPending && <LoadingLines />}
       {list.map((r, i) => {
         const files = lists[i]?.data ?? [];
+        const filesQuery = lists[i];
+        if (filesQuery?.isError)
+          return <InlineError key={r.id} error={filesQuery.error} onRetry={() => filesQuery.refetch()} />;
         if (r.status !== "issued" && files.length === 0) return null;
         return (
           <section key={r.id} className="flex flex-col gap-3" data-testid="exports-revision" data-label={r.label} data-status={r.status}>
@@ -107,7 +115,7 @@ export function ExportsTab({ boq }: { boq: Boq }) {
                       </TableCell>
                       <TableCell>{t.has(`kinds.${e.kind}`) ? t(`kinds.${e.kind}`) : e.kind}</TableCell>
                       <TableCell>{e.createdBy?.name}</TableCell>
-                      <TableCell className="tabular-nums">{format.dateTime(new Date(e.createdAt), { dateStyle: "medium", timeStyle: "short" })}</TableCell>
+                      <TableCell className="tabular-nums">{boqFormat.dateTime(new Date(e.createdAt), { dateStyle: "medium", timeStyle: "short" })}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => download.mutate(e)} disabled={download.isPending} data-testid="export-download">
                           <Download aria-hidden />

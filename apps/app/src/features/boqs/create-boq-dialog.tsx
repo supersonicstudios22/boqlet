@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Schemas } from "@ifc-boq/api";
+import { LIMITS } from "@/lib/limits";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 /**
  * New BoQ (F04 §1): name, description, which models go in (latest ready versions ticked), and the
@@ -38,6 +40,7 @@ export function CreateBoqDialog({
   fromModel?: { modelId: string; versionId: string };
 }) {
   const t = useTranslations("boqs.create");
+  const tc = useTranslations("common");
   const ts = useTranslations("boqs.setup");
   const message = useErrorMessage();
   const router = useRouter();
@@ -82,7 +85,7 @@ export function CreateBoqDialog({
         classificationVersionIds: codeLists,
       };
       const boq = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project.id } }, body: { name: name.trim(), ...(description.trim() ? { description: description.trim() } : {}), inputs } })).data!;
-      if (fromModel) await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: boq.currentRevision.id } } });
+      if (fromModel) await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: boq.currentRevision.id } }, headers: idempotencyHeaders(`generateRun:${boq.currentRevision.id}`) });
       return boq;
     },
     onSuccess: async (boq) => {
@@ -108,10 +111,10 @@ export function CreateBoqDialog({
             <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <Field id="boq-name" label={t("name")} error={create.error ? message(create.error) : undefined}>
-            <Input id="boq-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} autoFocus data-testid="boq-name" />
+            <Input id="boq-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} autoFocus data-testid="boq-name" />
           </Field>
-          <Field id="boq-description" label={`${t("notes")} (${t("optional")})`}>
-            <Input id="boq-description" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Field id="boq-description" label={tc("optionalLabel", { label: t("notes") })}>
+            <Input id="boq-description" maxLength={LIMITS.text} value={description} onChange={(e) => setDescription(e.target.value)} />
           </Field>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="label-caps mb-1.5 text-muted-foreground">{t("models")}</legend>

@@ -11,6 +11,7 @@ vi.mock("next-intl", async () => {
   return {
     useTranslations: (namespace: string) => createTranslator({ locale: "en", messages: { library } as never, namespace: namespace as never }),
     useFormatter: () => ({ number: (n: number) => String(n) }),
+    useLocale: () => "en",
   };
 });
 vi.mock("@/components/ui/button", () => ({

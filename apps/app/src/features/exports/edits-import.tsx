@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { localJobs } from "@/realtime/local-jobs";
 import { useUnit } from "@/i18n/units";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 type Report = Schemas["EditsImportReport"];
 type Proposal = Report["overrides"][number];
@@ -26,7 +27,7 @@ const needsReason = (p: Proposal) => p.edit.quantity !== undefined || p.edit.exc
 async function readWorkbook(revisionId: string, file: File): Promise<Report> {
   const form = new FormData();
   form.append("file", file);
-  const job = (await api.POST("/revisions/{revisionId}/edits-import", { params: { path: { revisionId } }, body: form as never, bodySerializer: (b) => b as unknown as FormData })).data!;
+  const job = (await api.POST("/revisions/{revisionId}/edits-import", { params: { path: { revisionId } }, body: form as never, bodySerializer: (b) => b as unknown as FormData, headers: idempotencyHeaders(`importBoqEdits:${revisionId}`, [file.name, file.size, file.lastModified]) })).data!;
   localJobs.add(job.id);
   let current = job;
   const deadline = Date.now() + 120_000;

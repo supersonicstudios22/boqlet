@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Check, Ellipsis } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useGenerate, type Boq, type Run } from "@/api/hooks/boqs";
@@ -40,6 +40,7 @@ export function Tag({ children, filled, className, ...rest }: { children: React.
  */
 export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq; runs: Run[] | undefined; base: string; canArchive: boolean; approval: boolean }) {
   const t = useTranslations("boqs");
+  const format = useFormatter();
   const relative = useRelativeTime();
   const message = useErrorMessage();
   const client = useQueryClient();
@@ -195,11 +196,11 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         )}
         {otherPending.length > 0 && revision.currentRun && (
           <p className="border-l-2 border-[var(--status-attention)] pl-3" role="status" data-testid="pending-changes">
-            {t("run.pending", { what: otherPending.map((k) => {
+            {t("run.pending", { what: format.list(otherPending.map((k) => {
               // Catalogue keys can't contain dots ("inputs.ruleSet" → "inputs_ruleSet").
               const key = `run.pendingItems.${k.replaceAll(".", "_")}`;
               return t.has(key) ? t(key) : k;
-            }).join(", ") })}
+            }), { type: "unit" }) })}
           </p>
         )}
         <ReviewStrip boq={boq} base={base} compact />

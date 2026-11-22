@@ -2,23 +2,21 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { useAdminHealth } from "@/api/hooks/admin";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S36 health (F19 §7): failed jobs per day, job durations, billing webhook failures, email bounces. */
 export function AdminHealthView() {
   const t = useTranslations("admin.health");
   const format = useFormatter();
-  const message = useErrorMessage();
   const health = useAdminHealth();
   const ms = (v: number | undefined) => (v === undefined ? "—" : v >= 1000 ? t("s", { n: format.number(v / 1000, { maximumFractionDigits: 1 }) }) : t("ms", { n: format.number(Math.round(v)) }));
   if (health.isError)
     return (
-      <p role="alert" className="text-error">
-        {message(health.error)}
-      </p>
+      <InlineError error={health.error} onRetry={() => health.refetch()} />
     );
-  if (!health.data) return <div className="h-40" aria-busy="true" />;
+  if (!health.data) return <LoadingLines />;
   const h = health.data;
   const durations = Object.entries(h.jobDurationsMs ?? {});
   return (

@@ -14,9 +14,9 @@ export function SourceTag({ source, className }: { source: string; className?: s
     source === "derived"
       ? "border-[var(--status-derived)] text-link"
       : source === "manual"
-        ? "border-transparent bg-[var(--status-manual)] text-[#151515]"
+        ? "border-transparent bg-[var(--status-manual)] text-on-fill"
         : source === "flagged"
-          ? "border-transparent bg-[var(--status-attention)] text-[#151515]"
+          ? "border-transparent bg-[var(--status-attention)] text-on-fill"
           : "border-border";
   return <span className={cn("label-caps rounded-[var(--radius)] border px-1", style, className)}>{t.has(source) ? t(source) : source}</span>;
 }

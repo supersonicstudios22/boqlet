@@ -19,6 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { orgCan } from "@/lib/permissions";
+import { FEATURE_LIMITS, useLimitName } from "@/i18n/limits";
 
 /**
  * Shown when the API answers 402 (a plan limit, F14): which limit, current and maximum, and the way
@@ -26,6 +28,7 @@ import {
  */
 export function LimitDialog() {
   const t = useTranslations();
+  const limitName = useLimitName();
   const [error, setError] = useState<ApiError | null>(null);
   // Who may upgrade is asked only when a limit is hit: the dialog lives on every page, sign-in and
   // onboarding included, which must not get an extra request (it raced the sign-out redirect).
@@ -33,7 +36,8 @@ export function LimitDialog() {
   // The org is the first path segment of the page the limit was hit on.
   const slug = usePathname().split("/")[1] ?? "";
   const membership = me.data?.memberships.find((m) => m.org.slug === slug);
-  const owner = membership?.role === "owner";
+  // Who may change the plan: through the one role map (src/lib/permissions.ts, TF-024).
+  const owner = orgCan(membership?.role, "manageBilling");
   useEffect(() => registerGlobalErrorHandler("limitReached", setError), []);
   // 402 details (conventions.md): which limit, the current count and the plan maximum.
   const limit = error?.details?.limit;
@@ -48,7 +52,9 @@ export function LimitDialog() {
         </DialogHeader>
         {limit !== undefined && current !== undefined && max !== undefined && (
           <p className="text-ui" data-testid="limit-detail">
-            {t("errors.limit.detail", { limit: String(limit), current: Number(current), max: Number(max) })}
+            {FEATURE_LIMITS.has(String(limit))
+              ? t("errors.limit.feature", { limit: limitName(String(limit)) })
+              : t("errors.limit.detail", { limit: limitName(String(limit)), current: Number(current), max: Number(max) })}
           </p>
         )}
         {membership && !owner && <p className="text-ui text-muted-foreground" data-testid="limit-ask-owner">{t("errors.limit.askOwner")}</p>}

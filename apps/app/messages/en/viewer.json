@@ -4,6 +4,8 @@
   "elements": "{count, plural, one {# element} other {# elements}}",
   "shown": "{shown} of {total} shown",
   "failed": "{name} could not be loaded.",
+  "noWebgl": "This browser can't draw the 3D view (WebGL is off or not supported). The model's elements are listed instead: pick one to see the lines it feeds.",
+  "elementList": "The model's elements",
   "models": "Models",
   "colour": "Colour",
   "modes": {

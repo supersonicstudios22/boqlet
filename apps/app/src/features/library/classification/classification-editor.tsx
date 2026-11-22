@@ -69,7 +69,7 @@ export function ClassificationEditor({ preset, doc, onChange }: EditorProps<Clas
   const { used: table } = useMemo(() => readTable(map), [map]);
   const texts = useMemo(() => new Map(codeList.codes.flatMap((c) => (c.description ? [[c.code, c.description] as const] : []))), [codeList]);
   const listId = useId();
-  const codes = useMemo(() => ({ titles, texts, listId }), [titles, texts, listId]);
+  const codes = useMemo(() => ({ titles, texts, listId, systemId: codeList.id }), [titles, texts, listId, codeList.id]);
 
   // the BoQ items whose lines get codes: the table's rows, and names for rules aimed at items
   const projectId = preset.projectId ?? undefined;

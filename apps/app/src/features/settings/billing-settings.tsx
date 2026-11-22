@@ -6,6 +6,8 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { useOrg } from "@/features/orgs/org-context";
 import { cn } from "@/lib/utils";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** The limits shown with usage bars, in this order (05-plans-and-limits.md). */
 const METERED = ["seats", "activeProjects", "processingMinutesPerMonth"] as const;
@@ -29,8 +31,8 @@ export function BillingSettings() {
   const portal = usePortal(org.id);
 
   if (!can("manageBilling")) return <p className="text-muted-foreground">{t("ownerOnly")}</p>;
-  if (billing.isError) return <p role="alert" className="text-error">{message(billing.error)}</p>;
-  if (!billing.data || !entitlements.data) return <div className="h-40" aria-busy="true" />;
+  if (billing.isError) return <InlineError error={billing.error} onRetry={() => billing.refetch()} />;
+  if (!billing.data || !entitlements.data) return <LoadingLines />;
   const current = billing.data.plans?.find((p) => p.id === billing.data.planId);
   const limits = entitlements.data.limits as Record<string, number | boolean | undefined>;
   const usage = entitlements.data.usage as Record<string, number | undefined>;

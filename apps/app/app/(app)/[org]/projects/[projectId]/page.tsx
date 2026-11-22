@@ -9,6 +9,8 @@ import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
 import { ActivityList } from "@/features/projects/activity-list";
 import { extensions } from "@/extensions";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** S07: models, BoQs and recent activity of the project (F02 §6). */
 export default function ProjectOverviewPage() {
@@ -25,7 +27,11 @@ export default function ProjectOverviewPage() {
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
       <section className="flex flex-col gap-3" data-testid="overview-models">
         <h2 className="label-caps">{t("models")}</h2>
-        {models.data?.length ? (
+        {models.isError ? (
+          <InlineError error={models.error} onRetry={() => models.refetch()} />
+        ) : models.isPending ? (
+          <LoadingLines />
+        ) : models.data.length ? (
           <ul className="flex flex-col divide-y divide-border border-y border-border">
             {models.data.map((m) => (
               <li key={m.id} className="flex items-baseline gap-3 py-2">
@@ -52,7 +58,11 @@ export default function ProjectOverviewPage() {
       </section>
       <section className="flex flex-col gap-3" data-testid="overview-boqs">
         <h2 className="label-caps">{t("boqs")}</h2>
-        {activeBoqs.length ? (
+        {boqs.isError ? (
+          <InlineError error={boqs.error} onRetry={() => boqs.refetch()} />
+        ) : boqs.isPending ? (
+          <LoadingLines />
+        ) : activeBoqs.length ? (
           <ul className="flex flex-col divide-y divide-border border-y border-border">
             {activeBoqs.map((b) => {
               const run = b.currentRevision.currentRun;

@@ -3,11 +3,10 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { Box, X } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { Param } from "@ifc-boq/types";
 import type { Run } from "@/api/hooks/boqs";
 import { useLine, useLines, usePresetVersion, type LineDetail } from "@/api/hooks/sheet";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { lexicon, toReadable, type Lexicon } from "@/features/library/lib/readable";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,9 @@ import { useEngineMessage } from "@/i18n/engine-message";
 import { HowCalculated } from "./how-calculated";
 import { SourceTag } from "./source-tag";
 import { useUnit } from "@/i18n/units";
+import { useBoqFormat } from "@/i18n/boq-format";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** "… (from slot formwork_walls_formula)": the engine names the setting a formula came from. */
 const FROM_SLOT = /\s*\(from slot ([A-Za-z0-9_]+)\)\s*$/;
@@ -54,7 +56,6 @@ export function LineDetailPanel({
 }) {
   const t = useTranslations("boqs.detail");
   const tl = useTranslations("library");
-  const message = useErrorMessage();
   const { org } = useOrg();
   const detail = useLine(run.id, lineKey);
   const lines = useLines(run.id);
@@ -84,11 +85,9 @@ export function LineDetailPanel({
       </div>
       {children}
       {detail.isError && (
-        <p role="alert" className="text-error">
-          {message(detail.error)}
-        </p>
+        <InlineError error={detail.error} onRetry={() => detail.refetch()} />
       )}
-      {!detail.data && !detail.isError && <div className="h-40" aria-busy="true" />}
+      {!detail.data && !detail.isError && <LoadingLines />}
       {detail.data && (
         <LineDetailBody line={detail.data} groupBy={groupBy} slots={slots} lex={lex} libraryHref={libraryHref} modelNames={modelNames} systemNames={systemNames} describe={(key) => descriptions.get(key)} onSelect={onSelect} />
       )}
@@ -125,7 +124,8 @@ export function LineDetailBody({
 }) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.detail");
-  const format = useFormatter();
+  // BoQ values in the firm's format (TF-021).
+  const format = useBoqFormat();
   const message = useEngineMessage();
   const num = (v: number) => format.number(v, { maximumFractionDigits: 6 });
   const value = (v: unknown) => (typeof v === "boolean" ? (v ? t("yes") : t("no")) : typeof v === "number" ? num(v) : typeof v === "string" ? v : JSON.stringify(v));

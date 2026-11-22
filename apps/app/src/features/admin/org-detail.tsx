@@ -14,7 +14,6 @@ import {
   type AdminOrgDetail,
 } from "@/api/hooks/admin";
 import { usePlans } from "@/api/hooks/models";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,9 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReasonDialog } from "./reason-dialog";
 import { parseOverrideValue, parseTags } from "./values";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -43,15 +45,12 @@ export function AdminOrgDetailView({ orgId }: { orgId: string }) {
   const t = useTranslations("admin.org");
   const to = useTranslations("admin.orgs");
   const format = useFormatter();
-  const message = useErrorMessage();
   const org = useAdminOrg(orgId);
   if (org.isError)
     return (
-      <p role="alert" className="text-error">
-        {message(org.error)}
-      </p>
+      <InlineError error={org.error} onRetry={() => org.refetch()} />
     );
-  if (!org.data) return <div className="h-40" aria-busy="true" />;
+  if (!org.data) return <LoadingLines />;
   const o = org.data;
   const date = (d: string | null | undefined, time = false) => (d ? format.dateTime(new Date(d), time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : to("never"));
   const suspended = o.status === "suspended";
@@ -121,7 +120,7 @@ export function AdminOrgDetailView({ orgId }: { orgId: string }) {
                     <TableCell>{k}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {String(v)}
-                      {overridden && <span className="label-caps ml-2 text-[var(--orange)]">{t("overridden")}</span>}
+                      {overridden && <span className="label-caps ml-2 rounded-[var(--radius)] bg-[var(--status-attention)] px-1 text-on-fill">{t("overridden")}</span>}
                     </TableCell>
                   </TableRow>
                 );
@@ -391,6 +390,7 @@ function Notes({ orgId }: { orgId: string }) {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           aria-label={t("notes")}
+          maxLength={LIMITS.text}
           placeholder={t("notePlaceholder")}
           className="rounded-[var(--radius)] border border-input bg-transparent px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
           data-testid="admin-note-text"

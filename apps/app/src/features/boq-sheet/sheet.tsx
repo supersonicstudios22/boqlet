@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, ChevronDown, ChevronRight, Columns3, Download, GripVertical, Plus, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import type { Boq, Run } from "@/api/hooks/boqs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditLines, useManualItems, useOverrides, useRemoveManualItem, useSaveManualItem, type EditBatch, type LineOverride, type LineOverrideInput, type ManualItemRecord } from "@/api/hooks/edits";
@@ -41,6 +41,8 @@ import { WarningsBar } from "./warnings-bar";
 import { extensions } from "@/extensions";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat } from "@/i18n/boq-format";
+import { LIMITS } from "@/lib/limits";
+import { InlineError } from "@/components/errors/inline-error";
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
@@ -48,6 +50,8 @@ const SOURCES: SourceFilter[] = ["measured", "derived", "manual", "flagged", "ed
 /** F06 §6: the last 20 edits can be undone. */
 const UNDO_DEPTH = 20;
 const DRAG_TYPE = "application/x-boqlet-line";
+/** How long a click on an editable cell of a line not selected yet waits for a second click (TF-104). */
+const DOUBLE_CLICK_MS = 250;
 
 type EditableColumn = "item" | "description" | "unit" | "quantity";
 const FIELD_OF: Record<EditableColumn, EditField> = { item: "codes", description: "description", unit: "unit", quantity: "quantity" };
@@ -208,6 +212,9 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   // firm's number format and the project's locale (F15 §6, §11, TF-021).
   const boqFormat = useBoqFormat();
   const num = useMemo(() => (v: number) => boqFormat.number(v, { maximumFractionDigits: 6 }), [boqFormat]);
+  // Lists in a cell (storeys, tags) in the person's language, not a literal ", " (TF-023).
+  const format = useFormatter();
+  const list = useCallback((items: string[]) => format.list(items, { type: "unit" }), [format]);
   const toConfirm = t("toConfirm");
 
   const columns = useMemo<ColumnDef<SheetLine>[]>(() => {
@@ -232,14 +239,14 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
         engine: (l) => engine(l, "quantity", l.edit?.engine.quantity === null || l.edit?.engine.quantity === undefined ? toConfirm : num(l.edit.engine.quantity)),
       }),
       col("source", t("col.source"), { width: "7.5rem", cell: (l) => <SourceTag source={l.source} /> }),
-      col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? l.location?.storeys?.join(", ") }),
+      col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
       col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => l.family }),
-      col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => l.tags.join(", ") }),
+      col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),
       col("notes", t("col.notes"), { width: "12rem", optional: true, cell: (l) => l.notes.join(" ") }),
       // One column per extra classification (F06 §2), off by default.
       ...systems.filter((s) => s.id !== groupBy).map((s) => col(`code:${s.id}`, s.name, { width: "8rem", optional: true, cell: (l) => l.codes[s.id]?.code })),
     ];
-  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel]);
+  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel, list]);
 
   // TanStack Table owns the columns and their visibility; the rows are the sheet's own (groups + lines).
   // It returns functions the React Compiler can't memoise, so this component is left uncompiled.
@@ -303,7 +310,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
                   ? te("theirValue", { value: `${num(theirs.quantity)} ${unitLabel(theirs.unit ?? byKeyRef.current.get(key)?.unit ?? "")}`.trim() })
                   : theirs.description
                     ? te("theirValue", { value: theirs.description })
-                    : te("theirValue", { value: Object.values(theirs.codes ?? {}).join(", ") });
+                    : te("theirValue", { value: list(Object.values(theirs.codes ?? {})) });
           toast(te("changedBy", { name: e.by.name }), {
             id: `coedit-${key}`,
             description: value,
@@ -542,7 +549,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const editError = (editLines.error && !isUnavailable(editLines.error) ? editLines.error : null) ?? saveManual.error ?? removeManual.error;
   const retrying = editLines.isPending && editLines.failureCount > 0;
 
-  if (lines.isError) return <p role="alert" className="text-error">{message(lines.error)}</p>;
+  if (lines.isError) return <InlineError error={lines.error} onRetry={() => lines.refetch()} />;
   if (!lines.data) return <p className="text-muted-foreground" aria-busy="true">{t("loading")}</p>;
 
   const selectedLine = selected ? byKey.get(selected) : undefined;
@@ -1220,6 +1227,12 @@ const LineRowView = memo(function LineRowView({
 }) {
   const [over, setOver] = useState(false);
   const canEdit = editable && !line.pending;
+  const codeEditorLabel = useTranslations("boqs.edits")("codeCell");
+  const firstCell = useRef<EditableColumn | null>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+  }, []);
   return (
     <div
       role="row"
@@ -1232,14 +1245,31 @@ const LineRowView = memo(function LineRowView({
         line.excluded && "text-muted-foreground line-through",
         line.pending && "italic",
         over && "shadow-[inset_0_-2px_0_var(--link)]",
-        // Someone else is editing this line (F06 §14): an orange marker, with the name on hover.
-        editingBy && "shadow-[inset_3px_0_0_var(--orange)]",
+        // Someone else is editing this line (F06 §14): an ink marker, with the name on hover (orange is for "to confirm", P43).
+        editingBy && "shadow-[inset_3px_0_0_var(--foreground)]",
       )}
       title={editingBy}
       data-editing-by={editingBy}
       style={{ gridTemplateColumns: template, height: ROW, transform: `translateY(${top}px)` }}
-      // The second click of a double-click (editing a cell) leaves the selection as it is.
-      onClick={(e) => e.detail <= 1 && api.click(line.key)}
+      // A click selects the line, which opens its detail and narrows the grid. On a line not selected yet
+      // that waits out the double-click time, so the second click of a double-click lands on the same cell
+      // and edits it (TF-104); the cell is the one the first click was on.
+      onMouseDown={(e) => {
+        if (e.detail <= 1) firstCell.current = ((e.target as HTMLElement).closest<HTMLElement>("[data-editable-column]")?.dataset.editableColumn as EditableColumn | undefined) ?? null;
+      }}
+      onClick={(e) => {
+        if (e.detail > 1) return;
+        if (selected || !canEdit || !firstCell.current) return api.click(line.key);
+        if (clickTimer.current) clearTimeout(clickTimer.current);
+        clickTimer.current = setTimeout(() => api.click(line.key), DOUBLE_CLICK_MS);
+      }}
+      onDoubleClick={() => {
+        if (clickTimer.current) clearTimeout(clickTimer.current);
+        clickTimer.current = null;
+        const column = firstCell.current;
+        api.click(line.key);
+        if (canEdit && column) api.startEdit(line.key, column);
+      }}
       draggable={canEdit && !editingColumn}
       onDragStart={(e) => {
         e.dataTransfer.setData(DRAG_TYPE, line.key);
@@ -1286,9 +1316,9 @@ const LineRowView = memo(function LineRowView({
           return (
             <div key={c.id} role="gridcell" className="flex items-center px-0.5" onClick={(e) => e.stopPropagation()}>
               {c.editable === "item" ? (
-                <SearchPicker items={codeItems} value={undefined} onPick={(v) => api.commitEdit(line.key, "item", v)} onDismiss={api.cancelEdit} autoFocus label={c.id} empty="—" className="min-w-0 flex-1" data-testid="cell-editor" />
+                <SearchPicker items={codeItems} value={undefined} onPick={(v) => api.commitEdit(line.key, "item", v)} onDismiss={api.cancelEdit} autoFocus portal label={codeEditorLabel} empty="—" className="min-w-0 flex-1" data-testid="cell-editor" />
               ) : (
-                <CellInput initial={c.editable === "quantity" ? (line.quantity === null ? "" : String(line.quantity)) : c.editable === "unit" ? line.unit : line.description} align={c.align} onCommit={(v) => api.commitEdit(line.key, c.editable!, v)} onCancel={api.cancelEdit} />
+                <CellInput initial={c.editable === "quantity" ? (line.quantity === null ? "" : String(line.quantity)) : c.editable === "unit" ? line.unit : line.description} align={c.align} maxLength={c.editable === "description" ? LIMITS.lineText : undefined} onCommit={(v) => api.commitEdit(line.key, c.editable!, v)} onCancel={api.cancelEdit} />
               )}
             </div>
           );
@@ -1297,13 +1327,10 @@ const LineRowView = memo(function LineRowView({
           <div
             key={c.id}
             role="gridcell"
-            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-0 after:right-0 after:border-t-[6px] after:border-l-[6px] after:border-t-[var(--status-attention)] after:border-l-transparent")}
+            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-1 after:right-1 after:size-1.5 after:rounded-full after:bg-[var(--link)]")}
             style={c.id === "description" ? { paddingLeft: `${0.5 + depth}rem` } : undefined}
             title={edited ? c.engine?.(line) : undefined}
-            onDoubleClick={canEdit && c.editable ? (e) => {
-              e.stopPropagation();
-              api.startEdit(line.key, c.editable!);
-            } : undefined}
+            data-editable-column={canEdit ? c.editable : undefined}
             data-edited={edited ? "true" : undefined}
             data-active={active ? "true" : undefined}
             aria-selected={c.editable ? active : undefined}
@@ -1319,7 +1346,7 @@ const LineRowView = memo(function LineRowView({
 });
 
 /** An in-place cell editor: Enter or leaving the cell saves, Escape cancels. */
-function CellInput({ initial, align, onCommit, onCancel }: { initial: string; align?: "right"; onCommit: (value: string) => void; onCancel: () => void }) {
+function CellInput({ initial, align, maxLength, onCommit, onCancel }: { initial: string; align?: "right"; maxLength?: number; onCommit: (value: string) => void; onCancel: () => void }) {
   const [value, setValue] = useState(initial);
   const done = useRef(false);
   const finish = (save: boolean) => {
@@ -1331,6 +1358,7 @@ function CellInput({ initial, align, onCommit, onCancel }: { initial: string; al
   return (
     <input
       autoFocus
+      maxLength={maxLength}
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onFocus={(e) => e.target.select()}

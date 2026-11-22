@@ -51,7 +51,8 @@
       "typeName": "Organisation name",
       "cancel": "Cancel",
       "confirm": "Delete"
-    }
+    },
+    "notInPlan": "Not part of your plan. The owner can change the plan in Billing."
   },
   "members": {
     "email": "Email",

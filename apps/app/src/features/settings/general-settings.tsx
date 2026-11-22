@@ -27,6 +27,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { rememberOrg, useOrg } from "@/features/orgs/org-context";
 import { SLUG_PATTERN } from "@/features/orgs/slug";
+import { LIMITS } from "@/lib/limits";
+import { useEntitlements } from "@/api/hooks/billing";
 
 type Settings = NonNullable<Schemas["Org"]["settings"]>;
 const THOUSANDS = [" ", " ", ",", ".", "'", ""] as const;
@@ -43,6 +45,9 @@ export function GeneralSettings() {
   const [slug, setSlug] = useState(org.slug);
   const [settings, setSettings] = useState<Settings>({ ...org.settings });
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings((s) => ({ ...s, [key]: value }));
+  // Features the plan doesn't have can't be switched on (F14; the API answers 402, TF-098); one that is on can still be switched off.
+  const entitlements = useEntitlements(org.id);
+  const inPlan = (feature: "approvalWorkflow" | "shareLinks") => entitlements.data?.limits[feature] !== false;
 
   const save = useMutation({
     mutationFn: async () => (await api.PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { name, slug, settings } })).data!,
@@ -76,7 +81,7 @@ export function GeneralSettings() {
           <section className="flex flex-col gap-4">
             <h2 className="label-caps">{t("identity")}</h2>
             <Field id="org-name" label={t("name")}>
-              <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} required data-testid="settings-name" />
+              <Input id="org-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} required data-testid="settings-name" />
             </Field>
             <Field id="org-slug" label={t("slug")} hint={t("slugHint")} error={slugTaken ? t("slugTaken") : !SLUG_PATTERN.test(slug) ? t("slugInvalid") : undefined}>
               <Input id="org-slug" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} />
@@ -125,9 +130,9 @@ export function GeneralSettings() {
           </section>
           <section className="flex flex-col gap-3">
             <h2 className="label-caps">{t("workflow")}</h2>
-            <Toggle id="org-links" checked={settings.publicLinksAllowed ?? true} onChange={(v) => set("publicLinksAllowed", v)} label={t("publicLinks")} />
-            <Toggle id="org-approval" checked={settings.approvalRequired ?? false} onChange={(v) => set("approvalRequired", v)} label={t("approval")} />
-            <Toggle id="org-four-eyes" checked={settings.fourEyes ?? false} onChange={(v) => set("fourEyes", v)} label={t("fourEyes")} disabled={!settings.approvalRequired} />
+            <Toggle id="org-links" checked={settings.publicLinksAllowed ?? true} onChange={(v) => set("publicLinksAllowed", v)} label={t("publicLinks")} disabled={!inPlan("shareLinks") && !(settings.publicLinksAllowed ?? true)} hint={inPlan("shareLinks") ? undefined : t("notInPlan")} />
+            <Toggle id="org-approval" checked={settings.approvalRequired ?? false} onChange={(v) => set("approvalRequired", v)} label={t("approval")} disabled={!inPlan("approvalWorkflow") && !settings.approvalRequired} hint={inPlan("approvalWorkflow") ? undefined : t("notInPlan")} />
+            <Toggle id="org-four-eyes" checked={settings.fourEyes ?? false} onChange={(v) => set("fourEyes", v)} label={t("fourEyes")} disabled={!settings.approvalRequired || !inPlan("approvalWorkflow")} />
           </section>
           {save.error && !slugTaken && (
             <p role="alert" className="text-error">
@@ -148,12 +153,19 @@ export function GeneralSettings() {
   );
 }
 
-function Toggle({ id, label, checked, onChange, disabled }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+function Toggle({ id, label, checked, onChange, disabled, hint }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; hint?: string }) {
   return (
-    <label htmlFor={id} className="flex items-center gap-3">
-      <input id={id} type="checkbox" className="size-4 accent-[var(--foreground)]" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
-      <span>{label}</span>
-    </label>
+    <div className="flex flex-col gap-0.5">
+      <label htmlFor={id} className="flex items-center gap-3">
+        <input id={id} type="checkbox" className="size-4 accent-[var(--foreground)]" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} aria-describedby={hint ? `${id}-hint` : undefined} />
+        <span>{label}</span>
+      </label>
+      {hint && (
+        <p id={`${id}-hint`} className="pl-7 text-muted-foreground" data-testid={`${id}-not-in-plan`}>
+          {hint}
+        </p>
+      )}
+    </div>
   );
 }
 

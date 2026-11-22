@@ -6,8 +6,11 @@ import type { ComponentType } from "react";
  * component imports a provider SDK directly.
  */
 export interface Session {
-  /** "loading" until the provider has restored a session. */
-  status: "loading" | "authenticated" | "anonymous";
+  /**
+   * "loading" until the provider has restored a session; "unavailable" while the API can't be reached
+   * to ask (a restart, a deploy): not signed out, the provider asks again (TF-019).
+   */
+  status: "loading" | "authenticated" | "anonymous" | "unavailable";
   email?: string;
   name?: string;
 }
@@ -31,6 +34,8 @@ export interface AuthAdapter {
   appSession(): { id: string } | "exempt" | null;
   /** Binds the sign-in to the session `POST /sessions` opened, so every request carries it. */
   bindAppSession(sessionId: string): void;
+  /** Ask again for the session after "unavailable" (the person's Try again). */
+  retrySession?(): void;
   /** Optional embedded UI for providers that render forms in-app. */
   SignInPage?: ComponentType;
   SignUpPage?: ComponentType;

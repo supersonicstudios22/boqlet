@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { useAttention, useProjects } from "@/api/hooks/projects";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Poster } from "@/components/poster";
 import { Button } from "@/components/ui/button";
 import { useOrg } from "@/features/orgs/org-context";
 import { ProjectCard } from "@/features/projects/project-card";
 import { useCreateSample } from "@/features/projects/create-sample";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /**
  * S05: what needs me, and my projects (F02 §5). Until the org's setup is finished (F16, P18) the
@@ -33,7 +34,6 @@ function Dashboard({ unfinished }: { unfinished: boolean }) {
   const ts = useTranslations("setup");
   const t = useTranslations("projects.dashboard");
   const relativeTime = useRelativeTime();
-  const message = useErrorMessage();
   const { org, can } = useOrg();
   const projects = useProjects(org.id, { status: "active" });
   const attention = useAttention(org.id);
@@ -48,6 +48,8 @@ function Dashboard({ unfinished }: { unfinished: boolean }) {
       )}
       <section className="flex flex-col gap-3" data-testid="needs-you">
         <h2 className="label-caps">{t("needsYou")}</h2>
+        {attention.isError && <InlineError error={attention.error} onRetry={() => attention.refetch()} />}
+        {attention.isPending && <LoadingLines lines={2} />}
         {attention.data?.length === 0 && <p className="text-muted-foreground">{t("nothingNeedsYou")}</p>}
         <ul className="flex flex-col divide-y divide-border">
           {attention.data?.map((item) => (
@@ -75,11 +77,9 @@ function Dashboard({ unfinished }: { unfinished: boolean }) {
           )}
         </div>
         {projects.isError && (
-          <p role="alert" className="text-error">
-            {message(projects.error)}
-          </p>
+          <InlineError error={projects.error} onRetry={() => projects.refetch()} />
         )}
-        {projects.isPending && <div className="h-40 animate-pulse rounded-[var(--radius)] bg-muted" aria-busy="true" />}
+        {projects.isPending && <LoadingLines />}
         {projects.data?.length === 0 && (
           <div className="grid grid-cols-1 items-center gap-8 rounded-[var(--radius)] border border-border p-8 md:grid-cols-[1fr_200px]" data-testid="empty-dashboard">
             <div className="flex flex-col gap-4">

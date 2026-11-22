@@ -7,11 +7,12 @@ import { Download } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { auditCsv, useAuditActors, useAuditPages, type AuditFilters, type AuditScope } from "@/api/hooks/audit";
 import { saveFile } from "@/api/hooks/exports";
-import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InlineError } from "@/components/errors/inline-error";
+import { LoadingLines } from "@/components/loading";
 
 /** Actions the filter offers (F09 "Audit log", the minimum set and the ones the build writes). */
 export const AUDIT_ACTIONS = [
@@ -38,7 +39,6 @@ export function AuditView({ scope, fileName, projectHref }: { scope: AuditScope;
   const t = useTranslations("audit");
   const ta = useTranslations("projects.activity");
   const format = useFormatter();
-  const message = useErrorMessage();
   const [actorId, setActorId] = useState("");
   const [action, setAction] = useState("");
   const [entityType, setEntityType] = useState("");
@@ -122,12 +122,8 @@ export function AuditView({ scope, fileName, projectHref }: { scope: AuditScope;
           {t("csv")}
         </Button>
       </div>
-      {(pages.error ?? csv.error) ? (
-        <p role="alert" className="text-error">
-          {message(pages.error ?? csv.error)}
-        </p>
-      ) : null}
-      {pages.isPending && <div className="h-24" aria-busy="true" />}
+      {(pages.error ?? csv.error) ? <InlineError error={pages.error ?? csv.error} onRetry={pages.error ? () => pages.refetch() : undefined} /> : null}
+      {pages.isPending && <LoadingLines />}
       {pages.data && items.length === 0 && <p className="text-muted-foreground">{any ? t("noneFiltered") : ta("empty")}</p>}
       {items.length > 0 && (
         <Table data-testid="audit-table">

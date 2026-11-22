@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 /** F10 Library: presets, versions, usage and the shell's writes (FE-021). */
 
@@ -161,7 +162,7 @@ const PREVIEW_TIMEOUT_MS = 180_000;
 export function usePreview(presetId: string, onResult?: (result: PreviewResult | null) => void) {
   return useMutation({
     mutationFn: async (body: { modelVersionIds: string[]; presetVersionId?: string; otherInputs?: Record<string, unknown> }): Promise<PreviewOutput> => {
-      const job = (await api.POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { ...body, compareWithPublished: true } as never })).data!;
+      const job = (await api.POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { ...body, compareWithPublished: true } as never, headers: idempotencyHeaders(`previewPreset:${presetId}`, body) })).data!;
       const deadline = Date.now() + PREVIEW_TIMEOUT_MS;
       let current = job;
       while (current.status === "queued" || current.status === "running") {

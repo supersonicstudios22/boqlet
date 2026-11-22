@@ -122,7 +122,7 @@ export function PresenceAvatars() {
         <li
           key={u.userId}
           title={u.lineKey ? t("editing", { name: u.name }) : t("viewing", { name: u.name })}
-          className="grid size-6 place-items-center rounded-full bg-[var(--orange)] text-label text-[var(--paper)]"
+          className="grid size-6 place-items-center rounded-full bg-foreground text-label text-background"
           data-testid="presence-user"
           data-name={u.name}
         >

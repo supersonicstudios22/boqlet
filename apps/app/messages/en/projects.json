@@ -33,7 +33,7 @@
     "status": "Status",
     "active": "Active",
     "archived": "Archived",
-    "empty": "No projects here.",
+    "empty": "No projects here. Start one with “New project”, or change the search or the filter.",
     "name": "Name",
     "code": "Code",
     "client": "Client",
@@ -76,9 +76,9 @@
   },
   "overview": {
     "models": "Models",
-    "noModels": "No models yet.",
+    "noModels": "No models yet. Add one under Models, then upload its IFC file.",
     "boqs": "Bills of quantities",
-    "noBoqs": "No BoQs yet.",
+    "noBoqs": "No BoQs yet. Once a model is ready, create one under Bills of quantities.",
     "activity": "Recent activity",
     "allModels": "All models",
     "allBoqs": "All BoQs"

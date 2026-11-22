@@ -30,7 +30,7 @@ describe("notification kinds (F13)", () => {
     expect(out).not.toMatch(/[{}]/);
   });
 
-  it("names the limit in words", () => {
-    expect(render("kinds.limit_near", { limit: "activeProjects", current: 8, max: 10 })).toBe("Your plan is nearly used up: active projects, 8 of 10");
+  it("names the limit with the words it is given (the shared limit name, src/i18n/limits.ts)", () => {
+    expect(render("kinds.limit_near", { limit: "Active projects", current: 8, max: 10 })).toBe("Your plan is nearly used up: Active projects, 8 of 10");
   });
 });

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { searchTerms, termPath } from "./model";
 import { SearchPicker, type PickItem } from "./search-picker";
+import { LIMITS } from "@/lib/limits";
 
 /** What the pickers choose from; a list that isn't known falls back to typing the id. */
 export interface AnswerContext {
@@ -162,7 +163,7 @@ function ListAnswer({ items, known, value, onChange, disabled, label, placeholde
   if (known) return <SearchPicker items={items} value={typeof value === "string" ? value : undefined} onPick={(v) => onChange(v, true)} label={label} placeholder={placeholder} empty={t("nothingFound")} disabled={disabled} data-testid={testId} />;
   return (
     <div className="flex items-center gap-1">
-      <Input aria-label={label} className="w-48" value={text} disabled={disabled} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && text.trim() && onChange(text.trim(), true)} data-testid={testId} />
+      <Input aria-label={label} className="w-48" maxLength={LIMITS.text} value={text} disabled={disabled} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && text.trim() && onChange(text.trim(), true)} data-testid={testId} />
       <Button variant="outline" disabled={disabled || !text.trim()} onClick={() => onChange(text.trim(), true)}>
         {t("use")}
       </Button>

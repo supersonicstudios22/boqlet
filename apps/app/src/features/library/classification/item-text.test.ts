@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createTranslator } from "next-intl";
 import type { ClassificationMap, RuleSet } from "@ifc-boq/types";
 import messages from "../../../../messages/en/classificationEditor.json";
-import { codeForItem, fillItemText, firstLineByItem, insertBlank, ITEM_TEXT_NAMES, itemTextNames, itemTextPieces, lineValue, sampleLines, type PreviewLine } from "./item-text";
+import { blankValuesFrom, codeForItem, engineText, fillItemText, firstLineByItem, insertBlank, ITEM_TEXT_NAMES, itemTextNames, itemTextPieces, lineValue, sampleLines, type PreviewLine } from "./item-text";
 import { lineKinds } from "./model";
 
 const line = (ruleId: string, keys: Record<string, unknown> = {}, extra: Partial<PreviewLine> = {}): PreviewLine => ({
@@ -141,5 +141,24 @@ describe("item text words", () => {
     expect(t("itemText.insertValue", { what: "Thickness" })).toBe("+ Thickness");
     expect(t("itemText.label", { code: "B.01" })).toBe("Item text of B.01");
     expect(t("itemText.lineSample", { filled: "no" })).toBe("Item text:");
+  });
+});
+
+describe("TF-136: the engine's filled item text (preview lines carry `codes`)", () => {
+  const template = "Zidanje vanjskih zidova debljine {thickness} m, {expr: thickness*1000} mm";
+  const wall = line("walls", {}, { codes: { c1: { code: "01.01", text: "Zidanje vanjskih zidova debljine 0.417 m, 417 mm" } } });
+  it("is the line's text for the code, only when the line got that code", () => {
+    expect(engineText(wall, "c1", "01.01")).toBe("Zidanje vanjskih zidova debljine 0.417 m, 417 mm");
+    expect(engineText(wall, "c1", "01.02")).toBeUndefined();
+    expect(engineText(wall, "other", "01.01")).toBeUndefined();
+    expect(engineText(line("walls"), "c1", "01.01")).toBeUndefined();
+  });
+  it("gives each blank the engine's value, read back against the template", () => {
+    const values = blankValuesFrom(template, engineText(wall, "c1", "01.01")!);
+    expect(values).toEqual(new Map([["{thickness}", "0.417"], ["{expr: thickness*1000}", "417"]]));
+    // The sample shows them, not the raw blank (the run fills the same).
+    expect(itemTextPieces(template, wall, values).map((p) => ("text" in p ? p.text : p.value ?? p.blank)).join("")).toBe("Zidanje vanjskih zidova debljine 0.417 m, 417 mm");
+    // A text that no longer follows the template (edited since the preview) gives nothing.
+    expect(blankValuesFrom("Other {thickness}", "Zidanje 0.417")).toBeNull();
   });
 });

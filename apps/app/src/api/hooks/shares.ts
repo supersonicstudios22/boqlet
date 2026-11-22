@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
+import { idempotencyHeaders } from "@/api/idempotency";
 
 export type ShareLink = Schemas["ShareLink"];
 export type ShareInclude = Schemas["ShareInclude"];
@@ -36,7 +37,7 @@ function useShareMutation<T, R>(fn: (input: T) => Promise<R>) {
 }
 
 export function useCreateShareLink(boqId: string) {
-  return useShareMutation(async (body: Schemas["ShareLinkCreate"]) => (await api.POST("/boqs/{boqId}/share-links", { params: { path: { boqId } }, body })).data!);
+  return useShareMutation(async (body: Schemas["ShareLinkCreate"]) => (await api.POST("/boqs/{boqId}/share-links", { params: { path: { boqId } }, body, headers: idempotencyHeaders(`createShareLink:${boqId}`, body) })).data!);
 }
 
 export function useUpdateShareLink() {

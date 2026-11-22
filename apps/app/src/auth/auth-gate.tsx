@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { authAdapter, useSession } from "@/auth";
 import { openAppSession } from "./app-session";
 import { isLeaving } from "./leaving";
+import { InlineError } from "@/components/errors/inline-error";
+import { ApiError } from "@/api/errors";
 
 /**
  * The signed-in part of the app: anonymous visitors go to sign-in and come back afterwards. A
@@ -65,6 +67,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
           }}>
           {t("retry")}
         </Button>
+      </div>
+    );
+  // The API can't be reached to restore the session (TF-019): say so; it is asked again by itself too.
+  if (status === "unavailable")
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <InlineError error={new ApiError(503, "api_unavailable", "")} onRetry={() => authAdapter.retrySession?.()} />
       </div>
     );
   if (status !== "authenticated" || !bound) return <div className="min-h-dvh" aria-busy="true" />;
