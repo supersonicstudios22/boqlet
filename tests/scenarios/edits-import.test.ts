@@ -129,3 +129,29 @@ describe("edits import (F12-AC4)", () => {
     expect(report.problems[0]!.message).toMatch(/not an Excel workbook/);
   });
 });
+
+describe("a text edit in Excel (F12-AC4, TF-008)", () => {
+  it("a changed description is proposed as one description edit, and applies as a text edit", async () => {
+    const file = path.join(tmp, "text.xlsx");
+    await exported(file);
+    // The first line row: its description changed, everything else left alone.
+    const code = [
+      "import json, sys", "from openpyxl import load_workbook",
+      "wb = load_workbook(sys.argv[1]); ws = wb['BoQ']",
+      "row = next(r for r in range(6, ws.max_row + 1) if ws.cell(r, 9).value)",
+      "key = ws.cell(row, 9).value; ws.cell(row, 2, 'Edited in Excel'); wb.save(sys.argv[1])",
+      "print(json.dumps({'key': key}))",
+    ].join("\n");
+    const res = spawnSync(python, ["-c", code, file], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+    expect(res.status, res.stderr).toBe(0);
+    const { key } = JSON.parse(res.stdout) as { key: string };
+    const { report } = await importFile(file);
+    expect(report.problems).toEqual([]);
+    expect(report.manualItems).toEqual([]);
+    expect(report.overrides).toHaveLength(1);
+    expect(report.overrides[0]).toMatchObject({ change: "description", edit: { lineKey: key, description: "Edited in Excel" } });
+    const applied = await api().POST("/boqs/{boqId}/overrides/batch", { params: { path: { boqId: boq.id } }, body: { overrides: [report.overrides[0]!.edit] } });
+    expect(applied.response.status).toBe(200);
+    expect(applied.data!.overrides![0]).toMatchObject({ lineKey: key, description: "Edited in Excel" });
+  });
+});

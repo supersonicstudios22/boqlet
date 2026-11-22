@@ -1,4 +1,5 @@
 import { createApiClient, type ApiClient } from "@ifc-boq/api";
+import { checkResponse } from "./contract";
 import { credentials, isBrowser, isSignUpToken, newBrowser, opened201 } from "./java-sessions";
 
 /**
@@ -18,12 +19,22 @@ export async function authentication(token: string): Promise<Record<string, stri
 const signingIn = new WeakMap<Request, string>();
 const isSignIn = (request: Request) => request.method === "POST" && new URL(request.url).pathname.endsWith("/sessions");
 
+type Middleware = NonNullable<Parameters<typeof createApiClient>[0]["middleware"]>[number];
+
+/** Every response a suite client receives is checked against the contract (TF-078, support/contract.ts). */
+const contractCheck: Middleware = {
+  async onResponse({ request, response }) {
+    await checkResponse(request, response);
+    return response;
+  },
+};
+
 /** A client as one user (or anonymous). The suites use only the generated client and HTTP. */
 export function client(token?: string | null): ApiClient {
   return createApiClient({
     baseUrl: API_URL,
     getAccessToken: () => token ?? null,
-    middleware: token ? [{
+    middleware: [...(token ? [<Middleware>{
       async onRequest({ request }) {
         // A person's own token signing in is a new browser (java-sessions.ts).
         if (isSignIn(request) && isSignUpToken(token)) {
@@ -47,6 +58,6 @@ export function client(token?: string | null): ApiClient {
         }
         return response;
       },
-    }] : [],
+    }] : []), contractCheck],
   });
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
-import { expectSchema } from "../support/contract";
 import { user, type SeedUser } from "../support/users";
 
 describe("me: GET /me", () => {
@@ -21,7 +20,6 @@ describe("me: GET /me", () => {
       const u = await user(key);
       const { data, response } = await client(u.token).GET("/me");
       expect(response.status).toBe(200);
-      await expectSchema("Me", data);
       expect(data!.user.id).toBe(u.id);
       expect(data!.memberships.map((m) => [m.org.slug, m.role]).sort()).toEqual(memberships);
     });
