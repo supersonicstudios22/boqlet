@@ -469,6 +469,8 @@ public class Models {
     /** A model's scope, checked against its schema by the engine (`ModelScope`): a typo is refused, not ignored (TF-074). */
     private String scope(Map<String, Object> scope) {
         if (scope == null) return null;
+        // The generated request defaults the scope to {}: nothing to check, and creating a model mustn't need the engine.
+        if (scope.isEmpty()) return json.object(scope).toString();
         var checked = worker.rpc("check", Map.of("kind", "model-scope", "doc", scope), CheckResponse.class);
         if (!Boolean.TRUE.equals(checked.getOk())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_scope", "The model's scope is not valid.",
