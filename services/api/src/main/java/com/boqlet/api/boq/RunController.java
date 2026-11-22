@@ -26,9 +26,9 @@ class RunController implements RunsApi {
     }
 
     @Override
-    public ResponseEntity<GenerateRun202Response> generateRun(UUID revision) {
+    public ResponseEntity<GenerateRun202Response> generateRun(UUID revision, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, GenerateRun202Response.class,
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, GenerateRun202Response.class,
                 () -> access.lockRevision(revision, actor, "editBoqs"), () -> runs.generate(revision, actor)));
     }
 
@@ -46,7 +46,7 @@ class RunController implements RunsApi {
     @Override
     public ResponseEntity<LinesPage> listLines(UUID run, String cursor, Integer limit, String groupBy, Integer level,
                                                 String groupPath, String source, String storey, String family, String model, String query) {
-        return ResponseEntity.ok(reads.lines(run, actor(), cursor, limit, groupBy, level, groupPath, source, storey, family, model, query));
+        return ResponseEntity.ok(reads.written(run, actor(), cursor, limit, groupBy, level, groupPath, source, storey, family, model, query));
     }
 
     @Override

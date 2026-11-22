@@ -55,16 +55,16 @@ class ExportController implements ExportsApi {
     }
 
     @Override
-    public ResponseEntity<Job> exportRun(UUID run, ExportRunRequest request) {
+    public ResponseEntity<Job> exportRun(UUID run, UUID idempotencyKey, ExportRunRequest request) {
         UUID actor = actor();
-        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,
                 () -> runs.visible(run, actor), () -> exports.startRun(run, actor, request == null ? null : request.getGroupBy())));
     }
 
     @Override
-    public ResponseEntity<Job> exportDiff(UUID diff) {
+    public ResponseEntity<Job> exportDiff(UUID diff, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,
                 () -> diffs.get(diff, actor), () -> diffs.export(diff, actor)));
     }
 
@@ -80,9 +80,9 @@ class ExportController implements ExportsApi {
     }
 
     @Override
-    public ResponseEntity<Job> importBoqEdits(UUID id, MultipartFile file) {
+    public ResponseEntity<Job> importBoqEdits(UUID id, MultipartFile file, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,
                 () -> boqs.revision(id, actor), () -> imports.upload(id, actor, file)));
     }
 

@@ -3014,6 +3014,7 @@ export interface components {
             parseJobId?: string | null;
             summary?: components["schemas"]["ModelSummary"];
             identicalToVersion?: number | null;
+            /** @description A failed version's error: `code` one of not_ifc, unsupported_schema, corrupt_file, too_large, parse_timeout, parse_error, cancelled (state-machines.md); `details.retryable` whether a retry can help (TF-020); `details.cause` the job's own code when it was mapped (TF-037) */
             error?: components["schemas"]["Error"];
             note?: string;
             uploadedBy?: components["schemas"]["UserRef"];
@@ -4215,6 +4216,8 @@ export interface components {
         };
     };
     parameters: {
+        /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+        IdempotencyKey: string;
         OrgId: string;
         UserId: string;
         InvitationId: string;
@@ -4613,7 +4616,10 @@ export interface operations {
     inviteMember: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 orgId: components["parameters"]["OrgId"];
             };
@@ -4666,7 +4672,10 @@ export interface operations {
     resendOrgInvitation: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 orgId: components["parameters"]["OrgId"];
                 invitationId: components["parameters"]["InvitationId"];
@@ -5551,7 +5560,10 @@ export interface operations {
     completeModelUpload: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 versionId: components["parameters"]["VersionId"];
             };
@@ -5583,7 +5595,10 @@ export interface operations {
     retryModelVersion: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 versionId: components["parameters"]["VersionId"];
             };
@@ -5963,7 +5978,10 @@ export interface operations {
     previewPreset: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 presetId: components["parameters"]["PresetId"];
             };
@@ -6345,7 +6363,10 @@ export interface operations {
     confirmBoq: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 boqId: components["parameters"]["BoqId"];
             };
@@ -6480,7 +6501,10 @@ export interface operations {
     generateRun: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 revisionId: components["parameters"]["RevisionId"];
             };
@@ -6601,7 +6625,10 @@ export interface operations {
     issueRevision: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 revisionId: components["parameters"]["RevisionId"];
             };
@@ -7094,7 +7121,10 @@ export interface operations {
     compareRuns: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 runId: components["parameters"]["RunId"];
             };
@@ -7127,7 +7157,10 @@ export interface operations {
     exportRun: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 runId: components["parameters"]["RunId"];
             };
@@ -7233,7 +7266,10 @@ export interface operations {
     exportDiff: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 diffId: components["parameters"]["DiffId"];
             };
@@ -7713,7 +7749,10 @@ export interface operations {
     importBoqEdits: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 revisionId: components["parameters"]["RevisionId"];
             };
@@ -7833,7 +7872,10 @@ export interface operations {
     createShareLink: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key from the same user on the same operation within 24 hours answers the first response again instead of starting another job or sending another email (TF-073). */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 boqId: components["parameters"]["BoqId"];
             };

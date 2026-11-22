@@ -408,7 +408,14 @@ public class Models {
             version.setUploadedBy(new UserRef(result.getObject("uploaded_by", UUID.class), result.getString("uploader_name")));
         }
         JsonNode error = json.read(result.getString("error"), JsonNode.class);
-        if (error != null) version.setError(new com.boqlet.contract.model.Error(error.path("code").asText(), error.path("message").asText()));
+        if (error != null) {
+            var failure = new com.boqlet.contract.model.Error(error.path("code").asText(), error.path("message").asText());
+            // TF-020: whether a retry can help; TF-037: the job's own code when it isn't one of the version's.
+            var details = new java.util.LinkedHashMap<String, Object>(Map.of("retryable", error.path("retryable").asBoolean(false)));
+            if (error.hasNonNull("cause")) details.put("cause", error.path("cause").asText());
+            failure.setDetails(details);
+            version.setError(failure);
+        }
         return new VersionRow(version, result.getObject("project_id", UUID.class), result.getString("source_key"),
                 result.getString("upload_key"), result.getString("multipart_id"),
                 json.read(result.getString("artifacts"), JsonNode.class), error != null && error.path("retryable").asBoolean(),

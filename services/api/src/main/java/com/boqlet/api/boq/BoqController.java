@@ -82,16 +82,16 @@ class BoqController implements BoqsApi {
     }
 
     @Override
-    public ResponseEntity<BoqRevision> issueRevision(UUID id, IssueRevisionRequest request) {
+    public ResponseEntity<BoqRevision> issueRevision(UUID id, IssueRevisionRequest request, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, BoqRevision.class,
+        return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, BoqRevision.class,
                 () -> access.revision(id, actor), () -> boqs.issue(id, actor, request)));
     }
 
     @Override
-    public ResponseEntity<Boq> confirmBoq(UUID id, ConfirmBoqRequest request) {
+    public ResponseEntity<Boq> confirmBoq(UUID id, UUID idempotencyKey, ConfirmBoqRequest request) {
         UUID actor = actor();
-        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, Boq.class,
+        return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, Boq.class,
                 () -> access.bill(id, actor), () -> boqs.confirm(id, actor, request)));
     }
 

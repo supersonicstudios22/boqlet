@@ -193,6 +193,7 @@ paths:
     post:
       tags: [orgs]
       operationId: inviteMember
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         required: true
         content:
@@ -219,6 +220,7 @@ paths:
     post:
       tags: [orgs]
       operationId: resendOrgInvitation
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/OrgInvitation" } } } }
   /invitations/{token}:
@@ -599,6 +601,7 @@ paths:
     post:
       tags: [models]
       operationId: completeModelUpload
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         content:
           application/json:
@@ -622,6 +625,7 @@ paths:
     post:
       tags: [models]
       operationId: retryModelVersion
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       responses:
         "200": { description: Re-queued, content: { application/json: { schema: { $ref: "#/components/schemas/ModelVersion" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
@@ -793,6 +797,7 @@ paths:
     post:
       tags: [library]
       operationId: previewPreset
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         required: true
         content:
@@ -976,6 +981,7 @@ paths:
     post:
       tags: [boqs]
       operationId: confirmBoq
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       description: Mark the BoQ as done (F09 §5). Saves a final version first when the working version changed (same fields as saving a version).
       requestBody:
         content:
@@ -1040,6 +1046,7 @@ paths:
     post:
       tags: [runs]
       operationId: generateRun
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       responses:
         "202":
           description: Run created and queued
@@ -1113,6 +1120,7 @@ paths:
     post:
       tags: [boqs]
       operationId: issueRevision
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       summary: Save version (P29)
       description: Locks the working version as a saved version and opens the next working version. With `approvalRequired` the revision must be `approved`. Open blocking questions are allowed and recorded.
       requestBody:
@@ -1316,6 +1324,7 @@ paths:
     post:
       tags: [diffs]
       operationId: compareRuns
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         required: true
         content:
@@ -1333,6 +1342,7 @@ paths:
     post:
       tags: [exports]
       operationId: exportRun
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         content:
           application/json:
@@ -1397,6 +1407,7 @@ paths:
     post:
       tags: [exports]
       operationId: exportDiff
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       responses:
         "202": { $ref: "#/components/responses/JobAccepted" }
 
@@ -1624,6 +1635,7 @@ paths:
     post:
       tags: [exports]
       operationId: importBoqEdits
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       description: Upload an edited BoQ Excel (F12). Starts an `import_boq_edits` job whose output is an `EditsImportReport`; nothing is applied until the user applies the reviewed edits through `applyLineEdits`.
       requestBody:
         required: true
@@ -1689,6 +1701,7 @@ paths:
     post:
       tags: [sharing]
       operationId: createShareLink
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/ShareLinkCreate" } } }
@@ -1998,6 +2011,15 @@ components:
         native sign-in.
 
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+      description: >-
+        A key chosen by the client for this request (api-conventions.md "Idempotency"). The same key
+        from the same user on the same operation within 24 hours answers the first response again
+        instead of starting another job or sending another email (TF-073).
     OrgId: { name: orgId, in: path, required: true, schema: { type: string, format: uuid } }
     UserId: { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
     InvitationId: { name: invitationId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -2714,7 +2736,9 @@ components:
         parseJobId: { type: [string, "null"], format: uuid }
         summary: { $ref: "#/components/schemas/ModelSummary" }
         identicalToVersion: { type: [integer, "null"] }
-        error: { $ref: "#/components/schemas/Error" }
+        error:
+          $ref: "#/components/schemas/Error"
+          description: "A failed version's error: `code` one of not_ifc, unsupported_schema, corrupt_file, too_large, parse_timeout, parse_error, cancelled (state-machines.md); `details.retryable` whether a retry can help (TF-020); `details.cause` the job's own code when it was mapped (TF-037)"
         note: { type: string }
         uploadedBy: { $ref: "#/components/schemas/UserRef" }
         uploadedAt: { type: string, format: date-time }

@@ -14,11 +14,13 @@ public class RunIndex {
     private final StoredJson json;
     private final ArtifactReader artifacts;
     private final PostgresCopy copy;
+    private final RunLineViews views;
 
     private final io.micrometer.core.instrument.Timer ingestion;
 
-    RunIndex(JdbcTemplate database, StoredJson json, ArtifactReader artifacts, PostgresCopy copy,
+    RunIndex(JdbcTemplate database, StoredJson json, ArtifactReader artifacts, PostgresCopy copy, RunLineViews views,
              io.micrometer.core.instrument.MeterRegistry meters) {
+        this.views = views;
         this.ingestion = io.micrometer.core.instrument.Timer.builder("boqlet.runs.ingestion")
                 .description("Time to index a run result's lines, questions, warnings and log").register(meters);
         this.database = database;
@@ -114,10 +116,10 @@ public class RunIndex {
     }
 
     private void index(UUID run, List<JsonNode> lines, JsonNode doc, Map<String, UUID> versions) {
-        copy.copy("run_lines (run_id, sort_index, line_key, line)", rows -> {
+        copy.copy("run_lines (run_id, sort_index, line_key, line, view)", rows -> {
             for (int index = 0; index < lines.size(); index++) {
                 var line = lines.get(index);
-                rows.add(run, index, line.path("key").asText(), line);
+                rows.add(run, index, line.path("key").asText(), line, views.render(line));
             }
         });
         copy.copy("run_line_elements (run_id, line_key, guid, model_version_id)", rows -> {

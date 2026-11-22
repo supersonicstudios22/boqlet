@@ -141,6 +141,7 @@ class NativeWorkerTest {
     @Autowired Maintenance maintenance;
     @Autowired ObjectStorage storage;
     @Autowired com.boqlet.api.boq.RunIndex runIndex;
+    @Autowired com.boqlet.api.boq.BoqReadService readService;
     @LocalServerPort int apiPort;
 
     @Test
@@ -239,10 +240,13 @@ class NativeWorkerTest {
                 """, big.toString(), source);
         int lines = database.queryForObject("SELECT count(*) FROM run_lines WHERE run_id = ?::uuid", Integer.class, source);
         database.update("""
-                INSERT INTO run_lines (run_id, sort_index, line_key, line)
-                SELECT ?, k * ? + l.sort_index, l.line_key || '~c' || k, jsonb_set(l.line, '{key}', to_jsonb(l.line_key || '~c' || k))
+                INSERT INTO run_lines (run_id, sort_index, line_key, line, view)
+                SELECT ?, k * ? + l.sort_index, l.line_key || '~c' || k, jsonb_set(l.line, '{key}', to_jsonb(l.line_key || '~c' || k)),
+                    '{"key":' || to_jsonb(l.line_key || '~c' || k)::text || substr(l.view, length('{"key":' || to_jsonb(l.line_key)::text) + 1)
                 FROM run_lines l CROSS JOIN generate_series(0, 499) k WHERE l.run_id = ?::uuid
                 """, big, lines, source);
+        // The views were written when the run was indexed (TF-179), each starting with its key.
+        assertThat(database.queryForObject("SELECT count(*) FROM run_lines WHERE run_id = ? AND view IS NULL", Integer.class, big)).isZero();
         String path = "/api/v1/runs/" + big + "/lines";
         var all = perform(get(path + "?limit=20000"), cookie, 200);
         assertThat(all.path("total").asInt()).isEqualTo(lines * 500);
@@ -265,13 +269,17 @@ class NativeWorkerTest {
             perform(get(path + "?limit=1&cursor=20000"), cookie, 200);
             small.add((System.nanoTime() - started) / 1_000_000);
             started = System.nanoTime();
-            perform(get(path + "?limit=500&cursor=" + (i % 2 == 0 ? 20_000 : 0)), cookie, 200);
+            // The response as the client gets it, not parsed here: the server's own work.
+            http.perform(auth(get(path + "?limit=500&cursor=" + (i % 2 == 0 ? 20_000 : 0)), cookie)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsByteArray();
             page.add((System.nanoTime() - started) / 1_000_000);
         }
         java.util.Collections.sort(small);
         java.util.Collections.sort(page);
         System.out.println("[perf] 20,500-line run, ms sorted: 1-line page at 20,000 " + small + "; 500-line pages " + page);
         assertThat(small.get(3)).as("median ms of a 1-line page at line 20,000 of a 20,500-line run").isLessThanOrEqualTo(150);
+        // A 500-line page is sent from the stored views (above: none is missing, and a page is byte for byte the
+        // page written from the lines). Its time is printed, not asserted: in this harness it is mostly MockMvc's.
     }
 
     /** The shared contract suite (`tests/contract`) against this API. */
@@ -657,6 +665,14 @@ class NativeWorkerTest {
         String runPath = "/api/v1/runs/" + run;
         var lines = perform(get(runPath + "/lines?limit=3"), cookie, 200);
         assertThat(lines.path("total").asInt()).isGreaterThan(30);
+        // TF-179: a page sent from the stored views is byte for byte the page written from the lines.
+        var owner = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", java.util.UUID.class);
+        String sent = http.perform(auth(get(runPath + "/lines?limit=40&groupBy=" + perform(get(runPath), cookie, 200)
+                .path("classifications").path(0).path("id").asText()), cookie)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String written = json.writeValueAsString(readService.lines(java.util.UUID.fromString(run), owner, null, 40,
+                perform(get(runPath), cookie, 200).path("classifications").path(0).path("id").asText()));
+        assertThat(sent).isEqualTo(written).contains("\"positionNo\"");
         assertThat(lines.path("items").get(0).has("positionNo")).isTrue();
         String key = lines.path("items").get(0).path("key").asText();
         var details = perform(get(runPath + "/lines/by-key").param("key", key), cookie, 200);

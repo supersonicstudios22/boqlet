@@ -88,9 +88,9 @@ class LibraryController implements LibraryApi {
     }
 
     @Override
-    public ResponseEntity<Job> previewPreset(UUID preset, PreviewPresetRequest request) {
+    public ResponseEntity<Job> previewPreset(UUID preset, PreviewPresetRequest request, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.accepted().body(idempotency.once(actor, idempotency.key(), 202, Job.class,
+        return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,
                 () -> library.get(preset, actor), () -> previews.preview(preset, actor, request)));
     }
 

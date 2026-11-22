@@ -147,7 +147,8 @@ class JobDispatcher {
         long until = System.nanoTime() + timeout.toNanos();
         while (true) {
             long remaining = until - System.nanoTime();
-            if (remaining <= 0) return failed("engine_timeout", "The worker exceeded the job timeout.", true);
+            // Not retried: the same input times out again, and each attempt holds a worker for the whole timeout (TF-037).
+            if (remaining <= 0) return failed("engine_timeout", "The worker exceeded the job timeout.", false);
             try {
                 return exchange.get(Math.min(TimeUnit.SECONDS.toNanos(1), remaining), TimeUnit.NANOSECONDS);
             } catch (TimeoutException ignored) {

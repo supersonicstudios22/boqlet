@@ -24,9 +24,11 @@ class RunReads {
     private final Models models;
     private final Decisions decisions;
     private final RunIndex index;
+    private final RunLineViews views;
 
     RunReads(Runs runs, BoqAccess access, StoredJson json, BoqExports positions, JdbcTemplate database,
-             NamedParameterJdbcTemplate named, Models models, Decisions decisions, RunIndex index) {
+             NamedParameterJdbcTemplate named, Models models, Decisions decisions, RunIndex index, RunLineViews views) {
+        this.views = views;
         this.runs = runs;
         this.access = access;
         this.json = json;
@@ -40,6 +42,17 @@ class RunReads {
 
     LinesPage lines(UUID id, UUID actor, String cursor, int limit, String system, Integer level, String path,
                     String source, String storey, String family, String model, String query) {
+        return lines(id, actor, cursor, limit, system, level, path, source, storey, family, model, query, false);
+    }
+
+    /** The same page for the HTTP response: lines indexed with a stored view are sent as written then (TF-179). */
+    LinesPage written(UUID id, UUID actor, String cursor, int limit, String system, Integer level, String path,
+                      String source, String storey, String family, String model, String query) {
+        return lines(id, actor, cursor, limit, system, level, path, source, storey, family, model, query, true);
+    }
+
+    private LinesPage lines(UUID id, UUID actor, String cursor, int limit, String system, Integer level, String path,
+                            String source, String storey, String family, String model, String query, boolean written) {
         var run = ready(id, actor);
         int offset = offset(cursor);
         int count = Math.clamp(limit, 1, 20_000);
@@ -80,9 +93,15 @@ class RunReads {
         }
         var numbers = positions.numbers(id, system != null ? system : primary(run));
         // The page is chosen on sort_index alone, so the lines skipped by the offset are never read (TF-179).
-        var items = named.query("SELECT p.line::text, p.sort_index FROM run_lines p WHERE p.run_id = :run AND p.sort_index IN"
+        // A stored view needs no parsing; without one (or for callers in Java) the line is read as before.
+        String columns = written ? "CASE WHEN p.view IS NULL THEN p.line::text END AS line, p.view" : "p.line::text AS line, NULL AS view";
+        var items = named.query("SELECT " + columns + ", p.sort_index FROM run_lines p WHERE p.run_id = :run AND p.sort_index IN"
                         + " (SELECT l.sort_index" + filter + " ORDER BY l.sort_index LIMIT :count OFFSET :offset) ORDER BY p.sort_index",
-                args, (row, index) -> json.convert(numbered(row.getString("line"), row.getInt("sort_index"), numbers), RunLine.class));
+                args, (row, index) -> {
+                    int sortIndex = row.getInt("sort_index");
+                    return views.line(row.getString("view"), row.getString("line"), sortIndex,
+                            sortIndex < numbers.length ? numbers[sortIndex] : null);
+                });
         var page = new LinesPage(items.size() > count ? items.subList(0, count) : items).total(total)
                 .nextCursor(items.size() > count ? Long.toString((long) offset + count) : null);
         if (groups != null) page.setGroups(groups);

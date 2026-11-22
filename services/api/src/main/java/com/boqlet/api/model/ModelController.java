@@ -63,16 +63,16 @@ class ModelController implements ModelsApi {
     }
 
     @Override
-    public ResponseEntity<ModelVersion> completeModelUpload(UUID id, CompleteModelUploadRequest request) {
+    public ResponseEntity<ModelVersion> completeModelUpload(UUID id, UUID idempotencyKey, CompleteModelUploadRequest request) {
         UUID actor = actor();
-        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, ModelVersion.class,
+        return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, ModelVersion.class,
                 () -> models.getVersion(id, actor), () -> models.complete(id, actor, request)));
     }
 
     @Override
-    public ResponseEntity<ModelVersion> retryModelVersion(UUID id) {
+    public ResponseEntity<ModelVersion> retryModelVersion(UUID id, UUID idempotencyKey) {
         UUID actor = actor();
-        return ResponseEntity.ok(idempotency.once(actor, idempotency.key(), 200, ModelVersion.class,
+        return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, ModelVersion.class,
                 () -> models.getVersion(id, actor), () -> models.retry(id, actor)));
     }
 

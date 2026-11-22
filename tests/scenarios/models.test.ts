@@ -50,7 +50,7 @@ describe("ModelVersion: upload, parse, ready (F03)", () => {
     const model = await newModel("Notes");
     const version = await uploadVersion(owner, model.id, new TextEncoder().encode("hello, not a model"), "notes.ifc");
     expect(version.status).toBe("failed");
-    expect(version.error).toMatchObject({ code: "not_ifc" });
+    expect(version.error).toMatchObject({ code: "not_ifc", details: { retryable: false } }); // TF-020
     expect(version.parseJobId).toBeNull();
     const retry = await client(owner.token).POST("/model-versions/{versionId}/retry", { params: { path: { versionId: version.id } } });
     expect(retry.response.status).toBe(409);

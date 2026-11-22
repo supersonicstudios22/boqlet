@@ -11,8 +11,9 @@ stateDiagram-v2
   awaiting_upload --> queued: POST complete (file present, size and header ok)
   awaiting_upload --> failed: upload not completed within 24 h
   queued --> processing: worker claims parse job
+  queued --> failed: parse cancelled (error.code cancelled)
   processing --> ready: parse succeeded
-  processing --> failed: parse failed (corrupt file, unsupported schema, timeout)
+  processing --> failed: parse failed (corrupt file, unsupported schema, timeout) or cancelled
   failed --> queued: retry (same file)
   ready --> [*]
 ```
@@ -23,7 +24,9 @@ stateDiagram-v2
   same org, the parse artifacts are reused and the version goes straight to `ready` (event
   still recorded).
 - `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `too_large`,
-  `parse_timeout`, `parse_error`.
+  `parse_timeout`, `parse_error`, `cancelled`. A job failure with another code (the worker's or the
+  backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`…) is stored as
+  `parse_timeout` (timeouts) or `parse_error`, its own code kept in `error.details.cause` (`ParseJob`, TF-037).
 
 ## Job
 

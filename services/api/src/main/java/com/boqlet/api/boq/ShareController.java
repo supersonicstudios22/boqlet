@@ -38,9 +38,9 @@ class ShareController implements SharingApi, PublicApi {
     }
 
     @Override
-    public ResponseEntity<ShareLinkCreated> createShareLink(UUID boq, ShareLinkCreate body) {
+    public ResponseEntity<ShareLinkCreated> createShareLink(UUID boq, ShareLinkCreate body, UUID idempotencyKey) {
         UUID actor = actor();
-        UUID key = idempotency.key();
+        UUID key = idempotencyKey;
         ShareLinkCreated created;
         if (key == null) {
             created = links.create(boq, actor, body, null);

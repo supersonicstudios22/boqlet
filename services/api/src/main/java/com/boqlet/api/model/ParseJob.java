@@ -44,6 +44,7 @@ class ParseJob implements JobHandler {
             if ("cancelled".equals(status)) {
                 error = json.object(Map.of("code", "cancelled", "message", "The parse was cancelled.", "retryable", true));
             }
+            error = versionError(error);
             database.update("""
                     UPDATE model_versions SET status = 'failed', error = CAST(? AS jsonb)
                     WHERE id = ? AND parse_job_id = ?
@@ -60,6 +61,26 @@ class ParseJob implements JobHandler {
             throw new IllegalStateException("The model version no longer applies to the job.");
         }
         return Map.of("modelVersionId", attempt.subject());
+    }
+
+    /** The codes a failed version answers (state-machines.md ModelVersion, TF-037); the app translates each. */
+    static final java.util.Set<String> VERSION_ERRORS = java.util.Set.of("not_ifc", "unsupported_schema", "corrupt_file",
+            "too_large", "parse_timeout", "parse_error", "cancelled");
+
+    /**
+     * A job's error as a version's: a code of the list, the job's own code kept as `cause` (for support).
+     * Timeouts are `parse_timeout`; the worker's and the backend's own failures (`worker_lost`,
+     * `engine_unavailable`, `engine_process_failed`, `engine_error`, `invalid_input`, `ingestion_failed`...) are `parse_error`.
+     */
+    static com.fasterxml.jackson.databind.node.ObjectNode versionError(JsonNode error) {
+        var out = error != null && error.isObject() ? ((com.fasterxml.jackson.databind.node.ObjectNode) error).deepCopy()
+                : com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        String code = out.path("code").asText("");
+        String mapped = VERSION_ERRORS.contains(code) ? code
+                : java.util.Set.of("engine_timeout", "job_timeout", "timeout").contains(code) ? "parse_timeout" : "parse_error";
+        if (!mapped.equals(code)) out.put("cause", code).put("code", mapped);
+        if (!out.hasNonNull("message")) out.put("message", "The model could not be parsed.");
+        return out;
     }
 
     /**
