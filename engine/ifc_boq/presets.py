@@ -20,6 +20,7 @@ Override the folders with IFC_BOQ_PRESETS and IFC_BOQ_USER_PRESETS.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 from functools import lru_cache
@@ -271,6 +272,33 @@ def _setup_problems(rules: dict) -> list[str]:
     return problems
 
 
+def answers(slot: dict) -> str:
+    """A choice slot's answers as a person reads them (its option labels)."""
+    labels = slot.get("optionLabels") or {}
+    return ", ".join(str(labels.get(o, o)) for o in slot.get("options", []))
+
+
+def slot_problem(slot: dict) -> str | None:
+    """Why a flattened slot's answer doesn't fit the slot (its type, its options), or None.
+
+    Strict, unlike the Excel template's cell reader (`sheets/templates.parse_answer`): the answer is JSON."""
+    kind, value = slot.get("type"), slot.get("value")
+    if kind is None:
+        return "not defined in the rule set it extends; a new slot needs a type and a label."
+    if kind == "number":
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            return f"'{value}' is not a number."
+    elif kind == "boolean":
+        if not isinstance(value, bool):
+            return f"'{value}' is not yes or no."
+    elif kind == "choice":
+        if value not in slot.get("options", []):
+            return f"'{value}' is not one of the answers: {answers(slot)}."
+    elif not isinstance(value, str):
+        return f"'{value}' is not text."
+    return None
+
+
 def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
     """Problems with a draft preset, as messages. [] = the engine would accept it.
 
@@ -289,9 +317,10 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
                 flat = flatten(doc, lib)
                 problems += integrity(flat)
                 problems += _setup_problems(flat)
+                problems += [f"slot {k}: {sp}" for k, p in flat["params"].items() if (sp := slot_problem(p))]
                 from .expr import syntax_problem
                 problems += [f"slot {k}: {sp}" for k, p in flat["params"].items()
-                             if p.get("type") == "formula" and (sp := syntax_problem(p.get("value") or ""))]
+                             if p.get("type") == "formula" and isinstance(p.get("value"), str) and (sp := syntax_problem(p["value"]))]
                 problems += [f"slot {k}, choice '{c.get('label')}': {sp}" for k, p in flat["params"].items()
                              for c in p.get("choices") or [] if (sp := syntax_problem(c.get("value") or ""))]
                 problems += [f"slot {k}: answer {p['value']} is outside the allowed range {p.get('min', '')}..{p.get('max', '')}"

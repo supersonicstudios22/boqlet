@@ -83,8 +83,7 @@ def parse_answer(p, raw):
         for o in p.get("options", []):
             if s == o or s.lower() == str(labels.get(o, "")).strip().lower():
                 return o, None
-        allowed = ", ".join(str(labels.get(o, o)) for o in p.get("options", []))
-        return None, f"'{raw}' is not one of the answers: {allowed}."
+        return None, f"'{raw}' is not one of the answers: {presets.answers(p)}."
     return str(raw), None
 
 

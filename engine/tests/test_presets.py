@@ -149,3 +149,18 @@ def test_setup_markers_use_the_shipped_rule_data():
     assert flat["setupSteps"] == master["setupSteps"]
     patch["params"]["window_measure"]["setup"] = "missing-step"
     assert any("setup step 'missing-step' is not defined" in problem for problem in presets.check("rules", patch))
+
+
+def test_check_reports_slot_answers_that_do_not_fit_their_slot():
+    """F10-AC2 (TF-135): a patch's answers are checked against the slot they fill, as the Excel template is."""
+    patch = {"schemaVersion": "1.0", "id": "ours", "name": "ours", "version": "1", "extends": "as-modelled",
+             "params": {"wall_unit": {"value": "banana"}, "masonry_volume_from": {"value": "abc"},
+                        "include_proxies": {"value": "yes"}, "no_such_slot": {"value": 1}}}
+    problems = presets.check("rules", patch)
+    assert any("wall_unit" in p and "'banana' is not one of the answers" in p for p in problems), problems
+    assert any("masonry_volume_from" in p and "'abc' is not a number" in p for p in problems), problems
+    assert any("include_proxies" in p and "'yes' is not yes or no" in p for p in problems), problems
+    assert any("no_such_slot" in p and "not defined" in p for p in problems), problems
+    good = {**patch, "params": {"wall_unit": {"value": "volume"}, "masonry_volume_from": {"value": 0.3},
+                                "include_proxies": {"value": False}}}
+    assert presets.check("rules", good) == []
