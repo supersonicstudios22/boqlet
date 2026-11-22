@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, isUnavailable, throwOnApiError } from "./errors";
+import { ApiError, errorReference, isUnavailable, throwOnApiError } from "./errors";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -13,6 +13,17 @@ describe("ApiError", () => {
     expect(error.status).toBe(409);
     expect(error.code).toBe("revision_locked");
     expect(error.details).toEqual({ revisionId: "r1" });
+  });
+
+  it("TF-185: keeps the answer's request id, offered as a reference for server failures only", async () => {
+    const withId = (status: number, code: string) =>
+      new Response(JSON.stringify({ code, message: "" }), { status, headers: { "Content-Type": "application/json", "X-Request-Id": "rid-1" } });
+    const failure = await ApiError.fromResponse(withId(500, "internal"));
+    expect(failure.requestId).toBe("rid-1");
+    expect(errorReference(failure)).toBe("rid-1");
+    expect(errorReference(await ApiError.fromResponse(withId(400, "invalid_body")))).toBeUndefined();
+    expect(errorReference(await ApiError.fromResponse(withId(503, "api_unavailable")))).toBeUndefined();
+    expect(errorReference(new Error("x"))).toBeUndefined();
   });
 
   it("falls back to http_<status> when the body is not JSON", async () => {

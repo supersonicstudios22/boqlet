@@ -52,8 +52,9 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   resolve the token hash, check expiry, revocation and the org's `publicLinksAllowed`, and
   return only what the link includes (BR-56). The app sends `X-Robots-Tag: noindex, nofollow`
   and `Referrer-Policy: no-referrer` for `/s/*` (`apps/app/next.config.ts`). The API rate-limits
-  public share requests per client address and instance, default 300/min
-  (`BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`, `boq/ShareController.java`; `429` over it). Signed
+  public share requests per client address and token on each instance, default 300/min
+  (`BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`, `boq/ShareController.java`), and 50 different tokens
+  per address a minute; over it `429 rate_limited` with `Retry-After` (TF-087). Signed
   URLs are issued per request for geometry and Excel.
 - **Admin endpoints** (`/admin/*`, F19) check `platformRole` on every request and answer `404`
   otherwise. They read org metadata through dedicated queries that never select content
@@ -130,9 +131,17 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   for the viewer.
 - Cookies: `boqlet_session` as above. No tokens in `localStorage`.
 - CSRF: `SameSite=Lax` plus the exact-Origin check on state-changing requests.
-- Rate limits **implemented**: native sign-in and set-password, public shares (see above).
-  **Planned, not implemented:** invitations (20/h per org), rpc calls (60/min per user), vendor
-  offer submissions (module). Uploads are bounded by plan limits.
+- Rate limits **implemented**: native sign-in and set-password, public shares (see above), and
+  invitation mail: invitations and resends together, 20 an hour per org
+  (`BOQLET_INVITATIONS_PER_HOUR`, `http/RateLimits` over `native_auth_limits`; `429 rate_limited`
+  with `Retry-After`, TF-043), and engine rpc calls from the library (check, template export and
+  import, code-list read and build): 60 a minute per user (`library/LibraryController`). **Planned,
+  not implemented:** the model names rpc, vendor offer submissions (module). Uploads are bounded by plan limits.
+- Text input (TF-176, `http/TextInput`): no string in a request body may hold NUL or an unpaired
+  surrogate; names and labels (`name`, `label`, `deviceLabel`) also refuse control characters and
+  text-direction formatting characters (`400 invalid_body`), as model file names do.
+- Logs: the access log masks share and invitation tokens in paths (`/api/v1/public/shares/***`,
+  TF-042).
 - Webhooks: `POST /webhooks/billing/{provider}` answers `400 unsupported_provider`, since there is
   no billing provider (manual billing, D7). Signature verification, a 5 min replay window and
   idempotency by event id are required once a provider is added.
@@ -142,6 +151,9 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 Append-only audit events for every write (BR-51) in `audit_events` (`audit/AuditWriter.java`),
 kept for the plan's `auditLogRetentionDays`. The action names are the ones the Java code writes
 (for example `model_version.created`, `run.completed`, `line.edited`), which differ in places
-from the list in F09. **Planned:** audit of failed permission
+from the list in F09. Account events have no org: `user.password_set`, `user.password_reset`,
+`session.opened`, `session.ended`, `auth.sign_in_failed` (no actor; the account as the entity
+when the address has one); a takeover (`session.replaced`, both device labels) is written into each
+of the user's orgs so an owner sees it (TF-044, TF-114). **Planned:** audit of failed permission
 checks on sensitive actions, of webhook signature failures (no provider yet) and of sign-in from
 new places (`sessions.place` exists but is never written).

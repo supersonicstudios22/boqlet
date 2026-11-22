@@ -36,7 +36,13 @@ class NativeAuthController {
         }
         credentials.limit("email:" + NativeCredentials.hash(email), 12);
         String secret = NativeCredentials.token();
-        Session session = credentials.signIn(email, body.password(), secret, body.deviceLabel(), body.takeover());
+        Session session;
+        try {
+            session = credentials.signIn(email, body.password(), secret, body.deviceLabel(), body.takeover());
+        } catch (com.boqlet.api.http.ApiException refused) {
+            if ("unauthenticated".equals(refused.body().code())) credentials.signInFailed(email);
+            throw refused;
+        }
         return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE,
                 ResponseCookie.from(SessionController.COOKIE, secret).secure(secure).httpOnly(true)
                         .sameSite("Lax").path("/api/v1").build().toString())

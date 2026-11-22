@@ -11,14 +11,17 @@ export class ApiError extends Error {
   readonly details: Record<string, unknown> | undefined;
   /** The whole error body, for errors that carry more than `details` (e.g. `SessionConflict`). */
   readonly body: unknown;
+  /** The answer's `X-Request-Id`: shown with a server error so a screenshot leads to the log line (TF-185). */
+  readonly requestId: string | undefined;
 
-  constructor(status: number, code: string, message: string, details?: Record<string, unknown>, body?: unknown) {
+  constructor(status: number, code: string, message: string, details?: Record<string, unknown>, body?: unknown, requestId?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.details = details;
     this.body = body;
+    this.requestId = requestId;
   }
 
   static async fromResponse(response: Response): Promise<ApiError> {
@@ -34,6 +37,7 @@ export class ApiError extends Error {
       body?.message ?? response.statusText ?? "",
       body?.details as Record<string, unknown> | undefined,
       body,
+      response.headers.get("X-Request-Id") ?? undefined,
     );
   }
 
@@ -45,6 +49,11 @@ export class ApiError extends Error {
 
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
+}
+
+/** The request id worth showing with an error: a server failure's (5xx), not a refusal's. */
+export function errorReference(error: unknown): string | undefined {
+  return isApiError(error) && error.status >= 500 && !isUnavailable(error) ? error.requestId : undefined;
 }
 
 /**

@@ -14,7 +14,7 @@ const files = (dir: string): string[] =>
     const f = path.join(dir, n);
     return statSync(f).isDirectory() ? files(f) : n.endsWith(".java") ? [f] : [];
   });
-const PREFIX = /^"(admin|org|member|session|project|model|model_version|boq|revision|version|run|decision|line|manual_line|export|preset|share_link|user)\.[a-z_]+"$/;
+const PREFIX = /^"(admin|auth|org|member|session|project|model|model_version|boq|revision|version|run|decision|line|manual_line|export|preset|share_link|user)\.[a-z_]+"$/;
 /** Literals with an audit-like shape that are not audit actions: realtime events, notification kinds, a state. */
 const NOT_ACTIONS = new Set(["boq.presence", "boq.new_version_available", "run.needs_input", "revision.review_requested", "session.revoked", "org.deleting", "export.xlsx"]);
 

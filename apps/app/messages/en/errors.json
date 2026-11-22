@@ -1,6 +1,7 @@
 {
   "generic": "Something went wrong. Try again.",
   "network": "The server could not be reached. Check your connection and try again.",
+  "reference": "Reference for support: {id}",
   "conflict": "Someone else changed this in the meantime. The latest version is shown now.",
   "limit": {
     "title": "Your plan's limit is reached",
@@ -80,12 +81,11 @@
     "storage_unavailable": "Files can't be stored or read right now. Try again in a moment.",
     "artifact_unavailable": "This part can't be loaded right now. Try again in a moment.",
     "unknown_field": "The request holds something the server doesn't know. Reload the page and try again.",
-    "invalid_param": "One of the values isn't valid. Check it and try again.",
-    "invalid_parameter": "One of the values isn't valid. Check it and try again.",
+    "invalid_parameter": "The request wasn't valid. Reload the page and try again.",
     "invalid_cursor": "The list changed while you were paging. Reload it.",
     "invalid_file": "The file can't be read. Check that it is the right kind of file and try again.",
     "no_template": "This kind of preset has no workbook template.",
-    "rate_limited": "Too many requests in a short time. Wait a minute and try again.",
+    "rate_limited": "Too many requests in a short time. Wait a while and try again.",
     "auth_throttled": "Too many attempts. Wait a few minutes before you try again.",
     "invalid_setup": "The link can't be used, or the password doesn't fit: use the newest link and a password of 15 to 128 characters.",
     "invitation_required": "You need an invitation to join. Ask someone in your organisation to invite you.",
@@ -97,6 +97,9 @@
     "native_auth_disabled": "Signing in with a password isn't available here.",
     "unsupported_provider": "That billing provider isn't available.",
     "engine_input": "The engine couldn't read what it was given. Try again; if it happens again, tell us.",
-    "invalid_origin": "The request came from another site and was refused. Reload boqlet and try again."
+    "invalid_origin": "The request came from another site and was refused. Reload boqlet and try again.",
+    "invalid_discipline": "Choose one of the disciplines in the organisation's federation settings.",
+    "invalid_scope": "The model's scope isn't valid. Check it and try again.",
+    "version_in_use": "A BoQ uses this model version, so it can't be deleted."
   }
 }

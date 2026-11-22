@@ -86,8 +86,7 @@ public class Orgs {
         } catch (DuplicateKeyException failure) {
             throw slugTaken(slug);
         }
-        record(org, actor, "org.updated", "org", org,
-                Map.of("before", Map.of("name", current.getName(), "slug", current.getSlug())));
+        record(org, actor, "org.updated", "org", org, changes(current, displayName, slug, settings));
         return access.require(org, actor).org();
     }
 
@@ -177,8 +176,11 @@ public class Orgs {
     }
 
     void record(UUID org, UUID actor, String action, String type, UUID subject, Map<String, ?> data) {
-        audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.USER, null, action, type, subject,
-                json.object(data));
+        record(org, actor, action, type, subject, json.object(data));
+    }
+
+    private void record(UUID org, UUID actor, String action, String type, UUID subject, ObjectNode data) {
+        audit.record(new RequestContext(actor, null, org, null), AuditWriter.ActorKind.USER, null, action, type, subject, data);
     }
 
     void enqueueEmail(UUID org, String kind, UUID entity, String email, Map<String, ?> data) {
@@ -213,6 +215,31 @@ public class Orgs {
             if (!field.getValue().isNull()) target.set(field.getKey(), field.getValue());
         });
         return target;
+    }
+
+    /**
+     * What an org update changed (BR-51, TF-119): name and slug before and after, as before, and every
+     * setting whose value changed, under `settings` on both sides (a new key is null before).
+     */
+    private ObjectNode changes(Org current, String name, String slug, ObjectNode settings) {
+        ObjectNode previous = json.object(current.getSettings());
+        ObjectNode data = json.object(Map.of());
+        ObjectNode before = data.putObject("before").put("name", current.getName()).put("slug", current.getSlug());
+        ObjectNode after = data.putObject("after").put("name", name).put("slug", slug);
+        ObjectNode settingsBefore = json.object(Map.of());
+        ObjectNode settingsAfter = json.object(Map.of());
+        settings.properties().forEach(entry -> {
+            var old = previous.get(entry.getKey());
+            if (!entry.getValue().equals(old)) {
+                settingsBefore.set(entry.getKey(), old == null ? com.fasterxml.jackson.databind.node.NullNode.getInstance() : old);
+                settingsAfter.set(entry.getKey(), entry.getValue());
+            }
+        });
+        if (!settingsAfter.isEmpty()) {
+            before.set("settings", settingsBefore);
+            after.set("settings", settingsAfter);
+        }
+        return data;
     }
 
     private boolean approvalEnabled(ObjectNode settings) {

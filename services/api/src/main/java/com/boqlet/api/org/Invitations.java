@@ -3,6 +3,7 @@ package com.boqlet.api.org;
 import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.http.ApiException;
+import com.boqlet.api.http.RateLimits;
 import com.boqlet.api.identity.IdentityService;
 import com.boqlet.contract.model.InviteMemberRequest;
 import com.boqlet.contract.model.Membership;
@@ -49,15 +50,30 @@ public class Invitations {
     private final IdentityService identities;
     private final EntitlementService limits;
     private final byte[] deliverySecret;
+    private final RateLimits rates;
+    private final int mailsPerHour;
 
     Invitations(JdbcTemplate database, OrgAccess access, Orgs orgs, IdentityService identities, EntitlementService limits,
-                @Value("${boqlet.auth.invitation-secret:}") String secret) {
+                @Value("${boqlet.auth.invitation-secret:}") String secret, RateLimits rates,
+                @Value("${BOQLET_INVITATIONS_PER_HOUR:20}") int mailsPerHour) {
         this.database = database;
         this.access = access;
         this.orgs = orgs;
         this.identities = identities;
         this.limits = limits;
         this.deliverySecret = secret.getBytes(StandardCharsets.UTF_8);
+        this.rates = rates;
+        this.mailsPerHour = Math.max(1, mailsPerHour);
+    }
+
+    /**
+     * Invitations and resends send mail through boqlet's SMTP to any address: at most 20 an hour per org
+     * (security.md "Rate limits", TF-043). Called before the request's transaction, after the role check,
+     * so a refused attempt counts and a member without the right can't use up the org's allowance.
+     */
+    public void throttle(UUID org, UUID actor) {
+        OrgAccess.checkRole(access.require(org, actor).role(), OWNER, ADMIN);
+        rates.take("invitations:" + org, mailsPerHour, java.time.Duration.ofHours(1));
     }
 
     public List<OrgInvitation> list(UUID org, UUID actor) {

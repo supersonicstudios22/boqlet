@@ -42,8 +42,7 @@ public final class NativeIdentityFilter extends OncePerRequestFilter {
                 if (!SAFE.contains(method) && !origin.equals(request.getHeader("Origin"))) {
                     throw IdentityService.failure(HttpStatus.FORBIDDEN, "invalid_origin", "Request must come from Boqlet.");
                 }
-                boolean publicRead = "GET".equals(method) && (path.equals("/api/v1/plans")
-                        || path.startsWith("/api/v1/invitations/") || path.startsWith("/api/v1/public/"));
+                boolean publicRead = com.boqlet.api.http.RequestPaths.publicRead(request);
                 boolean loginAction = "POST".equals(method) && (path.equals("/api/v1/auth/sign-in")
                         || path.equals("/api/v1/auth/set-password"));
                 if (!publicRead && !loginAction) {

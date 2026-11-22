@@ -92,6 +92,7 @@ class OrgController implements OrgsApi {
     @Override
     public ResponseEntity<OrgInvitation> inviteMember(UUID org, InviteMemberRequest request, UUID idempotencyKey) {
         UUID actor = actor();
+        invitations.throttle(org, actor);
         return ResponseEntity.status(HttpStatus.CREATED).body(idempotency.once(actor, idempotencyKey, 201, OrgInvitation.class,
                 () -> access.lock(org, actor, OrgRole.OWNER, OrgRole.ADMIN), () -> invitations.invite(org, actor, request)));
     }
@@ -99,6 +100,7 @@ class OrgController implements OrgsApi {
     @Override
     public ResponseEntity<OrgInvitation> resendOrgInvitation(UUID org, UUID id, UUID idempotencyKey) {
         UUID actor = actor();
+        invitations.throttle(org, actor);
         return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, OrgInvitation.class,
                 () -> access.lock(org, actor, OrgRole.OWNER, OrgRole.ADMIN), () -> invitations.resend(org, actor, id)));
     }

@@ -30,8 +30,7 @@ public final class IdentityFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = com.boqlet.api.http.RequestPaths.of(request);
         boolean admin = path.startsWith("/api/v1/admin/");
-        boolean publicRead = request.getMethod().equals("GET") &&
-                (path.equals("/api/v1/plans") || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/"));
+        boolean publicRead = com.boqlet.api.http.RequestPaths.publicRead(request);
         if (SecurityContextHolder.getContext().getAuthentication() instanceof JwtAuthenticationToken auth
                 && path.startsWith("/api/v1/") && !publicRead) {
             try {

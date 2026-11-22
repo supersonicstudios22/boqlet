@@ -53,11 +53,29 @@ class MeController implements MeApi {
         if (name != null && name.isBlank()) {
             throw IdentityService.failure(HttpStatus.BAD_REQUEST, "invalid_body", "The name can't be empty.");
         }
+        if (request.getLocale() != null && !languageTag(request.getLocale())) {
+            throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
+                    "The locale must be a language tag such as en or sr-Latn.", Map.of("field", "locale"));
+        }
         database.update("""
                 UPDATE users SET name = coalesce(?, name), locale = coalesce(?, locale), updated_at = now()
                 WHERE id = ?
                 """, name == null ? null : name.trim(), request.getLocale(), user);
         return ResponseEntity.ok(identities.user(user));
+    }
+
+    /**
+     * A well-formed BCP 47 language tag (TF-121). Not limited to the app's UI languages: mails come in
+     * more of them, and the app falls back to its default for a language it doesn't have.
+     */
+    static boolean languageTag(String value) {
+        if (value.isBlank() || !value.matches("[A-Za-z0-9-]{2,64}")) return false;
+        try {
+            new java.util.Locale.Builder().setLanguageTag(value);
+            return true;
+        } catch (java.util.IllformedLocaleException failure) {
+            return false;
+        }
     }
 
     @Override

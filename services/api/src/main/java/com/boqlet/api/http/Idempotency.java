@@ -34,7 +34,7 @@ public class Idempotency {
         } catch (IllegalArgumentException ignored) {
             // Return the contract's parameter error.
         }
-        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_param", "Idempotency-Key must be a UUID.", Map.of());
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_parameter", "Idempotency-Key must be a UUID.", Map.of());
     }
 
     @Transactional

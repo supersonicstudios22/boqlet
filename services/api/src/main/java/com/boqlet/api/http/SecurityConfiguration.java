@@ -45,8 +45,11 @@ class SecurityConfiguration {
                         // The error page answers what failed on the request dispatch (TF-071): it must not ask to sign in.
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
+                        // HEAD is a GET without the body: the same public routes (TF-083, RequestPaths.publicRead).
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/v1/plans", "/api/v1/invitations/*", "/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/billing/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/sign-in", "/api/v1/auth/set-password").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
@@ -63,8 +66,7 @@ class SecurityConfiguration {
             security.oauth2ResourceServer(oauth -> oauth.authenticationEntryPoint(unauthenticated)
                     .bearerTokenResolver(request -> {
                         String path = com.boqlet.api.http.RequestPaths.of(request);
-                        boolean publicRoute = request.getMethod().equals("GET") && (path.equals("/api/v1/plans")
-                                || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/"))
+                        boolean publicRoute = com.boqlet.api.http.RequestPaths.publicRead(request)
                                 || request.getMethod().equals("POST") && path.startsWith("/api/v1/webhooks/billing/");
                         return publicRoute ? null : bearer.resolve(request);
                     })

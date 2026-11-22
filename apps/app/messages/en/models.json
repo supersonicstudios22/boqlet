@@ -44,6 +44,7 @@
       "parse_error": "The model could not be processed.",
       "engine_unavailable": "The processing service was not available. Try again.",
       "cancelled": "Processing was cancelled.",
+      "upload_expired": "The upload wasn't finished in time. Upload the file again.",
       "too_large": "The file is too large to process. Split the model, or ask the owner about a plan with larger models.",
       "engine_timeout": "Processing took too long and was stopped.",
       "worker_lost": "Processing stopped unexpectedly. Try again.",

@@ -71,9 +71,19 @@ class ErrorResponsesTest {
         assertError(send(get("/api/v1/codelists/read", cookie).header("Origin", ORIGIN)
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()))), 413, "too_large");
-        // An unexpected failure (Postgres refuses NUL in text) is a logged 500, not a 401.
+        // NUL in a body is refused before it reaches Postgres (TF-176).
         assertError(send(get("/api/v1/me", cookie).header("Origin", ORIGIN).header("Content-Type", "application/json")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString("{\"name\":\"a\\u0000b\"}"))), 500, "internal");
+                .method("PATCH", HttpRequest.BodyPublishers.ofString("{\"name\":\"a\\u0000b\"}"))), 400, "invalid_body");
+        // An unexpected failure (here a database error) is a logged 500, not a 401.
+        db.execute("CREATE FUNCTION tf071_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'tf071'; END $$");
+        db.execute("CREATE TRIGGER tf071_fail BEFORE UPDATE OF name ON users FOR EACH ROW EXECUTE FUNCTION tf071_fail()");
+        try {
+            assertError(send(get("/api/v1/me", cookie).header("Origin", ORIGIN).header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString("{\"name\":\"Unexpected\"}"))), 500, "internal");
+        } finally {
+            db.execute("DROP TRIGGER tf071_fail ON users");
+            db.execute("DROP FUNCTION tf071_fail()");
+        }
         // The error page itself is not a route.
         assertThat(send(get("/error", null)).statusCode()).isEqualTo(401);
     }

@@ -2,8 +2,10 @@ package com.boqlet.api.library;
 
 import com.boqlet.api.identity.Login;
 import com.boqlet.api.http.Idempotency;
+import com.boqlet.api.http.RateLimits;
 import com.boqlet.contract.api.LibraryApi;
 import com.boqlet.contract.model.*;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
@@ -18,12 +20,14 @@ class LibraryController implements LibraryApi {
     private final LibraryFiles files;
     private final LibraryPreview previews;
     private final Idempotency idempotency;
+    private final RateLimits rates;
 
-    LibraryController(Library library, LibraryFiles files, LibraryPreview previews, Idempotency idempotency) {
+    LibraryController(Library library, LibraryFiles files, LibraryPreview previews, Idempotency idempotency, RateLimits rates) {
         this.library = library;
         this.files = files;
         this.previews = previews;
         this.idempotency = idempotency;
+        this.rates = rates;
     }
 
     @Override
@@ -84,7 +88,7 @@ class LibraryController implements LibraryApi {
 
     @Override
     public ResponseEntity<CheckResponse> checkPreset(CheckPresetRequest request) {
-        return ResponseEntity.ok(library.check(request, actor()));
+        return ResponseEntity.ok(library.check(request, rpcActor()));
     }
 
     @Override
@@ -102,21 +106,22 @@ class LibraryController implements LibraryApi {
     @Override
     public ResponseEntity<Void> downloadPresetTemplate(UUID preset, String source) {
         return ResponseEntity.status(HttpStatus.FOUND).cacheControl(CacheControl.noStore())
-                .location(files.template(preset, actor(), source)).build();
+                .location(files.template(preset, rpcActor(), source)).build();
     }
 
     @Override
     public ResponseEntity<TemplateImportResult> importPresetTemplate(UUID preset, MultipartFile file) {
-        return ResponseEntity.ok(files.templateImport(preset, actor(), file));
+        return ResponseEntity.ok(files.templateImport(preset, rpcActor(), file));
     }
 
     @Override
     public ResponseEntity<TableReadResponse> readCodeListFile(MultipartFile file) {
-        return ResponseEntity.ok(files.codeRead(actor(), file));
+        return ResponseEntity.ok(files.codeRead(rpcActor(), file));
     }
 
     @Override
     public ResponseEntity<CodeListBuildResponse> buildCodeList(CodeListBuildRequest request) {
+        rpcActor();
         return ResponseEntity.ok(files.codeBuild(request));
     }
 
@@ -126,5 +131,15 @@ class LibraryController implements LibraryApi {
 
     private static UUID actor() {
         return Login.current().userId();
+    }
+
+    /**
+     * The signed-in user, counted against the engine rpc limit: 60 calls a minute per user (check,
+     * template export and import, code-list read and build; security.md "Rate limits", TF-043).
+     */
+    private UUID rpcActor() {
+        UUID user = actor();
+        rates.take("rpc:" + user, 60, Duration.ofMinutes(1));
+        return user;
     }
 }

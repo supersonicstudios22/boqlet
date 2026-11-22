@@ -24,8 +24,12 @@ class ShareController implements SharingApi, PublicApi {
     private final PublicShares shares;
     private final Idempotency idempotency;
     private final HttpServletRequest request;
+    private static final int TOKENS_PER_ADDRESS = 50;
     private final int requestsPerMinute;
+    /** Requests this minute per address and token (F18 "per token and IP", TF-087). */
     private final Map<String, Integer> requests = new HashMap<>();
+    /** Different tokens an address asked for this minute: bounds the keys one address can add. */
+    private final Map<String, Integer> tokens = new HashMap<>();
     private long minute;
 
     ShareController(ShareLinks links, PublicShares shares, HttpServletRequest request, Idempotency idempotency,
@@ -75,50 +79,55 @@ class ShareController implements SharingApi, PublicApi {
 
     @Override
     public ResponseEntity<PublicShare> getPublicShare(String token) {
-        countRequest();
+        countRequest(token);
         return publicResponse(shares.get(token));
     }
 
     @Override
     public ResponseEntity<LinesPage> listPublicShareLines(String token, String cursor, String query) {
-        countRequest();
+        countRequest(token);
         return publicResponse(shares.lines(token, cursor, query));
     }
 
     @Override
     public ResponseEntity<LineDetail> getPublicShareLine(String key, String token) {
-        countRequest();
+        countRequest(token);
         return publicResponse(shares.detail(token, key));
     }
 
     @Override
     public ResponseEntity<SceneIndex> getPublicShareScene(String token, UUID version) {
-        countRequest();
+        countRequest(token);
         return publicResponse(shares.scene(token, version));
     }
 
     @Override
     public ResponseEntity<Void> getPublicShareGeometry(String token, UUID version) {
-        countRequest();
+        countRequest(token);
         return redirect(shares.geometry(token, version));
     }
 
     @Override
     public ResponseEntity<Void> getPublicShareExport(String token) {
-        countRequest();
+        countRequest(token);
         return redirect(shares.workbook(token));
     }
 
-    private synchronized void countRequest() {
-        long now = Instant.now().getEpochSecond() / 60;
-        if (minute != now) {
-            minute = now;
+    private synchronized void countRequest(String token) {
+        long now = Instant.now().getEpochSecond();
+        if (minute != now / 60) {
+            minute = now / 60;
             requests.clear();
+            tokens.clear();
         }
         String address = request.getRemoteAddr();
-        if ((!requests.containsKey(address) && requests.size() >= 20_000)
-                || requests.merge(address, 1, Integer::sum) > requestsPerMinute) {
-            throw BoqAccess.failure(HttpStatus.TOO_MANY_REQUESTS, "rate_limited", "Try again in a minute.");
+        String key = address + " " + token;
+        if (!requests.containsKey(key) && (requests.size() >= 20_000
+                || tokens.merge(address, 1, Integer::sum) > TOKENS_PER_ADDRESS)) {
+            throw com.boqlet.api.http.RateLimits.tooMany(60 - now % 60);
+        }
+        if (requests.merge(key, 1, Integer::sum) > requestsPerMinute) {
+            throw com.boqlet.api.http.RateLimits.tooMany(60 - now % 60);
         }
     }
 

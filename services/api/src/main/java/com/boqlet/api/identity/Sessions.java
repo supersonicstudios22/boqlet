@@ -63,23 +63,52 @@ public class Sessions {
                 INSERT INTO sessions (id, user_id, provider_session, status, device_label)
                 VALUES (?, ?, ?, 'active', ?) RETURNING
                 """ + VIEW, Sessions::map, id, login.userId(), login.providerSession(), device.trim());
+        record(login.userId(), id, "session.opened", id, json.createObjectNode()
+                .put("deviceLabel", created.getDeviceLabel()).put("takeover", previous != null));
         if (previous != null) {
             UUID replaced = previous.view().getId();
             database.update("UPDATE sessions SET replaced_by_session_id = ? WHERE id = ?", id, replaced);
-            audit.record(new RequestContext(login.userId(), id, null, null), AuditWriter.ActorKind.USER, null,
-                    "session.replaced", "session", replaced, json.createObjectNode().put("replacementId", id.toString()));
+            var data = json.createObjectNode().put("replacementId", id.toString())
+                    .put("replacedDeviceLabel", previous.view().getDeviceLabel())
+                    .put("replacementDeviceLabel", created.getDeviceLabel());
+            // F01 §10: an owner sees an account being passed around, so the takeover is in each of the user's orgs.
+            var orgs = database.queryForList("SELECT org_id FROM memberships WHERE user_id = ? ORDER BY org_id",
+                    UUID.class, login.userId());
+            if (orgs.isEmpty()) {
+                record(login.userId(), id, "session.replaced", replaced, data);
+            }
+            for (UUID org : orgs) {
+                audit.record(new RequestContext(login.userId(), id, org, null), AuditWriter.ActorKind.USER, null,
+                        "session.replaced", "session", replaced, data);
+            }
         }
         return created;
     }
 
+    /** An account event without an org (BR-51, TF-044): sessions, passwords, failed sign-ins. */
+    void record(UUID user, UUID session, String action, UUID entity, com.fasterxml.jackson.databind.JsonNode data) {
+        audit.record(new RequestContext(user, session, null, null), AuditWriter.ActorKind.USER, null,
+                action, action.startsWith("session.") ? "session" : "user", entity, data);
+    }
+
     public Session require(Login login, UUID id) {
         if (id != null) {
+            // The members table's "last active" (TF-118): written with the session's last_seen_at, at most
+            // every five minutes per membership.
             var current = database.query("""
-                    UPDATE sessions SET last_seen_at = now()
-                    WHERE id = ? AND user_id = ? AND provider_session = ? AND status = 'active'
-                        AND last_seen_at > now() - interval '12 hours'
-                    RETURNING
-                    """ + VIEW, Sessions::map, id, login.userId(), login.providerSession());
+                    WITH seen AS (
+                        UPDATE sessions SET last_seen_at = now()
+                        WHERE id = ? AND user_id = ? AND provider_session = ? AND status = 'active'
+                            AND last_seen_at > now() - interval '12 hours'
+                        RETURNING
+                    """ + VIEW + """
+                    ), active AS (
+                        UPDATE memberships SET last_active_at = now()
+                        WHERE user_id = ? AND EXISTS (SELECT 1 FROM seen)
+                            AND (last_active_at IS NULL OR last_active_at < now() - interval '5 minutes')
+                    )
+                    SELECT * FROM seen
+                    """, Sessions::map, id, login.userId(), login.providerSession(), login.userId());
             if (!current.isEmpty()) {
                 return current.getFirst();
             }
@@ -101,10 +130,14 @@ public class Sessions {
 
     @Transactional
     public void close(Login login) {
-        database.update("""
+        int ended = database.update("""
                 UPDATE sessions SET status = 'ended', ended_at = now()
                 WHERE id = ? AND user_id = ? AND provider_session = ? AND status = 'active'
                 """, login.session().getId(), login.userId(), login.providerSession());
+        if (ended == 1) {
+            record(login.userId(), login.session().getId(), "session.ended", login.session().getId(),
+                    json.createObjectNode().put("reason", "signed_out"));
+        }
     }
 
     private static Session map(ResultSet row, int index) throws SQLException {

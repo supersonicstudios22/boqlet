@@ -1,6 +1,7 @@
 package com.boqlet.api.identity;
 
 import com.boqlet.api.db.Ids;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -101,7 +102,8 @@ public class NativeCredentials {
                     """, (row, index) -> row.getObject(1, UUID.class), email)
                     .stream().findFirst().orElseThrow(NativeCredentials::invalidLink);
             db.update("UPDATE native_credentials SET password_hash = ? WHERE user_id = ?", encoded, user);
-            db.update("UPDATE sessions SET status = 'ended', ended_at = now() WHERE user_id = ? AND status = 'active'", user);
+            int ended = db.update("UPDATE sessions SET status = 'ended', ended_at = now() WHERE user_id = ? AND status = 'active'", user);
+            sessions.record(user, null, "user.password_reset", user, JsonNodeFactory.instance.objectNode().put("sessionsEnded", ended));
             return;
         }
         UUID user = Ids.newId();
@@ -109,6 +111,23 @@ public class NativeCredentials {
                 user, "native:" + user, email, name == null || name.isBlank() ? email : name.strip());
         if (created != 1) throw invalidLink();
         db.update("INSERT INTO native_credentials (user_id, password_hash) VALUES (?, ?)", user, encoded);
+        sessions.record(user, null, "user.password_set", user, JsonNodeFactory.instance.objectNode()
+                .put("via", operator == null ? "invitation" : "setup_link"));
+    }
+
+    /**
+     * A refused sign-in (TF-044), in its own transaction: the sign-in's rolled back with the refusal.
+     * The account, when the address has one, is the entity; nobody is the actor. An unknown address is
+     * not written down (it may be anyone's).
+     */
+    @Transactional
+    public void signInFailed(String email) {
+        UUID user = db.query("""
+                SELECT users.id FROM native_credentials JOIN users ON users.id = user_id
+                WHERE lower(email) = ? AND deleted_at IS NULL
+                """, (row, index) -> row.getObject(1, UUID.class), email).stream().findFirst().orElse(null);
+        sessions.record(null, null, "auth.sign_in_failed", user, JsonNodeFactory.instance.objectNode()
+                .put("reason", user == null ? "unknown_account" : "wrong_password"));
     }
 
     Login session(String cookie) {

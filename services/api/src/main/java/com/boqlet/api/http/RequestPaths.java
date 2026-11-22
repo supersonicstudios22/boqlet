@@ -18,4 +18,15 @@ public final class RequestPaths {
     public static String of(HttpServletRequest request) {
         return PATHS.getPathWithinApplication(request);
     }
+
+    /**
+     * The routes anyone may read without a session (permissions.md): `/plans`, `/public/*`,
+     * `/invitations/*`. HEAD is a GET without the body (RFC 9110), so it is public too (TF-083).
+     */
+    public static boolean publicRead(HttpServletRequest request) {
+        String method = request.getMethod();
+        if (!"GET".equals(method) && !"HEAD".equals(method)) return false;
+        String path = of(request);
+        return path.equals("/api/v1/plans") || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/invitations/");
+    }
 }
