@@ -46,7 +46,7 @@ translate (no Python-only tricks where a plain loop would do). Formulas are eval
 | `expr.py`, `log.py` | The safe expression evaluator; the calculation log | |
 | `diff.py` | Change report between two runs and their model versions, by line key and GlobalId (F08) | |
 | `preview.py` | Comparing a preset preview's lines with the current lines by key (F10) | |
-| `export_xlsx.py`, `sheets/` | Excel: the BoQ workbook; `boq_import.py` (edits imported back from Excel), `diff_export.py` (change report workbook), `templates.py` (preset Excel templates, P24) | |
+| `export_xlsx.py`, `sheets/` | Excel: the BoQ workbook; `boq_import.py` (edits imported back from Excel), `diff_export.py` (change report workbook), `templates.py` (preset Excel templates, P24), `xlsx_guard.py` (every user workbook opens through it: zip-bomb caps before openpyxl reads anything) | |
 | `codelist_import.py` | Code lists from CSV / TSV / Excel (read the table, then build codes from a column mapping) | |
 | `presets.py`, `paths.py` | Loading, flattening and validating presets against the schemas; where files live (env overrides) | |
 | `service.py`, `worker.py`, `worker_http.py`, `worker_queue.py`, `rpc.py`, `storage.py`, `cli.py`, `corpus.py`, `catalogue.py` | Wiring: preset ids to a run; the job contract (`parse`, `run`, `preview`, `diff`, `export_xlsx`, `import_boq_edits`); the HTTP transport (`POST /jobs/{kind}`, `POST /rpc/{op}`, `GET /health`); the Postgres queue consumer (`boqlet-worker`); quick calls (`check`, `names`, `codelist-read`, `codelist-build`, `expr-check`, `template-export`, `template-import`); file or S3 artifact storage; the terminal; the corpus run; the corpus catalogue | Contain engine logic |

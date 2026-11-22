@@ -75,7 +75,11 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   Container CPU and memory limits are set in `ops/pilot/compose.yaml`.
 - Spreadsheets (code lists, preset templates, BoQ edits; in the planned module also offers and
   pricebooks): parsed only in the worker or rpc, with openpyxl in read-only, data-only mode (no
-  formulas evaluated, no macros: `.xlsm` rejected). Size ≤ 20 MB.
+  formulas evaluated, no macros: `.xlsm` rejected). Size ≤ 20 MB. Before openpyxl reads anything,
+  `engine/ifc_boq/sheets/xlsx_guard.py` checks the zip directory: at most 4096 parts, at most 64 MB
+  expanded for code lists and templates (rpc) and 256 MB for BoQ edits (a job), and no part over
+  1 MB that expands more than 100 times. The rpc engine reads at most two workbooks at once; a third
+  waits up to 5 s, then gets `503` (the API answers `engine_unavailable`, try again).
 - Attachments (planned for the pricing module; the core has no attachment upload): any type,
   stored as-is, served with `Content-Disposition: attachment`, with the content type replaced by
   `application/octet-stream` for non-PDF/image types; virus scanning optional.

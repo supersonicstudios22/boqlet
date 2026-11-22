@@ -108,3 +108,27 @@ def test_rpc_answers_a_bomb_with_422(bomb, tmp_path, monkeypatch):
             "kind": "rule_set", "doc": rule, "library": list(library.values()),
             "file": base64.b64encode(bomb).decode("ascii")})
         assert response.status_code == 200 and "too large" in response.json()["error"], response.text
+
+
+def test_rpc_reads_at_most_a_few_workbooks_at_once_and_answers_busy_after_a_short_wait(tmp_path, monkeypatch):
+    """TF-187: each read may hold a few hundred MB, so parallel reads are bounded; a request over the bound
+    waits briefly, then gets 503 (Java: engine_unavailable, "try again in a moment")."""
+    from ifc_boq import rpc
+    storage = LocalStorage(tmp_path)
+    storage.put_bytes("codes", b"Code,Title\nA,Alpha\n")
+    monkeypatch.setattr(worker_http, "storage", lambda: storage)
+    monkeypatch.setattr(rpc, "WORKBOOK_WAIT_SECONDS", 0.1)
+    request = {"fileKey": "codes", "fileName": "codes.csv"}
+    with TestClient(worker_http.app) as client:
+        held = [rpc.WORKBOOK_READS.acquire(timeout=1) for _ in range(rpc.WORKBOOK_READ_SLOTS)]
+        assert all(held)
+        try:
+            busy = client.post("/rpc/codelist-read", json=request)
+            assert busy.status_code == 503 and "try again" in busy.json()["detail"] and busy.headers["Retry-After"]
+        finally:
+            for _ in held:
+                rpc.WORKBOOK_READS.release()
+        storage.put_bytes("bomb", workbook(8))
+        for _ in range(rpc.WORKBOOK_READ_SLOTS + 1):   # a refused workbook gives its slot back
+            assert client.post("/rpc/codelist-read", json={"fileKey": "bomb", "fileName": "codes.xlsx"}).status_code == 422
+        assert client.post("/rpc/codelist-read", json=request).status_code == 200

@@ -87,5 +87,7 @@ def invoke(op: str, request: dict):
         return rpc.call(op, request, storage())
     except FileNotFoundError as exc:
         raise HTTPException(404, "RPC input was not found") from exc
+    except rpc.Busy as exc:
+        raise HTTPException(503, str(exc), headers={"Retry-After": "5"}) from exc
     except (KeyError, TypeError, ValueError) as exc:
         raise HTTPException(422, str(exc)) from exc

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from base64 import b64decode, b64encode
+from contextlib import contextmanager
+from threading import BoundedSemaphore
 
 from . import codelist_import, presets
 from .expr import syntax_problem
@@ -11,6 +13,25 @@ from .worker import validate
 
 TEMPLATE_OPERATIONS = {"template-export", "template-import"}
 OPERATIONS = {"check", "names", "codelist-read", "codelist-build", "expr-check"} | TEMPLATE_OPERATIONS
+# A user's workbook may take a few hundred MB while it is read (TF-039 caps one at 64 MB expanded, about
+# 500 MB in memory at worst), so the rpc engine reads at most this many at once (TF-187).
+WORKBOOK_READ_SLOTS = 2
+WORKBOOK_READS = BoundedSemaphore(WORKBOOK_READ_SLOTS)
+WORKBOOK_WAIT_SECONDS = 5.0  # well inside the API's 15 s rpc timeout
+
+
+class Busy(RuntimeError):
+    """Every workbook slot stayed taken for the whole wait; the caller should try again shortly."""
+
+
+@contextmanager
+def _workbook_slot():
+    if not WORKBOOK_READS.acquire(timeout=WORKBOOK_WAIT_SECONDS):
+        raise Busy("The engine is reading other workbooks right now; try again in a moment.")
+    try:
+        yield
+    finally:
+        WORKBOOK_READS.release()
 
 
 def call(op: str, request: dict, storage: Storage) -> dict:
@@ -19,7 +40,9 @@ def call(op: str, request: dict, storage: Storage) -> dict:
 
         if op == "template-export":
             return {"xlsx": b64encode(templates.write(request)).decode("ascii")}
-        return templates.read(request, b64decode(request["file"], validate=True))
+        content = b64decode(request["file"], validate=True)
+        with _workbook_slot():
+            return templates.read(request, content)
     if op == "check":
         kind, doc, library = request["kind"], request["doc"], request.get("library")
         problems = presets.check(kind, doc, library)
@@ -41,12 +64,13 @@ def call(op: str, request: dict, storage: Storage) -> dict:
     if op == "codelist-read":
         key = request["fileKey"]
         data = storage.get_bytes(key)
-        try:
-            return codelist_import.read_table(request.get("fileName", key), data)
-        except ValueError:
-            raise
-        except Exception as exc:
-            raise ValueError(f"Could not read the file: {exc}") from exc
+        with _workbook_slot():
+            try:
+                return codelist_import.read_table(request.get("fileName", key), data)
+            except ValueError:
+                raise
+            except Exception as exc:
+                raise ValueError(f"Could not read the file: {exc}") from exc
     if op == "codelist-build":
         mapping = request["mapping"]
         if mapping.get("code") is None or mapping.get("title") is None:
