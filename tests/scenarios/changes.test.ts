@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
-import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
+import { readFile } from "node:fs/promises";
+import { DUPLEX, duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /** F08 §3–7 change report (FE-030): compare two runs, the cached diff, lines, elements, the export. */
@@ -162,4 +163,39 @@ describe("change report export (F08 §7)", () => {
     expect(file.ok).toBe(true);
     expect((await file.arrayBuffer()).byteLength).toBeGreaterThan(1000);
   });
+});
+
+describe("an edited line whose model changes (F08-AC3, BR-09, TF-093)", () => {
+  it("is listed with the engine's value under the edit, also with the |Δ%| filter, though the edited quantity stays", async () => {
+    const { data: org } = await api.POST("/orgs", { body: { name: "Changes Edits Firm", slug: slug("edits") } });
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex edits" } });
+    const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
+    const v1 = await uploadVersion(owner, model!.id, await duplexBytes(), "Duplex_A.ifc");
+    expect((await waitForVersion(owner, v1.id)).status).toBe("ready");
+    const bill = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } }, body: { name: "Edits" } })).data!;
+    const run = async () => {
+      const revision = (await api.GET("/boqs/{boqId}", { params: { path: { boqId: bill.id } } })).data!.currentRevision;
+      const { data } = await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: revision.id } } });
+      return finished(data!.run.id);
+    };
+    const first = await run();
+    const { data: lines } = await api.GET("/runs/{runId}/lines", { params: { path: { runId: first.id } } });
+    const partition = lines!.items.find((l) => l.key.startsWith("walls | Interior - Partition (92mm Stud)"))!;
+    expect(partition).toBeTruthy();
+    const quantity = Math.round(partition.quantity! * 110) / 100;
+    expect((await api.POST("/boqs/{boqId}/overrides", { params: { path: { boqId: bill.id } }, body: { lineKey: partition.key, quantity, reason: "Site survey" } })).response.status).toBe(200);
+    const edited = await run();
+    const v2 = await uploadVersion(owner, model!.id, new Uint8Array(await readFile(DUPLEX.replace(/\.ifc$/, "_v2.ifc"))), "Duplex_A_v2.ifc");
+    expect((await waitForVersion(owner, v2.id)).status).toBe("ready");
+    const current = (await api.GET("/boqs/{boqId}", { params: { path: { boqId: bill.id } } })).data!.currentRevision;
+    await api.PATCH("/revisions/{revisionId}", { params: { path: { revisionId: current.id } }, body: { inputs: { models: current.inputs.models.map((m) => ({ modelId: m.modelId, modelVersionId: v2.id, discipline: m.discipline })) } } });
+    const changed = await run();
+    const { diff } = await compare(changed.id, edited.id);
+    for (const query of [{}, { minDeltaPct: 1 }]) {
+      const line = (await allLines(diff.id, query)).find((l) => l.lineKey === partition.key);
+      expect(line, JSON.stringify(query)).toMatchObject({ change: "changed", before: { quantity }, after: { quantity }, delta: 0 });
+      expect(line!.before!.engineQuantity).toBeCloseTo(partition.quantity!, 2);
+      expect(line!.after!.engineQuantity).not.toBeCloseTo(partition.quantity!, 2);
+    }
+  }, 360_000);
 });

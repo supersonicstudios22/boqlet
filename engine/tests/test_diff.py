@@ -53,3 +53,34 @@ def test_large_diff_compares_40000_lines_under_five_seconds():
     changed = compare(base, {"lines": [{**lines[0], "quantity": 1}, *lines[1:]]})
     assert changed["summary"]["linesChanged"] == 1
     assert monotonic() - start < 5
+
+
+def test_an_edited_line_is_listed_when_the_model_under_it_changes(duplex_parsed):
+    """F08-AC3, BR-09 (TF-093): the edit stays, the engine's value under it moves, and the report says so.
+    Elements are compared by what the model gives them, not by the edit spread over them."""
+    changed, _ = parse_file(str(FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture_v2.ifc"))
+    key = "walls | Interior - Partition (92mm Stud) | False |  | m2"
+    edit = [{"questionId": "override:" + key, "scope": "project", "answer": {"quantity": 117.04, "reason": "site survey"}}]
+    first, second = run(duplex_parsed, decisions=edit), run(changed, decisions=edit)
+
+    def model(parsed, result, version):
+        return [{"name": "Architecture", "modelId": "arch", "parsed": parsed,
+                 "traceId": result["models"][0]["id"], "versionId": version}]
+
+    result = compare(first, second, model(duplex_parsed, first, "1"), model(changed, second, "2"),
+                     inputs_changed=["inputs.models"], from_decisions=edit, to_decisions=edit)
+    validate(result, "run-diff")
+    lines = {item["lineKey"]: item for item in result["lines"]}
+    edited = lines[key]
+    assert edited["change"] == "changed" and edited["causes"] == ["elements_removed"]
+    assert edited["before"]["quantity"] == edited["after"]["quantity"] == 117.04 and edited["delta"] == 0
+    assert edited["before"]["engineQuantity"] == pytest.approx(106.4, abs=0.011)
+    assert edited["after"]["engineQuantity"] == pytest.approx(96.38, abs=0.011)
+    expected = json.loads((Path(__file__).parent / "fixtures/duplex_v1_v2_diff.json").read_text(encoding="utf8"))
+    assert {item["guid"]: item["change"] for item in result["elements"]} == expected["elements"]
+    unedited = {k: v for k, v in lines.items() if k != key}
+    assert all("override_changed" not in item["causes"] for item in unedited.values()), unedited
+    from ifc_boq.sheets.diff_export import render
+    sheet = load_workbook(BytesIO(render(result, {})), read_only=True)["Lines"]
+    row = next(row for row in sheet.iter_rows(min_row=2, values_only=True) if row[1] == key)
+    assert row[5] == row[6] == 117.04 and row[10:12] == (edited["before"]["engineQuantity"], edited["after"]["engineQuantity"])

@@ -142,7 +142,8 @@ class Diffs {
         if (minimum != null) {
             sql.append("""
                      AND (row_data->>'change' <> 'changed' OR row_data->>'deltaPct' IS NULL
-                     OR abs((row_data->>'deltaPct')::numeric) >= :minimum)
+                     OR abs((row_data->>'deltaPct')::numeric) >= :minimum
+                     OR row_data->'before'->'engineQuantity' <> row_data->'after'->'engineQuantity')
                     """);
             args.addValue("minimum", minimum);
         }

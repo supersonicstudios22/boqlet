@@ -8,7 +8,17 @@ LINE_FIELDS = ("quantity", "unit", "description", "codes")
 
 
 def _snapshot(line):
-    return {field: line[field] for field in LINE_FIELDS}
+    """The line as the BoQ shows it; an edited quantity also keeps the engine's value under it (BR-09)."""
+    snapshot = {field: line[field] for field in LINE_FIELDS}
+    edit = line.get("overridden") or {}
+    if "quantity" in edit.get("fields", []):
+        snapshot["engineQuantity"] = edit.get("engineQuantity")
+    return snapshot
+
+
+def _edit(line):
+    """What the user edited, without the engine values it replaced (those move with the model)."""
+    return {k: v for k, v in (line.get("overridden") or {}).items() if not k.startswith("engine")} if line else None
 
 
 def _elements(model):
@@ -62,7 +72,7 @@ def _shares(lines, models):
     return output
 
 
-def _model_changes(before, after, old_shares, new_shares):
+def _model_changes(before, after, old_shares, new_shares, derived=frozenset()):
     old_models = {m["modelId"]: m for m in before}
     new_models = {m["modelId"]: m for m in after}
     changes, by_model = [], []
@@ -81,6 +91,10 @@ def _model_changes(before, after, old_shares, new_shares):
             a = old_shares.get((model_id, guid), {})
             b = new_shares.get((model_id, guid), {})
             keys = sorted(a.keys() | b.keys())
+            # Derived lines spread an edited source quantity over its elements; what the model gives an
+            # element is its share of the item lines.
+            measured_a = {key: share for key, share in a.items() if key not in derived}
+            measured_b = {key: share for key, share in b.items() if key not in derived}
             fields = []
             if left is None:
                 change = "added"
@@ -90,7 +104,7 @@ def _model_changes(before, after, old_shares, new_shares):
                 change = "changed"
                 fields = [field for field in ("class", "type", "name", "storey", "material")
                           if left[field] != right[field]]
-                if a != b or left["reported"] != right["reported"]:
+                if measured_a != measured_b or left["reported"] != right["reported"]:
                     fields.append("quantities")
                 if not fields:
                     continue
@@ -127,8 +141,7 @@ def _decision_changes(before, after):
 def _override_keys(before, after):
     a = {line["key"]: line for line in before["lines"]}
     b = {line["key"]: line for line in after["lines"]}
-    keys = {key for key in a.keys() | b.keys()
-            if a.get(key, {}).get("overridden") != b.get(key, {}).get("overridden")}
+    keys = {key for key in a.keys() | b.keys() if _edit(a.get(key)) != _edit(b.get(key))}
     guids = {entry["guid"] for key in keys for line in (a.get(key), b.get(key)) if line
              for entry in line.get("trace", {}).get("elements", []) if entry["guid"]}
     return keys, guids
@@ -138,7 +151,8 @@ def compare(before, after, from_models=(), to_models=(), *, inputs_changed=(), f
     a = {line["key"]: line for line in before["lines"] if not line.get("excluded")}
     b = {line["key"]: line for line in after["lines"] if not line.get("excluded")}
     a_shares, b_shares = _shares(a, from_models), _shares(b, to_models)
-    elements, by_model, model_causes, churn = _model_changes(from_models, to_models, a_shares, b_shares)
+    derived = {line["key"] for line in (*a.values(), *b.values()) if line["ruleKind"] == "derived"}
+    elements, by_model, model_causes, churn = _model_changes(from_models, to_models, a_shares, b_shares, derived)
     a_rules, b_rules = _rules(before), _rules(after)
     decisions, other_decisions = _decision_changes(from_decisions, to_decisions)
     overridden, overridden_guids = _override_keys(before, after)

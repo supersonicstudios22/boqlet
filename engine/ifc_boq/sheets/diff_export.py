@@ -48,8 +48,9 @@ def render(diff, meta):
     summary.column_dimensions["B"].width = 60
 
     lines = wb.create_sheet("Lines")
-    _table(lines, ["Group", "Line key", "Description", "Unit", "Change", "Before", "After", "Delta", "Delta %", "Causes"],
-           [28, 40, 48, 8, 10, 14, 14, 14, 10, 40])
+    _table(lines, ["Group", "Line key", "Description", "Unit", "Change", "Before", "After", "Delta", "Delta %", "Causes",
+                   "Engine before", "Engine after"],
+           [28, 40, 48, 8, 10, 14, 14, 14, 10, 40, 14, 14])
     group_by = meta.get("groupBy")
     for line in diff["lines"]:
         before, after = line.get("before") or {}, line.get("after") or {}
@@ -57,10 +58,12 @@ def render(diff, meta):
         group = shown.get("codes", {}).get(group_by, {}).get("path", [])
         _append(lines, [" / ".join(node["title"] for node in group), line["lineKey"], shown["description"],
                         shown["unit"], line["change"], before.get("quantity"), after.get("quantity"),
-                        line["delta"], line["deltaPct"], ", ".join(line["causes"])])
+                        line["delta"], line["deltaPct"], ", ".join(line["causes"]),
+                        # an edited quantity: the engine's value under the edit (BR-09)
+                        before.get("engineQuantity"), after.get("engineQuantity")])
         cells = lines[lines.max_row]
         cells[4].fill = PatternFill("solid", fgColor=FILLS[line["change"]])
-        for cell in cells[5:9]:
+        for cell in (*cells[5:9], *cells[10:12]):
             cell.number_format = "#,##0.000"
     lines.auto_filter.ref = lines.dimensions
 

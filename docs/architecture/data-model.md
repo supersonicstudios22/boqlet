@@ -351,7 +351,7 @@ grouped without loading the whole result.
 
 ### RunDiff (computed, cached)
 `{fromRunId, toRunId, jobId, summary, lines: LineChange[], elements: ElementChange[], questions: {new[], resolved[]}}`.
-- `LineChange`: `{lineKey, change: "added" | "removed" | "changed", before?: {quantity, unit, description, codes}, after?: {…}, delta?: number, deltaPct?: number, causes: ("elements_added" | "elements_removed" | "elements_changed" | "rules_changed" | "decision_changed" | "override_changed")[]}`
+- `LineChange`: `{lineKey, change: "added" | "removed" | "changed", before?: {quantity, unit, description, codes, engineQuantity?}, after?: {…} (`engineQuantity` only on an edited quantity: the engine's value under the edit, BR-09), delta?: number, deltaPct?: number, causes: ("elements_added" | "elements_removed" | "elements_changed" | "rules_changed" | "decision_changed" | "override_changed")[]}`
 - `ElementChange`: `{guid, model, change: "added" | "removed" | "changed", fields?: string[]}`
 
 ## Sharing

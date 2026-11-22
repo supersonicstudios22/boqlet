@@ -2183,6 +2183,13 @@ components:
         include: { $ref: "#/components/schemas/ShareInclude" }
         modelVersionIds: { type: array, items: { type: string, format: uuid }, description: for the viewer when included }
         madeWithBadge: { type: boolean }
+        numberFormat:
+          type: object
+          description: "The firm's separators (`OrgSettings.numberFormat`), so the page formats numbers like the firm (TF-021)"
+          properties:
+            decimal: { type: string, enum: [".", ","] }
+            thousands: { type: string, enum: [",", ".", " ", " ", "'", ""] }
+        dateFormat: { type: string, description: "The firm's date format (`OrgSettings.dateFormat`), e.g. dd.MM.yyyy" }
 
     # ── platform admin (F19) ──
     AdminOverview:
@@ -3324,6 +3331,7 @@ components:
           type: object
           properties:
             quantity: { type: [number, "null"] }
+            engineQuantity: { type: [number, "null"], description: "Only on a line whose quantity is edited: the engine's value under the edit (BR-09, TF-093)" }
             unit: { type: string }
             description: { type: string }
             codes: { type: object, additionalProperties: true }
@@ -3331,6 +3339,7 @@ components:
           type: object
           properties:
             quantity: { type: [number, "null"] }
+            engineQuantity: { type: [number, "null"], description: "Only on a line whose quantity is edited: the engine's value under the edit (BR-09, TF-093)" }
             unit: { type: string }
             description: { type: string }
             codes: { type: object, additionalProperties: true }
@@ -3389,6 +3398,14 @@ components:
         unit: { type: string }
         storey: { type: string }
         keys: { type: object, additionalProperties: true, description: "The values that split the line (`BoqLine.keys`), e.g. for an item text's sample" }
+        codes:
+          type: object
+          description: "classification id → the line's code and its filled item text, as in `BoqLine.codes` (TF-136)"
+          additionalProperties:
+            type: object
+            properties:
+              code: { type: string }
+              text: { type: string }
     PreviewResult:
       type: object
       description: >-

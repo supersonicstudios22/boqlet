@@ -2445,6 +2445,15 @@ export interface components {
             /** @description for the viewer when included */
             modelVersionIds?: string[];
             madeWithBadge?: boolean;
+            /** @description The firm's separators (`OrgSettings.numberFormat`), so the page formats numbers like the firm (TF-021) */
+            numberFormat?: {
+                /** @enum {string} */
+                decimal?: "." | ",";
+                /** @enum {string} */
+                thousands?: "," | "." | " " | " " | "'" | "";
+            };
+            /** @description The firm's date format (`OrgSettings.dateFormat`), e.g. dd.MM.yyyy */
+            dateFormat?: string;
         };
         AdminOverview: {
             period?: {
@@ -3595,6 +3604,8 @@ export interface components {
             change: "added" | "removed" | "changed";
             before?: {
                 quantity?: number | null;
+                /** @description Only on a line whose quantity is edited: the engine's value under the edit (BR-09, TF-093) */
+                engineQuantity?: number | null;
                 unit?: string;
                 description?: string;
                 codes?: {
@@ -3603,6 +3614,8 @@ export interface components {
             };
             after?: {
                 quantity?: number | null;
+                /** @description Only on a line whose quantity is edited: the engine's value under the edit (BR-09, TF-093) */
+                engineQuantity?: number | null;
                 unit?: string;
                 description?: string;
                 codes?: {
@@ -3664,6 +3677,13 @@ export interface components {
             /** @description The values that split the line (`BoqLine.keys`), e.g. for an item text's sample */
             keys?: {
                 [key: string]: unknown;
+            };
+            /** @description classification id → the line's code and its filled item text, as in `BoqLine.codes` (TF-136) */
+            codes?: {
+                [key: string]: {
+                    code?: string;
+                    text?: string;
+                };
             };
         };
         /** @description What a `preview` job's `output.previewResultUrl` (a signed GET URL, 7 days) returns (F10 §6): the lines of the previewed document and, when compared, what changed against the latest published version, by line key. The job's output also carries `presetVersionId` (what was previewed), `lines` (count) and `compare` (the counts). */

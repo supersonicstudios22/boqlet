@@ -4,7 +4,10 @@ export type Change = "added" | "removed" | "changed";
 export type ChangeCause = "elements_added" | "elements_removed" | "elements_changed"
   | "rules_changed" | "decision_changed" | "override_changed";
 
-type LineSnapshot = Pick<BoqLine, "quantity" | "unit" | "description" | "codes">;
+type LineSnapshot = Pick<BoqLine, "quantity" | "unit" | "description" | "codes"> & {
+  /** Only on a line whose quantity is edited: the engine's value under the edit (BR-09). A change of it lists the line. */
+  engineQuantity?: number | null;
+};
 
 export interface LineChange {
   lineKey: string;

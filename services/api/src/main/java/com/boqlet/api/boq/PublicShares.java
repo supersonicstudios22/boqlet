@@ -43,6 +43,15 @@ class PublicShares {
         var shown = links.shown(link.shownRun());
         var response = new PublicShare(link.firm(), info.getProjectName(), info.getBoqName(), null, null, null, info.getInclude())
                 .systems(List.of()).modelVersionIds(null).madeWithBadge(limits.enabled(link.org(), "exportWatermark"));
+        // The firm's number and date formats, so the page shows numbers like its own exports (TF-021).
+        database.query("SELECT settings->'numberFormat' AS number_format, settings->>'dateFormat' AS date_format FROM orgs WHERE id = ?",
+                (row, index) -> {
+                    if (row.getString("number_format") != null) {
+                        response.numberFormat(json.read(row.getString("number_format"), PublicShareNumberFormat.class));
+                    }
+                    if (row.getString("date_format") != null) response.dateFormat(row.getString("date_format"));
+                    return null;
+                }, link.org());
         if (shown != null) {
             var run = shown.run().run();
             response.revisionLabel(shown.label()).revisionStatus(PublicShare.RevisionStatusEnum.fromValue(shown.status()))

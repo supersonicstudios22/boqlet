@@ -101,6 +101,10 @@ describe("create and the public page (F18 §1–2)", () => {
     const shared = (await res.json()) as Schemas["PublicShare"];
     expect(shared).toMatchObject({ firmName: "Share Firm", projectName: "Shared Duplex", boqName: "Tender", revisionLabel: "A", revisionStatus: "draft", madeWithBadge: false });
     expect(shared.modelVersionIds).toHaveLength(1);
+    // TF-021: the page formats numbers and dates like the firm.
+    await as(lead).PATCH("/orgs/{orgId}", { params: { path: { orgId } }, body: { settings: { numberFormat: { decimal: ",", thousands: "." }, dateFormat: "dd.MM.yyyy" } } });
+    const formatted = (await (await pub(token)).json()) as Schemas["PublicShare"];
+    expect(formatted).toMatchObject({ numberFormat: { decimal: ",", thousands: "." }, dateFormat: "dd.MM.yyyy" });
     const lines = (await (await pub(token, "/lines")).json()) as Schemas["LinesPage"];
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);

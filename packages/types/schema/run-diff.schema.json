@@ -146,7 +146,15 @@
         },
         "before": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
+            "engineQuantity": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Only on a line whose quantity is edited: the engine's value under the edit (BR-09). A change of it lists the line."
+            },
             "quantity": {
               "type": [
                 "number",
@@ -167,16 +175,23 @@
             }
           },
           "required": [
-            "quantity",
-            "unit",
+            "codes",
             "description",
-            "codes"
-          ],
-          "additionalProperties": false
+            "quantity",
+            "unit"
+          ]
         },
         "after": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
+            "engineQuantity": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Only on a line whose quantity is edited: the engine's value under the edit (BR-09). A change of it lists the line."
+            },
             "quantity": {
               "type": [
                 "number",
@@ -197,12 +212,11 @@
             }
           },
           "required": [
-            "quantity",
-            "unit",
+            "codes",
             "description",
-            "codes"
-          ],
-          "additionalProperties": false
+            "quantity",
+            "unit"
+          ]
         },
         "delta": {
           "type": [
