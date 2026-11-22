@@ -124,3 +124,24 @@ def test_an_unedited_export_with_nested_groups_imports_as_nothing_to_apply(duple
     result = _coded(run(duplex_parsed), [two, two, ten, [("10", "Ten")]])
     data = export(result, {"boqId": "b", "classifications": [{"id": "nested", "name": "Nested"}]})
     assert boq_import.read(data, {"boqId": "b", "primary": "nested", "lines": result["lines"]}) == {"overrides": [], "manualItems": [], "problems": []}
+
+
+def test_user_text_that_starts_with_an_equals_sign_is_never_a_formula(duplex_parsed):
+    """TF-040 (security.md: no formulas evaluated): names, notes and labels stay text in every sheet; the
+    only formulas are the workbook's own amounts and subtotals."""
+    import copy
+    result = copy.deepcopy(run(duplex_parsed))
+    evil = '=HYPERLINK("https://example.invalid","codes")'
+    result["ruleSet"]["name"] = evil
+    result["ruleSet"]["meta"]["chain"] = "=1+1"
+    first = result["lines"][0]
+    first["notes"] = ["=2+2"]
+    meta = {"boqId": "b", "boq": "=3+3", "project": "=4+4", "revision": "=5", "modelName": evil, "modelId": "=6+6",
+            "dictionaries": ["=7+7"], "classifications": [{"id": "acme-cost-codes", "name": evil}],
+            "decisions": [{"questionId": "=q", "answer": "x", "note": "=8+8"}], "issueNote": "=9+9", "watermark": "=10"}
+    book = load_workbook(BytesIO(export(result, meta)))
+    formulas = [(sheet.title, cell.coordinate, cell.value) for sheet in book for row in sheet.iter_rows() for cell in row
+                if cell.data_type == "f"]
+    assert formulas and all(v.startswith(("=IF(OR(D", "=SUBTOTAL(9,")) for _, _, v in formulas), [f for f in formulas if not f[2].startswith(("=IF(OR(D", "=SUBTOTAL(9,"))]
+    texts = {cell.value for sheet in book for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str)}
+    assert evil in texts and "=8+8" in texts

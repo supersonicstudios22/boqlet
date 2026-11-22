@@ -52,8 +52,11 @@ def _header(ws, row, cols, widths):
 def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=()):
     for i, v in enumerate(values, 1):
         x = ws.cell(row=row, column=i, value=v)
-        if x.data_type == "f" and i not in formula_cols:
-            x.data_type = "s"
+        if x.data_type == "f":
+            if i in formula_cols:
+                vars(ws.parent).setdefault("boqlet_formulas", set()).add((ws.title, x.coordinate))
+            else:
+                x.data_type = "s"
         x.font, x.border = font, BOX
         if fill:
             x.fill = fill
@@ -67,6 +70,17 @@ def _decimals(value) -> int:
         return 2
     text = f"{round(value, 6):.6f}".rstrip("0")
     return len(text.split(".")[1])
+
+
+def _text_only(wb) -> None:
+    """Every formula the workbook didn't write on purpose becomes text (TF-040, security.md "no formulas
+    evaluated"): openpyxl makes any string starting with "=" a formula, wherever user text lands."""
+    own = getattr(wb, "boqlet_formulas", set())
+    for ws in wb:
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.data_type == "f" and (ws.title, cell.coordinate) not in own:
+                    cell.data_type = "s"
 
 
 def _qfmt(value, decimals=None):
@@ -384,6 +398,7 @@ def export(result: dict, meta: dict) -> bytes:
             del wb["Lines"]
     for sheet in wb.worksheets:
         sheet.sheet_view.showGridLines = False
+    _text_only(wb)
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
