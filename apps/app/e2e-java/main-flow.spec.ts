@@ -96,6 +96,10 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   expect(opened!.headers()["x-robots-tag"]).toBe("noindex, nofollow");
   await expect(pub.getByTestId("share-title")).toHaveText("Tender BoQ");
   await expect(pub.getByTestId("share-line").first()).toBeVisible();
+  // A line opens its explanation (F18-AC1; TF-085: the page crashed here).
+  await pub.getByTestId("share-line").first().click();
+  await expect(pub.getByTestId("share-detail")).toBeVisible();
+  await expect(pub.getByText("Something went wrong")).toHaveCount(0);
   await expect(pub.locator("body")).not.toContainText("Flow Owner");
   await visitor.close();
 });

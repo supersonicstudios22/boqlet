@@ -104,9 +104,12 @@ describe("create and the public page (F18 §1–2)", () => {
     const lines = (await (await pub(token, "/lines")).json()) as Schemas["LinesPage"];
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);
+    expect(lines.items.every((l) => Array.isArray(l.notes) && l.notes.length === 0)).toBe(true); // TF-085: required, never the team's notes
     const detail = await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`);
     expect(detail.status).toBe(200);
-    expect(((await detail.json()) as { log?: unknown }).log).toBeUndefined();
+    const shown = (await detail.json()) as Schemas["LineDetail"];
+    expect(shown.log).toBeUndefined();
+    expect(shown.notes).toEqual([]);
     expect((await pub(token, "/scene")).status).toBe(200);
     expect((await pub(token, `/geometry/${shared.modelVersionIds![0]}`)).status).toBe(302);
     expect((await pub(token, "/export")).status).toBe(404);

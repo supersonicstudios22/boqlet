@@ -88,7 +88,6 @@ class PublicShares {
                 """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true).toString(), LineDetail.class),
                 run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
-        detail.setNotes(null);
         detail.setLog(null);
         if (enabled(link.view().getInclude().getLog())) {
             detail.setLog(database.query("""
@@ -160,6 +159,7 @@ class PublicShares {
         source.retain("key", "ruleId", "ruleKind", "description", "unit", "quantity", "source",
                 "family", "keys", "trace", "codes", "location", "tags");
         source.put("sortIndex", index);
+        source.putArray("notes"); // the team's notes stay private; the field is required (TF-085)
         if (source.get("trace") instanceof ObjectNode trace) {
             trace.retain("formula", "params", "elements", "sourceLine", "steps");
             for (var step : trace.path("steps")) {
