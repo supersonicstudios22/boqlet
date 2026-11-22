@@ -1,5 +1,7 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { apiAs, createOrg, invitationToken, newEmail, newPerson, useSession, waitFor, type Person } from "./helpers";
+import { APP, apiAs, createOrg, invitationToken, newEmail, newPerson, useSession, waitFor, type Person } from "./helpers";
 
 /**
  * Smoke against Java: the browser parts of the test campaign's Batch 7 (the owner's answers, P54).
@@ -106,9 +108,36 @@ test("TF-139: before setup is finished, org pages lead to the wizard; the settin
   await expect(page).toHaveURL(new RegExp(`/${org.slug}/settings/general$`));
 });
 
+/**
+ * A BoQ from an uploaded Duplex (not the sample): its run asks the "stated vs measured" contradiction
+ * questions, choices with the suggestion preselected (the sample asks only name questions).
+ */
+async function uploadedDuplexBoq(owner: Person, name: string) {
+  const org = await createOrg(owner, `${name} Firm`);
+  const project = await apiAs<{ id: string }>(owner, "POST", `/orgs/${org.id}/projects`, { name: "Duplex" });
+  const model = await apiAs<{ id: string }>(owner, "POST", `/projects/${project.id}/models`, { name: "Architecture", discipline: "architecture" });
+  const bytes = await readFile(path.resolve(__dirname, "../../../fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc"));
+  const staged = await apiAs<{ version: { id: string }; upload: { method: string; url: string; headers?: Record<string, string> } }>(owner, "POST", `/models/${model.id}/versions`, {
+    fileName: "Ifc2x3_Duplex_Architecture.ifc",
+    sizeBytes: bytes.byteLength,
+  });
+  const put = await fetch(staged.upload.url, { method: staged.upload.method, headers: { ...(staged.upload.headers ?? {}), Origin: APP }, body: bytes });
+  expect(put.ok).toBe(true);
+  await apiAs(owner, "POST", `/model-versions/${staged.version.id}/complete`, {});
+  await waitFor("the Duplex parsed", async () => ((await apiAs<{ status: string }>(owner, "GET", `/model-versions/${staged.version.id}`)).status === "ready" ? true : undefined));
+  const boq = await apiAs<Boq>(owner, "POST", `/projects/${project.id}/boqs`, { name: "Duplex" });
+  await apiAs(owner, "POST", `/revisions/${boq.currentRevision.id}/runs`);
+  await waitFor("the Duplex run", async () => {
+    const boqs = await apiAs<Boq[]>(owner, "GET", `/projects/${project.id}/boqs`);
+    const status = boqs[0]?.currentRevision.currentRun?.status;
+    return status === "complete" || status === "needs_input" ? true : undefined;
+  });
+  return `/${org.slug}/projects/${project.id}/boqs/${boq.id}`;
+}
+
 test("TF-173: a click on the preselected suggested answer saves it @b7 @b7-suggested", async ({ page }) => {
   const owner = await newPerson("Sam Suggested");
-  const { url } = await sampleBoq(owner, "Suggested");
+  const url = await uploadedDuplexBoq(owner, "Suggested");
   await useSession(page.context(), owner);
   await page.goto(`${url}?tab=questions`);
   // An open question whose answer is a choice with the suggestion already checked.
@@ -118,5 +147,8 @@ test("TF-173: a click on the preselected suggested answer saves it @b7 @b7-sugge
   const saved = page.waitForResponse((r) => /\/api\/v1\/projects\/[^/]+\/decisions$/.test(r.url()) && r.request().method() === "POST");
   await row.locator('[data-testid="answer-control"] input[type="radio"]:checked').click();
   expect((await saved).ok()).toBe(true);
+  // Answered, it leaves the "unanswered" list (the default filter) and is listed as answered.
+  await expect(page.locator(`[data-testid="question-row"][data-question-id="${id}"]`)).toHaveCount(0);
+  await page.getByTestId("questions-state").selectOption("answered");
   await expect(page.locator(`[data-testid="question-row"][data-question-id="${id}"]`)).toHaveAttribute("data-answered", "true");
 });
