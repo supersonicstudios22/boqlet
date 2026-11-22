@@ -117,6 +117,7 @@ findings is already listed as a known limitation except where its Route says so 
 | B4 | engine and exports (S3/S4) | TF-051, TF-052, TF-053, TF-054, TF-055, TF-058, TF-059, TF-060, TF-105, TF-108, TF-177, TF-037, TF-036 |
 | B5 | docs, ops, contract wording | TF-002, TF-003, TF-027, TF-047, TF-048, TF-061, TF-062, TF-063, TF-064, TF-065, TF-066, TF-067, TF-068, TF-070, TF-072, TF-079, TF-082, TF-084, TF-141, TF-181 |
 | B6 | API-level test gaps (scenarios, JUnit, engine tests) | TF-004, TF-005, TF-008, TF-009, TF-010, TF-078, TF-092, TF-100, TF-101, TF-186 |
+| B7 | owner answers (P54, 2026-11-22, added in Stage 6: the first option of Q42–Q62) | TF-012 (c, d), TF-014, TF-028, TF-035, TF-036 (Q62), TF-038, TF-045, TF-056, TF-057, TF-080, TF-081, TF-086, TF-090, TF-096, TF-109, TF-122, TF-139, TF-140, TF-156, TF-173, TF-180 |
 
 Within a batch: S1 first, then S2, then by area so fix agents get disjoint files. Each fix comes with a test that fails
 before it (test-plan §11.2); a test gap is fixed by writing the test. The deferred browser-coverage task (TS-005) takes
@@ -552,7 +553,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Expected:** `409 project_archived` each time; no `true` write key in `permissions`.
 - **Actual:** (a) BoQ archive/restore lock with the project action `archive`, which is in `ARCHIVED_ACTIONS` (`ProjectAccess.java:31`; `Boqs.java:67,86`), and the restore path applies `name`/`description` (`Boqs.java:73-79`), so a BoQ in an archived project can be renamed; its `permissions.archive` stays `true` and the app offers archive/restore (`boqs/[boqId]/page.tsx:73`, `boq-header.tsx:138`). (b) withdraw and comment lock with `"view"` (`Boqs.java:187,198`); `BoqAccess.java:175-176` sets `withdraw`/`comment` without the project status; `review-tab.tsx:58` shows the comment box. (c) `ShareLinks.revoke` uses `projects.require` + role only (`ShareLinks.java:160-167`, `ProjectAccess.java:89-93`), while the link's `permissions.revoke` is `false`: the server allows what the UI hides. (d) `Decisions.promote` never checks project status (`Decisions.java:134-149`).
 - **Evidence:** `Set.of("view", "seeAudit", "archive")` (ProjectAccess.java:31); `access.lockBill(boq, actor, restore ? "archive" : "editBoqs")` (Boqs.java:67).
-- **Route:** fix now · B2 for (a) and (b); (c) and (d) owner (Q42)
+- **Route:** fix now · B2 for (a) and (b); (c) and (d) answered by the owner (Q42, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** a BoQ-level archive action refused while the project is archived; no name/description on restore without `editBoqs`; withdraw/comment with a write action; keys zeroed while archived; extend the F02-AC4 scenario.
 - **Retest:**
 
@@ -567,14 +568,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `details.required` from both paths; F09-AC3 and J3 say `code: four_eyes`; a contract test on each 403.
 - **Retest:**
 
-### TF-014 · S3 · question · java · owner
+### TF-014 · S3 · question · java · open
 - **Found by:** Stage 2 · R2 · code · `8d22de6`
 - **Spec:** F10 §6 ("Preview: pick a project and model version(s) **the user can access**"); org table "Library: create, edit, publish … org presets: owner, admin, library_editor"
 - **Steps:** a library editor who is `viewer` or `approver` on project P previews an org rule set on P's model version (`POST /presets/{id}/preview`).
 - **Expected:** the preview runs (they can see P and may edit the preset).
 - **Actual:** `403`: the server requires `editPresets` (lead, estimator) on the models' project (`LibraryPreview.java:36`); the picker offers every active project (`model-version-picker.tsx:23`); `Preset.permissions.preview` is `true` for everyone (`Library.java:355`).
 - **Evidence:** `projects.lock(selected.getFirst().project(), actor, "editPresets")`.
-- **Route:** owner (Q43 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q43, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** lock with `view` per F10 §6, or write "edit rights on the project" into F10 and permissions.md and filter the picker and `permissions.preview`.
 - **Retest:**
 
@@ -721,14 +722,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `55339a2`: screens S39–S44 and S12i.
 - **Retest:**
 
-### TF-028 · S4 · question · docs · owner
+### TF-028 · S4 · question · docs · open
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` "Who" (S12b questions, S12e log, S13 decisions: lead, estimator, approver; S12f setup: lead, estimator; S16 lead, estimator; S17 lead) vs `permissions.md` (viewers see project, models, BoQs, explanations, viewer, exports)
 - **Steps:** as P-VIEW open a BoQ and `/{org}/projects/{p}/decisions`.
 - **Expected:** one of the two specs.
 - **Actual:** viewers get Questions, Log and Setup read-only (`boqs/[boqId]/page.tsx:55-57` filters only Changes); the project sub-nav shows Decisions, Library and Settings to every role (`project-header.tsx:10-18`), read-only.
 - **Evidence:** `TABS.filter((k) => (k !== "changes" || can("seeAudit") || can("editBoqs")) && …)`.
-- **Route:** owner (Q44 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q44, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -798,14 +799,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-035 · S3 · question · docs · owner
+### TF-035 · S3 · question · docs · open
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** BR-51 ("Audit events are never edited or deleted, except when the whole org is deleted"), BR-57 vs F09 "org audit … retention by plan" and `plans-and-limits.md` `auditLogRetentionDays` (Free 30, "applied (maintenance purge)")
 - **Steps:** a Free org, advance 31 days, let the retention task run; read the org and project audit.
 - **Expected:** the owner decides: retention deletes (BR-51 needs the exception) or only limits what is shown.
 - **Actual:** `pruneAudit` deletes `audit_events` older than the plan's days, project events and mirrored admin actions included (`Maintenance.java:229-239`).
 - **Evidence:** `DELETE FROM audit_events WHERE id IN (…)`.
-- **Route:** owner (Q45 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q45, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -817,7 +818,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** usage only when `attempt.metered() && attempt.startedAt() != null` (`Jobs.java:291-296`): (a) nothing; (b) sample runs and the seeded Duplex parse are unmetered (`Runs.java:57-59`, `Models.java:214`), nothing (F02 says sample processing doesn't count as usage, so the open point is only whether an event with zero billing is still due); (c) a re-queue records nothing for the failed attempt (`Jobs.java:251-257`) and the next claim resets `started_at` (`:146-147`); a job cancelled during the retry wait counts the wait.
 - **Evidence:** the condition above.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** `579db30`: every ended metered job gets a usage event (cancelled too); a retried attempt's time is kept in `jobs.processing_ms` (V19) and the retry wait isn't counted. `ApiFoundationTest#aJobCancelledWhileQueuedIsMeteredWithItsEarlierAttempts` (failed first). **Owner:** do sample-project jobs get a zero-billed event? (still none).
+- **Fix:** `579db30`: every ended metered job gets a usage event (cancelled too); a retried attempt's time is kept in `jobs.processing_ms` (V19) and the retry wait isn't counted. `ApiFoundationTest#aJobCancelledWhileQueuedIsMeteredWithItsEarlierAttempts` (failed first). **Owner (Q62, P54):** a zero-billed event for sample-project jobs: B7.
 - **Retest:**
 
 ### TF-037 · S4 · inconsistency · java · fixed
@@ -831,14 +832,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `7704cd9` (engine), `852393e` (app texts), `9efea85` (Java: a failed version's code is one of the documented ones, `details.cause` keeps the job's; the HTTP-path `engine_timeout` is no longer retried; `state-machines.md` has `cancelled`; `ParseJobErrorsTest`).
 - **Retest:**
 
-### TF-038 · S4 · question · docs · owner
+### TF-038 · S4 · question · docs · open
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** `state-machines.md` ShareLink (no `expired → active`; "transitions not drawn here are not allowed") vs F18 §3 ("Editing a link changes its includes and expiry")
 - **Steps:** create a link with `expiresAt` in the past (accepted, `expired`); `PATCH` a future `expiresAt`; open the public URL.
 - **Expected:** the owner decides whether an expired link may be revived.
 - **Actual:** `update` refuses only revoked links (`ShareLinks.java:147-149`): the link is `active` again with the old token; creating with a past `expiresAt` isn't refused (`ShareLinks.java:104-109`).
 - **Evidence:** `if (current.getStatus() == ShareLink.StatusEnum.REVOKED) throw … invalid_transition`.
-- **Route:** owner (Q46 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q46, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -909,14 +910,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `user.password_set`, `user.password_reset`, `session.opened`, `session.ended`, `auth.sign_in_failed` through `AuditWriter`; add to F09's list; a `NativeAuthTest` assertion.
 - **Retest:**
 
-### TF-045 · S3 · question · ops · owner
+### TF-045 · S3 · question · ops · open
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:72-75` ("Files are parsed only in the worker, a separate container. The queue worker's database role may only execute the queue functions"); BE-D13
 - **Steps:** from a container on the backend network `POST http://engine:8788/rpc/codelist-read` with another org's `fileKey` (no credential); `docker exec boqlet-local-engine-1` boto3 `list_objects_v2` on the bucket.
 - **Expected:** a decision: scoped storage access for the workers and an authenticated HTTP worker, or the docs record that the network boundary is the only control.
 - **Actual:** the HTTP worker binds `0.0.0.0:8788` (`ops/pilot/engine.Dockerfile`) without authentication (`engine/ifc_boq/worker_http.py:40-91`; `WorkerClient.java:78` sends none); `rpc codelist-read` reads any key (`rpc.py:41-43`); engine and queue containers hold the same full-bucket SeaweedFS admin key as the API (`ops/pilot/compose.yaml:3-9,40-41,111-112,133-159`). A parser exploit or a foothold on the backend network reads, writes or deletes every tenant's files; `internal: true` networking is the only control and the docs don't say so.
 - **Evidence:** `AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?}` in both; `@app.post("/rpc/{op}") def invoke(op: str, request: dict)`.
-- **Route:** owner (Q47 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q47, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** a worker storage identity limited to sources and job prefixes; a shared bearer secret API ↔ worker; or the accepted risk in security.md.
 - **Retest:**
 
@@ -1030,25 +1031,25 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `9cbd591`: a quantity's number format uses the decimals the value has (≤ 6). `test_export_xlsx.py` (failed first).
 - **Retest:**
 
-### TF-056 · S3 · question · engine · owner
+### TF-056 · S3 · question · engine · open
 - **Found by:** Stage 2 · R6 · code + Duplex run · `8d22de6`
 - **Spec:** F06 §6 ("Exclude a line: it leaves the totals"; "quantity edits feed derived lines (EN-003)")
 - **Steps:** exclude a source line of a derived rule (the concrete wall line formwork derives from); generate.
 - **Expected:** the spec is silent; a user would expect the derived line to drop the excluded source, as for a quantity edit.
 - **Actual:** exclusions apply after derived lines (`pipeline.py:305` vs `:231`): the derived line still counts the excluded source; a quantity edit to 0 reduces it.
 - **Evidence:** Duplex `formwork-walls | m2`: 153.8 baseline, 153.8 after excluding `walls | Foundation - Concrete (417mm) | True |  | m2`, 24.97 after editing it to 0.
-- **Route:** owner (Q48 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q48, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** decide; then apply `excluded` before `run_derived` with a trace note, or document it in F06 §6.
 - **Retest:**
 
-### TF-057 · S3 · question · java · owner
+### TF-057 · S3 · question · java · open
 - **Found by:** Stage 2 · R6 · code · `8d22de6`
 - **Spec:** BR-25 ("Saving writes an Excel export … Later exports of a saved version return that same file")
 - **Steps:** save a version; make its `issued_boq_xlsx` export job fail every attempt.
 - **Expected:** retried or regenerable from the immutable run and frozen metadata.
 - **Actual:** the version stays `issued` with `frozen.exportIds[0]` pointing at an export with no `storage_key`; `startRun` keeps returning the failed job (`BoqExports.java:61-68`, checks `job_id IS NOT NULL`, not its status); download answers 404 (`:138`). Not reproduced.
 - **Evidence:** code read.
-- **Route:** owner (Q49 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q49, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** re-enqueue a failed frozen export with the stored metadata, or block the save until it succeeds.
 - **Retest:**
 
@@ -1294,25 +1295,25 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** docs in `55339a2` list the codes as answered. **Open:** one bad-parameter code; 429 declared on the public share operations (Java, contract).
 - **Retest:**
 
-### TF-080 · S4 · question · contract · owner
+### TF-080 · S4 · question · contract · open
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** F03 (`:84` lists `DELETE /models/{modelId}`); the contract's operations
 - **Steps:** diff the contract against the app's calls.
 - **Expected:** each operation used by the app or deliberately API-only.
 - **Actual:** 9 of 162 never called: `deleteModelVersion` (known), `archiveModel` (no UI removes a model; Java implements it, `ModelController.java:45-47`, the audit label exists; not in known-limitations or F03's status block), `setOverride`, `removeOverride` (superseded by `applyLineEdits`), `getRunResult`, `listOrgs`, `getOrg`, `getRevision`, `billingWebhook` (external). The app calls no path that isn't an operation.
 - **Evidence:** the diff.
-- **Route:** owner (Q50 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q50, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** decide "remove model" in the UI (or list it as a limitation); mark the rest API-only or retire them.
 - **Retest:**
 
-### TF-081 · S4 · inconsistency · java · owner
+### TF-081 · S4 · inconsistency · java · open
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md` "Authentication" (`tests/contract/auth.test.ts`: every other operation `401` without a session); `permissions.md:106` (*non-admins* get 404 on `/admin/*`)
 - **Steps:** `GET /api/v1/admin/overview` with no cookie, native mode and OIDC mode.
 - **Expected:** the same answer.
 - **Actual:** native (production) answers `404`: `NativeIdentityFilter.java:62` turns any failure on an admin path, `unauthenticated` and `session_expired` included, into 404; OIDC (the suites) answers `401`, which `auth.test.ts:24` asserts, so the suite tests the mode production doesn't use; an admin whose session expired gets 404, not sign-in.
 - **Evidence:** `IdentityFilter.java:43-50` rewrites only after a token was decoded.
-- **Route:** owner (Q51 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q51, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** 401/`session_expired` for missing or expired sessions and 404 only for signed-in non-admins, or document 404 for both and align the suite.
 - **Retest:**
 
@@ -1357,11 +1358,11 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `1be66cb`: public lines and line detail carry an empty `notes` (required by the contract; the team's notes stay private). Tests: `tests/scenarios/shares.test.ts` (`notes` is `[]` on every line and the detail; failed first: missing), `apps/app/e2e-java/main-flow.spec.ts` clicks a share line and expects the detail.
 - **Retest:** harness gate on `1be66cb` (clean clone): scenarios green, browser smoke 13/13 with the share-line click; CI 44980195142 green, deployed on P 2026-11-22 03:36 UTC.
 
-### TF-086 · S3 · question · docs · owner
+### TF-086 · S3 · question · docs · open
 - **Found by:** Stage 3/4 · s3a-shares · L · fc78b12
 - **Summary (spec, steps, actual, fix):** share shows a hand-edited quantity (4 → 1234.5) as plain measured value, source "measured", no mark, page and public Excel. BR-09 (share links show the engine's value, the edit and its reason) vs F18 §2 / BR-56 (no edit history). Evidence shares-result.json (q1.qtyEdited), public-export.json.
 - **Evidence:** session scratchpad `stage3/out/s3a-shares/` (`report.txt` and the scripts named)
-- **Route:** owner (Q52 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q52, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -1389,11 +1390,11 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-090 · S4 · question · docs · owner
+### TF-090 · S4 · question · docs · open
 - **Found by:** Stage 3/4 · s3a-matrix · L · fc78b12
 - **Summary (spec, steps, actual, fix):** project permissions.archive stays true while archived (needed to restore) vs permissions.md "false for every write while archived", test-plan C4, F02-AC4. ProjectAccess.ARCHIVED_ACTIONS = {view, seeAudit, archive}; projects.test.ts:100 asserts archive: true. Evidence matrix.md KEYS-archived-OWN/ADM/LEAD. Route owner. Fix: document restore as exception or split archive/restore.
 - **Evidence:** session scratchpad `stage3/out/s3a-matrix/` (`report.txt` and the scripts named)
-- **Route:** owner (Q53 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q53, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -1437,11 +1438,11 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-096 · S3 · bug · java · owner
+### TF-096 · S3 · bug · java · open
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** confirmed BoQ: archive (owner) 200 and restore (PATCH archived:false) 200, audited; while confirmed+archived, reopen and every write answer 409 boq_archived. Other 8 owner writes answer boq_confirmed. F09-AC4, BR-27. Evidence j3.json ownerWrites/reopen, j3b.json restore. Route owner (archivable when confirmed?). Fix: check boq_confirmed in archive/restore or document.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
-- **Route:** owner (Q54 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q54, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -1541,11 +1542,11 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5719dbc` (the unit edit's note names both units) and `9cbd591` (the BoQ's own manual-line count; the number format in words). `test_overrides.py`, `test_export_xlsx.py` (failed first).
 - **Retest:**
 
-### TF-109 · S4 · question · app · owner
+### TF-109 · S4 · question · app · open
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** notice collapse remembered per user per browser (localStorage keyed by user id, not-in-models.tsx:11); fresh profile shows it open. F06-AC8. Evidence g6-results.txt. Fix: user preferences, or spec "in this browser".
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
-- **Route:** owner (Q55 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q55, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -1645,11 +1646,11 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-122 · S4 · question · java · owner
+### TF-122 · S4 · question · java · open
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** every sign-in/set-password attempt counts toward the per-address limit, successes included: one office behind NAT (or the shared test host) is locked out after 45 sign-ins in 15 min (host bucket reached 47/45). security.md ("45 per source address, 12 per email"). Evidence native_auth_limits rows; NativeAuthController.java:31,44. Route owner.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
-- **Route:** owner (Q56 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q56, P54: the first option); fix now · B7 (owner answers)
 - **Fix:**
 - **Retest:**
 
@@ -1823,25 +1824,25 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** Java adds `by` (actor name) to these notification params; a test that renders every notification kind.
 - **Retest:**
 
-### TF-139 · S3 · question · app · owner
+### TF-139 · S3 · question · app · open
 - **Found by:** Stage 3 · L1 · L · fc78b12
 - **Spec:** F16 §1 / P18 ("the org's dashboard opens only when it is finished"); F16-AC6
 - **Steps:** new free org W, setup not started; open `/{org}`, `/{org}/projects`, `/{org}/library`, `/{org}/settings`, `/{org}/library/rule_set/new` directly.
 - **Expected:** per P18 the owner can't use the org before finishing the wizard (or the spec says which pages stay open).
 - **Actual:** only `/{org}` redirects to `/setup`; projects, library, settings and the new-preset form open, and the wizard page itself shows the sidebar links to them. The owner can create projects and presets before setup (the setup e2e only checks the dashboard).
 - **Evidence:** (session scratchpad `stage3/out/s3b-library/`) OUT\l1.json (`gate`), OUT\shots\l1-00-gate.png, wa-06-items.png (sidebar in the wizard).
-- **Route:** owner (Q57 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q57, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** gate every `/{org}` route for setup-capable roles until done, or write in F16 that only the dashboard is gated.
 - **Retest:**
 
-### TF-140 · S3 · question · docs · owner
+### TF-140 · S3 · question · docs · open
 - **Found by:** Stage 3 · K7 · L · fc78b12
 - **Spec:** F10-AC7 ("a later system version of 'As modelled' shows up in the clone"); the create form's "Changes on a rule set: … It follows the original's future versions."
 - **Steps:** 1. Clone org rule set "S3B Questions rules" v1 as "Based on it" and as "Independent copy" (browser), publish both. 2. Publish the original v2, v3 (walls m3). 3. Preview both clones on the Duplex.
 - **Expected:** the based-on clone measures walls in m3; the copy doesn't.
 - **Actual:** both stay m2: the published clone keeps `extendsVersionId` = original v1. It follows only when someone saves its draft again (then it extends v3), which is what `library-publish.test.ts` checks. Nothing tells the clone's editors that the original has a newer version, and BoQs using the clone's published version never get it.
 - **Evidence:** (session scratchpad `stage3/out/s3b-library/`) OUT\k7.json, k7c.json (`wallUnits: original m3, basedOn m2, independent m2`), k7d.json (re-save extends v3).
-- **Route:** owner (Q58 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q58, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** decide: follow at run time (flatten on the parent's latest) or say "follows on its next save" in F10 and the form, and show "a newer version of X exists" on the clone.
 - **Retest:**
 
@@ -2010,14 +2011,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** carry the reason in the `session.revoked` event (replaced / ended_by_support / expired) and add a sign-out message for an ended session.
 - **Retest:**
 
-### TF-156 · S4 · question · docs · owner
+### TF-156 · S4 · question · docs · open
 - **Found by:** Stage 3 · R5 ("every admin view is audited") · L · fc78b12
 - **Spec:** test-plan §7.3 R5 "every admin view is audited" vs F19 Security / BR-57 "Every admin action and every view of an org's detail page writes an audit event"
 - **Steps:** 1. As platform admin GET /admin/overview, /admin/funnel, /admin/orgs, /admin/orgs.csv, /admin/users?limit=1000, /admin/health, /admin/orgs/{id}/notes. 2. Count audit_events by the admin per action before and after.
 - **Expected:** the owner decides which: the plan's wording (every view) or F19's (detail views only).
 - **Actual:** only `GET /admin/orgs/{id}` writes `admin.org_viewed`; the seven reads above write nothing, including the CSV of every org with its owner's email and the users list with every user's email and orgs (personal data exported in bulk without a trace). Detail views are audited with `org_id` null, so they stay out of the org's log, as F19 says.
 - **Evidence:** (session scratchpad `stage3/out/s3b-admin/`) b3-funnel-audit.json (`before` = `afterReads`: admin.org_viewed 9 both times); script b3-funnel-audit.mjs.
-- **Route:** owner (Q59 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q59, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** either audit the list/CSV/users reads (at least `admin.orgs_exported`) or change R5's wording to F19's.
 - **Retest:**
 
@@ -2197,14 +2198,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `852393e`: the share description cell wraps. `a11y-layout.spec.ts`.
 - **Retest:** L: 360 px, Quantity at 336 px.
 
-### TF-173 · S4 · question · app · owner
+### TF-173 · S4 · question · app · open
 - **Found by:** Stage 4 · 4.5 FL-2 (all browsers) · L · fc78b12
 - **Spec:** F05 §4 "if the question carries `suggestion`, it is preselected and marked suggested"; F05 §2 "Answering writes a project decision".
 - **Steps:** 1. Generate the Duplex BoQ. 2. Questions tab: the "thickness/volume stated vs measured" contradiction questions show the RECOMMENDED radio already checked and a SUGGESTED tag. 3. Click the checked (recommended) option.
 - **Expected:** spec doesn't say. A user who agrees with the suggestion expects one click to accept it.
 - **Actual:** clicking the preselected radio fires no change: no `POST /projects/{p}/decisions` (waited 15 s) and the question stays unanswered. To accept the suggestion on one row you have to pick the other option and then switch back, or use the bulk bar. Same in all four browsers (found because the scripted "answer a question" step timed out until it picked the unchecked option).
 - **Evidence:** (session scratchpad `stage4/out/s4-compat/`) shots/chromium-11-fl2-questions.png; first Chromium run of journeys.mjs (step "answer a question" timed out waiting for the decisions response).
-- **Route:** owner (Q60 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q60, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** an "Accept" button next to a suggested answer, or don't check the radio (show the suggestion as a hint).
 - **Retest:** clicking accept writes a decision.
 
@@ -2275,14 +2276,14 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `f09befd` (positions per run, page by sort_index) and `9efea85` (each line's JSON stored at indexing in `run_lines.view`, V18, sent as stored; byte-identical to the typed path, asserted in `NativeWorkerTest`). `NativeWorkerTest#verifyLargeRunPages` (failed first).
 - **Retest:** L, 20,500 lines, 500-line pages, 20 clients 60 s: p95 **122 ms at the API** (access log, p50 80), 679 ms at a client through Docker Desktop's port forwarding on a loaded laptop (was 2,868). To confirm from a Linux client (Stage 7).
 
-### TF-180 · S2 · gap · ops · owner
+### TF-180 · S2 · gap · ops · open
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
 - **Spec:** v1-10 / nfr.md "Queue wait (p95) for interactive runs: ≤ 10 s on the standard pool at expected load" (capacity: 10 concurrent parse jobs, 30 runs/min); nfr.md federated pair "both parses in parallel"
 - **Steps:** 1. Local stack (HTTP transport, `BOQLET_ENGINE_HTTP_CONCURRENCY` default 1). 2. Upload the NBU Eng-CON file (6.3 s parse), 1.5 s later start a Duplex run (stack-contend.mjs). 3. Upload the NBU office pair as two models at once (stack-fed.mjs).
 - **Expected:** an interactive run starts within 10 s whatever parses run; the two parses run in parallel.
 - **Actual:** the run waited 5.36 s in queue (job created → started) behind the parse; the second parse of the pair waited 7.8 s for the first. One engine slot serves parses and runs, so a run waits for any parse ahead of it: behind the 9-min medium parse (nfr.md) it would wait minutes. The pilot defaults are the same shape: one queue worker, `ENGINE_QUEUE_CONCURRENCY` 1, model and general pool both `default` (ops/pilot/compose.yaml:115-116, 151-152). Idle, the queue wait is fine (p95 523 ms over 12 runs). `engine_timing.py --federated` parses in a process pool, so its parallel figure is not what the stack does.
 - **Evidence:** (session scratchpad `stage4/out/s4-perf/`) measure.log "contention: …", "fed parse con: … job queue 7755 ms"; application.yml `concurrency: ${BOQLET_ENGINE_HTTP_CONCURRENCY:1}`
-- **Route:** owner (Q61 in `docs/product/open-questions.md`)
+- **Route:** answered by the owner (Q61, P54: the first option); fix now · B7 (owner answers)
 - **Fix:** separate pools (or a reserved slot) for runs vs parses, concurrency ≥ 2 where the CPUs allow; or restate the target in nfr.md for a single-slot deployment.
 - **Retest:**
 
