@@ -51,3 +51,20 @@ def test_explain_substitutes_values():
 def test_no_python_eval():
     with pytest.raises(ExprError):
         E.evaluate("__import__('os')", CTX)
+
+
+@pytest.mark.parametrize("src,expected", [
+    ("ROUND(0.125, 0.01)", 0.13), ("ROUND(2.5)", 3), ("ROUND(-2.5)", -3), ("ROUND(1.005, 0.01)", 1.01), ("ROUND(2.4)", 2),
+])
+def test_round_takes_halves_away_from_zero_as_excel_does(src, expected):
+    """TF-059: not Python's banker's rounding."""
+    assert E.evaluate(src, CTX) == pytest.approx(expected, abs=1e-12)
+
+
+def test_line_rounding_takes_halves_up():
+    from ifc_boq.rules import RuleEngine
+    engine = RuleEngine.__new__(RuleEngine)
+    engine.val = lambda v: v
+    assert engine.round_(0.125, {"step": 0.01, "mode": "nearest"}) == 0.13
+    assert engine.round_(2.5, {"step": 1, "mode": "nearest"}) == 3
+    assert engine.round_(2.4999, {"step": 1, "mode": "nearest"}) == 2

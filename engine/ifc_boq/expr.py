@@ -240,6 +240,12 @@ def _num(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool)
 
 
+def round_half_up(q: float) -> float:
+    """Halves away from zero, as Excel's ROUND (not Python's banker's rounding, TF-059). The tolerance
+    absorbs float noise from dividing by a step (0.125 / 0.01 = 12.4999...)."""
+    return math.copysign(math.floor(abs(q) + 0.5 + 1e-9), q)
+
+
 def _step_round(fn):
     def f(x, step=None):
         if not _num(x):
@@ -274,7 +280,7 @@ def default_functions(broader: dict[str, str | None] | None = None) -> dict[str,
         "IF": lambda c, a, b=None: a if c else b,
         "MIN": mn,
         "MAX": mx,
-        "ROUND": _step_round(round),
+        "ROUND": _step_round(round_half_up),
         "CEIL": _step_round(math.ceil),
         "FLOOR": _step_round(math.floor),
         "ABS": lambda x: abs(x) if _num(x) else None,

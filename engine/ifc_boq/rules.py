@@ -17,7 +17,7 @@ import math
 import re
 from collections import Counter, defaultdict
 
-from .expr import Expr, fmt
+from .expr import Expr, fmt, round_half_up
 from .log import CalcLog
 from .templates import render as render_template
 from .trace_steps import collect, quantity_delta, slot, step
@@ -434,7 +434,7 @@ class RuleEngine:
             return v
         mode = self.val(rounding.get("mode")) or "nearest"
         q = v / step
-        q = math.ceil(q - 1e-9) if mode == "up" else math.floor(q + 1e-9) if mode == "down" else round(q)
+        q = math.ceil(q - 1e-9) if mode == "up" else math.floor(q + 1e-9) if mode == "down" else round_half_up(q)
         return round(q * step, 10)
 
     # ---------------------------------------------------------------- breakdown

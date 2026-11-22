@@ -220,7 +220,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 | `lineKey` | fields or expressions whose values split lines; same values are summed. The unit is always part of the key |
 | `bands` | split by numeric ranges of a field, e.g. height above 3.5 m; labels appended to the description |
 | `description` | template: `{type_name}`, `{thickness*1000}`, `{p.x}`, `{expr: ...}`; missing values render as "-" |
-| `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line) | |
+| `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line; `nearest` and `ROUND()` take halves away from zero, as Excel's ROUND: 0.125 at 0.01 is 0.13) | |
 | `onMissing` | flag (line kept, value missing noted), skip (element left out, warned), ask (blocking `missing_data` question), `{ "default": n }` (logged default) |
 | `claims` | double-count guard: two rules claiming the same name ("body", "finish_side_a") on one element give a warning |
 | `tags` | free labels that classification maps can match |
