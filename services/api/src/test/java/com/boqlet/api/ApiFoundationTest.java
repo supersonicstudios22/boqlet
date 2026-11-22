@@ -75,6 +75,8 @@ class ApiFoundationTest {
     @Autowired Invitations invitations;
     @Autowired EntitlementService entitlements;
     @Autowired jakarta.validation.Validator validator;
+    @Autowired com.boqlet.api.worker.Jobs jobs;
+    @Autowired org.springframework.transaction.support.TransactionTemplate transactions;
 
     @Test
     void healthUsesPostgresqlAndPreservesTheRequestId() throws Exception {
@@ -358,6 +360,29 @@ class ApiFoundationTest {
         var edit = new com.boqlet.contract.model.LineOverrideInput("line").sortAfter("previous line");
         assertThat(validator.validate(edit)).isEmpty();
         assertThat(validator.validate(edit.sortAfter("k".repeat(4001)))).hasSize(1);
+    }
+
+    /** TF-036 (BR-62): every parse, run and preview that ends has a usage event, a cancelled one too, with its earlier attempts' time. */
+    @Test
+    void aJobCancelledWhileQueuedIsMeteredWithItsEarlierAttempts() throws Exception {
+        var owner = session("owner");
+        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "owner", owner)
+                .content("{\"name\":\"Metering firm\",\"slug\":\"metering-firm\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "owner", owner)
+                .content("{\"name\":\"Metered\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        UUID actor = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", UUID.class);
+        UUID job = transactions.execute(status -> {
+            UUID id = jobs.enqueue("parse", UUID.fromString(org), UUID.fromString(project), actor, "modelVersion", Ids.newId(),
+                    "orgs/" + org + "/test/", java.util.Map.of(), 5);
+            // An attempt failed after 5 s and the job waits for its retry (no worker in this test claims it).
+            database.update("UPDATE jobs SET available_at = now() + interval '1 hour', attempts = 1, processing_ms = 5000 WHERE id = ?", id);
+            return id;
+        });
+        jobs.cancel(job, actor);
+        assertThat(database.queryForMap("SELECT outcome, duration_ms FROM usage_events WHERE job_id = ?", job))
+                .containsEntry("outcome", "cancelled").containsEntry("duration_ms", 5000L);
     }
 
     private Cookie session(String token) throws Exception {

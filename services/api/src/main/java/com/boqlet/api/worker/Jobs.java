@@ -20,6 +20,7 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -249,8 +250,12 @@ public class Jobs {
     }
 
     private void requeue(Attempt attempt) {
+        // The failed attempt's processing time counts (BR-62, TF-036); the wait for the retry doesn't: started_at
+        // is cleared until the next claim sets it again.
         database.update("""
                 UPDATE jobs SET status = 'queued', available_at = now() + (? * interval '10 seconds'),
+                                processing_ms = processing_ms + coalesce(greatest(0, (extract(epoch FROM now() - started_at) * 1000)::bigint), 0),
+                                started_at = NULL,
                                 worker_id = NULL, heartbeat_at = NULL, progress = NULL, worker_result = NULL, worker_announced = false
                 WHERE id = ?
                 """, attempt.number(), attempt.id());
@@ -288,11 +293,17 @@ public class Jobs {
                                 worker_id = NULL, heartbeat_at = NULL, worker_result = NULL WHERE id = ?
                 """, status, finished, output == null ? null : json.object(output).toString(),
                 error == null ? null : error.toString(), attempt.id());
-        if (attempt.metered() && METERED.contains(attempt.type()) && attempt.startedAt() != null) {
+        // A usage event for every parse, run and preview that ends, cancelled ones too (BR-62, TF-036): the
+        // earlier attempts' processing time plus this attempt's (none for a job cancelled while it waited).
+        if (attempt.metered() && METERED.contains(attempt.type())) {
             var metrics = result.path("metrics");
-            long duration = result.path("durationMs").asLong(java.time.Duration.between(attempt.startedAt(), finished).toMillis());
-            limits.recordUsage(attempt.org(), attempt.project(), attempt.id(), attempt.type(), attempt.startedAt(),
-                    Math.max(0, duration), metric(metrics, "modelBytes"), metric(metrics, "elementCount"), status);
+            long earlier = Objects.requireNonNullElse(database.queryForObject("SELECT processing_ms FROM jobs WHERE id = ?",
+                    Long.class, attempt.id()), 0L);
+            long current = attempt.startedAt() == null ? 0
+                    : result.path("durationMs").asLong(java.time.Duration.between(attempt.startedAt(), finished).toMillis());
+            limits.recordUsage(attempt.org(), attempt.project(), attempt.id(), attempt.type(),
+                    attempt.startedAt() == null ? finished : attempt.startedAt(),
+                    Math.max(0, earlier) + Math.max(0, current), metric(metrics, "modelBytes"), metric(metrics, "elementCount"), status);
         }
         notifyFinished(attempt, status, result);
     }
