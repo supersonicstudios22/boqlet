@@ -104,6 +104,6 @@ public class Notifications {
         } catch (NumberFormatException ignored) {
             // The caller can retry without a cursor.
         }
-        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_param", "The notification cursor is invalid.", Map.of());
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_parameter", "The notification cursor is invalid.", Map.of());
     }
 }

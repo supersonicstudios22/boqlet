@@ -71,7 +71,7 @@ public class OrgAccess {
     public static void checkRole(OrgRole actual, OrgRole... allowed) {
         if (allowed.length > 0 && Arrays.stream(allowed).noneMatch(role -> role == actual)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "forbidden", "This action requires a different role.",
-                    Map.of("requiredRole", allowed[0].getValue()));
+                    Map.of("required", allowed[allowed.length - 1].getValue()));
         }
     }
 

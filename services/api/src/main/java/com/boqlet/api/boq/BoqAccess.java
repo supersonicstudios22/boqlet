@@ -83,6 +83,13 @@ public class BoqAccess {
         }
     }
 
+    /** Writes the project role allows on an archived project (`archive`, `view`) still don't reach its BoQs (TF-012). */
+    static void writable(Scope scope) {
+        if (scope.project().getStatus() == Project.StatusEnum.ARCHIVED) {
+            throw failure(HttpStatus.CONFLICT, "project_archived", "The project is archived and read-only.");
+        }
+    }
+
     boolean approval(Project project, UUID actor) {
         return Boolean.TRUE.equals(orgs.require(project.getOrgId(), actor).org().getSettings().getApprovalRequired())
                 && billing.enabled(project.getOrgId(), "approvalWorkflow");
@@ -178,6 +185,10 @@ public class BoqAccess {
         out.put("confirm", live && !inReview && allowed(base, "confirm")
                 && (scope.project().getMyRole() == ProjectRole.LEAD || requiresApproval));
         out.put("reopen", scope.bill().status() == Boq.StatusEnum.CONFIRMED && !scope.bill().archived() && allowed(base, "reopen"));
+        // An archived project is read-only (permissions.md, F02-AC4, TF-012): only view and seeAudit stay.
+        if (scope.project().getStatus() == Project.StatusEnum.ARCHIVED) {
+            out.replaceAll((key, value) -> value && (key.equals("view") || key.equals("seeAudit")));
+        }
         return out;
     }
 

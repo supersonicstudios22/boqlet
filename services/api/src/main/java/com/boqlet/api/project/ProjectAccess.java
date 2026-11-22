@@ -42,11 +42,13 @@ public class ProjectAccess {
     private final JdbcTemplate database;
     private final StoredJson json;
     private final OrgAccess orgs;
+    private final com.boqlet.api.billing.EntitlementService entitlements;
 
-    ProjectAccess(JdbcTemplate database, StoredJson json, OrgAccess orgs) {
+    ProjectAccess(JdbcTemplate database, StoredJson json, OrgAccess orgs, com.boqlet.api.billing.EntitlementService entitlements) {
         this.database = database;
         this.json = json;
         this.orgs = orgs;
+        this.entitlements = entitlements;
     }
 
     record Listed(Project project, OffsetDateTime activity) {}
@@ -55,7 +57,7 @@ public class ProjectAccess {
         Project found = database.query(READ + " AND p.id = ?", this::map, actor, project).stream()
                 .findFirst().orElseThrow(ProjectAccess::missing).project();
         com.boqlet.api.http.LogContext.org(found.getOrgId());
-        return found;
+        return withApproval(found, approvalOn(found.getOrgId()));
     }
 
     public Project lock(UUID project, UUID actor, String action) {
@@ -83,12 +85,38 @@ public class ProjectAccess {
             String lower = query.toLowerCase(Locale.ROOT);
             params.addAll(List.of(lower, lower, lower));
         }
-        return database.query(sql + " ORDER BY activity DESC, p.id", this::map, params.toArray());
+        boolean approval = approvalOn(org);
+        var listed = database.query(sql + " ORDER BY activity DESC, p.id", this::map, params.toArray());
+        listed.forEach(item -> withApproval(item.project(), approval));
+        return listed;
+    }
+
+    /**
+     * The keys `approve` and `confirm` follow the org's approval setting (permissions.md, TF-015): with approval
+     * off nobody approves and only the lead confirms, as the BoQ's revision keys already say.
+     */
+    private static Project withApproval(Project project, boolean approval) {
+        if (!approval) {
+            project.getPermissions().put("approve", false);
+            if (project.getMyRole() != LEAD) project.getPermissions().put("confirm", false);
+        }
+        return project;
+    }
+
+    /** Approval is on when the org asks for it and its plan has the workflow (as `BoqAccess.approval`). */
+    private boolean approvalOn(UUID org) {
+        return Boolean.TRUE.equals(database.queryForObject(
+                "SELECT coalesce((settings->>'approvalRequired')::boolean, false) FROM orgs WHERE id = ?", Boolean.class, org))
+                && entitlements.enabled(org, "approvalWorkflow");
     }
 
     public void role(Project project, String action) {
-        if (!ACTIONS.get(action).contains(project.getMyRole())) {
-            throw error(HttpStatus.FORBIDDEN, "forbidden", "Your project role does not allow this.");
+        var allowed = ACTIONS.get(action);
+        if (!allowed.contains(project.getMyRole())) {
+            // permissions.md "Errors": `{"required": "<role>"}`, the least project role that may (TF-013).
+            String required = java.util.stream.Stream.of(VIEWER, ESTIMATOR, APPROVER, LEAD).filter(allowed::contains)
+                    .findFirst().orElse(LEAD).getValue();
+            throw new ApiException(HttpStatus.FORBIDDEN, "forbidden", "Your project role does not allow this.", Map.of("required", required));
         }
     }
 

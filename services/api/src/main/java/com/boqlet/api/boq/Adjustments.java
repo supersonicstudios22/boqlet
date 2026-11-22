@@ -209,6 +209,7 @@ class Adjustments {
             throw bad("invalid_body", "A manual line has an ID of at most " + MAX_MANUAL_ID + " characters and at most "
                     + MAX_MANUAL_ITEM + " characters in all.");
         }
+        shape(item);
         String code = required(item.path("id").asText(), "A manual line needs an ID.");
         required(item.path("description").asText(), "A manual line needs a description.");
         required(item.path("unit").asText(), "A manual line needs a unit.");
@@ -227,6 +228,44 @@ class Adjustments {
         }
         if (input.getSortHint() != null) output.put("sortHint", input.getSortHint());
         return output;
+    }
+
+    private static final Set<String> MANUAL_FIELDS = Set.of("id", "codes", "kind", "description", "unit", "quantity",
+            "formula", "amount", "tags", "enabled");
+    private static final Set<String> MANUAL_KINDS = Set.of("preliminary", "provisional_sum", "lump_sum", "daywork", "other");
+
+    /**
+     * The engine's `ManualItem` shape (rule-set.schema.json), checked here so a bad item is refused when it is
+     * added, not by every later run (TF-075). Optional fields sent as null are left out.
+     */
+    private static void shape(ObjectNode item) {
+        var nulls = new ArrayList<String>();
+        item.fieldNames().forEachRemaining(field -> {
+            if (!MANUAL_FIELDS.contains(field)) throw bad("invalid_body", "A manual line has no field " + field + ".");
+            if (item.get(field).isNull() && !Set.of("id", "kind", "description", "unit").contains(field)) nulls.add(field);
+        });
+        item.remove(nulls);
+        if (!item.path("id").isTextual() || !item.path("unit").isTextual()) throw bad("invalid_body", "A manual line needs a text ID and unit.");
+        if (!MANUAL_KINDS.contains(item.path("kind").asText())) {
+            throw bad("invalid_body", "A manual line's kind is one of " + String.join(", ", new java.util.TreeSet<>(MANUAL_KINDS)) + ".");
+        }
+        if (!(item.path("description").isTextual() || param(item.path("description")))) throw bad("invalid_body", "A manual line needs a text description.");
+        for (String number : List.of("quantity", "amount")) {
+            if (item.has(number) && !(item.get(number).isNumber() || param(item.get(number)))) throw bad("invalid_body", "A manual line's " + number + " is a number.");
+        }
+        if (item.has("formula") && !(item.get("formula").isTextual() || param(item.get("formula")))) throw bad("invalid_body", "A manual line's formula is text.");
+        if (item.has("enabled") && !(item.get("enabled").isBoolean() || param(item.get("enabled")))) throw bad("invalid_body", "A manual line's enabled is true or false.");
+        if (item.has("tags") && !(item.get("tags").isArray() && java.util.stream.StreamSupport.stream(item.get("tags").spliterator(), false).allMatch(JsonNode::isTextual))) {
+            throw bad("invalid_body", "A manual line's tags are texts.");
+        }
+        if (item.has("codes") && !(item.get("codes").isObject() && java.util.stream.StreamSupport.stream(item.get("codes").spliterator(), false).allMatch(JsonNode::isTextual))) {
+            throw bad("invalid_body", "A manual line's codes are texts by classification.");
+        }
+    }
+
+    /** A slot filled from the rule set's params: `{"param": "name"}`. */
+    private static boolean param(JsonNode value) {
+        return value.isObject() && value.size() == 1 && value.path("param").isTextual();
     }
 
     private void codes(BoqAccess.Scope scope, Map<String, String> values) {

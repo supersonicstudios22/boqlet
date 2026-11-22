@@ -80,7 +80,7 @@ class RunReads {
         int total = named.queryForObject("SELECT count(*)" + filter, args, Integer.class);
         List<LineGroup> groups = null;
         if (system != null && level != null) {
-            if (level < 1 || level > 50) throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_param", "Invalid grouping level.");
+            if (level < 1 || level > 50) throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "Invalid grouping level.");
             args.addValue("system", system).addValue("depth", level);
             groups = groups(filter.toString(), args);
             if (path == null || path.isEmpty()) return new LinesPage(List.of()).groups(groups).total(total).nextCursor(null);
@@ -284,7 +284,7 @@ class RunReads {
         } catch (NumberFormatException ignored) {
             // Leave bad offsets on the same API error path.
         }
-        throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_param", "Invalid page cursor.");
+        throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "Invalid page cursor.");
     }
 
     private static void filter(StringBuilder sql, MapSqlParameterSource args, String value, String name, String predicate) {

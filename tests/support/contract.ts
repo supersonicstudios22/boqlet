@@ -40,10 +40,6 @@ function resolve(doc: Json, pointer: string): { node: Json | undefined; pointer:
  * (`operationId status`) isn't checked.
  */
 const KNOWN_MISMATCHES: Record<string, string> = {
-  // The contract puts limit/current/max at the top level; Java, the app and every suite read them under `details`.
-  "#/components/responses/LimitReached": "TF-072",
-  // A flagged line's `quantity: null` is left out (non_null inclusion) by the by-key read only; the list keeps it.
-  "getLine 200": "Stage 6 Batch 6 report, new finding 1",
 };
 
 /** The schema of an operation's JSON response with this status: its own, the `NXX` or `default` one, else for an error the `Error` schema. */

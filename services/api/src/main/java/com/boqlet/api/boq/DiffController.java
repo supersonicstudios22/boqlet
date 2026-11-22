@@ -25,11 +25,18 @@ class DiffController {
 
     // OpenAPI describes both a cached RunDiff and an accepted Job for this route.
     @PostMapping(DiffsApi.PATH_COMPARE_RUNS)
-    ResponseEntity<?> compare(@PathVariable("runId") UUID run, @Valid @RequestBody CompareRunsRequest request) {
+    ResponseEntity<?> compare(@PathVariable("runId") UUID run, @Valid @RequestBody CompareRunsRequest request,
+                              @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) UUID key) {
         UUID actor = actor();
-        var outcome = idempotency.once(actor, idempotency.key(), 202, Diffs.Compare.class, () -> {
+        var outcome = idempotency.once(actor, key, 202, Diffs.Compare.class, () -> {
             runs.visible(run, actor);
-            runs.visible(request.getAgainstRunId(), actor);
+            try {
+                runs.visible(request.getAgainstRunId(), actor);
+            } catch (com.boqlet.api.http.ApiException hidden) {
+                // Another org's run answers like one that doesn't exist (TF-175), not "project not found".
+                if (hidden.status() == org.springframework.http.HttpStatus.NOT_FOUND) throw BoqAccess.missing("run");
+                throw hidden;
+            }
         }, () -> diffs.compare(run, request.getAgainstRunId(), actor));
         return outcome.diff() == null ? ResponseEntity.accepted().body(outcome.job()) : ResponseEntity.ok(outcome.diff());
     }

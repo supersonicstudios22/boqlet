@@ -2617,10 +2617,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** @description `402 limit_reached`: the limit, its current use and its maximum are in `details` (TF-072) */
         LimitError: components["schemas"]["Error"] & {
-            limit: string;
-            current: number;
-            max: number;
+            details: {
+                /** @description the entitlement, e.g. activeProjects, seats, processingMinutesPerMonth */
+                limit: string;
+                current: number;
+                max: number;
+            } & {
+                [key: string]: unknown;
+            };
         };
         UserRef: {
             /** Format: uuid */
@@ -2759,7 +2765,7 @@ export interface components {
             };
             /** @description e.g. dd.MM.yyyy (P35) */
             dateFormat?: string;
-            /** @default en */
+            /** @description en when not set (no `default`: a partial settings PATCH would reset it, TF-191) */
             defaultLanguage?: string;
         };
         OrgCreate: {
@@ -4162,6 +4168,15 @@ export interface components {
         };
         /** @description Not signed in */
         Unauthenticated: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Too many requests from this address (`rate_limited`); a public share allows 300 a minute per address by default, `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE` (TF-079) */
+        RateLimited: {
             headers: {
                 [name: string]: unknown;
             };
@@ -7994,6 +8009,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     listPublicShareLines: {
@@ -8020,6 +8036,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     getPublicShareLine: {
@@ -8045,6 +8062,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     getPublicShareScene: {
@@ -8071,6 +8089,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     getPublicShareGeometry: {
@@ -8093,6 +8112,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     getPublicShareExport: {
@@ -8114,6 +8134,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
         };
     };
     adminOverview: {

@@ -1427,10 +1427,16 @@ export interface components {
         Permissions: {
             [key: string]: boolean;
         };
+        /** @description `402 limit_reached`: the limit, its current use and its maximum are in `details` (TF-072) */
         LimitError: components["schemas"]["Error"] & {
-            limit: string;
-            current: number;
-            max: number;
+            details: {
+                /** @description the entitlement, e.g. activeProjects, seats, processingMinutesPerMonth */
+                limit: string;
+                current: number;
+                max: number;
+            } & {
+                [key: string]: unknown;
+            };
         };
         UploadInstructions: {
             /** @enum {string} */

@@ -80,7 +80,7 @@ class LibraryFiles {
     }
 
     private Map<String, Object> input(PresetCatalog.Head head, String source) {
-        if (!Set.of("draft", "latest", "empty").contains(source)) throw invalid("invalid_param", "Choose a template source.");
+        if (!Set.of("draft", "latest", "empty").contains(source)) throw invalid("invalid_parameter", "Choose a template source.");
         UUID id = source.equals("latest") || head.draft() == null ? head.published() : head.draft();
         if (id == null) throw new ApiException(HttpStatus.CONFLICT, "no_draft", "The preset has no draft or published version.", Map.of());
         var version = catalog.version(id);

@@ -65,6 +65,8 @@ public class Boqs {
         // `archived: false` restores an archived BoQ: the lead's, like archiving (F04 §6).
         boolean restore = Boolean.FALSE.equals(archived);
         var scope = access.lockBill(boq, actor, restore ? "archive" : "editBoqs");
+        // The project action `archive` stays allowed on an archived project (to unarchive it); its BoQs don't (TF-012).
+        if (restore) BoqAccess.writable(scope);
         if (restore && scope.bill().archived()) {
             database.update("UPDATE boqs SET archived = false, updated_at = now() WHERE id = ?", boq);
             event(scope, actor, "boq.restored", "boq", boq, Map.of("name", scope.bill().name()));
@@ -84,6 +86,7 @@ public class Boqs {
     public Boq archive(UUID boq, UUID actor) {
         // Archiving is the lead's (F04 §6), as the BoQ's `archive` permission says.
         var scope = access.lockBill(boq, actor, "archive");
+        BoqAccess.writable(scope);
         if (!scope.bill().archived()) {
             database.update("UPDATE boqs SET archived = true, updated_at = now() WHERE id = ?", boq);
             event(scope, actor, "boq.archived", "boq", boq, Map.of());
@@ -128,7 +131,7 @@ public class Boqs {
         var scope = access.lockRevision(id, actor, "saveVersion");
         live(scope);
         if (!access.approval(scope.project(), actor)) throw conflict("approval_off", "Approval is disabled for this organisation.");
-        if (scope.revision().status() != RevisionStatus.DRAFT) throw conflict("invalid_transition", "This version is in review already.");
+        if (scope.revision().status() != RevisionStatus.DRAFT) throw transition("This version is in review already.", scope.revision().status().getValue());
         confirmManual(request.getNotModelledConfirmed());
         var reviewers = new LinkedHashSet<>(request.getReviewerIds());
         if (reviewers.isEmpty() || reviewers.stream().anyMatch(Objects::isNull)) {
@@ -153,7 +156,7 @@ public class Boqs {
             addComment(id, actor, request.getMessage().strip(), null, null);
         }
         event(scope, actor, "revision.submitted", "revision", id, Map.of("reviewers", reviewers.size()));
-        for (UUID reviewer : reviewers) if (!reviewer.equals(actor)) notify(scope, reviewer, "revision.review_requested", "reviews", "review");
+        for (UUID reviewer : reviewers) if (!reviewer.equals(actor)) notify(scope, reviewer, "revision.review_requested", "reviews", "review", actor, Map.of());
         return revision(id, actor);
     }
 
@@ -161,7 +164,7 @@ public class Boqs {
     public BoqRevision review(UUID id, UUID actor, String comment, boolean approve) {
         var scope = access.lockRevision(id, actor, "approve");
         live(scope);
-        if (scope.revision().status() != RevisionStatus.IN_REVIEW) throw conflict("invalid_transition", "This version is not in review.");
+        if (scope.revision().status() != RevisionStatus.IN_REVIEW) throw transition("This version is not in review.", scope.revision().status().getValue());
         if (approve) {
             fourEyes(scope, actor);
             ready(scope);
@@ -177,7 +180,8 @@ public class Boqs {
         }
         event(scope, actor, approve ? "revision.approved" : "revision.changes_requested", "revision", id, Map.of());
         if (scope.revision().submitter() != null && !scope.revision().submitter().equals(actor)) {
-            notify(scope, scope.revision().submitter(), approve ? "revision.approved" : "revision.changes_requested", "reviews", "review");
+            notify(scope, scope.revision().submitter(), approve ? "revision.approved" : "revision.changes_requested", "reviews", "review",
+                    actor, Map.of());
         }
         return revision(id, actor);
     }
@@ -185,9 +189,15 @@ public class Boqs {
     @Transactional
     public BoqRevision withdraw(UUID id, UUID actor) {
         var scope = access.lockRevision(id, actor, "view");
+        BoqAccess.writable(scope);
         live(scope);
         if (!BoqAccess.allowed(access.viewRevision(scope, actor).getPermissions(), "withdraw")) {
-            throw conflict("invalid_transition", "The review cannot be withdrawn.");
+            var state = scope.revision().status();
+            // A role that may not withdraw is a 403 (TF-030); a version that isn't in review is the transition's 409.
+            if (state == RevisionStatus.IN_REVIEW || state == RevisionStatus.APPROVED) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "forbidden", "Your role cannot withdraw this review.", Map.of("required", "estimator"));
+            }
+            throw transition("The review cannot be withdrawn.", state.getValue());
         }
         withdrawIfReview(scope, actor, "withdrawn");
         return revision(id, actor);
@@ -196,12 +206,17 @@ public class Boqs {
     @Transactional
     public ReviewComment comment(UUID id, UUID actor, AddReviewCommentRequest request) {
         var scope = access.lockRevision(id, actor, "view");
+        BoqAccess.writable(scope);
         live(scope);
-        if (scope.revision().status() != RevisionStatus.IN_REVIEW) throw conflict("invalid_transition", "This version is not in review.");
+        if (scope.revision().status() != RevisionStatus.IN_REVIEW) throw transition("This version is not in review.", scope.revision().status().getValue());
         if (!BoqAccess.allowed(access.viewRevision(scope, actor).getPermissions(), "comment")) {
-            throw BoqAccess.failure(HttpStatus.FORBIDDEN, "forbidden", "Your role cannot comment on this review.");
+            throw new com.boqlet.api.http.ApiException(HttpStatus.FORBIDDEN, "forbidden", "Your role cannot comment on this review.", Map.of("required", "estimator"));
         }
         UUID comment = addComment(id, actor, text(request.getText(), "The comment is empty."), request.getLineKey(), null);
+        // BR-51 (TF-091): a review comment changes data. The text stays in the review; the event says where.
+        var where = new java.util.LinkedHashMap<String, Object>(Map.of("commentId", comment));
+        if (request.getLineKey() != null) where.put("lineKey", request.getLineKey());
+        event(scope, actor, "revision.commented", "revision", id, where);
         return access.comments(id, null).stream().filter(value -> value.getId().equals(comment)).findFirst().orElseThrow();
     }
 
@@ -210,9 +225,9 @@ public class Boqs {
         var scope = access.lockBill(id, actor, "confirm");
         boolean approval = access.approval(scope.project(), actor);
         if (!approval && scope.project().getMyRole() != ProjectRole.LEAD) {
-            throw BoqAccess.failure(HttpStatus.FORBIDDEN, "forbidden", "Only a project lead can confirm this BoQ.");
+            throw new com.boqlet.api.http.ApiException(HttpStatus.FORBIDDEN, "forbidden", "Only a project lead can confirm this BoQ.", Map.of("required", "lead"));
         }
-        if (scope.bill().status() == Boq.StatusEnum.CONFIRMED) throw conflict("invalid_transition", "The BoQ is already confirmed.");
+        if (scope.bill().status() == Boq.StatusEnum.CONFIRMED) throw transition("The BoQ is already confirmed.", scope.bill().status().getValue());
         live(scope);
         if (scope.revision().status() == RevisionStatus.IN_REVIEW) throw conflict("revision_in_review", "Finish or withdraw the review first.");
         var previous = scope.bill().latest() == null ? null : access.readVersion(scope.bill().latest());
@@ -229,7 +244,7 @@ public class Boqs {
                     updated_at = now() WHERE id = ?
                 """, saved, actor, id);
         event(scope, actor, "boq.confirmed", "boq", id, Map.of("revisionId", saved));
-        notifyMembers(scope, actor, "boq.confirmed", "versions", null);
+        notifyMembers(scope, actor, "boq.confirmed", "versions", null, Map.of());
         return access.view(access.bill(id, actor), actor);
     }
 
@@ -237,7 +252,7 @@ public class Boqs {
     public Boq reopen(UUID id, UUID actor, String reason) {
         var scope = access.lockBill(id, actor, "reopen");
         if (scope.bill().archived()) throw conflict("boq_archived", "The BoQ is archived.");
-        if (scope.bill().status() != Boq.StatusEnum.CONFIRMED) throw conflict("invalid_transition", "Only a confirmed BoQ can be reopened.");
+        if (scope.bill().status() != Boq.StatusEnum.CONFIRMED) throw transition("Only a confirmed BoQ can be reopened.", scope.bill().status().getValue());
         String why = text(reason, "Say why the BoQ is reopened.");
         UUID working = database.query("""
                 SELECT id FROM boq_revisions WHERE boq_id = ? AND status <> 'issued'
@@ -251,7 +266,7 @@ public class Boqs {
                     updated_at = now() WHERE id = ?
                 """, working, id);
         event(scope, actor, "boq.reopened", "boq", id, Map.of("reason", why));
-        notifyMembers(scope, actor, "boq.reopened", "versions", null);
+        notifyMembers(scope, actor, "boq.reopened", "versions", null, Map.of("reason", why));
         return access.view(access.bill(id, actor), actor);
     }
 
@@ -264,7 +279,7 @@ public class Boqs {
         if (update > 0) {
             event(scope, actor, "revision.review_withdrawn", "revision", scope.revision().id(), Map.of("reason", reason));
             for (UUID reviewer : scope.revision().reviewers()) {
-                if (!actor.equals(reviewer)) notify(scope, reviewer, "revision.review_withdrawn", null, "review");
+                if (!actor.equals(reviewer)) notify(scope, reviewer, "revision.review_withdrawn", null, "review", actor, Map.of());
             }
         }
     }
@@ -314,7 +329,7 @@ public class Boqs {
                 rev.id(), current, id);
         event(scope, actor, "version.saved", "revision", rev.id(),
                 Map.of("label", label, "runId", run.run().getId(), "boqId", scope.bill().id(), "revisionId", rev.id()));
-        notifyMembers(scope, actor, "version.saved", null, "versions");
+        notifyMembers(scope, actor, "version.saved", null, "versions", Map.of());
     }
 
     private void insertRevision(UUID boq, UUID id, int number, RevisionInputs input, UUID run, UUID parent) {
@@ -341,7 +356,8 @@ public class Boqs {
 
     private void fourEyes(BoqAccess.Scope scope, UUID actor) {
         if (access.fourEyes(scope, actor)) {
-            throw BoqAccess.failure(HttpStatus.FORBIDDEN, "four_eyes", "A different reviewer must approve or save this version.");
+            // permissions.md "Errors": every 403 says which role would do (TF-013); here a different approver.
+            throw new com.boqlet.api.http.ApiException(HttpStatus.FORBIDDEN, "four_eyes", "A different reviewer must approve or save this version.", Map.of("required", "approver"));
         }
     }
 
@@ -350,21 +366,32 @@ public class Boqs {
                 scope.project().getId(), action, type, entity, json.object(details));
     }
 
-    private void notifyMembers(BoqAccess.Scope scope, UUID actor, String kind, String category, String tab) {
+    private void notifyMembers(BoqAccess.Scope scope, UUID actor, String kind, String category, String tab, Map<String, String> extra) {
         for (UUID member : notifications.projectAudience(scope.project().getOrgId(), scope.project().getId(), actor)) {
-            notify(scope, member, kind, category, tab);
+            notify(scope, member, kind, category, tab, actor, extra);
         }
     }
 
-    private void notify(BoqAccess.Scope scope, UUID recipient, String kind, String category, String tab) {
+    /** Every notification says who did it (`by`), and a reopen why (`reason`): the app's texts need them (TF-097). */
+    private void notify(BoqAccess.Scope scope, UUID recipient, String kind, String category, String tab, UUID actor,
+                        Map<String, String> extra) {
         UUID org = scope.project().getOrgId();
         UUID project = scope.project().getId();
         UUID boq = scope.bill().id();
         String url = notifications.projectUrl(org, project) + "/boqs/" + boq + (tab == null ? "" : "?tab=" + tab);
-        notifications.send(recipient, org, project, kind, category,
-                Map.of("boq", scope.bill().name(), "revision", scope.revision().label(), "label", scope.revision().label()),
+        var params = new java.util.LinkedHashMap<String, Object>(Map.of("boq", scope.bill().name(),
+                "revision", scope.revision().label(), "label", scope.revision().label()));
+        var by = access.user(actor);
+        if (by != null) params.put("by", by.getName());
+        params.putAll(extra);
+        notifications.send(recipient, org, project, kind, category, params,
                 url, kind.startsWith("revision.") ? "revision" : "boq",
                 kind.startsWith("revision.") ? scope.revision().id() : boq);
+    }
+
+    /** state-machines.md: a refused transition names the current state (TF-030). */
+    static ApiException transition(String message, String state) {
+        return new ApiException(HttpStatus.CONFLICT, "invalid_transition", message, Map.of("state", state));
     }
 
     private static ApiException conflict(String code, String message) {

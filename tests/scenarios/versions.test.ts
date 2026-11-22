@@ -177,9 +177,16 @@ describe("confirm and reopen (F09 §5–6, BR-27)", () => {
     expect((await as(lead).POST("/boqs/{boqId}/reopen", { params: { path: { boqId } }, body: { reason: " " } })).response.status).toBe(400);
     const res = await as(lead).POST("/boqs/{boqId}/reopen", { params: { path: { boqId } }, body: { reason: "Client changed the brief" } });
     expect(res.data).toMatchObject({ status: "working", currentRevision: { status: "draft", label: "C", pendingChanges: [] } });
+    // TF-030: a refused transition names the current state.
+    const again = await as(lead).POST("/boqs/{boqId}/reopen", { params: { path: { boqId } }, body: { reason: "Twice" } });
+    expect(again.response.status).toBe(409);
+    expect(again.error).toMatchObject({ code: "invalid_transition", details: { state: "working" } });
     const saved = (await as(lead).GET("/boqs/{boqId}/revisions", { params: { path: { boqId } } })).data!.find((r) => r.label === "Tender issue")!;
     expect(res.data!.currentRevision.basedOnRevisionId).toBe(saved.id);
     expect(await kinds(estimator)).toContain("boq.reopened");
+    // TF-097: the texts say who and why.
+    const reopened = (await as(estimator).GET("/notifications", { params: { query: { limit: 200 } } })).data!.items.find((n) => n.kind === "boq.reopened")!;
+    expect(reopened.params).toMatchObject({ by: expect.any(String), reason: "Client changed the brief", boq: expect.any(String) });
     const { data: audit } = await as(lead).GET("/projects/{projectId}/audit", { params: { path: { projectId } } });
     expect(audit!.items.some((a) => a.action === "boq.reopened" && (a.data as { reason?: string }).reason === "Client changed the brief")).toBe(true);
   });
@@ -209,6 +216,8 @@ describe("review and approval (F09 §4, approvalRequired on)", () => {
     expect(res.data).toMatchObject({ status: "in_review", submittedBy: { id: lead.id }, reviewers: [{ id: approver.id }] });
     expect(res.data!.reviewComments![0]).toMatchObject({ text: "Please check the walls" });
     expect(await kinds(approver)).toContain("revision.review_requested");
+    const asked = (await as(approver).GET("/notifications", { params: { query: { limit: 200 } } })).data!.items.find((n) => n.kind === "revision.review_requested")!;
+    expect(asked.params).toMatchObject({ by: expect.any(String), revision: expect.any(String) }); // TF-097
     // F02 §5, F02-AC5: the review is in the approver's "Needs you", not in the submitter's.
     const needs = async (u: TestUser) => (await as(u).GET("/orgs/{orgId}/attention", { params: { path: { orgId } } })).data!;
     expect(await needs(approver)).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "review_requested", params: expect.objectContaining({ boq: expect.any(String) }), url: expect.stringContaining("tab=review") })]));
@@ -223,6 +232,11 @@ describe("review and approval (F09 §4, approvalRequired on)", () => {
     expect(res.response.status).toBe(201);
     expect(res.data).toMatchObject({ text: "Is this right?", lineKey, by: { id: approver.id } });
     expect((await as(approver).POST("/revisions/{revisionId}/comments", { params: { path: { revisionId: revision.id } }, body: { text: " " } })).response.status).toBe(400);
+    // BR-51 (TF-091): the comment is in the project's activity, its text isn't.
+    const { data: audit } = await as(lead).GET("/projects/{projectId}/audit", { params: { path: { projectId } } });
+    const event = audit!.items.find((a) => a.action === "revision.commented" && (a.data as { commentId?: string }).commentId === res.data!.id);
+    expect(event).toMatchObject({ entityId: revision.id, data: { lineKey } });
+    expect(JSON.stringify(event)).not.toContain("Is this right?");
   });
 
   it("BR-23: an edit sends it back to draft and tells the reviewers", async () => {

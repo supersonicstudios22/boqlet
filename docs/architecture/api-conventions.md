@@ -64,15 +64,15 @@ Every failure has this body, also those raised before a handler runs (the servle
 
 | Status | When | Example codes |
 |---|---|---|
-| 400 | invalid input | `invalid_body`, `unknown_field`, `invalid_param` (a query or path value a handler refuses, e.g. a page cursor), `invalid_parameter` (a value that can't be bound to the parameter's type), `invalid_cursor` (the audit cursor), `invalid_file`, `engine_input` (the engine refused a quick call's input; code lists answer `invalid_file`), `invalid_request` (refused before routing, e.g. `//` or `;` in the path), `not_ifc`, `offer_incomplete` |
+| 400 | invalid input | `invalid_body`, `unknown_field`, `invalid_parameter` (a query, path or header value that is refused: of the wrong type, out of range, an unknown option or a bad page cursor; TF-079), `invalid_cursor` (the audit cursor), `invalid_file`, `engine_input` (the engine refused a quick call's input; code lists answer `invalid_file`), `invalid_request` (refused before routing, e.g. `//` or `;` in the path), `not_ifc`, `offer_incomplete` |
 | 401 | no or invalid credentials | `unauthenticated` |
 | 402 | plan limit | `limit_reached` (+ `details.limit`, `details.current`, `details.max`) |
-| 403 | role not allowed | `forbidden` (+ `required`), `four_eyes` |
+| 403 | role not allowed | `forbidden` (+ `details.required`: the least role that may), `four_eyes` (+ `details.required: approver`; TF-013) |
 | 404 | missing or not visible | `not_found` |
 | 405 | method not served on this path | `method_not_allowed` (+ `Allow`) |
-| 409 | blocked by state | `invalid_transition`, `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `draft_has_problems` (publishing a draft the engine check refuses; + `details.problems`), `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
+| 409 | blocked by state | `invalid_transition` (+ `details.state`, the current state; TF-030), `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `draft_has_problems` (publishing a draft the engine check refuses; + `details.problems`), `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
 | 413 | upload or request body too large | `too_large`; `model_too_large` for a model version over the worker's upload limit |
-| 429 | rate limit | `rate_limited` (share pages, and any 429 the servlet answers); `auth_throttled` (sign-in, set-password). No `Retry-After` yet |
+| 429 | rate limit | `rate_limited` (share pages, invitation mail, and any 429 the servlet answers; with `Retry-After` in seconds and `details.retryAfterSeconds`); `auth_throttled` (sign-in, set-password; no `Retry-After` yet) |
 | 500/503 | server or engine unavailable | `internal` (logged with the request id), `engine_unavailable` |
 
 ## Pagination
@@ -136,8 +136,8 @@ events arrive late or never (found in FE-004).
 
 ## Rate limits
 
-The limited endpoints (security.md lists them) answer `429` over the limit. They send no
-`RateLimit-*` or `Retry-After` headers yet.
+The limited endpoints (security.md lists them) answer `429` over the limit. `rate_limited` answers
+carry `Retry-After`; `auth_throttled` doesn't yet. No `RateLimit-*` headers.
 
 ## Modules
 

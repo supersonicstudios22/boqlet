@@ -70,7 +70,7 @@ class PublicShares {
         int start = offset(cursor);
         String search = query == null ? "" : query.strip().toLowerCase(Locale.ROOT);
         String filter = """
-                FROM run_lines WHERE run_id = ? AND NOT coalesce((line->>'excluded')::boolean, false)
+                FROM run_lines WHERE run_id = ?
                 AND (? = '' OR strpos(lower(line->>'description'), ?) > 0 OR EXISTS (
                     SELECT 1 FROM jsonb_each(line->'codes') code
                     WHERE strpos(lower(concat_ws(' ', code.value->>'code', code.value->>'title', code.value->>'text')), ?) > 0))
@@ -93,7 +93,6 @@ class PublicShares {
         index.ensure(run);
         var detail = database.query("""
                 SELECT line::text, sort_index FROM run_lines WHERE run_id = ? AND line_key = ?
-                AND NOT coalesce((line->>'excluded')::boolean, false)
                 """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true).toString(), LineDetail.class),
                 run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
@@ -165,8 +164,9 @@ class PublicShares {
 
     private ObjectNode line(String value, int index, boolean detail) {
         ObjectNode source = json.read(value, ObjectNode.class);
+        // An excluded line is shown as excluded, like the sheet shows it (TF-033); why stays private (BR-56).
         source.retain("key", "ruleId", "ruleKind", "description", "unit", "quantity", "source",
-                "family", "keys", "trace", "codes", "location", "tags");
+                "family", "keys", "trace", "codes", "location", "tags", "excluded");
         source.put("sortIndex", index);
         source.putArray("notes"); // the team's notes stay private; the field is required (TF-085)
         if (source.get("trace") instanceof ObjectNode trace) {
@@ -217,7 +217,7 @@ class PublicShares {
         } catch (NumberFormatException ignored) {
             // Return the contract's invalid cursor error.
         }
-        throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_param", "The cursor is invalid.");
+        throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "The cursor is invalid.");
     }
 
     private static RuntimeException unavailable() {

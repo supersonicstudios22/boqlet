@@ -88,7 +88,7 @@ class Diffs {
         ready(id, actor);
         int start = RunReads.offset(cursor);
         if (change != null && !Set.of("added", "removed", "changed").contains(change)) {
-            throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_param", "Choose added, removed or changed.");
+            throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "Choose added, removed or changed.");
         }
         var items = rows("diff_lines", id, start, limit, change, minimum, LineChange.class);
         return new ListDiffLines200Response(slice(items, limit)).nextCursor(next(items, start, limit));

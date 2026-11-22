@@ -52,6 +52,35 @@ describe("BR-50: another org's people see nothing of it", () => {
   });
 });
 
+describe("another org's ids in a body answer like ids that don't exist (security.md, TF-175)", () => {
+  it("a rule-set version of another org, in a new BoQ's inputs and a revision's", async () => {
+    const own = client(owner.token);
+    const system = (await own.GET("/orgs/{orgId}/presets", { params: { path: { orgId }, query: { kind: "rule_set", layer: "system" } } })).data!;
+    const base = system.find((p) => p.slug === "as-modelled")!.latestPublishedVersion!.id;
+    const preset = (await own.POST("/orgs/{orgId}/presets", { params: { path: { orgId } }, body: { kind: "rule_set", name: "Iso rules", start: { mode: "patch", fromVersionId: base } } })).data!;
+    const published = await own.POST("/presets/{presetId}/publish", { params: { path: { presetId: preset.id } }, body: { changeNote: "First" } });
+    expect(published.response.status).toBe(200);
+    const foreign = published.data!.id;
+
+    const api = client(stranger.token);
+    const { data: org } = await api.POST("/orgs", { body: { name: "Iso Stranger Firm", slug: slug("iso-s") } });
+    const project = (await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Mine" } })).data!;
+    const answer = async (ruleSetVersionId: string) => {
+      const res = await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project.id } }, body: { name: "B", inputs: { ruleSetVersionId } } });
+      return { status: res.response.status, error: res.error };
+    };
+    const random = await answer("0193a2b4-0000-7000-8000-00000000abcd");
+    expect(random.status).toBe(404);
+    expect(await answer(foreign)).toEqual(random);
+    const bill = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project.id } }, body: { name: "Mine" } })).data!;
+    const patch = (ruleSetVersionId: string) => api.PATCH("/revisions/{revisionId}", { params: { path: { revisionId: bill.currentRevision.id } }, body: { inputs: { ruleSetVersionId } } });
+    const r1 = await patch("0193a2b4-0000-7000-8000-00000000abcd");
+    const r2 = await patch(foreign);
+    expect({ status: r2.response.status, error: r2.error }).toEqual({ status: r1.response.status, error: r1.error });
+    expect(r1.response.status).toBe(404);
+  });
+});
+
 describe("operations no other suite calls", () => {
   it("a model's name and discipline change (F03), audited", async () => {
     const res = await client(owner.token).PATCH("/models/{modelId}", { params: { path: { modelId } }, body: { name: "Architecture", discipline: "architecture" } });

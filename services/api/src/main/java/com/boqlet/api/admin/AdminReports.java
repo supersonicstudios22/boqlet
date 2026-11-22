@@ -160,7 +160,7 @@ class AdminReports {
         LocalDate last = Objects.requireNonNullElseGet(to, () -> LocalDate.now(ZoneOffset.UTC));
         LocalDate first = Objects.requireNonNullElseGet(from, () -> last.minusDays(29));
         long days = java.time.temporal.ChronoUnit.DAYS.between(first, last) + 1;
-        if (days <= 0 || days > 3660) throw AdminOrganisations.invalid("invalid_param", "Select a valid reporting period of up to ten years.");
+        if (days <= 0 || days > 3660) throw AdminOrganisations.invalid("invalid_parameter", "Select a valid reporting period of up to ten years.");
         return new Period(first, last.plusDays(1), first.minusDays(days), days <= 31 ? 1 : 7);
     }
 

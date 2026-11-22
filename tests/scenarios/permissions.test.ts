@@ -255,7 +255,7 @@ const ROWS: Row[] = [
   { id: "O4e", table: "org", action: "Remove a member", allow: ["owner", "admin"], call: (a) => a.del(`/orgs/${S.org.id}/members/${ids.S2}`), after: () => reinvite("S2") },
   { id: "O6", table: "org", action: "Create projects", allow: ALL_ORG, call: (a, _, p) => a.post(`/orgs/${S.org.id}/projects`, { name: `Made by ${p} ${stamp()}` }), after: async (r) => r.json?.id && own.post(`/projects/${r.json.id}/archive`) },
   { id: "O7", table: "org", action: "See all projects (the list includes a project they aren't on)", allow: ["owner", "admin"],
-    call: async (a) => { const r = await a.get(`/orgs/${S.org.id}/projects`); if (r.status !== 200) return r; const seen = (r.json.items ?? r.json).some((x: any) => x.id === S.hidden); return { ...r, status: seen ? 200 : 403, json: { code: seen ? "listed" : "not_listed" } }; } },
+    call: async (a) => { const r = await a.get(`/orgs/${S.org.id}/projects`); if (r.status !== 200) return r; const seen = (r.json.items ?? r.json).some((x: any) => x.id === S.hidden); return { ...r, status: seen ? 200 : 403, json: { code: seen ? "listed" : "not_listed", details: { required: "admin" } } }; } }, // a 403 of the test's own, not the API's (TF-013)
   { id: "O8a", table: "org", action: "Library: view org presets (list)", allow: ALL_ORG, call: (a) => a.get(`/orgs/${S.org.id}/presets`) },
   { id: "O8b", table: "org", action: "Library: view an org preset", allow: ALL_ORG, call: (a) => a.get(`/presets/${S.companyDict}`) },
   { id: "O9a", table: "org", action: "Library: create org preset", allow: ["owner", "admin", "library_editor"], call: (a) => a.post(`/orgs/${S.org.id}/presets`, { kind: "dictionary", name: `Created ${stamp()}`, start: { mode: "empty" } }), after: async (r) => r.json?.id && own.post(`/presets/${r.json.id}/archive`) },
@@ -384,10 +384,9 @@ function expected(row: Pick<Row, "table" | "allow" | "write" | "visible">, p: Pe
 
 /** Cells that fail because of an open finding (Stage 3 matrix, results.json): `phase:row:persona`. */
 const KNOWN: Record<string, string> = {
-  "on:P11e:VIEW": "TF-030",
   ...Object.fromEntries([
-    ["O10", ["OWN", "ADM"]], ["P5e", ["OWN", "ADM", "LEAD"]], ["P5f", ["OWN", "ADM", "LEAD"]], ["P5g", ["OWN", "ADM", "LEAD"]],
-    ["P11d", ["OWN", "ADM", "LEAD", "EST", "APR"]], ["P11e", ["OWN", "ADM", "LEAD", "EST", "APR"]], ["P15", ["OWN", "ADM", "LEAD", "APR"]],
+    // TF-012 (c, d), owner question Q42: revoking a share link and promoting a decision in an archived project.
+    ["O10", ["OWN", "ADM"]], ["P15", ["OWN", "ADM", "LEAD", "APR"]],
   ].flatMap(([row, personas]) => (personas as string[]).map((p) => [`archived:${row}:${p}`, "TF-012"]))),
 };
 
@@ -423,7 +422,6 @@ function specKeys(p: Persona, phase: Phase) {
   };
 }
 const KNOWN_KEYS: Record<string, string> = {
-  "off:OWN": "TF-015", "off:ADM": "TF-015", "off:LEAD": "TF-015", "off:APR": "TF-015",
   "archived:OWN": "TF-090", "archived:ADM": "TF-090", "archived:LEAD": "TF-090",
 };
 
@@ -446,7 +444,7 @@ for (const phase of PHASES) {
       });
     }
     if (phase.archived) {
-      it.fails("TF-012: a BoQ's revision keys in an archived project allow only view and seeAudit", async () => {
+      it("TF-012: a BoQ's revision keys in an archived project allow only view and seeAudit", async () => {
         const rev = (await lead.get(`/boqs/${await T.reviewBoq.get()}`)).json.currentRevision.permissions;
         expect(Object.entries(rev).filter(([, v]) => v === true).map(([k]) => k).sort()).toEqual(["seeAudit", "view"]);
       });
@@ -552,7 +550,7 @@ describe("four-eyes and approval variants (F09 §4, BR-24)", () => {
 
 describe("keys and refusals beyond the tables", () => {
   beforeAll(() => setApproval(false));
-  it.fails("TF-015: with approval off, an approver's project keys approve and confirm are false", async () => {
+  it("TF-015: with approval off, an approver's project keys approve and confirm are false", async () => {
     expect((await apr.get(`/projects/${P()}`)).json.permissions).toMatchObject({ approve: false, confirm: false });
   });
   it("with approval off, an approver's revision keys approve and confirm are false", async () => {
@@ -590,7 +588,7 @@ describe("the admin paths (BR-57, TF-011)", () => {
 });
 
 describe("refusal bodies and deleting the org (permissions.md 'Errors')", () => {
-  it.fails("TF-013: every 403 of the matrix carries details.required", () => {
+  it("TF-013: every 403 of the matrix carries details.required", () => {
     expect(denials.length).toBeGreaterThan(0);
     expect(denials.filter((d) => (d.details as { required?: unknown } | null)?.required === undefined)).toEqual([]);
   });

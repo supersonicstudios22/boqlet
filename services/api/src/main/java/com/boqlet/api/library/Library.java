@@ -90,7 +90,8 @@ public class Library {
 
     PresetCatalog.Head requireEditor(UUID id, UUID actor) {
         var access = access(id, actor);
-        if (!access.edit()) throw new ApiException(HttpStatus.FORBIDDEN, "forbidden", "You cannot edit this preset.", Map.of());
+        if (!access.edit()) throw new ApiException(HttpStatus.FORBIDDEN, "forbidden", "You cannot edit this preset.",
+                Map.of("required", access.head().layer() == PresetLayer.PROJECT ? "estimator" : "library_editor"));
         return access.head();
     }
 

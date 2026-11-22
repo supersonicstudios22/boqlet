@@ -166,7 +166,7 @@ public class EntitlementService {
         } catch (DateTimeParseException ignored) {
             // Keep the contract's parameter error below.
         }
-        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_param", "Month must be YYYY-MM.", Map.of("month", value));
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_parameter", "Month must be YYYY-MM.", Map.of("month", value));
     }
 
     private static OffsetDateTime start(YearMonth month) {

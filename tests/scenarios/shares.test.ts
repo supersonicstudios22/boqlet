@@ -20,6 +20,7 @@ let orgId: string;
 let projectId: string;
 let boqId: string;
 let editedKey: string;
+let excludedKey: string;
 const SECRET_REASON = "Secret reason for the edit";
 
 const as = (u: TestUser) => client(u.token);
@@ -78,6 +79,8 @@ beforeAll(async () => {
   const { data: lines } = await as(lead).GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } });
   editedKey = lines!.items.find((l) => l.quantity && l.quantity > 1)!.key;
   await as(lead).POST("/boqs/{boqId}/overrides", { params: { path: { boqId } }, body: { lineKey: editedKey, quantity: 1234, reason: SECRET_REASON } });
+  excludedKey = lines!.items.find((l) => l.key !== editedKey && l.quantity)!.key;
+  await as(lead).POST("/boqs/{boqId}/overrides", { params: { path: { boqId } }, body: { lineKey: excludedKey, excluded: true, reason: SECRET_REASON } });
   await generate();
 }, 300_000);
 
@@ -109,6 +112,9 @@ describe("create and the public page (F18 §1–2)", () => {
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);
     expect(lines.items.every((l) => Array.isArray(l.notes) && l.notes.length === 0)).toBe(true); // TF-085: required, never the team's notes
+    // TF-033: an excluded line is listed, marked excluded (its reason stays private), and opens.
+    expect(lines.items.find((l) => l.key === excludedKey)).toMatchObject({ excluded: true });
+    expect((await pub(token, `/lines/by-key?key=${encodeURIComponent(excludedKey)}`)).status).toBe(200);
     const detail = await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`);
     expect(detail.status).toBe(200);
     const shown = (await detail.json()) as Schemas["LineDetail"];

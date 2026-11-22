@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advanceDays, resetClock } from "../support/clock";
-import { client } from "../support/env";
+import { API_URL, client } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
@@ -61,6 +61,13 @@ describe("F01 organisations", () => {
     expect(denied.response.status).toBe(403);
     const ok = await client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { name: "Renamed" } });
     expect(ok.data!.name).toBe("Renamed");
+  });
+
+  it("a partial settings PATCH keeps the settings it doesn't name (TF-191)", async () => {
+    const { owner, org } = await newOwnerWithOrg("settings");
+    const patch = (settings: Record<string, unknown>) => client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { settings } });
+    expect((await patch({ defaultLanguage: "sr" })).data!.settings).toMatchObject({ defaultLanguage: "sr" });
+    expect((await patch({ defaultCurrency: "EUR" })).data!.settings).toMatchObject({ defaultLanguage: "sr", defaultCurrency: "EUR" });
   });
 
   it("someone outside the org gets 404, not 403", async () => {
@@ -176,5 +183,36 @@ describe("F01 roles and members", () => {
     const me = await signUp("Old Name", uniqueEmail("rename"));
     const { data } = await client(me.token).PATCH("/me", { body: { name: "New Name" } });
     expect(data!.name).toBe("New Name");
+  });
+
+  it("TF-121: PATCH /me takes a language tag as the locale, nothing else", async () => {
+    const me = await signUp("Locale Person", uniqueEmail("locale"));
+    const bad = await client(me.token).PATCH("/me", { body: { locale: "not a locale!!" } });
+    expect(bad.response.status).toBe(400);
+    expect(bad.error).toMatchObject({ code: "invalid_body" });
+    expect((await client(me.token).PATCH("/me", { body: { locale: "sr-Latn" } })).data!.locale).toBe("sr-Latn");
+  });
+
+  it("TF-176: names refuse control and text-direction characters; other scripts and emoji are names", async () => {
+    const { owner, org } = await newOwnerWithOrg("names");
+    for (const name of ["a\u0007b", "\u001b[31mred", "a\r\nb", "abc‮txt.exe", "x\ud800", "nul\u0000"]) {
+      const me = await client(owner.token).PATCH("/me", { body: { name } });
+      expect(me.response.status, JSON.stringify(name)).toBe(400);
+      expect(me.error).toMatchObject({ code: "invalid_body" });
+    }
+    const renamed = await client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { name: "Firm‮" } });
+    expect(renamed.response.status).toBe(400);
+    expect((await client(owner.token).PATCH("/me", { body: { name: "Ana Đurić 名前 😀" } })).data!.name).toBe("Ana Đurić 名前 😀");
+  });
+
+  it("TF-119: org.updated names the settings that changed, before and after", async () => {
+    const { owner, org } = await newOwnerWithOrg("settings");
+    await client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { settings: { publicLinksAllowed: false } } });
+    const { data } = await client(owner.token).GET("/orgs/{orgId}/audit", { params: { path: { orgId: org.id }, query: { action: "org.updated" } } });
+    expect(data!.items[0]!.data).toMatchObject({ before: { settings: { publicLinksAllowed: true } }, after: { settings: { publicLinksAllowed: false } } });
+  });
+
+  it("TF-083: HEAD on a public route answers as GET does", async () => {
+    expect((await fetch(`${API_URL}/plans`, { method: "HEAD" })).status).toBe(200);
   });
 });

@@ -73,6 +73,22 @@ describe("refused edits (F06 §6, AC4)", () => {
     expect(await pendingChanges(api)).toEqual([]);
   });
 
+  it("a manual line the engine can't read is refused when it is added, not by every later run (TF-075)", async () => {
+    const api = client(owner.token);
+    const add = (item: Record<string, unknown>) => api.POST("/boqs/{boqId}/manual-items", { params: { path: { boqId: boq.id } }, body: { item: item as never } });
+    for (const item of [
+      { id: "X1", description: "d", unit: "m", kind: "bogus" },
+      { id: "X1", description: "d", unit: "m", kind: "other", colour: 1 },
+      { id: "X1", description: "d", unit: "m", kind: "other", quantity: "three" },
+      { id: "X1", description: "d", unit: "m", kind: "other", tags: [1] },
+    ]) {
+      const res = await add(item);
+      expect(res.response.status, JSON.stringify(item)).toBe(400);
+      expect(res.error).toMatchObject({ code: "invalid_body" });
+    }
+    expect((await api.GET("/boqs/{boqId}/manual-items", { params: { path: { boqId: boq.id } } })).data).toEqual([]);
+  });
+
   it("a batch is all or nothing", async () => {
     const api = client(owner.token);
     const { response } = await api.POST("/boqs/{boqId}/overrides/batch", {

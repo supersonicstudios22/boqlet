@@ -65,7 +65,7 @@ class AdminOrganisations {
                 """);
         if (filter.signal() != null) {
             var signal = SIGNALS.get(filter.signal());
-            if (signal == null) throw invalid("invalid_param", "Unknown organisation signal.");
+            if (signal == null) throw invalid("invalid_parameter", "Unknown organisation signal.");
             sql.append(" AND ").append(signal);
         }
         if (filter.stuckAt() != null) {
@@ -77,7 +77,7 @@ class AdminOrganisations {
         String sort = Objects.requireNonNullElse(filter.sort(), "-createdAt");
         boolean desc = sort.startsWith("-");
         String field = SORTS.get(desc ? sort.substring(1) : sort);
-        if (field == null) throw invalid("invalid_param", "Unknown organisation sort.");
+        if (field == null) throw invalid("invalid_parameter", "Unknown organisation sort.");
         sql.append(" ORDER BY ").append(field).append(desc ? " DESC" : " ASC").append(" NULLS LAST, lower(name), id");
         if (limit != null) {
             sql.append(" LIMIT :limit OFFSET :offset");

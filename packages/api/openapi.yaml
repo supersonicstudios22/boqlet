@@ -1747,6 +1747,7 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PublicShare" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /public/shares/{token}/lines:
     parameters: [{ $ref: "#/components/parameters/Token" }]
     get:
@@ -1759,6 +1760,7 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/LinesPage" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /public/shares/{token}/lines/by-key:
     parameters: [{ $ref: "#/components/parameters/Token" }]
     get:
@@ -1770,6 +1772,7 @@ paths:
       responses:
         "200": { description: OK (only when the link includes line detail), content: { application/json: { schema: { $ref: "#/components/schemas/LineDetail" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /public/shares/{token}/scene:
     parameters: [{ $ref: "#/components/parameters/Token" }]
     get:
@@ -1781,6 +1784,7 @@ paths:
       responses:
         "200": { description: OK (only when the link includes the viewer), content: { application/json: { schema: { $ref: "#/components/schemas/SceneIndex" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /public/shares/{token}/geometry/{versionId}:
     parameters: [{ $ref: "#/components/parameters/Token" }, { $ref: "#/components/parameters/VersionId" }]
     get:
@@ -1790,6 +1794,7 @@ paths:
       responses:
         "302": { description: Redirect to a short-lived signed URL of geometry.glb }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /public/shares/{token}/export:
     parameters: [{ $ref: "#/components/parameters/Token" }]
     get:
@@ -1799,6 +1804,7 @@ paths:
       responses:
         "302": { description: Redirect to a short-lived signed URL of the Excel (only when included) }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
 
   # ───────────────────────────── platform admin (F19) ─────────────────────────────
   /admin/overview:
@@ -2049,6 +2055,9 @@ components:
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Unauthenticated:
       description: Not signed in
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    RateLimited:
+      description: "Too many requests from this address (`rate_limited`); a public share allows 300 a minute per address by default, `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE` (TF-079)"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     LimitReached:
       description: Plan limit reached
@@ -2350,14 +2359,20 @@ components:
         message: { type: string }
         details: { type: object, additionalProperties: true }
     LimitError:
+      description: "`402 limit_reached`: the limit, its current use and its maximum are in `details` (TF-072)"
       allOf:
         - $ref: "#/components/schemas/Error"
         - type: object
-          required: [limit, current, max]
+          required: [details]
           properties:
-            limit: { type: string }
-            current: { type: number }
-            max: { type: number }
+            details:
+              type: object
+              required: [limit, current, max]
+              additionalProperties: true
+              properties:
+                limit: { type: string, description: "the entitlement, e.g. activeProjects, seats, processingMinutesPerMonth" }
+                current: { type: number }
+                max: { type: number }
     UserRef:
       type: object
       required: [id, name]
@@ -2474,7 +2489,7 @@ components:
             decimal: { type: string, enum: [".", ","] }
             thousands: { type: string, enum: [",", ".", " ", " ", "'", ""], description: "U+202F (narrow no-break space) is the default for new orgs (F15)" }
         dateFormat: { type: string, maxLength: 64, description: "e.g. dd.MM.yyyy (P35)" }
-        defaultLanguage: { type: string, maxLength: 64, default: en }
+        defaultLanguage: { type: string, maxLength: 64, description: "en when not set (no `default`: a partial settings PATCH would reset it, TF-191)" }
     OrgCreate:
       type: object
       required: [name, slug]

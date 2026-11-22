@@ -122,7 +122,7 @@ class AdminController implements AdminApi {
         } catch (NumberFormatException ignored) {
             // Report the invalid cursor below.
         }
-        throw AdminOrganisations.invalid("invalid_param", "Invalid cursor.");
+        throw AdminOrganisations.invalid("invalid_parameter", "Invalid cursor.");
     }
 
     private static String csvCell(Object value) {

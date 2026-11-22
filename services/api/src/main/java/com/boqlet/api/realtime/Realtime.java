@@ -150,7 +150,7 @@ public class Realtime {
         } catch (NumberFormatException ignored) {
             // The caller sent an invalid replay cursor.
         }
-        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_param", "The event cursor is invalid.", Map.of());
+        throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_parameter", "The event cursor is invalid.", Map.of());
     }
 
     @PreDestroy

@@ -103,9 +103,10 @@ public class PresetCatalog {
     public Version selected(UUID org, UUID project, UUID id, PresetKind expected) {
         Version version = version(id);
         Head head = head(version.preset());
+        // Another org's preset answers like one that doesn't exist (security.md, TF-175).
+        if (head.layer() != PresetLayer.SYSTEM && !org.equals(head.org())) throw missing();
         if (head.kind() != expected || version.draft() || head.unavailable() != null
-                || (head.layer() != PresetLayer.SYSTEM
-                    && (!org.equals(head.org()) || (head.project() != null && !head.project().equals(project))))) {
+                || (head.layer() != PresetLayer.SYSTEM && head.project() != null && !head.project().equals(project))) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_preset", "The selected preset is unavailable.", Map.of());
         }
         return version;

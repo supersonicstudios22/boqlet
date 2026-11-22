@@ -92,6 +92,10 @@ class ShareLinks {
         if (request.getMode() == ShareLinkCreate.ModeEnum.PINNED) {
             var version = request.getRevisionId() == null ? scope.revision() : boqs.readVersion(request.getRevisionId());
             if (!version.bill().equals(boq)) {
+                // Another org's version answers like one that doesn't exist (security.md, TF-175).
+                if (!Boolean.TRUE.equals(database.queryForObject("""
+                        SELECT EXISTS(SELECT 1 FROM boqs b JOIN projects p ON p.id = b.project_id WHERE b.id = ? AND p.org_id = ?)
+                        """, Boolean.class, version.bill(), org))) throw BoqAccess.missing("revision");
                 throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_body", "That version belongs to another BoQ.");
             }
             if (version.run() == null || shown(version.run()) == null) {
@@ -145,7 +149,7 @@ class ShareLinks {
         link = require(id);
         var current = link.view();
         if (current.getStatus() == ShareLink.StatusEnum.REVOKED) {
-            throw BoqAccess.failure(HttpStatus.CONFLICT, "invalid_transition", "The link is revoked.");
+            throw Boqs.transition("The link is revoked.", current.getStatus().getValue());
         }
         database.update("UPDATE share_links SET options = ?::jsonb, label = ?, expires_at = ? WHERE id = ?",
                 json.object(options(request.getInclude(), current.getInclude())).toString(),
