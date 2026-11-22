@@ -61,7 +61,7 @@ test("TF-005, TF-101: on Free, a plan limit opens the limit dialog with the way 
 test("TF-100: a newer model version is offered on the BoQ, \"Use\" takes it, and the change report's Excel downloads @b6 @b6-versions", async ({ page }) => {
   const { owner, projectId, boq, url } = await sampleBoq("Vera Versions");
   // The working version is saved as A, so the Changes tab compares against it.
-  await apiAs(owner, "POST", `/revisions/${boq.currentRevision.id}/issue`, { label: "A" });
+  await apiAs(owner, "POST", `/revisions/${boq.currentRevision.id}/issue`, { label: "A", notModelledConfirmed: true });
 
   // Duplex v2 uploaded as the model's next version (through the API, as the browser would).
   const [model] = await apiAs<{ id: string; name: string }[]>(owner, "GET", `/projects/${projectId}/models`);

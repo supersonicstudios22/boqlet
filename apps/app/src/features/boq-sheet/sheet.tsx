@@ -1035,11 +1035,18 @@ function SheetGrid({
     if (selectedIndex >= 0) virtualizer.scrollToIndex(selectedIndex, { align: "auto" });
   }, [selectedIndex, virtualizer]);
 
+  // The arrows walk every row, group headings included (treegrid): the grid is one Tab stop (TF-161),
+  // so a heading is reached, opened and closed by keyboard here rather than by Tab.
+  const groupRow = selectedGroup && !selected ? rows.find((r) => r.kind === "group" && r.id === selectedGroup) : undefined;
   const move = (by: number) => {
-    if (!lineIndexes.length) return;
-    const at = selected ? lineIndexes.findIndex((i) => rows[i]!.id === selected) : -1;
-    const next = lineIndexes[Math.max(0, Math.min(lineIndexes.length - 1, at < 0 ? 0 : at + by))]!;
-    onSelect(rows[next]!.id);
+    if (!rows.length) return;
+    const at = selected ? rows.findIndex((r) => r.kind === "line" && r.id === selected) : groupRow ? rows.indexOf(groupRow) : -1;
+    const next = Math.max(0, Math.min(rows.length - 1, at < 0 ? 0 : at + by));
+    const row = rows[next]!;
+    if (row.kind === "line") {
+      if (selectedGroup) api.selectGroup(selectedGroup); // deselects the heading
+      onSelect(row.id);
+    } else if (selectedGroup !== row.id) api.selectGroup(row.id);
     virtualizer.scrollToIndex(next, { align: "auto" });
   };
 
@@ -1056,6 +1063,11 @@ function SheetGrid({
         if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           e.preventDefault();
           move(e.key === "ArrowDown" ? 1 : -1);
+        } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Enter") && groupRow?.kind === "group") {
+          // On a heading: Right opens it, Left closes it, Enter toggles.
+          e.preventDefault();
+          const open = !groupRow.collapsed;
+          if (e.key === "Enter" || (e.key === "ArrowRight" ? !open : open)) api.toggleGroup(groupRow.id);
         } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && selected && activeColumn && editableColumns.length) {
           // Between the editable cells of the selected line (TF-159).
           e.preventDefault();
@@ -1193,6 +1205,7 @@ const GroupRowView = memo(function GroupRowView({
           style={{ paddingLeft: `${0.5 + row.depth}rem` }}
           onClick={() => api.toggleGroup(row.id)}
           aria-expanded={!row.collapsed}
+          tabIndex={-1}
         >
           {row.collapsed ? <ChevronRight aria-hidden className="size-3.5 shrink-0" /> : <ChevronDown aria-hidden className="size-3.5 shrink-0" />}
           <span className="truncate">{name}</span>
@@ -1204,6 +1217,7 @@ const GroupRowView = memo(function GroupRowView({
             aria-label={labels.addLine(name)}
             title={labels.addLine(name)}
             onClick={() => api.addToGroup(row)}
+            tabIndex={-1}
             data-testid="group-add-line"
           >
             <Plus aria-hidden className="size-3.5" />

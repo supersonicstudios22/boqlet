@@ -47,7 +47,7 @@ async function newBoq(name: string) {
   return boq.id;
 }
 async function frozenExport(revisionId: string) {
-  const deadline = Date.now() + 60_000;
+  const deadline = Date.now() + 240_000; // the export queues behind the whole suite's jobs (one engine slot)
   for (;;) {
     const id = (await api().GET("/revisions/{revisionId}", { params: { path: { revisionId } } })).data!.frozen?.exportIds?.[0];
     if (id && (await api().GET("/exports/{exportId}", { params: { path: { exportId: id } } })).data?.sizeBytes) return id;
@@ -164,7 +164,7 @@ describe("BR-25: the saved version's Excel stays byte-identical (TF-101)", () =>
     expect(await lines(frozenRun)).toEqual(before);
     const { data: again, response } = await api().POST("/runs/{runId}/exports", { params: { path: { runId: frozenRun } }, body: { format: "xlsx" } });
     expect(response.status).toBe(202);
-    const deadline = Date.now() + 60_000;
+    const deadline = Date.now() + 240_000; // the export queues behind the whole suite's jobs (one engine slot)
     let job = (await api().GET("/jobs/{jobId}", { params: { path: { jobId: again!.id } } })).data!;
     while ((job.status === "queued" || job.status === "running") && Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 200));

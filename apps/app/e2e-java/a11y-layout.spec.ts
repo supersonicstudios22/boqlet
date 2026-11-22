@@ -38,10 +38,24 @@ test("TF-167, TF-161, TF-160: titles, one Tab stop, focus that follows", async (
 
   // One Tab stop: from the grid, Tab leaves it.
   await page.getByTestId("sheet-grid").focus();
-  await page.keyboard.press("ArrowDown");
+  // The arrows also stop on group headings (treegrid, whose buttons are no Tab stops): down to the first line.
+  const line = page.locator('[data-testid="sheet-line"][aria-selected="true"]');
+  for (let i = 0; i < 6 && !(await line.count()); i++) await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Tab");
   expect(await focused(page)).not.toBe("line-check");
   expect(await page.evaluate(() => !!document.activeElement?.closest("[data-testid=sheet-grid]"))).toBe(false);
+
+  // A group heading is reached by the arrows and closed and opened by Left and Right.
+  await page.getByTestId("sheet-grid").focus();
+  await page.keyboard.press("ArrowUp");
+  const heading = page.locator('[data-testid="sheet-group"][aria-selected="true"]');
+  if (await heading.count()) {
+    await page.keyboard.press("ArrowLeft");
+    await expect(heading).toHaveAttribute("aria-expanded", "false");
+    await page.keyboard.press("ArrowRight");
+    await expect(heading).toHaveAttribute("aria-expanded", "true");
+  }
+  for (let i = 0; i < 6 && !(await line.count()); i++) await page.keyboard.press("ArrowDown");
 
   // An in-cell edit committed with Enter gives focus back to the grid.
   await page.getByTestId("sheet-grid").focus();
@@ -74,7 +88,7 @@ test("TF-167, TF-161, TF-160: titles, one Tab stop, focus that follows", async (
 
 test("TF-171: a saved version at 768 px shows Quantity without sideways scrolling", async ({ browser }) => {
   const { owner, boq, url } = await sampleBoq("Wendy Width");
-  const saved = await apiAs<{ id: string }>(owner, "POST", `/revisions/${boq.currentRevision.id}/issue`, { label: "A" });
+  const saved = await apiAs<{ id: string }>(owner, "POST", `/revisions/${boq.currentRevision.id}/issue`, { label: "A", notModelledConfirmed: true });
   const context = await browser.newContext({ viewport: { width: 768, height: 900 } });
   await useSession(context, owner);
   const page = await context.newPage();

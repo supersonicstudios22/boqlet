@@ -106,8 +106,9 @@ test("TF-159: quantity and unit cells are edited by keyboard: arrows to the cell
   await page.goto(url);
   await expect(page.getByTestId("sheet")).toHaveAttribute("data-editable", "true");
   await page.getByTestId("sheet-grid").focus();
-  await page.keyboard.press("ArrowDown");
   const selected = page.locator('[data-testid="sheet-line"][aria-selected="true"]');
+  // The arrows also stop on group headings (treegrid): down to the first line.
+  for (let i = 0; i < 6 && !(await selected.count()); i++) await page.keyboard.press("ArrowDown");
   const key = (await selected.getAttribute("data-key"))!;
   await expect(selected.locator('[data-active="true"]')).toHaveAttribute("data-column", "description");
   // Right to Quantity (past Unit), F2, a new value, Enter, the reason, Enter.
