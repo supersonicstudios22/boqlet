@@ -16,7 +16,7 @@ const NO_LITERALS = {
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", ".next-java/**", "next-env.d.ts", "messages/en-XA/**", "e2e/.output/**", "playwright-report/**", "test-results/**"]),
+  globalIgnores([".next/**", ".next-java/**", ".next-demo/**", "next-env.d.ts", "messages/en-XA/**", "e2e/.output/**", "playwright-report/**", "test-results/**"]),
   {
     files: ["**/*.tsx"],
     rules: {

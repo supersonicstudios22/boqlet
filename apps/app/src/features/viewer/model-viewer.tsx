@@ -327,7 +327,7 @@ export function ModelViewer({
           <Button variant="outline" size="icon" title={t("hide")} aria-label={t("hide")} disabled={!picked.size} onClick={() => act((v) => (v.hide(pickedMeshes), setPicked(new Set())))} data-testid="viewer-hide">
             <EyeOff aria-hidden />
           </Button>
-          <Button variant={section ? "default" : "outline"} size="icon" title={t("section")} aria-label={t("section")} aria-pressed={!!section} onClick={toggleSection} data-testid="viewer-section">
+          <Button variant="outline" size="icon" title={t("section")} aria-label={t("section")} aria-pressed={!!section} onClick={toggleSection} data-testid="viewer-section">
             <BoxIcon aria-hidden />
           </Button>
           <Button

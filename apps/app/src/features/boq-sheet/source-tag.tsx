@@ -12,7 +12,7 @@ export function SourceTag({ source, className }: { source: string; className?: s
   if (source === "measured") return <span className={cn("text-muted-foreground", className)}>{t("measured")}</span>;
   const style =
     source === "derived"
-      ? "border-[var(--status-derived)] text-link"
+      ? "border-derived text-derived"
       : source === "manual"
         ? "border-transparent bg-[var(--status-manual)] text-on-fill"
         : source === "flagged"

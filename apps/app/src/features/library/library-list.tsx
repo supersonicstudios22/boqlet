@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
 import { useRelativeTime } from "@/i18n/use-relative-time";
-import { cn } from "@/lib/utils";
 import { createHref, isLibraryKind, LIBRARY_KINDS, presetHref, Tag } from "./kinds";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { tabClass } from "@/components/nav-styles";
 
 /**
  * The Library's tables (F10 §1): one tab per kind; name, layer, based on, latest version, draft, last
@@ -52,7 +52,7 @@ export function LibraryList({ projectId, canCreate }: { projectId?: string; canC
             onClick={() => setParam("kind", k === "rule_set" ? null : k)}
             aria-current={k === kind ? "page" : undefined}
             data-testid={`library-kind-${k}`}
-            className={cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", k === kind && "border-link text-foreground")}
+            className={tabClass(k === kind)}
           >
             {t(`kinds.${k}`)}
           </button>

@@ -19,13 +19,15 @@ import { LogTab } from "@/features/boq-sheet/log-tab";
 import { Sheet } from "@/features/boq-sheet/sheet";
 import { useOrg } from "@/features/orgs/org-context";
 import { QuestionsTab } from "@/features/questions/questions-tab";
+import { useOpenQuestions } from "@/features/questions/use-open-questions";
 import { ViewerTab } from "@/features/viewer/viewer-tab";
 import { useProjectScope } from "@/features/projects/project-context";
 import { extensions } from "@/extensions";
-import { cn } from "@/lib/utils";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 import { usePageTitle } from "@/lib/page-title";
+import { tabClass } from "@/components/nav-styles";
+import { cn } from "@/lib/utils";
 
 const TABS = ["review", "sheet", "questions", "viewer", "changes", "log", "setup", "exports", "versions"] as const;
 /** Tabs that show a saved version opened read-only (`?version=`, F09 §3). */
@@ -46,6 +48,10 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   const search = useSearchParams();
   const boq = useBoq(boqId);
   const runs = useRuns(boq.data?.currentRevision.id);
+  // P55: the Questions tab shows how many of the working version's questions wait for an answer;
+  // orange when some block the BoQ, a quiet outline when all are optional.
+  const questionCounts = useOpenQuestions(boq.data?.currentRevision.currentRun?.id);
+  const openQuestions = questionCounts.open;
   const revisions = useRevisions(boqId);
   const requested = search.get("tab") as Tab | null;
   // F09 §3: a saved version opened read-only.
@@ -95,10 +101,18 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
             key={key}
             href={href(key)}
             aria-current={tab === key ? "page" : undefined}
-            className={cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", tab === key && "border-link text-foreground")}
+            className={tabClass(tab === key)}
             data-testid={`tab-${key}`}
           >
             {t(`tabs.${key}`)}
+            {key === "questions" && !viewing && openQuestions > 0 && (
+              <>
+                <span aria-hidden className={cn("ml-1.5 inline-grid h-4 min-w-4 place-items-center rounded-[var(--radius)] border px-1 font-bold tracking-normal", questionCounts.blocking > 0 ? "border-attention bg-attention text-on-fill" : "border-muted-foreground text-muted-foreground")} data-testid="open-questions-count">
+                  {openQuestions}
+                </span>
+                <span className="sr-only">{" "}{t("tabs.openCount", { n: openQuestions })}</span>
+              </>
+            )}
           </Link>
         ))}
         {moduleTabs.map((m) => (
@@ -106,7 +120,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
             key={m.id}
             href={href(m.id)}
             aria-current={moduleTab === m ? "page" : undefined}
-            className={cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", moduleTab === m && "border-link text-foreground")}
+            className={tabClass(moduleTab === m)}
             data-testid={`tab-${m.id}`}
           >
             <m.Label />

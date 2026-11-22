@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
 import { useProjectScope } from "./project-context";
 import { usePageTitle } from "@/lib/page-title";
+import { tabClass } from "@/components/nav-styles";
 
 /** The project's name, the read-only banner when archived, and the project sub-navigation (screens.md). */
 const SECTIONS = [
@@ -47,7 +47,7 @@ export function ProjectHeader({ org }: { org: string }) {
               key={s.key}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", active && "border-link text-foreground")}
+              className={tabClass(active)}
             >
               {t(`sections.${s.key}`)}
             </Link>

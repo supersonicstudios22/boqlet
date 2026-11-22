@@ -31,7 +31,7 @@ export function ReviewStrip({ boq, base, compact }: { boq: Boq; base: string; co
   const error = approve.error ?? withdraw.error;
 
   return (
-    <div className="flex flex-col gap-2 border-l-2 border-[var(--link)] pl-3" role="status" data-testid="review-strip" data-status={revision.status}>
+    <div className="flex flex-col gap-2 border-l-2 border-foreground pl-3" role="status" data-testid="review-strip" data-status={revision.status}>
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span>
           {revision.status === "in_review"

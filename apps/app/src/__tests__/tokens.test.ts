@@ -42,7 +42,8 @@ describe("light theme tokens (paper)", () => {
   it("uses the guidelines' palette", () => {
     expect(bg).toBe("#f2ede3");
     expect(resolve(root, "foreground")).toBe("#151515");
-    expect(resolve(root, "link")).toBe("#1e4fb8");
+    expect(resolve(root, "link")).toBe("#6d3ce0");
+    expect(resolve(root, "status-derived")).toBe("#1e4fb8");
     expect(resolve(root, "status-attention")).toBe("#e8590c");
     expect(resolve(root, "status-manual")).toBe("#f2b705");
     expect(resolve(root, "destructive")).toBe("#c62423");
@@ -74,12 +75,28 @@ describe("light theme tokens (paper)", () => {
   });
 });
 
+describe("P55: the brand purple is the interactive accent", () => {
+  it.each([
+    ["light", root],
+    ["dark", dark],
+  ])("%s: the primary, the active tab or nav item and blue status text stay AA", (_theme, vars) => {
+    const bg = resolve(vars, "background");
+    expect(contrast(resolve(vars, "action-foreground"), resolve(vars, "action"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(vars, "action-foreground"), resolve(vars, "action-hover"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(vars, "link"), resolve(vars, "selection"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(vars, "link"), resolve(vars, "muted"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(vars, "status-derived"), bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(vars, "status-change"), bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 describe("dark theme tokens (ink)", () => {
   const bg = resolve(dark, "background");
-  it("swaps paper and ink and lightens blue and red", () => {
+  it("swaps paper and ink and lightens purple, blue and red", () => {
     expect(bg).toBe("#151515");
     expect(resolve(dark, "foreground")).toBe("#f2ede3");
-    expect(resolve(dark, "link")).toBe("#7d9be6");
+    expect(resolve(dark, "link")).toBe("#a88bf0");
+    expect(resolve(dark, "status-derived")).toBe("#7d9be6");
     expect(resolve(dark, "destructive")).toBe("#e06a69");
   });
   it.each([

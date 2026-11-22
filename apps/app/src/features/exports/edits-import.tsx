@@ -138,7 +138,7 @@ export function EditsImport({ boq }: { boq: Boq }) {
         </p>
       ) : null}
       {applied !== null && (
-        <p role="status" className="border-l-2 border-[var(--link)] pl-3" data-testid="edits-import-applied">
+        <p role="status" className="border-l-2 border-foreground pl-3" data-testid="edits-import-applied">
           {t("applied", { count: applied })}
         </p>
       )}

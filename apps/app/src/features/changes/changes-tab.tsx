@@ -26,7 +26,7 @@ import { LoadingLines } from "@/components/loading";
 
 const CHANGE_CLASS: Record<string, string> = {
   // Blue and red may be text; orange only a fill, with ink text (design-guidelines.md, TF-022).
-  added: "border-[var(--link)] text-link",
+  added: "border-change text-change",
   changed: "border-transparent bg-[var(--status-attention)] text-on-fill",
   removed: "border-[var(--status-error)] text-error",
 };

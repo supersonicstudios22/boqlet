@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import { extensions } from "@/extensions";
 import { useOrg } from "@/features/orgs/org-context";
 import type { OrgAction } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
 import { usePageTitle } from "@/lib/page-title";
+import { tabClass } from "@/components/nav-styles";
 
 /** Sections and who sees them (billing: owner; usage and audit: owner and admin, F14, S25). */
 const SECTIONS: { key: string; action?: OrgAction }[] = [{ key: "general" }, { key: "members" }, { key: "billing", action: "manageBilling" }, { key: "usage", action: "seeUsage" }, { key: "shares", action: "manageShareLinks" }, { key: "audit", action: "seeAudit" }];
@@ -38,10 +38,7 @@ export function SettingsNav({ org }: { org: string }) {
               href={href}
               aria-current={active ? "page" : undefined}
               data-testid={`settings-${s}`}
-              className={cn(
-                "label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground",
-                active && "border-link text-foreground",
-              )}
+              className={tabClass(active)}
             >
               {label}
             </Link>

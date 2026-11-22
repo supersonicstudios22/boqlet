@@ -8,6 +8,7 @@
  */
 import type { KeyboardEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { segmentClass, tabClass } from "@/components/nav-styles";
 
 const onKey = (run: () => void) => (e: KeyboardEvent) => {
   if (e.key === "Enter" || e.key === " ") {
@@ -45,11 +46,7 @@ export function TabBar<T extends string>({ tabs, value, onChange, label, quiet }
             tabIndex={on ? 0 : -1}
             aria-selected={on}
             data-testid={tab.testId}
-            className={cn(
-              "cursor-pointer px-3 py-1.5 select-none",
-              quiet ? "rounded-[var(--radius)] border border-border hover:bg-muted" : "label-caps -mb-px border-b-2 border-transparent hover:text-foreground",
-              quiet ? on && "border-foreground bg-muted" : on ? "border-link text-foreground" : "text-muted-foreground",
-            )}
+            className={quiet ? segmentClass(on, "cursor-pointer px-3 py-1.5 select-none") : tabClass(on, "cursor-pointer px-3 pt-1.5 select-none")}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => {
               const i = tabs.findIndex((x) => x.id === value);
@@ -73,7 +70,7 @@ export function Tag({ children, tone = "quiet" }: { children: ReactNode; tone?: 
     <span
       className={cn(
         "label-caps inline-flex items-center rounded-[var(--radius)] border px-1",
-        tone === "changed" ? "border-link text-link" : tone === "removed" ? "border-error text-error" : "border-border text-muted-foreground",
+        tone === "changed" ? "border-change text-change" : tone === "removed" ? "border-error text-error" : "border-border text-muted-foreground",
       )}
     >
       {children}

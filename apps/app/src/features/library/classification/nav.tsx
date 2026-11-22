@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { segmentClass, tabClass } from "@/components/nav-styles";
 
 /*
  * Navigation inside the editor (tabs, story jumps, "rule …" links, page turns) must keep working for
@@ -52,11 +53,7 @@ export function Tabs<T extends string>({ value, onChange, tabs, small }: { value
           tabIndex={0}
           aria-selected={value === tab.id}
           data-testid={tab.testId}
-          className={cn(
-            "label-caps cursor-pointer border-b-2 px-3 py-2 hover:text-foreground",
-            small && "rounded-[var(--radius)] border border-border px-2 py-1",
-            value === tab.id ? (small ? "border-link text-link" : "border-link text-foreground") : small ? "text-muted-foreground" : "border-transparent text-muted-foreground",
-          )}
+          className={small ? segmentClass(value === tab.id, "label-caps cursor-pointer px-2 py-1") : tabClass(value === tab.id, "cursor-pointer px-3 pt-2")}
           onClick={() => onChange(tab.id)}
           onKeyDown={activate(() => onChange(tab.id))}
         >

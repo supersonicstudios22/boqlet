@@ -141,7 +141,7 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
           </div>
         </form>
         {created && (
-          <div className="flex flex-col gap-2 border-l-2 border-[var(--link)] pl-3" data-testid="share-created">
+          <div className="flex flex-col gap-2 border-l-2 border-foreground pl-3" data-testid="share-created">
             <p className="text-muted-foreground">{t("createdHint")}</p>
             <div className="flex items-center gap-2">
               {/* The "Create link" button is replaced by the link: focus goes to it (TF-160). */}

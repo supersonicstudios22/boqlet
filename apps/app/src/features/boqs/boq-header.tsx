@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Ellipsis } from "lucide-react";
-import { useState, useRef } from "react";
+import { Fragment, useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFormatter, useTranslations } from "next-intl";
 import { api } from "@/api/client";
@@ -12,18 +12,19 @@ import { useQuestions } from "@/api/hooks/decisions";
 import { useJobProgress } from "@/api/hooks/models";
 import { DimensionRule } from "@/components/dimension-rule";
 import { useErrorMessage } from "@/components/errors/use-error-message";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
 import { counts } from "@/features/questions/model";
+import { useOpenQuestions } from "@/features/questions/use-open-questions";
 import { useRevisions } from "@/api/hooks/diffs";
 import { SaveVersionDialog, SubmitDialog, type SaveMode } from "@/features/versions/version-dialogs";
 import { ReviewStrip } from "@/features/versions/review-strip";
 import { NewModelVersions } from "./new-model-versions";
 import { ReopenBoqDialog } from "./reopen-boq-dialog";
 import { ShareDialog } from "@/features/shares/share-dialog";
-import { headerState, saveBlockedReason } from "./run-state";
+import { headerState, nextStep, saveBlockedReason, type NextStep } from "./run-state";
 import { useRefocusWhenLost } from "@/lib/focus";
 
 export function Tag({ children, filled, className, ...rest }: { children: React.ReactNode; filled?: boolean; className?: string; "data-testid"?: string }) {
@@ -80,6 +81,109 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
   const questions = useQuestions(answersPending ? revision.currentRun?.id : undefined);
   const notApplied = answersPending ? counts(questions.data ?? []).notApplied : 0;
   const otherPending = revision.pendingChanges.filter((k) => k !== "decisions" || notApplied === 0);
+  // P55: one primary, on the BoQ's next step; every other action is secondary.
+  const { blocking } = useOpenQuestions(revision.currentRun?.id);
+  const next = nextStep(boq, state, can, blocking);
+  const variant = (step: NextStep) => (next === step ? "default" : "outline");
+  const saveStep = can("submit") ? "submit" : "save";
+  // The header's actions in their usual order; the primary is moved to the front when rendered.
+  const actions: { key: string; step: NextStep; node: React.ReactNode }[] = [];
+  if (state.kind === "active" && activeJobId && can("editBoqs"))
+    actions.push({
+      key: "cancel",
+      step: null,
+      node: (
+        <Button ref={runButton} variant="outline" onClick={() => cancel.mutate()} disabled={cancel.isPending} data-testid="cancel-run">
+          {t("actions.cancel")}
+        </Button>
+      ),
+    });
+  if (state.kind === "failed" && can("editBoqs"))
+    actions.push({
+      key: "retry",
+      step: "retry",
+      node: (
+        <Button ref={runButton} variant={variant("retry")} onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="retry-run">
+          {t("actions.retry")}
+        </Button>
+      ),
+    });
+  if (state.kind !== "active" && state.kind !== "failed" && can("editBoqs"))
+    actions.push({
+      key: "generate",
+      step: "generate",
+      node: (
+        <Button ref={runButton} variant={variant("generate")} onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="generate">
+          {state.kind === "none" ? t("actions.generate") : t("actions.regenerate")}
+        </Button>
+      ),
+    });
+  if (next === "answer")
+    actions.push({
+      key: "answer",
+      step: "answer",
+      node: (
+        <Link href={`${base}?tab=questions`} className={buttonVariants()} data-testid="answer-questions">
+          {t("actions.answerQuestions", { n: blocking })}
+        </Link>
+      ),
+    });
+  if (can("saveVersion") || can("submit"))
+    actions.push({
+      key: "save",
+      step: saveStep,
+      node: (
+        <Button
+          variant={variant(saveStep)}
+          onClick={() => setDialog(saveStep)}
+          disabled={blocked !== null}
+          title={blocked === "pending" ? t("actions.saveBlockedPending") : blocked === "noRun" ? t("actions.saveBlockedNoRun") : undefined}
+          data-testid={saveStep === "submit" ? "submit-for-review" : "save-version"}
+        >
+          {saveStep === "submit" ? t("actions.submit") : t("actions.saveVersion")}
+        </Button>
+      ),
+    });
+  if (can("saveApproved"))
+    actions.push({
+      key: "saveApproved",
+      step: "saveApproved",
+      node: (
+        <Button variant={variant("saveApproved")} onClick={() => setDialog("saveApproved")} data-testid="save-approved">
+          {t("actions.saveApproved")}
+        </Button>
+      ),
+    });
+  if (boq.status === "confirmed" && can("reopen"))
+    actions.push({
+      key: "reopen",
+      step: null,
+      node: (
+        <Button variant="outline" onClick={() => setDialog("reopen")} data-testid="reopen-boq">
+          {t("actions.reopen")}
+        </Button>
+      ),
+    });
+  if (can("share") && !boq.archived)
+    actions.push({
+      key: "share",
+      step: "share",
+      node: (
+        <Button variant={variant("share")} onClick={() => setDialog("share")} data-testid="share-boq">
+          {t("actions.share")}
+        </Button>
+      ),
+    });
+  if (next === "confirm")
+    actions.push({
+      key: "confirm",
+      step: "confirm",
+      node: (
+        <Button onClick={() => setDialog("confirm")} data-testid="confirm-boq">
+          {t("actions.confirm")}
+        </Button>
+      ),
+    });
 
   return (
     <div className="flex flex-col gap-4" data-testid="boq-header" data-state={state.kind}>
@@ -94,60 +198,17 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         {boq.status === "confirmed" && <Tag filled>{t("status.confirmed")}</Tag>}
         {boq.archived && <Tag className="border-muted-foreground text-muted-foreground">{t("status.archived")}</Tag>}
         <div className="ml-auto flex items-center gap-2">
-          {state.kind === "active" && activeJobId && can("editBoqs") && (
-            <Button ref={runButton} variant="outline" onClick={() => cancel.mutate()} disabled={cancel.isPending} data-testid="cancel-run">
-              {t("actions.cancel")}
-            </Button>
-          )}
-          {state.kind === "failed" && can("editBoqs") && (
-            <Button ref={runButton} onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="retry-run">
-              {t("actions.retry")}
-            </Button>
-          )}
-          {state.kind !== "active" && state.kind !== "failed" && can("editBoqs") && (
-            <Button
-              ref={runButton}
-              variant={state.kind === "none" || revision.pendingChanges.length ? "default" : "outline"}
-              onClick={() => generate.mutate()}
-              disabled={generate.isPending}
-              data-testid="generate"
-            >
-              {state.kind === "none" ? t("actions.generate") : t("actions.regenerate")}
-            </Button>
-          )}
-          {(can("saveVersion") || can("submit")) && (
-            <Button
-              variant="outline"
-              onClick={() => setDialog(can("submit") ? "submit" : "save")}
-              disabled={blocked !== null}
-              title={blocked === "pending" ? t("actions.saveBlockedPending") : blocked === "noRun" ? t("actions.saveBlockedNoRun") : undefined}
-              data-testid={can("submit") ? "submit-for-review" : "save-version"}
-            >
-              {can("submit") ? t("actions.submit") : t("actions.saveVersion")}
-            </Button>
-          )}
-          {can("saveApproved") && (
-            <Button onClick={() => setDialog("saveApproved")} data-testid="save-approved">
-              {t("actions.saveApproved")}
-            </Button>
-          )}
-          {boq.status === "confirmed" && can("reopen") && (
-            <Button variant="outline" onClick={() => setDialog("reopen")} data-testid="reopen-boq">
-              {t("actions.reopen")}
-            </Button>
-          )}
-          {can("share") && !boq.archived && (
-            <Button variant="outline" onClick={() => setDialog("share")} data-testid="share-boq">
-              {t("actions.share")}
-            </Button>
-          )}
-          {(canArchive || can("confirm")) && (
+          {/* The primary comes first in the markup too, so the focus order matches what is seen. */}
+          {[...actions.filter((a) => a.step === next), ...actions.filter((a) => a.step !== next)].map((a) => (
+            <Fragment key={a.key}>{a.node}</Fragment>
+          ))}
+          {(canArchive || (can("confirm") && next !== "confirm")) && (
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" aria-label={t("actions.more")} data-testid="boq-menu" />}>
                 <Ellipsis aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {can("confirm") && (
+                {can("confirm") && next !== "confirm" && (
                   <DropdownMenuItem onClick={() => setDialog("confirm")} data-testid="confirm-boq">
                     {t("actions.confirm")}
                   </DropdownMenuItem>

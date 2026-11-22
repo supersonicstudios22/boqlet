@@ -27,6 +27,37 @@ export function headerState(boq: Pick<Boq, "currentRevision">, runs: Run[] | und
   return { kind: "none" };
 }
 
+/** The one action the header shows as primary (P55): the BoQ's next step for this user. */
+export type NextStep = "retry" | "generate" | "answer" | "saveApproved" | "submit" | "save" | "confirm" | "share" | null;
+
+/**
+ * The next step, in the order of the flow: generate (or retry), answer the questions that block the BoQ, save
+ * (submit and save approved with approval on), confirm, share. A working version still on the run
+ * it was saved from, with nothing pending, is the saved version unchanged: confirm comes next, not
+ * another save. `can` is the revision's permissions.
+ */
+export function nextStep(
+  boq: Pick<Boq, "currentRevision" | "status" | "archived">,
+  state: HeaderState,
+  can: (key: string) => boolean,
+  blockingQuestions: number,
+): NextStep {
+  const revision = boq.currentRevision;
+  if (boq.archived) return null;
+  if (boq.status === "confirmed") return can("share") ? "share" : null;
+  if (state.kind === "active") return null;
+  if (state.kind === "failed") return can("editBoqs") ? "retry" : null;
+  if (state.kind === "none" || revision.pendingChanges.length > 0) return can("editBoqs") ? "generate" : null;
+  if (blockingQuestions > 0 && can("answerQuestions")) return "answer";
+  if (can("saveApproved")) return "saveApproved";
+  const unchangedSinceSave = !!revision.basedOnRunId && revision.currentRun?.id === revision.basedOnRunId;
+  if (unchangedSinceSave && can("confirm")) return "confirm";
+  if (can("submit") && !unchangedSinceSave) return "submit";
+  if (can("saveVersion") && !unchangedSinceSave) return "save";
+  if (can("confirm")) return "confirm";
+  return null;
+}
+
 /** Save version is possible with a finished current run and nothing pending (BR-22). */
 export function saveBlockedReason(boq: Pick<Boq, "currentRevision">): "pending" | "noRun" | null {
   if (!boq.currentRevision.currentRun) return "noRun";

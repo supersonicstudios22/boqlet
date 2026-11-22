@@ -99,7 +99,8 @@
     "saveApproved": "Save approved version",
     "confirm": "Confirm BoQ",
     "reopen": "Reopen",
-    "share": "Share"
+    "share": "Share",
+    "answerQuestions": "{n, plural, one {Answer # question} other {Answer # questions}}"
   },
   "tabs": {
     "label": "BoQ",
@@ -111,7 +112,8 @@
     "log": "Log",
     "changes": "Changes",
     "review": "Review",
-    "exports": "Exports"
+    "exports": "Exports",
+    "openCount": "{n, plural, one {# question to answer} other {# questions to answer}}"
   },
   "sheet": {
     "empty": "Generate the BoQ to see its lines.",

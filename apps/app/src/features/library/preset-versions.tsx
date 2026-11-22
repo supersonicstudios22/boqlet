@@ -163,7 +163,7 @@ function VersionDiff({ preset, older, newer, label }: { preset: Preset; older: s
                     </td>
                   </tr>
                 ) : (
-                  <tr key={i} data-op={r.op} className={cn(r.op === "added" && "bg-link/10", r.op === "removed" && "bg-error/10")}>
+                  <tr key={i} data-op={r.op} className={cn(r.op === "added" && "bg-change/10", r.op === "removed" && "bg-error/10")}>
                     <td className="w-12 pr-2 text-right text-muted-foreground tabular-nums select-none">{r.a ?? ""}</td>
                     <td className="w-12 pr-2 text-right text-muted-foreground tabular-nums select-none">{r.b ?? ""}</td>
                     <td className="w-4 select-none">{r.op === "added" ? "+" : r.op === "removed" ? "−" : ""}</td>

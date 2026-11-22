@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { extensions } from "@/extensions";
 import { useOrg } from "@/features/orgs/org-context";
-import { cn } from "@/lib/utils";
+import { navItemClass } from "@/components/nav-styles";
 
 /** The org's left navigation (screens.md "Global chrome"); modules add entries below the core's (`nav.orgItems`). */
 const ITEMS = [
@@ -38,10 +38,7 @@ export function LeftNav({ org }: { org: string }) {
             href={target}
             aria-current={active ? "page" : undefined}
             data-testid={`nav-${id}`}
-            className={cn(
-              "flex h-row items-center border-l-2 border-transparent px-4 text-ui text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-              active && "border-link bg-selection text-foreground",
-            )}
+            className={navItemClass(active)}
           >
             {label}
           </Link>

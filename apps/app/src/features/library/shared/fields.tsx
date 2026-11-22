@@ -10,6 +10,7 @@ import { useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { Param, ParamRef, Value } from "@ifc-boq/types";
 import { cn } from "@/lib/utils";
+import { segmentClass } from "@/components/nav-styles";
 import { fromReadable, sameFormula, toReadable, type Lexicon } from "../lib/readable";
 import { NAME_GROUPS, type NameGroup } from "../lib/names";
 import { BUILDING_FIELDS, NAME_UNITS } from "./vocab";
@@ -539,7 +540,7 @@ export function ValueField<T>({ value, onChange, slots, slotType, children }: {
       {(ref || candidates.length > 0) && (
         <button
           type="button"
-          className={cn("h-8 rounded-[var(--radius)] border border-border px-2 text-ui hover:bg-muted", ref && "border-link text-link")}
+          className={segmentClass(!!ref, "h-8 px-2 text-ui")}
           aria-pressed={!!ref}
           onClick={toggle}
           title={ref ? t("useFixed") : t("useSlot")}
@@ -652,8 +653,8 @@ export interface RowInfo {
 }
 
 const BADGE_TONE: Record<NonNullable<NonNullable<RowInfo["badge"]>["tone"]>, string> = {
-  new: "border-link text-link",
-  changed: "border-link text-link",
+  new: "border-change text-change",
+  changed: "border-change text-change",
   removed: "border-error text-error",
   inherited: "text-muted-foreground",
 };

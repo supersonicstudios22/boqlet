@@ -121,7 +121,7 @@ function NumberAnswer({ unit, value, onChange, disabled, label, testId }: { unit
           {t("use")}
         </Button>
       </div>
-      <Button variant={value === "flag" ? "default" : "ghost"} disabled={disabled} onClick={() => onChange("flag", true)} aria-pressed={value === "flag"}>
+      <Button variant="ghost" disabled={disabled} onClick={() => onChange("flag", true)} aria-pressed={value === "flag"}>
         {t("flag")}
       </Button>
     </div>

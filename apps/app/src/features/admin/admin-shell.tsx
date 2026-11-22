@@ -9,8 +9,8 @@ import { NotFoundView } from "@/components/errors/not-found-view";
 import { ThemeSwitch } from "@/components/shell/theme-switch";
 import { UserMenu } from "@/components/shell/user-menu";
 import { Wordmark } from "@/components/shell/wordmark";
-import { cn } from "@/lib/utils";
 import { usePageTitle } from "@/lib/page-title";
+import { navItemClass } from "@/components/nav-styles";
 
 const SECTIONS = ["overview", "funnel", "orgs", "users", "health"] as const;
 const href = (s: (typeof SECTIONS)[number]) => (s === "overview" ? "/admin" : `/admin/${s}`);
@@ -54,10 +54,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 href={target}
                 aria-current={active ? "page" : undefined}
                 data-testid={`admin-nav-${s}`}
-                className={cn(
-                  "flex h-row items-center border-l-2 border-transparent px-4 text-ui text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-                  active && "border-link bg-selection text-foreground",
-                )}
+                className={navItemClass(active)}
               >
                 {t(`nav.${s}`)}
               </Link>

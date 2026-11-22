@@ -690,7 +690,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
           {t("exportExcel")}
         </Button>
         {hasModels && (
-          <Button variant={split ? "default" : "outline"} aria-pressed={split} onClick={() => setSplit((s) => !s)} title={t("modelToggleHint")} data-testid="toggle-model">
+          <Button variant="outline" aria-pressed={split} onClick={() => setSplit((s) => !s)} title={t("modelToggleHint")} data-testid="toggle-model">
             <Box aria-hidden />
             {t("model3d")}
           </Button>
@@ -1291,7 +1291,7 @@ const LineRowView = memo(function LineRowView({
       aria-selected={selected}
       className={cn(
         "absolute top-0 left-0 grid w-full min-w-fit cursor-pointer border-b border-border hover:bg-muted/40",
-        selected && "bg-[var(--selection)] shadow-[inset_2px_0_0_var(--link)]",
+        selected && "bg-[var(--selection)] shadow-[inset_3px_0_0_var(--link)]",
         line.excluded && "text-muted-foreground line-through",
         line.pending && "italic",
         over && "shadow-[inset_0_-2px_0_var(--link)]",
@@ -1379,7 +1379,7 @@ const LineRowView = memo(function LineRowView({
           <div
             key={c.id}
             role="gridcell"
-            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-1 after:right-1 after:size-1.5 after:rounded-full after:bg-[var(--link)]")}
+            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-1 after:right-1 after:size-1.5 after:rounded-full after:bg-change")}
             style={c.id === "description" ? { paddingLeft: `${0.5 + depth}rem` } : undefined}
             title={edited ? c.engine?.(line) : undefined}
             data-editable-column={canEdit ? c.editable : undefined}

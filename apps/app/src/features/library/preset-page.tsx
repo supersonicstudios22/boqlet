@@ -14,7 +14,6 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
 import { useRelativeTime } from "@/i18n/use-relative-time";
-import { cn } from "@/lib/utils";
 import { Tag } from "./kinds";
 import { CloneDialog } from "./clone-dialog";
 import { MeasureStep } from "@/features/setup/measure-step";
@@ -29,6 +28,7 @@ import { PresetVersions } from "./preset-versions";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { tabClass } from "@/components/nav-styles";
 
 const TABS = ["edit", "versions", "usage"] as const;
 type Tab = (typeof TABS)[number];
@@ -72,7 +72,7 @@ export function PresetPage({ presetId }: { presetId: string }) {
             onClick={() => setTab(k)}
             aria-current={k === tab ? "page" : undefined}
             data-testid={`preset-tab-${k}`}
-            className={cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", k === tab && "border-link text-foreground")}
+            className={tabClass(k === tab)}
           >
             {t(`preset.tab.${k}`)}
             {k === "usage" && <span className="ml-1 tabular-nums">{p.usedByCount ?? 0}</span>}

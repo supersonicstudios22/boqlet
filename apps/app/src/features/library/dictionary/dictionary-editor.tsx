@@ -26,6 +26,7 @@ import { DICT_FIELDS, EXTRACT_TARGETS, TERM_CATEGORIES, UNITS } from "../shared/
 import { DictStory, useDictWords, type DictPart } from "./dict-story";
 import type { KnownTerm } from "./names";
 import { NamesTab, type NamesPick } from "./names-tab";
+import { tabClass } from "@/components/nav-styles";
 
 type Tab = "names" | "entries" | "terms" | "advanced";
 type AdvancedTab = "extractors" | "about" | "json";
@@ -68,8 +69,11 @@ function Tabs<T extends string>({ tabs, value, onChange, label, testId, variant 
           className={cn(
             "cursor-pointer select-none",
             variant === "main"
-              ? cn("label-caps -mb-px border-b-2 border-transparent pb-2 text-muted-foreground hover:text-foreground", value === id && "border-link text-foreground")
-              : cn("flex h-8 items-center border border-border px-2 first:rounded-l-[var(--radius)] last:rounded-r-[var(--radius)] hover:bg-muted", value === id && "border-foreground bg-foreground text-background hover:bg-foreground/90"),
+              ? tabClass(value === id)
+              : cn(
+                  "flex h-8 items-center border px-2 transition-colors first:rounded-l-[var(--radius)] last:rounded-r-[var(--radius)]",
+                  value === id ? "border-link bg-selection font-semibold text-link" : "border-border text-muted-foreground hover:bg-hover hover:text-foreground",
+                ),
           )}
         >
           {text}

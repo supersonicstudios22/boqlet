@@ -1,19 +1,21 @@
 # Design guidelines
 
-**Status: decided by the owner (Nov 2026, P41, P43).** This document overrides
+**Status: decided by the owner (Nov 2026, P41, P43; the interactive accent P55).** This document overrides
 `design-system.md` wherever they differ. It was written from the owner's answers, the shadcn
 preset `b38miVKzY` and three reference posters for the product **boqlet**, then confirmed by the
 owner in an interactive specimen of the common elements (the "boqlet look lab" artifact, setting
 "Guidelines v1", https://claude.ai/artifact/RpVBRtB5PUQaMCcKiMpoaF, private to the owner). An
 agent that needs a visual decision this document doesn't cover asks the owner rather than
-inventing a style.
+inventing a style. The accent rules (P55) were confirmed in a second specimen, the "boqlet
+Accent Lab" (https://claude.ai/artifact/RBPAZ36U51ztqLby67VZxN, private to the owner), shown there
+in blue and then set to the brand purple.
 
 ## The direction in one paragraph
 
 A precise instrument on paper. Warm paper background, ink text, everything set in a monospace
-face, hairline rules, almost-square corners. Colour is rare and means something: a few poster
-colours (blue, orange, yellow, red) pop out only where something needs attention or carries
-meaning. The working screens (the BoQ sheet, the Library, settings) are calm and dense. The
+face, hairline rules, almost-square corners. Colour is rare and means something: the brand
+purple marks what to do next and where you are, and a few poster colours (blue, orange, yellow,
+red) pop out only where something needs attention or carries meaning. The working screens (the BoQ sheet, the Library, settings) are calm and dense. The
 moments of arrival (sign-in, the setup wizard, onboarding, the dashboard, a shared BoQ) may be
 expressive in the poster language: big geometric shapes, a heavy display face, the dimension
 line.
@@ -34,8 +36,9 @@ line.
 | Name | Hex | Role |
 |---|---|---|
 | Paper | `#F2EDE3` | Page background (light theme); text and surfaces on dark |
-| Ink | `#151515` | Text, rules, primary buttons (light); background (dark) |
-| Blue | `#1E4FB8` | Interactive accent: links, focus, selection, active tab; "derived" |
+| Ink | `#151515` | Text, rules, filled tags (Confirmed); background (dark) |
+| Purple (the brand, "boq" in the logo) | `#6D3CE0` | **Interactive accent** (P55): the primary button, links, focus, selection, the active tab and nav item |
+| Blue | `#1E4FB8` | Status: "derived", edited cells, added or changed in a comparison; the first data colour |
 | Orange | `#E8590C` | Attention: "to confirm", warnings, things to act on |
 | Yellow | `#F2B705` | Marking: manual lines, highlights, the selected element in 3D |
 | Red | `#C62423` | Errors and destructive actions only |
@@ -47,14 +50,16 @@ There is **no green**. Success is shown in ink with a check mark and plain words
 | On paper `#F2EDE3` | Contrast | Use |
 |---|---|---|
 | Ink | 15.7 | All text |
-| Muted `#625E59` | 5.5 | Secondary text (4.5 needed); 5.0 on the selected-row fill `#DCE3F3`, 5.0 on `--muted` `#E8E2D6` (TF-163) |
-| Blue `#1E4FB8` | 6.3 | Text, links, icons |
+| Muted `#625E59` | 5.5 | Secondary text (4.5 needed); 4.9 on the selected-row fill `#E6DEF5`, 5.0 on `--muted` `#E8E2D6` (TF-163) |
+| Purple `#6D3CE0` | 5.3 | Text, links, icons, the active tab; 4.8 on the selection fill; paper text on a purple fill 5.3 |
+| Blue `#1E4FB8` | 6.3 | Status text and marks (derived, edited, added) |
 | Red `#C62423` | 4.9 | Error text |
 | Orange `#E8590C` | 3.1 | **Fills, markers, large text only**; small text on it in ink (5.1) |
 | Yellow `#F2B705` | 1.6 | **Fills only**, with ink text (10.0) |
 
-On ink (dark theme) blue and red get lighter variants for text (`#7D9BE6` 6.7, `#E06A69`
-5.6); orange (5.1) and yellow (10.0) work as text and fills.
+On ink (dark theme) purple, blue and red get lighter variants for text (`#A88BF0` 6.6, also
+with ink text on it; `#7D9BE6` 6.7; `#E06A69` 5.6); orange (5.1) and yellow (10.0) work as text
+and fills. The logo's own purple on ink is `--brand` `#8F6AF0` (3:1, a graphic, not text).
 
 ### Tokens
 
@@ -67,18 +72,24 @@ follows the OS setting and can be switched by the user.
 | `--foreground` | `#151515` | `#F2EDE3` |
 | `--card` | `#F7F4EE` | `#1E1E1E` |
 | `--popover` | `#FBF9F5` | `#232323` |
-| `--primary` (buttons) | `#151515` | `#F2EDE3` |
+| `--primary` (filled ink: tags, the avatar) | `#151515` | `#F2EDE3` |
 | `--primary-foreground` | `#F2EDE3` | `#151515` |
-| `--secondary`, `--accent` (hover, quiet fills) | `#E8E2D6` | `#2A2926` |
+| `--brand` (the logo's "boq") | `#6D3CE0` | `#8F6AF0` |
+| `--action` (the primary button) | `#6D3CE0` | `#A88BF0` |
+| `--action-hover` | `#5B2FC4` | `#B9A2F4` |
+| `--action-foreground` | `#F2EDE3` | `#151515` |
+| `--hover` (hover fill: secondary and quiet buttons, menus, nav, toggles) | `#DDD5C6` | `#36342F` |
+| `--secondary`, `--accent` (quiet fills) | `#E8E2D6` | `#2A2926` |
 | `--muted` | `#E8E2D6` | `#2A2926` |
 | `--muted-foreground` | `#625E59` | `#A39E95` |
 | `--border` (rules, dividers) | `#D6D0C4` | `#3A3833` |
 | `--input` (control borders, 3:1) | `#8A857D` | `#7A766F` |
-| `--ring` (focus) | `#1E4FB8` | `#7D9BE6` |
+| `--ring` (focus) | `#6D3CE0` | `#A88BF0` |
 | `--destructive` | `#C62423` | `#E06A69` |
-| `--link` | `#1E4FB8` | `#7D9BE6` |
-| `--selection` (selected row fill) | `#DCE3F3` + 2 px `--link` bar on the left | `#1F2A44` + bar |
+| `--link` (links, the active tab and nav item, a toggle that is on) | `#6D3CE0` | `#A88BF0` |
+| `--selection` (selected row, active nav item, a toggle that is on) | `#E6DEF5` + 3 px `--link` bar on the left | `#2A2240` + bar |
 | `--status-derived` | `#1E4FB8` | `#7D9BE6` |
+| `--status-change` (edited cells; added or changed in a comparison) | `#1E4FB8` | `#7D9BE6` |
 | `--status-manual` | `#F2B705` | `#F2B705` |
 | `--status-attention` | `#E8590C` | `#E8590C` |
 | `--status-error` | `#C62423` | `#E06A69` |
@@ -100,9 +111,30 @@ Most lines are plain; colour only where attention is needed or the origin matter
 | Warning | Orange marker and ink text |
 | Success, done, saved, complete | Ink with a check mark and the word ("Saved", "Complete") |
 | Working / Saved / Confirmed (BoQ state) | Ink outline tags; Confirmed has a filled ink tag |
-| In review / Approved (approval on) | Blue outline / blue fill tag |
+| In review / Approved (approval on) | Ink outline tags, like the BoQ state (a status never borrows the accent) |
 
 Never use colour alone: every coloured status also has its word or mark.
+
+### Actions and place (P55)
+
+Purple means **act**, or **you are here**; nothing else is purple except the logo.
+
+| Level | Looks like | Use |
+|---|---|---|
+| Primary | Purple fill, paper text, semibold | The next step. **One per screen or dialog**: in the BoQ header it follows the flow (Generate or Retry → Answer N questions, when questions block the BoQ → Save version, or Submit / Save approved with approval on → Confirm BoQ → Share); `nextStep` in `features/boqs/run-state.ts` picks it |
+| Secondary (`outline`) | 1 px `--input` border (3:1), ink text; on hover an ink border and `--hover` fill | Every other action next to it, Cancel in a dialog |
+| Quiet (`ghost`) | No border; `--hover` fill on hover | Toolbars, icon buttons, the ··· menu |
+| Destructive | Red fill | Delete, archive, suspend |
+| Disabled (any level) | Dashed `--input` border, muted text, no fill | The reason is on screen nearby or in the tooltip |
+
+- **Where you are:** the active tab has purple text, bold, and a 3 px purple underline; the active
+  nav item a 3 px purple bar, the selection fill and purple semibold text. Inactive items are
+  muted and get `--hover` on hover. One set of classes (`components/nav-styles.ts`) is used by
+  every tab row and nav.
+- **Toggles** (a button with `aria-pressed`, a small tab group, an on/off chip) are *selected*
+  when on: the selection fill, a purple border and purple text. A toggle is never primary.
+- **Counts** sit on the tab: the Questions tab shows its unanswered questions, in an orange fill
+  with ink text when some block the BoQ and as a muted outline when all are optional.
 
 ### Data colours (charts, 3D, code groups)
 
@@ -188,8 +220,8 @@ Used for:
 - the result line of "How it is calculated" (the final quantity sits on a dimension line);
 - section dividers on the share page.
 
-Drawn with 2 px ink rules and 10 px ticks; the measurement is in mono, tabular. Blue when it
-represents progress.
+Drawn with 2 px ink rules and 10 px ticks; the measurement is in mono, tabular. Purple
+(`--link`) when it represents progress.
 
 ## Brand
 

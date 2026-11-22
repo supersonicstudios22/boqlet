@@ -28,6 +28,7 @@ import { useVocab } from "../shared/use-vocab";
 import { useDictWords } from "./dict-story";
 import { LAYER_RANK, assignNames, commonPrefix, forgetName, rowOrder, rowsOf, suggestTerm, type Group, type KnownTerm, type Row, type Status } from "./names";
 import { InlineError } from "@/components/errors/inline-error";
+import { segmentClass } from "@/components/nav-styles";
 
 /** The system dictionary every other dictionary builds on. */
 export const GLOBAL_SEED_SLUG = "global-seed";
@@ -237,7 +238,7 @@ export function NamesTab({ preset, doc, onChange, known, pick, onPick }: {
                   aria-pressed={on}
                   data-testid="names-layer"
                   data-slug={p.slug}
-                  className={cn("rounded-[var(--radius)] border border-border px-1.5 py-0.5 hover:bg-muted", on && "border-link text-link")}
+                  className={segmentClass(on, "px-1.5 py-0.5")}
                   onClick={() => onPick({ ...pick, withIds: on ? withIds.filter((x) => x !== p.id) : [...withIds, p.id] })}
                 >
                   {t("otherChip", { name: p.name, layer: t(`presetLayers.${p.layer}`) })}

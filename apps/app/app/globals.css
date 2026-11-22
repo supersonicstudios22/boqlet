@@ -38,15 +38,24 @@
   --destructive-foreground: var(--paper);
   --border: #d6d0c4;
   --input: #8a857d;
-  --ring: #1e4fb8;
+  --ring: var(--brand);
 
   /* The product's own semantic tokens */
-  /* The logo's purple ("boq" in the wordmark, docs/brand/boqlet.svg). */
+  /* The logo's purple ("boq" in the wordmark, docs/brand/boqlet.svg). It is also the interactive
+     accent (P55): purple means act, or you are here. The primary button, links, focus, selection,
+     the active tab and nav item. Blue is a status colour (derived, edited, added). */
   --brand: #6d3ce0;
-  --link: #1e4fb8;
-  --selection: #dce3f3;
+  --action: var(--brand);
+  --action-hover: #5b2fc4;
+  --action-foreground: var(--paper);
+  /* Hover fill for secondary and quiet buttons, nav items and toggles. */
+  --hover: #ddd5c6;
+  --link: var(--brand);
+  --selection: #e6def5;
   --selection-bar: var(--link);
   --status-derived: #1e4fb8;
+  /* Edited cells and added or changed items in a comparison: blue, like derived. */
+  --status-change: #1e4fb8;
   --status-manual: #f2b705;
   --status-attention: #e8590c;
   --status-error: #c62423;
@@ -117,13 +126,19 @@
   --destructive-foreground: var(--ink);
   --border: #3a3833;
   --input: #7a766f;
-  --ring: #7d9be6;
+  --ring: #a88bf0;
 
   /* Lighter on ink so the logo keeps 3:1 (WCAG non-text contrast). */
   --brand: #8f6af0;
-  --link: #7d9be6;
-  --selection: #1f2a44;
+  /* Text and ink-on-purple need more: #a88bf0 is 6.6:1 on ink and with ink on it. */
+  --action: #a88bf0;
+  --action-hover: #b9a2f4;
+  --action-foreground: var(--ink);
+  --hover: #36342f;
+  --link: #a88bf0;
+  --selection: #2a2240;
   --status-derived: #7d9be6;
+  --status-change: #7d9be6;
   --status-manual: #f2b705;
   --status-attention: #e8590c;
   --status-error: #e06a69;
@@ -168,9 +183,14 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
+  --color-hover: var(--hover);
   --color-link: var(--link);
   --color-selection: var(--selection);
   --color-derived: var(--status-derived);
+  --color-change: var(--status-change);
   --color-manual: var(--status-manual);
   --color-attention: var(--status-attention);
   --color-error: var(--status-error);
