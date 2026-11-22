@@ -94,3 +94,17 @@ def test_a_formula_typed_into_a_quantity_without_a_saved_value_is_reported(expor
     report = boq_import.read(edited(data, change), info)
     assert any(p["column"] == "D" and "formula" in p["message"] for p in report["problems"]), report["problems"]
     assert not any(o["edit"].get("quantity") is None and o["change"] == "quantity" for o in report["overrides"])
+
+
+def test_a_text_edit_in_excel_is_proposed_as_a_description_edit(exported):
+    """TF-008: the Excel round trip covers text edits too (quantity, move, delete and add: test_worker)."""
+    result, codes, data = exported
+    info = {"boqId": "b1", "primary": codes["id"], "lines": result["lines"]}
+    line = next(l for l in result["lines"] if l["description"] == "Slab, 127mm Slab on Grade")
+
+    def change(sheet):
+        sheet.cell(row_of(sheet, line["description"]), 2, "Ground slab 127 mm, edited")
+    report = boq_import.read(edited(data, change), info)
+    assert report["overrides"] == [{"edit": {"lineKey": line["key"], "description": "Ground slab 127 mm, edited"},
+                                    "change": "description", "row": report["overrides"][0]["row"]}]
+    assert not report["problems"] and not report["manualItems"]
