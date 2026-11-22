@@ -37,7 +37,10 @@ All tokens (colour for light and dark, data colours, type scale, radius 2 px, sp
 density, motion) are defined in `design-guidelines.md`. Components read them through CSS
 variables; no colour, size or font is hard-coded in a component.
 
-## Components (build in `src/components`, document in Storybook or a `/_dev/ui` page)
+## Components
+
+Built in `apps/app/src/components`. There is no Storybook or component gallery: a component is
+documented by its doc comment and seen in the screens that use it.
 
 Start from the shadcn/ui set (Button, Input, Select, Combobox/Command, Dialog, Sheet, Popover,
 Tabs, Table, Tooltip, Toast/Sonner, Dropdown Menu, Breadcrumb, Badge, Progress, Skeleton,

@@ -57,14 +57,16 @@ is routed for the Keycloak rollback only.
 ## Observability
 
 - Structured JSON logs with `requestId`, `orgId`, `userId`, `jobId`.
-- OpenTelemetry traces across web → api → worker (job id propagated in the envelope).
+- Traces in the API only (OpenTelemetry through Micrometer, exported when an OTLP endpoint is set);
+  the app and the engine have none. A job is followed across the API and the worker by its `jobId`,
+  which the worker's log lines carry.
 - Metrics: request rate/latency/errors per endpoint, queue depth and wait time per pool, job
   duration per type and size class, ingestion time, SSE connections, limit hits.
 - Alerts: queue wait > 5 min (standard pool), job failure rate > 5%/h, API 5xx > 1%,
   DB connections > 80%, storage errors.
 - Error tracking (Sentry or equivalent) for web and API: not set up (needs an account).
 
-Built in BE-025 (2026-11-21): the logs, metrics, alerts and traces above, with alerts as log lines
+Built in BE-025 (2026-11-21): the logs, metrics, alerts and API traces above, with alerts as log lines
 until a destination is chosen and no error tracking yet (both need an account); operator view in
 `docs/operations/pilot.md` "Observability and backups".
 

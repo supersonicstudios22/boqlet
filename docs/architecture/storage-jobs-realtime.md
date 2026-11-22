@@ -11,17 +11,25 @@ Java tests. A standalone engine worker can use a local folder with the same key 
 
 ### Key layout
 
+Every job writes under its output prefix plus `attempt-N/` (`Jobs.java`), so a retried attempt never
+overwrites another. `{id}` is a fresh id where the table names none.
+
 | Key | Written by | Lifetime |
 |---|---|---|
-| `orgs/{orgId}/uploads/{modelVersionId}/source.ifc` | browser (signed PUT) | while the version exists |
-| `orgs/{orgId}/parses/{sha256}/parsed.json.gz`, `geometry.glb`, `meshes.npz`, `scene.json` | parse job | while any version references the hash (dedupe, BR-08) |
-| `orgs/{orgId}/runs/{runId}/result.json.gz`, `boq.xlsx` | run job | while the run exists |
-| `orgs/{orgId}/diffs/{diffId}/diff.json.gz` | diff job | cache, may be recomputed |
-| `orgs/{orgId}/previews/{jobId}/…` | preview job | 7 days (lifecycle rule) |
-| `orgs/{orgId}/exports/{exportId}/{fileName}` | export jobs | saved versions: while the version exists; others: 90 days |
+| `orgs/{orgId}/uploads/{modelVersionId}/incoming`, then `source.ifc` or `source.ifczip` | browser (signed PUT or multipart parts to `incoming`); the API seals it as `source.*` on `complete` (`Models.java`, `ObjectStorage.seal`) | while the version exists; an upload never completed is deleted after 24 h (`Maintenance`) |
+| `orgs/{orgId}/models/{modelVersionId}/{id}/attempt-N/parsed.json.gz`, `geometry.glb`, `meshes.npz`, `scene.json` | parse job | while the version exists. A second upload of the same file reuses the first version's keys (BR-08: a database lookup by sha256, `ParseJob`), so nothing is written for it |
+| `orgs/{orgId}/runs/{runId}/attempt-N/result.json.gz` (and `boq.xlsx` when the run asks for one) | run job | while the run exists |
+| `orgs/{orgId}/diffs/{diffId}/{id}/attempt-N/diff.json.gz` | diff job | cache, may be recomputed |
+| `orgs/{orgId}/previews/{id}/attempt-N/result.json.gz`, `compare/…`, `diff.json.gz`, `preview.json` | preview job | 7 days after the job ended (`Maintenance`) |
+| `orgs/{orgId}/exports/{exportId}/attempt-N/export.xlsx` | export jobs (BoQ, saved version, change report) | saved versions: while the version exists; others: 90 days (`Maintenance`). The download's file name is the export's `fileName`, not the key |
+| `orgs/{orgId}/share-links/{shareLinkId}/{runId}/{variant}/export.xlsx` | the API, through the worker, on a share link's first download (`PublicShares`) | with the link's data |
+| `orgs/{orgId}/imports/{id}/source.xlsx` | the API, from the multipart upload (`ImportEdits`) | 7 days after the import job ended (`Maintenance`) |
+| `orgs/{orgId}/imports/{id}/attempt-N/edits.json.gz` | import_boq_edits job | 7 days after the job ended |
+| `orgs/{orgId}/templates/{id}/{slug}.xlsx`; `system/templates/{id}/{slug}.xlsx` for system presets | the API (a preset's Excel template, `LibraryFiles`) | not cleaned up |
+| `internal/code-lists/{userId}/{id}` | the API, for the code-list read (`LibraryFiles`) | deleted when the read answers |
 | `orgs/{orgId}/pricing/…` | pricing module (planned, not built, P48) | the module's own rules; deleted with the module's data |
-| `orgs/{orgId}/imports/{jobId}/{fileName}` | browser (signed PUT) | 7 days |
-| `orgs/{orgId}/presets/{presetVersionId}/codelist.json.gz` | API | large code lists only |
+
+Deleting an org deletes everything under `orgs/{orgId}/` (BR-52, `Maintenance`).
 
 Signed URLs: PUT valid 1 h, GET valid 5 min (`UPLOAD_TTL`, `DOWNLOAD_TTL` in `ObjectStorage.java`). `geometry.glb` and `scene.json` are served with
 `Cache-Control: private, max-age=31536000, immutable` (their content never changes for a key).

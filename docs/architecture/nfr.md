@@ -14,9 +14,9 @@ are ported to the Java browser suite. How to repeat the rest: `docs/testing/READ
 | Model | Example | Parse (first upload) | Run (cached parse) | Measured (TS-002, 2026-11-21) |
 |---|---|---|---|---|
 | Small: < 1k elements, < 20 MB | Duplex (2.4 MB, 218 elements) | ≤ 30 s | ≤ 5 s | parse 3.3 s, run 0.6 s ✓ |
-| Medium: 10k–50k elements, 50–300 MB | NBU office pair, corpus medium files | ≤ 5 min | ≤ 60 s | NBU Medical Clinic MEP (207 MB, 16,012 elements): **parse 9.0 min ✗** (11.0 before TS-002's mesh repair fix; the geometry kernel alone takes 7 min here), run 21 s ✓ |
+| Medium: 10k–50k elements, 50–300 MB | corpus medium files (NBU Medical Clinic MEP) | ≤ 5 min | ≤ 60 s | NBU Medical Clinic MEP (207 MB, 16,012 elements): **parse 9.0 min ✗** (11.0 before TS-002's mesh repair fix; the geometry kernel alone takes 7 min here), run 21 s ✓ |
 | Large: 200k+ elements, > 300 MB | Enterprise only | ≤ 30 min (large pool) | ≤ 5 min | not measured (no such model in the corpus) |
-| Federated medium pair | NBU Medical Clinic (18 + 19 MB): ~2.5 min today | ≤ 3 min both parses in parallel | ≤ 60 s | parse 48 s in parallel, run 23 s ✓ |
+| Federated pair (the reference pair: NBU Medical Clinic architecture + structure, 18 + 19 MB; the NBU office pair, 15 MB and 1,303 elements, is a small pair and not comparable) | ~2.5 min before TS-002 | ≤ 3 min both parses in parallel | ≤ 60 s | parse 48 s in parallel, run 23 s ✓ |
 
 - Max upload size: per plan, absolute v1 cap 1 GB per version.
 - Queue wait (p95) for interactive runs: ≤ 10 s on the standard pool at expected load.

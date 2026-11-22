@@ -28,6 +28,7 @@ Every npm script, run from the repository root (`package.json`). The most used o
 | `npm run test:engine` | pytest in `engine/tests`, including the Duplex acceptance test |
 | `mvn -f services/api/pom.xml verify` | The Java build and its tests (Docker needed); with the `BOQLET_NATIVE_*` variables also the shared suites and the browser smoke ([../testing/README.md](../testing/README.md)) |
 | `npm run test:contract` / `npm run test:scenarios` | The shared suites against `API_URL`. They only work inside `NativeWorkerTest` (they need its test-only routes and seeded sessions); run outside it they stop at once with a message saying so (`tests/run.mjs` checks for `BOQLET_JAVA_SUITE_USERS`) |
+| `npm run perf -w @ifc-boq/tests` | The shared performance suite (TS-002 API latency); inside `NativeWorkerTest` only, with `BOQLET_API_PERF=1` ([../testing/README.md](../testing/README.md)) |
 | `npm run e2e:java -w @ifc-boq/app` | The browser smoke (`apps/app/e2e-java`); needs `BOQLET_JAVA_API` and the test-only routes, so it is started by `NativeWorkerTest` |
 | `npm run bundle:check -w @ifc-boq/app` | Per-route bundle budgets after `build:app` (`--write` resets them with 10 % headroom) |
 | `npm run api:lint` | Lint both HTTP contracts |
@@ -43,4 +44,6 @@ Every npm script, run from the repository root (`package.json`). The most used o
 | `npm run catalogue` | Regenerate `docs/testing/ifc-corpus-catalogue.md` from `fixtures/corpus/catalogue.json` |
 | `npm run setup:engine` | Recreate the Python venv (after editing `engine/requirements.txt`) |
 | `npm run import:uniclass` | Download Uniclass 2015 EF into `presets/classifications/uniclass2015-ef/codelist.json` |
+| `npm run i18n:pseudo -w @ifc-boq/app` | Write the pseudo-locale (`apps/app/messages/en-XA`) from the English messages (F15) |
+| `npm run start -w @ifc-boq/app` | Serve a production build of the app (`build:app` first) on port 3000 |
 | `npm run ui:add -w @ifc-boq/app -- <name>` | Add a shadcn/ui component (style base-mira); never `npx shadcn add` |

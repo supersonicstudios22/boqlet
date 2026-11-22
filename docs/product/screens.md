@@ -17,10 +17,12 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | ID | Route | Who | Data (API) | Main actions |
 |---|---|---|---|---|
 | S01 | `/sign-in`, `/sign-up` | public | auth adapter | sign in / up |
+| S39 | `/` | signed-in user | `GET /me` | land in the only or last org, pick one of several, or go to onboarding (F01 §3) |
 | S02 | `/onboarding` | user without org | `POST /orgs` | create org, invite |
 | S03 | `/invite/[token]` | public → user | `GET /invitations/{token}` | accept |
 | S04 | `/account` | user | `GET/PATCH /me`, notification prefs | edit profile, prefs, leave org |
 | S05 | `/{org}` | member | projects, attention | open project, new project |
+| S40 | `/{org}/projects` | member | projects (active or archived), search | open, filter, new project (F02) |
 | S06 | `/{org}/projects/new` | member | entitlements, presets | create |
 | S07 | `/{org}/projects/[p]` | project roles | project, models, boqs (working / confirmed), activity | navigate |
 | S08 | `/{org}/projects/[p]/models` | lead, estimator, approver, viewer | models + latest versions | add model, upload |
@@ -28,6 +30,7 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S10 | `/{org}/projects/[p]/models/[m]/versions/[v]` | same | version, summary, checks, names preview, viewer | retry, show in 3D |
 | S11 | `/{org}/projects/[p]/boqs` | project roles | boqs with current revision | new BoQ |
 | S12 | `/{org}/projects/[p]/boqs/[b]` | project roles | BoQ workspace (tabs below; modules may add tabs) | generate, save version, confirm, reopen; with approval: submit, approve |
+| S12i | … `?tab=review` | project roles, while a version is in review or approved | review status, reviewers, comments | approve, request changes, comment, withdraw |
 | S12a | … `?tab=sheet` | | lines, warnings, scene | sheet + 3D side by side, shared filters, detail with "How it is calculated", inline edits, move, reorder, exclude, add line, request prices, share |
 | S12b | … `?tab=questions` | lead, estimator, approver | questions + decisions | answer, bulk, dismiss, promote |
 | S12c | … `?tab=viewer` | all | geometry, scene, coverage | select, colour modes |
@@ -43,12 +46,16 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S17 | `/{org}/projects/[p]/settings` | lead | project, members | edit, members, archive |
 | S18 | `/{org}/projects/[p]/activity` | lead, approver | project audit | filter |
 | S19 | `/{org}/library` | members (edit: library editors) | presets by kind | new, open |
+| S41 | `/{org}/library/[kind]/new` | library editors | presets of the kind (to start from) | create a preset: empty, copy or patch (F10 §2) |
 | S20 | `/{org}/library/[kind]/[presetId]` | same | preset, draft, versions, usage | edit, preview, publish, archive |
 | S21 | `/{org}/settings/general` | owner, admin | org | rename, defaults, four-eyes |
 | S22 | `/{org}/settings/members` | owner, admin | members, invitations | invite, roles, remove |
 | S23 | `/{org}/settings/billing` | owner | billing, plans, entitlements | checkout, portal |
 | S24 | `/{org}/settings/usage` | owner, admin | usage | — |
 | S25 | `/{org}/settings/audit` | owner, admin | audit | filter, CSV |
+| S42 | `/{org}/settings/shares` | owner, admin | every share link of the org's BoQs | revoke (F18 §3) |
+| S43 | `/{org}/settings/[section]` | per the module's action | a module's org-settings section (`settings.orgSections`, P36) | as the module defines |
+| S44 | `/areas/[area]/…` | per the module | a module's area (`area.routes`, reached through the rewrites `next.config` makes for the modules in the build) | as the module defines |
 | S26 | `/notifications` | user | notifications | mark read |
 | S27 | (pricing module) `/vendor` | vendor | linked firms, open requests, pricebooks | navigate |
 | S28 | (pricing module) `/vendor/requests` | vendor | my requests across firms | open |

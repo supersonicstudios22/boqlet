@@ -1,8 +1,13 @@
 """Verify frontend identity, canonical redirect and API routing on the shared edge."""
 import json
+import sys
 from html.parser import HTMLParser
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+
+# A Windows console's code page (cp1252) can't print the site titles (TF-084).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 class Title(HTMLParser):
@@ -28,7 +33,7 @@ def check_frontend(url, expected_url, expected_title):
         page.feed(response.read().decode("utf-8"))
         if response.url != expected_url or not page.title.startswith(expected_title):
             raise RuntimeError(f"{url} resolved to {response.url} with title {page.title!r}")
-    print(f"{url} → {page.title}")
+    print(f"{url} -> {page.title}")
 
 
 def check_apis():

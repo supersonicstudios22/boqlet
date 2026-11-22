@@ -26,7 +26,7 @@ docs/
     features/README.md         index of the feature specs F01–F20 with their status
     features/F01…F20           one spec per feature: intent, acceptance criteria, status block with gaps
     flows.md                   end-to-end flows FL-1…FL-12
-    screens.md                 screen inventory S01–S37 and wireframes
+    screens.md                 screen inventory S01–S44 and wireframes
     roadmap.md                 what could come next, in order of value; what is out by decision
     known-limitations.md       what isn't built or is approximate: engine, product, tests (kept current)
     open-questions.md          assumptions to validate and questions for the owner (Q-ids)

@@ -257,7 +257,7 @@ reaches parameters. `explain()` returns the expression with values substituted
 traces and the log.
 
 To add a function: add it to `default_functions()` in `expr.py`, document it in the `Expr`
-comment in `packages/types/src/rules.ts` and here, add a case to `tests/test_expr.py`.
+comment in `packages/types/src/rules.ts` and here, add a case to `engine/tests/test_expr.py`.
 
 ## Questions and decisions
 

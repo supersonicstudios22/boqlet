@@ -17,14 +17,18 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// Compose v5 builds through Bake, which checks the Dockerfile paths against the working directory
+// case-sensitively: from a shell on "c:\..." (a lowercase drive letter) it asks for --allow=fs.read and
+// stops (TF-082). Docker runs from the repository root with the drive letter as Windows writes it.
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..").replace(/^[a-z]:/, (drive) => drive.toUpperCase());
 const composeFile = join(root, "ops", "local", "compose.yaml");
 const apiPort = process.env.LOCAL_API_PORT || "8080";
 const appPort = process.env.LOCAL_APP_PORT || "3000";
+const mailPort = process.env.LOCAL_MAIL_UI_PORT || "8025";
 const [, , cmd, ...rest] = process.argv;
 
 function compose(args, opts = {}) {
-  const res = spawnSync("docker", ["compose", "-f", composeFile, ...args], { stdio: "inherit", ...opts });
+  const res = spawnSync("docker", ["compose", "-f", composeFile, ...args], { stdio: "inherit", cwd: root, ...opts });
   if (res.error) {
     console.error(`[local] docker not found: install Docker Desktop (or Docker Engine with Compose v2). ${res.error.message}`);
     process.exit(1);
@@ -34,7 +38,7 @@ function compose(args, opts = {}) {
 
 function sql(query) {
   const res = spawnSync("docker", ["compose", "-f", composeFile, "exec", "-T", "db",
-    "psql", "-XqAt", "-v", "ON_ERROR_STOP=1", "-U", "boqlet", "-d", "boqlet"], { input: query, encoding: "utf8" });
+    "psql", "-XqAt", "-v", "ON_ERROR_STOP=1", "-U", "boqlet", "-d", "boqlet"], { input: query, encoding: "utf8", cwd: root });
   if (res.status !== 0) {
     console.error(res.stderr || "[local] the database is not running: npm run local:up");
     process.exit(1);
@@ -82,7 +86,7 @@ switch (cmd) {
       console.error("[local] the API did not become ready; see: npm run local:logs -- api");
       process.exit(1);
     }
-    console.log(`[local] backend ready. API http://localhost:${apiPort}/api/v1, mail http://localhost:8025`);
+    console.log(`[local] backend ready. API http://localhost:${apiPort}/api/v1, mail http://localhost:${mailPort}`);
     const users = sql("SELECT count(*) FROM users");
     if (users === "0") console.log("[local] no accounts yet: npm run local:user -- you@example.com");
     break;

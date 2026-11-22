@@ -123,7 +123,7 @@ Evidence is corrected for P53: the browser tests in `apps/app/e2e/` ran only on 
 | 8 | Isolation | ✓ | `tests/scenarios/isolation.test.ts`, Java integration tests (cross-tenant denial) | — |
 | 9 | Limits | ✓ | scenarios `orgs`, `projects`, `models`, `boqs` (`402 limit_reached`) | `e2e-java/orgs.spec.ts` (seat limit dialog); `e2e/billing.spec.ts` deleted with the mock, P53 |
 | 10 | Performance | ✗ one target | `docs/architecture/nfr.md`: every target met except the medium-model parse (9 min, target 5) | UI performance specs deleted with the mock, P53 |
-| 11 | i18n | ✓ then; **no browser check now** | unit tests (`apps/app/src/__tests__`, `scripts/pseudo-locale.test.mjs`) | none (`e2e/pseudo-locale.spec.ts` deleted with the mock, P53) |
+| 11 | i18n | ✓ then; **no browser check now** | unit tests (`apps/app/src/__tests__`, `apps/app/scripts/pseudo-locale.test.mjs`) | none (`e2e/pseudo-locale.spec.ts` deleted with the mock, P53) |
 | 12 | First setup (M) | open | needs a person new to the app; scenario `setup` (1 test) | `e2e-java/accounts.spec.ts` runs the wizard's suggested-answers path only (`e2e/setup.spec.ts` deleted with the mock, P53) |
 | 13 | Editing | ✓ | scenarios `line-edits` (edits survive a new model version), `edits-import`, `co-editing` | `e2e-java/live.spec.ts` (two-browser co-editing); `e2e/co-editing.spec.ts`, `e2e/exports.spec.ts` deleted with the mock, P53 |
 | 14 | Vendors | — | not in v1 (P48) | — |

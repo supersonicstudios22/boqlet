@@ -17,7 +17,8 @@ email and password on the boqlet domain; the Java API owns the credentials:
   (`ops/pilot/issue-setup-link.sh`; locally `npm run local:user`). Invited users set their
   password from the invitation. Runbook: `docs/operations/auth-and-deploys.md`.
 - Rate limits on sign-in and set-password (`native_auth_limits`, 15-minute windows): 45 per
-  source address, 12 per email (`NativeAuthController`); over the limit the API answers `429`.
+  source address for both, and 12 per email for sign-in (`NativeAuthController`); over the limit
+  the API answers `429 auth_throttled`, without a `Retry-After` header.
 - The session is an opaque cookie `boqlet_session`: `HttpOnly`, `SameSite=Lax`, `Path=/api/v1`,
   `Secure` unless `BOQLET_SECURE_COOKIE=false` (local plain HTTP only). `NativeIdentityFilter`
   refuses bearer tokens and requires the exact app origin (`BOQLET_APP_URL`) on state-changing
@@ -61,8 +62,10 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   `UPLOAD_TTL` and `DOWNLOAD_TTL` in `storage/ObjectStorage.java`) and scoped to one key.
 - **Isolation tests** (v1 acceptance 8): `tests/scenarios/isolation.test.ts` (another org's user
   gets `404`), `tests/contract/auth.test.ts` (every secured operation answers `401` to an
-  anonymous caller), `tests/contract/admin.test.ts`, and `NativeWorkerTest`'s tenant checks.
-  **Gap:** no full role-matrix sweep per endpoint; vendor cases wait for the pricing module.
+  anonymous caller), `tests/contract/admin.test.ts`, `NativeWorkerTest`'s tenant checks, and the
+  role matrix `tests/scenarios/permissions.test.ts` (every row of permissions.md's two tables called
+  as eleven personas, with approval off, on and the project archived; cells waiting for an open
+  finding are `it.fails`). Vendor cases wait for the pricing module.
 
 ## Input handling
 

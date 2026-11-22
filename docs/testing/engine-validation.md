@@ -4,7 +4,7 @@ Two separate questions: does the engine **work** on varied real files (the corpu
 output **right** (the answer key). Answer keys in hand: the Duplex (Revit 2011) with a hand-made
 BoQ, and the buildingSMART certification samples checked against their own quantity sets and
 cross-schema agreement. Corpus: 309 public files from 30 tools run without engine errors
-(listed, tagged and statused in `12-ifc-corpus-catalogue.md`). No professional BoQ yet.
+(listed, tagged and statused in [ifc-corpus-catalogue.md](ifc-corpus-catalogue.md)). No professional BoQ yet.
 
 ## The Duplex experiment
 
@@ -216,7 +216,7 @@ from different tools. Live tracking: `docs/archive/reference/files/IFC_Test_Corp
 | 22 | Same model in three schemas | SketchUp + IFC-manager | 2x3 / 4 / 4.3 | Arch, struct, MEP, infra | Confident | buildingSMART Certification-datasets | **Have** |
 
 Status: **Have** = in hand with checked quantities; **Run** = public files the engine ran on with
-schema-valid output, quantities not checked (file by file in `12-ifc-corpus-catalogue.md`);
+schema-valid output, quantities not checked (file by file in [ifc-corpus-catalogue.md](ifc-corpus-catalogue.md));
 Partial = only some of the purpose is covered.
 
 Tiers: Minimum (about 6 files) proves the engine is not tied to one tool; Minimum + Confident

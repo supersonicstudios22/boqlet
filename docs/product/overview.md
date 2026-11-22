@@ -85,7 +85,7 @@ These outcomes are the yardstick for every feature and test. The test plans map 
 | **Every number is traceable** | Reviewers check a line in seconds: formula, values, elements in 3D | A number in an Excel cell |
 | **Nothing silently dropped** | A missing line in a tender is the worst outcome; the engine flags and asks instead | Tools that skip what they can't classify |
 | **Revisions are cheap** | Cached parse, answers and edits carried over, line-by-line change report | Re-measuring and diffing by hand |
-| **IFC from any tool** | No vendor lock-in for firms on mixed tool stacks | Tools tied to one authoring vendor (run on 309 files from 30 tools, [../12-ifc-corpus-catalogue.md](../testing/ifc-corpus-catalogue.md)) |
+| **IFC from any tool** | No vendor lock-in for firms on mixed tool stacks | Tools tied to one authoring vendor (run on 309 files from 30 tools, [the corpus catalogue](../testing/ifc-corpus-catalogue.md)) |
 | **Browser-based, Excel out and in** | Nothing to install; the BoQ still lives in the format everyone prices in | Desktop tools, export-only spreadsheets |
 
 ## Product principles
@@ -140,7 +140,7 @@ Planned in the specs but **not built**:
 | Default presets chosen per project | F02 | Defaults come from the org's starred presets or the wizard's "Publish all" |
 | Scope rules editable per model / BoQ | F03, D44 | Stored and used by the engine; the UI only shows them |
 | Large uploads (> 100 MB) | F03 | Java returns multipart part URLs; the app PUTs the whole file to the first one. Likely broken, not verified at runtime. Resume isn't built either |
-| Server-side grouping above 20,000 lines; three-line item-text clamp | F06 | Client always loads up to 20,000 lines |
+| Server-side grouping above 20,000 lines; three-line item-text clamp | F06 | The client loads every line of the run, 20,000 per request, and groups them in the browser |
 | Setup wizard as specified | F16 | Simplified: steps 2 and 3 are the full editors; no "Suggest codes", no "setup in progress by…" |
 | Pricing module (vendors, pricebooks, estimates, offer requests) | P32–P36, F11, F17, F20 | Deferred (P48). Only `openapi-pricing.yaml` and the core's extension points exist; `packages/pricing-ui` does not exist |
 | AI name suggestions; coordinate alignment between models | v1 scope "out" | Settings type exists for AI; federation assumes shared coordinates and warns |

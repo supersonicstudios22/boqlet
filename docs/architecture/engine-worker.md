@@ -205,8 +205,9 @@ Excel (`boq/PublicShares.java`).
   (`error.code = "contract_mismatch"`).
 - The worker validates inputs (engine docs) against `packages/types/schema` and its outputs
   against the same schemas before writing (the engine already validates results: docs/architecture/engine.md).
-- A `GET /health` on both transports reports engine version, contract version and parse format
-  (`PARSE_FORMAT` in `parse.py`). The API stores `engineVersion` on every run for
+- `GET /health` on the HTTP transport reports engine version, contract version and parse format
+  (`PARSE_FORMAT` in `parse.py`); the queue worker serves no HTTP and reports the same through its
+  log lines and each job's result. The API stores `engineVersion` on every run for
   reproducibility.
 
 ## History: what the worker replaced

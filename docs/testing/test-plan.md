@@ -99,7 +99,7 @@ which findings it added.
 | LibreOffice | opening the exported workbooks (F12-AC1) | **Not installed.** Install it for Stage 4, or record F12-AC1 as "openpyxl only, LibreOffice pending" |
 | Excel | F12-AC1 | **Present** (`Office16\EXCEL.EXE`) |
 | `gh` | latest CI runs, `gh run watch` | Logged in |
-| Federated pair (NBU office architecture and structure) | v1 criterion 2, nfr.md | Not in `fixtures/`. Download per `docs/testing/ifc-corpus-catalogue.md`, outside git |
+| Federated pair (the reference pair: NBU Medical Clinic architecture and structure; the NBU office pair is small) | v1 criterion 2, nfr.md | Not in `fixtures/`. Download per `docs/testing/ifc-corpus-catalogue.md`, outside git |
 | SSH to the pilot | `verify-live.sh`, `issue-setup-link.sh` (both run **on the host**) | **No host entry in `~/.ssh/config`.** Ask the owner. Without it, pilot checks are limited to public pages and accounts the owner gives |
 
 ### 4.2 Baseline (sequential)
@@ -164,7 +164,7 @@ known limitations are (`docs/product/known-limitations.md`), so they don't refil
 | **R1 Contract parity** | `packages/api/openapi.yaml` ↔ Java controllers and generated interfaces ↔ the app's API calls | `docs/architecture/api-conventions.md`, `docs/development/contract-changes.md` (C01–C06) | Operations missing in Java; status and error codes that differ (`404` vs `403`, `409` codes, `402` body shape); unknown fields accepted at nested levels (a known mock limit, Java must reject them); pagination, idempotency keys, ETags, sorting; operations the app never calls (dead endpoints) and calls with no operation |
 | **R2 Authorisation and tenancy** | Java policy code, repository queries, the app's gating from `permissions` | `docs/domain/permissions.md` (both role tables, the permission keys, errors), BR-50, BR-56, BR-57, `docs/architecture/security.md` "Authorisation" | Every row in both role tables enforced on the server; archived projects return `false` for every write key; `404` for no access and for other orgs; four-eyes; the last owner; admin queries never select content columns; signed URLs issued only after the checks, with the 5 min / 1 h lifetimes |
 | **R3 State machines and business rules** | Java services, engine | `docs/domain/state-machines.md`, `docs/domain/business-rules.md` | Every transition allowed, every other one `409 invalid_transition` naming the current state; BR-20…BR-29 (locked versions, one working version, save preconditions, label sequence, positions, per-line concurrency); BR-60…BR-62 (limits before the action, never blocking reads, a usage event for every job); the 24 h `awaiting_upload` expiry, job retries < 3, the 12 h session expiry |
-| **R4 Frontend screens** | `apps/app/app/**`, `apps/app/src/**` | `docs/product/screens.md` (S01–S37 minus pricing), `docs/architecture/frontend.md`, `docs/development/design-guidelines.md`, F15 | Every screen in the inventory exists at its route, and no route lacks a screen; each data screen has loading (skeletons), empty (says the next action), error (message and retry, `404` page) and read-only states; actions hidden by `permissions`; no literal UI strings (F15); colours used only for their meaning (P43: no green, orange "to confirm", yellow "manual"); global chrome (org switcher, search, bell, user menu, project sub-nav) |
+| **R4 Frontend screens** | `apps/app/app/**`, `apps/app/src/**` | `docs/product/screens.md` (S01–S44 minus pricing), `docs/architecture/frontend.md`, `docs/development/design-guidelines.md`, F15 | Every screen in the inventory exists at its route, and no route lacks a screen; each data screen has loading (skeletons), empty (says the next action), error (message and retry, `404` page) and read-only states; actions hidden by `permissions`; no literal UI strings (F15); colours used only for their meaning (P43: no green, orange "to confirm", yellow "manual"); global chrome (org switcher, search, bell, user menu, project sub-nav) |
 | **R5 Security** | Java auth and HTTP layer, the app's headers, the worker's input handling, `ops/pilot` | `docs/architecture/security.md`, P50, `docs/operations/auth-and-deploys.md` | Argon2id; cookie `HttpOnly`, `Secure`, `SameSite`; exact-origin check on state-changing requests; rate limits (auth, invitations 20/h, rpc 60/min, share tokens 60/min); CSP, HSTS, `noindex` and `Referrer-Policy: no-referrer` on share pages; the upload's `ISO-10303-21;` header check and size cap; `.xlsm` refused, openpyxl read-only and data-only; share tokens stored hashed; audit of failed permission checks on sensitive actions; secrets kept out of the repo and the images; the worker's network and DB credentials |
 | **R6 Engine, numbers and exports** | `engine/ifc_boq`, the ingestion in Java, the export workbooks | BR-01…BR-12, `docs/architecture/engine.md`, `docs/architecture/rules-language.md`, F12, F06 §12 | No computing outside the engine (BR-01: grep the app and Java for quantity maths); classification and item texts never change a number (BR-02, BR-11); question ids deterministic (BR-04); edits kept, orphans become questions (BR-09); the "not in the models" note in the sheet, the save dialog and the Excel (BR-12); watermarks; frozen exports byte-identical (BR-25) |
 | **R7 Docs consistency** | `CLAUDE.md`, `docs/README.md` and every current doc under `docs/` (not `docs/archive/`) | the code and the repo as they are | Statements that are no longer true (commands, paths, env vars, test counts, routes, payloads); limitations in `docs/product/known-limitations.md` or feature status blocks that are fixed by now, or worse than described; a topic described in two places; contradictions between two specs (each one is a **question** finding for the owner) |
@@ -441,7 +441,7 @@ The complete list the campaign must close. Each criterion ends with a status in
 | F11, F17, F20 | all | n/a (P48); only the boundary in §9.6 |
 | BR-01…BR-62 | every rule | R3 and R6 reviews, plus the journeys that cite them |
 | State machines | every transition and every refused one | R3 review, plus scenario `state-machines` |
-| Screens S01–S37 (minus pricing) | every screen, every state | R4 review, plus S2 |
+| Screens S01–S44 (minus pricing) | every screen, every state | R4 review, plus S2 |
 
 ---
 
@@ -452,7 +452,7 @@ The complete list the campaign must close. Each criterion ends with a status in
 TS-002 has landed (`tests/perf`, §2): run `api.test.ts` against Java (`BOQLET_API_PERF=1` on the harness,
 or the manual stack in §4.3 with `API_URL`) and `engine_timing.py`, and compare with
 `docs/architecture/nfr.md` "Measured". The medium-model parse is a known miss, not a new finding.
-- Parse and run times: Duplex (≤ 30 s parse, ≤ 5 s run), the federated pair (≤ 3 min parsing both
+- Parse and run times: Duplex (≤ 30 s parse, ≤ 5 s run), the federated reference pair (NBU Medical Clinic architecture + structure, nfr.md; ≤ 3 min parsing both
   in parallel, ≤ 60 s run), a medium corpus file if there is one.
 - API: p95 of the CRUD paths ≤ 300 ms and the lines page (500 lines) ≤ 500 ms, with a small load
   (for example 20 virtual users with k6 or autocannon, run from the scratchpad).

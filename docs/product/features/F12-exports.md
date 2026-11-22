@@ -8,7 +8,7 @@
 
 | Export | Content | Produced by | Trigger |
 |---|---|---|---|
-| **BoQ Excel** (per run) | Sheet grouped by a chosen classification: ref, description, unit, quantity, source, notes; subtotals; a "Lines" sheet with every column; a "Trace" sheet (line → elements); a "Questions" sheet; cover sheet: project, BoQ, revision, run time, presets and versions, status (WORKING watermark unless it is a saved version; free-plan watermark per entitlements) | engine `export_xlsx.export` (extended: EN-006) | `POST /runs/{runId}/exports` |
+| **BoQ Excel** (per run) | Sheet grouped by a chosen classification: ref, description, unit, quantity, source, notes; nested sections as the sheet, each with its line count and, when the unit is shared, its quantity; amounts as SUBTOTAL formulas; a "Lines" sheet with every column; a "Trace" sheet (line → elements); a "Questions" sheet; cover sheet: project, BoQ, revision, run time, presets and versions, status (WORKING watermark unless it is a saved version; free-plan watermark per entitlements) | engine `export_xlsx.export` (extended: EN-006) | `POST /runs/{runId}/exports` |
 | **Saved version Excel** | Same, with version label, save date, who saved it, note; frozen when saved (BR-25) | engine | when the version is saved |
 | **Change report Excel** | Line changes with before/after/Δ/Δ%/causes; element changes | engine | `POST /diffs/{diffId}/export` |
 | **Decisions CSV** | Project decisions table | backend | decisions page |

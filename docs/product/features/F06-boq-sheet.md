@@ -2,7 +2,7 @@
 
 > **Status (2026-11-21):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built.
 > **Not built / differs:**
-> - Above 20,000 lines the app does not switch to server-side grouping: it always loads `limit=20000` and groups in the browser (`apps/app/src/api/hooks/sheet.ts`), though Java supports `groupBy`/`level`.
+> - Above 20,000 lines the app does not switch to server-side grouping: it loads every line of the run, 20,000 per request following `nextCursor` to the end, and groups them in the browser (`apps/app/src/api/hooks/sheet.ts`), though Java supports `groupBy`/`level`.
 > - The three-line clamp for item texts is not built (rows are one line).
 
 ## Purpose
