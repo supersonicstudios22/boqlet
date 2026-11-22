@@ -18,8 +18,34 @@ other backend: the mock API was removed (P53).
 
 ## Start
 
+The quickest way, one command:
+
 ```bash
 npm install
+npm run local:demo                       # backend + app on :3000 + a demo account, ready to sign in
+```
+
+`local:demo` starts the backend (as `local:up`), sets up the account `demo@example.test` with a new
+generated password through Java's own `POST /auth/set-password` (from a setup link, or a reset link
+when the account exists, so running it again just resets the password), makes it the owner of
+"Demo Firm" with the setup wizard finished and the Duplex sample project, starts the app (`next dev`
+with `/api/v1` proxied to the API) and prints the sign-in URL, the email and the password. Sign in
+with them at http://localhost:3000/sign-in. Ctrl+C stops the app; the backend keeps running
+(`npm run local:down` stops it).
+
+| Flag | Effect |
+|---|---|
+| `--email <email>` | Another account than `demo@example.test` |
+| `--password <password>` | A password of your own (15 to 128 characters) instead of a generated one |
+| `--no-org` | Only the account: it makes its organisation in onboarding |
+| `--port <n>` | The app on another port. The backend allows the app's origin only, so this restarts the API with that origin (`LOCAL_APP_PORT`); run `npm run local:up` again before going back to `dev:app` on 3000 |
+
+For example `npm run local:demo -- --email me@example.test --password "a long password of mine"`.
+The app builds into `apps/app/.next-demo`, so a `next build` in `.next` keeps working beside it.
+
+Or step by step:
+
+```bash
 npm run dev:app                          # starts the backend (local:up), then the app on :3000
 npm run local:user -- you@example.com    # prints a sign-up link; open it, set a password
 ```
@@ -32,7 +58,7 @@ dependencies download). Later starts take seconds; they rebuild only what change
 
 ## Commands
 
-`npm run local:up`, `local:down` (keeps data), `local:reset` (deletes data), `local:user -- <email>`,
+`npm run local:demo`, `local:up`, `local:down` (keeps data), `local:reset` (deletes data), `local:user -- <email>`,
 `local:admin -- <email>`, `local:check`, `local:status`, `local:logs -- [service]`: what each does is in
 [commands.md](commands.md#run-the-product). `local:up` rebuilds the API and engine images from the
 working tree, so run it again after changing `services/api` or `engine`.

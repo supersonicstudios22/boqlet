@@ -10,10 +10,14 @@
  *   node scripts/local.mjs user <email>   a sign-up link for a new account (or a reset link if it exists)
  *   node scripts/local.mjs admin <email>  make an existing account a platform admin
  *   node scripts/local.mjs check         end-to-end check: sign-up, upload, parse, BoQ run
+ *   node scripts/local.mjs demo [--email e] [--password p] [--port n] [--no-org]
+ *                                        backend up, a demo account ready to sign in, the app on :3000
  */
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,8 +26,16 @@ import { fileURLToPath } from "node:url";
 // stops (TF-082). Docker runs from the repository root with the drive letter as Windows writes it.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..").replace(/^[a-z]:/, (drive) => drive.toUpperCase());
 const composeFile = join(root, "ops", "local", "compose.yaml");
+// `demo --port n`: the app's port is also the backend's allowed origin (BOQLET_APP_URL, storage CORS).
+if (process.argv[2] === "demo" && process.argv.includes("--port")) {
+  process.env.LOCAL_APP_PORT = process.argv[process.argv.indexOf("--port") + 1] ?? "";
+}
 const apiPort = process.env.LOCAL_API_PORT || "8080";
 const appPort = process.env.LOCAL_APP_PORT || "3000";
+if (!/^\d{2,5}$/.test(appPort)) {
+  console.error(`[local] not a port: ${appPort}`);
+  process.exit(2);
+}
 const mailPort = process.env.LOCAL_MAIL_UI_PORT || "8025";
 const [, , cmd, ...rest] = process.argv;
 
@@ -77,16 +89,57 @@ const emailArg = () => {
   return email;
 };
 
+/** Builds and starts the backend and waits until the API is ready. */
+async function up() {
+  // The first build downloads Maven and Python dependencies and takes several minutes.
+  if (compose(["up", "-d", "--build", "--remove-orphans"]) !== 0) process.exit(1);
+  process.stdout.write(`[local] waiting for the API on http://localhost:${apiPort} ...\n`);
+  if (!(await ready(240_000))) {
+    console.error("[local] the API did not become ready; see: npm run local:logs -- api");
+    process.exit(1);
+  }
+  console.log(`[local] backend ready. API http://localhost:${apiPort}/api/v1, mail http://localhost:${mailPort}`);
+}
+
+/** As ops/pilot/issue-setup-link.sh: a one-hour link (a reset link when the account exists); only its sha256 is stored. */
+function issueLink(email) {
+  const token = randomBytes(32).toString("base64url");
+  const digest = createHash("sha256").update(token).digest("hex");
+  const exists = sql(`SELECT count(*) FROM users WHERE lower(email) = ${quote(email)} AND deleted_at IS NULL`) !== "0";
+  const purpose = exists ? "reset" : "setup";
+  sql(`INSERT INTO native_setup_links (email, token_hash, expires_at, purpose)
+       VALUES (${quote(email)}, ${quote(digest)}, now() + interval '1 hour', ${quote(purpose)})
+       ON CONFLICT (email) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at, purpose = excluded.purpose`);
+  return { token, exists };
+}
+
+/** Whether nothing listens on the port yet. */
+function portFree(port) {
+  return new Promise((done) => {
+    const probe = createServer().once("error", () => done(false)).once("listening", () => probe.close(() => done(true)));
+    probe.listen(Number(port));
+  });
+}
+
+/** The Java API as the app calls it: the app's Origin, and the session cookie once signed in. */
+function apiClient() {
+  const base = `http://127.0.0.1:${apiPort}/api/v1`;
+  let cookie = "";
+  const call = async (method, path, body, expected) => {
+    const headers = { Origin: `http://localhost:${appPort}`, ...(cookie ? { Cookie: `boqlet_session=${cookie}` } : {}) };
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    const res = await fetch(`${base}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    if (!expected.includes(res.status)) throw new Error(`${method} ${path} answered ${res.status}: ${await res.text()}`);
+    const set = res.headers.getSetCookie().find((c) => c.startsWith("boqlet_session="));
+    if (set) cookie = set.split(";")[0].slice("boqlet_session=".length);
+    return res;
+  };
+  return { call, json: async (...args) => (await call(...args)).json() };
+}
+
 switch (cmd) {
   case "up": {
-    // The first build downloads Maven and Python dependencies and takes several minutes.
-    if (compose(["up", "-d", "--build", "--remove-orphans"]) !== 0) process.exit(1);
-    process.stdout.write(`[local] waiting for the API on http://localhost:${apiPort} ...\n`);
-    if (!(await ready(240_000))) {
-      console.error("[local] the API did not become ready; see: npm run local:logs -- api");
-      process.exit(1);
-    }
-    console.log(`[local] backend ready. API http://localhost:${apiPort}/api/v1, mail http://localhost:${mailPort}`);
+    await up();
     const users = sql("SELECT count(*) FROM users");
     if (users === "0") console.log("[local] no accounts yet: npm run local:user -- you@example.com");
     break;
@@ -187,7 +240,111 @@ switch (cmd) {
     }
     break;
   }
+  case "demo": {
+    // One command to a running boqlet and an account to sign in with (docs/development/local-setup.md):
+    // the backend in Docker; an account whose password is set through Java's own set-password, from a
+    // setup link (a reset link when the account exists); by default an org with setup finished and the
+    // Duplex sample; then `next dev`. Ctrl+C stops the app; the backend stays up (npm run local:down).
+    const flag = (name) => {
+      const at = rest.indexOf(name);
+      return at >= 0 ? rest[at + 1] : undefined;
+    };
+    const email = (flag("--email") ?? "demo@example.test").trim().toLowerCase();
+    if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
+      console.error(`[demo] not an email: ${email}`);
+      process.exit(2);
+    }
+    // Java's policy: 15 to 128 characters (code points). Without --password, a new one every run.
+    const password = flag("--password") ?? `demo-${randomBytes(15).toString("base64url")}`;
+    if ([...password].length < 15 || [...password].length > 128 || !password.trim()) {
+      console.error("[demo] the password must be 15 to 128 characters");
+      process.exit(2);
+    }
+    const withOrg = !rest.includes("--no-org");
+    if (!(await portFree(appPort))) {
+      console.error(`[demo] port ${appPort} is in use: stop what runs there, or pick another (npm run local:demo -- --port 3200)`);
+      process.exit(1);
+    }
+    await up();
+
+    const api = apiClient();
+    let landing = "";
+    try {
+      const { token, exists } = issueLink(email);
+      await api.call("POST", "/auth/set-password", { token, password, name: "Demo User" }, [204]);
+      console.log(`[demo] ${exists ? "reset the password of" : "created"} ${email}`);
+      if (withOrg) {
+        await api.call("POST", "/auth/sign-in", { email, password, takeover: true, deviceLabel: "local demo setup" }, [201]);
+        const me = await api.json("GET", "/me", undefined, [200]);
+        let org = me.memberships.find((m) => m.role === "owner")?.org;
+        for (let attempt = 0; !org; attempt++) {
+          const slug = attempt === 0 ? "demo-firm" : `demo-firm-${randomBytes(3).toString("hex")}`;
+          const res = await api.call("POST", "/orgs", { name: "Demo Firm", slug }, [201, 409]);
+          if (res.status === 201) org = await res.json();
+        }
+        if (org.setup?.status !== "done") await api.call("PUT", `/orgs/${org.id}/setup`, { status: "done", step: "review" }, [200]);
+        const projects = await api.json("GET", `/orgs/${org.id}/projects`, undefined, [200]);
+        if (!projects.some((p) => p.sample)) {
+          await api.call("POST", `/orgs/${org.id}/projects`, { name: "Duplex (sample)", sample: "duplex" }, [201]);
+          console.log("[demo] the Duplex sample project is being processed (about a minute)");
+        }
+        console.log(`[demo] org "${org.name}" (/${org.slug}) with setup finished and the Duplex sample`);
+        landing = `/${org.slug}`;
+        // Signed out again, so signing in in the browser opens the one active session without a takeover question.
+        await api.call("DELETE", "/sessions/current", undefined, [204]);
+      }
+    } catch (failed) {
+      console.error(`[demo] FAILED: ${failed.message}`);
+      process.exit(1);
+    }
+
+    // The app as `npm run dev:app` runs it, in its own build folder (a `next build` in .next keeps working).
+    const app = join(root, "apps", "app");
+    const next = createRequire(join(app, "package.json")).resolve("next/dist/bin/next");
+    if (spawnSync(process.execPath, ["scripts/pseudo-locale.mjs"], { cwd: app, stdio: "inherit" }).status !== 0) process.exit(1);
+    const server = spawn(process.execPath, [next, "dev", "--port", appPort], {
+      cwd: app,
+      stdio: ["ignore", "inherit", "inherit"],
+      env: { ...process.env, API_PROXY_TARGET: `http://localhost:${apiPort}`, NEXT_DIST_DIR: ".next-demo", NEXT_TELEMETRY_DISABLED: "1" },
+    });
+    const stop = () => server.kill();
+    process.on("SIGINT", stop);
+    process.on("SIGTERM", stop);
+    server.on("exit", (code) => {
+      console.log("\n[demo] the app stopped. The backend is still running: npm run local:down stops it (data is kept).");
+      process.exit(code ?? 0);
+    });
+    // A page compiles on its first request: warm the sign-in page before saying it's ready.
+    const signIn = `http://localhost:${appPort}/sign-in`;
+    for (const deadline = Date.now() + 180_000; Date.now() < deadline; await new Promise((r) => setTimeout(r, 1000))) {
+      try {
+        if ((await fetch(signIn, { signal: AbortSignal.timeout(60_000) })).ok) break;
+      } catch {
+        /* still starting */
+      }
+    }
+    const rule = "=".repeat(68);
+    console.log(
+      [
+        "",
+        rule,
+        " boqlet is running. Sign in at:",
+        "",
+        `   ${signIn}`,
+        ...(landing ? [`   (it opens the org at http://localhost:${appPort}${landing})`] : []),
+        "",
+        `   Email:     ${email}`,
+        `   Password:  ${password}`,
+        "",
+        ` Mail sent by the app: http://localhost:${mailPort}`,
+        " Ctrl+C stops the app; the backend keeps running (npm run local:down stops it).",
+        rule,
+        "",
+      ].join("\n"),
+    );
+    break;
+  }
   default:
-    console.error("usage: node scripts/local.mjs up | down | reset | logs [service] | status | user <email> | admin <email> | check");
+    console.error("usage: node scripts/local.mjs up | down | reset | logs [service] | status | user <email> | admin <email> | check | demo [--email e] [--password p] [--port n] [--no-org]");
     process.exit(2);
 }

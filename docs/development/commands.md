@@ -10,6 +10,7 @@ Every npm script, run from the repository root (`package.json`). The most used o
 | `npm install` | Installs the workspaces; `postinstall` creates `engine/.venv` and installs the engine (Python 3.10–3.13). Never fails if Python is missing; it prints what to do |
 | `npm run dev:app` | `local:up`, then the app (`npm run dev -w @ifc-boq/app`) on http://localhost:3000 with `/api/v1` proxied to the Java API on 8080 |
 | `npm run local:up` / `local:down` / `local:reset` | Build and start the backend in Docker (Java, engine worker, PostgreSQL, SeaweedFS, MailHog) and wait until the API is ready / stop, keep the data / stop and delete the data. Run `local:up` again after changing `services/api` or `engine` |
+| `npm run local:demo` | One command to a running boqlet: `local:up`, an account (`demo@example.test`, a generated password) set up through `POST /auth/set-password`, an org with setup finished and the Duplex sample, the app on http://localhost:3000; prints the sign-in URL, email and password. Again: resets the password, reuses the org. Flags `--email`, `--password`, `--no-org`, `--port` ([local-setup.md](local-setup.md#start)). Ctrl+C stops the app, not the backend |
 | `npm run local:user -- <email>` | A one-hour sign-up link (or a password-reset link if the account exists) |
 | `npm run local:admin -- <email>` | Make an existing account a platform admin (`/admin`) |
 | `npm run local:check` | End to end through the API on the local stack: sign-up, sign-in, org, project, Duplex upload, parse, BoQ run with its lines |

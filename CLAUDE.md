@@ -50,6 +50,7 @@ getBoq(models, rules, classifications, dictionaries, decisions) -> BoqResult
 
 ```bash
 npm install                              # workspaces + engine/.venv (Python 3.10–3.13)
+npm run local:demo                       # backend + app on :3000 + a demo account; prints the email and password to sign in with
 npm run dev:app                          # backend in Docker (Java, engine, PostgreSQL, SeaweedFS, MailHog) + app on http://localhost:3000
 npm run local:user -- you@example.com    # one-hour sign-up link for an account (local:admin -- <email> makes a platform admin)
 npm run local:check                      # end to end on the local stack: sign-up, upload, parse, BoQ run
