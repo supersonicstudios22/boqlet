@@ -17,7 +17,7 @@ describe("idempotencyHeaders", () => {
     expect(idempotencyHeaders("generateRun:r1")["Idempotency-Key"]).toBe(a);
     expect(idempotencyHeaders("generateRun:r2")["Idempotency-Key"]).not.toBe(a);
     expect(idempotencyHeaders("exportRun:x", { groupBy: "a" })["Idempotency-Key"]).not.toBe(idempotencyHeaders("exportRun:x", { groupBy: "b" })["Idempotency-Key"]);
-    vi.advanceTimersByTime(11_000);
+    vi.advanceTimersByTime(3_500);
     expect(idempotencyHeaders("generateRun:r1")["Idempotency-Key"]).not.toBe(a);
   });
 });

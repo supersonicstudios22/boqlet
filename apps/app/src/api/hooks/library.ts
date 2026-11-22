@@ -152,7 +152,8 @@ export interface PreviewOutput {
   jobId: string;
 }
 
-const PREVIEW_POLL_MS = 250;
+/** How long to wait before asking for the preview job again: often at first (a preview takes about a second, TF-134), then less. */
+export const previewPollDelay = (elapsedMs: number) => (elapsedMs < 1000 ? 100 : 250);
 const PREVIEW_TIMEOUT_MS = 180_000;
 
 /**
@@ -162,12 +163,15 @@ const PREVIEW_TIMEOUT_MS = 180_000;
 export function usePreview(presetId: string, onResult?: (result: PreviewResult | null) => void) {
   return useMutation({
     mutationFn: async (body: { modelVersionIds: string[]; presetVersionId?: string; otherInputs?: Record<string, unknown> }): Promise<PreviewOutput> => {
-      const job = (await api.POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { ...body, compareWithPublished: true } as never, headers: idempotencyHeaders(`previewPreset:${presetId}`, body) })).data!;
-      const deadline = Date.now() + PREVIEW_TIMEOUT_MS;
+      // A preview follows a save and its body doesn't carry the draft: the same body twice is two
+      // previews of two drafts, so each call has its own key (never the earlier job's answer).
+      const job = (await api.POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { ...body, compareWithPublished: true } as never, headers: idempotencyHeaders(`previewPreset:${presetId}:${crypto.randomUUID()}`) })).data!;
+      const started = Date.now();
+      const deadline = started + PREVIEW_TIMEOUT_MS;
       let current = job;
       while (current.status === "queued" || current.status === "running") {
         if (Date.now() > deadline) throw new Error("preview timed out");
-        await new Promise((r) => setTimeout(r, PREVIEW_POLL_MS));
+        await new Promise((r) => setTimeout(r, previewPollDelay(Date.now() - started)));
         current = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
       }
       if (current.status !== "succeeded") throw Object.assign(new Error(current.error?.message ?? "preview failed"), { code: current.error?.code });

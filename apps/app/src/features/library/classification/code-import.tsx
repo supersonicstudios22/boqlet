@@ -155,7 +155,7 @@ export function CodeImport({ list, onImport, onCancel }: { list: CodeList; onImp
     <input
       ref={file}
       type="file"
-      accept=".xlsx,.xlsm,.csv,.tsv,.txt"
+      accept=".xlsx,.csv,.tsv,.txt"
       hidden
       data-testid="code-import-file"
       onChange={(e) => {
