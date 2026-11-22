@@ -14,7 +14,7 @@ here first (with "Blocks: <task>") and then asked (`docs/development/workflow.md
 | When the owner schedules BE-032 (a future todo, P51) | A hosting account for a separate staging environment, with credentials the agent can use | Owner |
 | ~~Before FE-047 (release)~~ | Confirm the pilot host becomes production (P51), the domain, and the provider secrets for email (D6) and billing (D7) (auth is native, P50); whether the pricing module is on at launch; the go to merge `v_1` into `main`. *Answered 2026-11-21, the owner: email and billing stay as the pilot has them (no new provider for the release). The go to merge: given 2026-11-21; merged and released as v1.0.0.* | Owner |
 | Open (since the v1 release) | Remove or repoint the Vercel demo project; the PoC stays reachable as the git tag `poc-final` | Owner |
-| Open (test campaign, 2026-11-22) | Q42–Q61: product behaviour the specs leave open or contradict, found by the test campaign; each blocks its finding in `docs/testing/test-findings.md` | Owner |
+| Open (test campaign, 2026-11-22) | Q42–Q62: product behaviour the specs leave open or contradict, found by the test campaign; each blocks its finding in `docs/testing/test-findings.md` | Owner |
 | Before public launch | Q18 and Q26 (tiers, limits, prices), Q19 and Q20 (legal) | Owner (+ lawyer) |
 | After pilots | Q1–Q3, Q7, Q8, Q10–Q15, Q23, Q24, Q27–Q30, Q32–Q39 | Owner, with pilot firms |
 
@@ -108,6 +108,7 @@ Found by the test campaign (`docs/testing/test-findings.md`); each blocks the fi
 | Q59 | Which platform-admin reads are audited? Now only the org detail view; the orgs list, its CSV (with every owner's email), the users list and the reports are not. | TF-156 | Audit every admin read; or only those that show personal data (CSV, users) |
 | Q60 | Clicking a suggested answer that is already preselected saves nothing, and the question stays open. Should a click on the preselected answer accept it? | TF-173 | Yes (one click accepts); or show an explicit Accept button |
 | Q61 | Parses and runs share one engine slot locally and on the pilot, so a run waits behind a parse (5.4 s seen; a medium model would block runs for minutes). Add a second slot or a separate queue for interactive runs on the pilot? | TF-180 | A run-only worker or priority (memory on the pilot host permitting); or accept for the pilot |
+| Q62 | Every metered job that ends now writes a usage event (TF-036). Jobs of a sample project are not metered and write none. Should they write an event with zero billed minutes, so usage reports show the work? | TF-036 | A zero-billed event (visible, not counted); or none, as now |
 
 ## Planning (history)
 

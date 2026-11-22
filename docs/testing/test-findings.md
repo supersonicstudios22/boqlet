@@ -435,7 +435,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `ci.yml` compares with `heads/main`; build log Current position and `docs/product/known-limitations.md` Done corrected. Test: the CI run of the fix commit itself (a workflow has no lower layer); its `deploy` log must show a rollout.
 - **Retest:** verified 2026-11-21: CI run 44938492464 (`6cc0594`), job "Deploy Boqlet pilot", 19:18:19Z `Boqlet 6cc059436dc4… deployed.` The next push (`cf58e32`, run 44940268922) deployed too, 19:36:54Z `Boqlet cf58e3217f7c… deployed.` (checked again in the Stage 0 rerun).
 
-### TF-002 · S4 · inconsistency · docs · open
+### TF-002 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 1 · lanes 1B, 1D · H, local · `8d22de6`
 - **Spec:** `docs/testing/README.md` "Layers" (the test counts it states)
 - **Steps:** 1. `npm run test:app`. 2. `mvn verify` with the harness variables; read the surefire counts.
@@ -443,10 +443,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** README says App unit "32 files, ~190 tests": 213 pass. `ApiFoundationTest` "(8)": 6 `@Test` methods run. `NativeAuthTest` "(2)": 1. (`NativeWorkerTest` 5, `AlertMonitorTest` 4, `BackupRestoreTest` 1, engine 211, contract 6 files, scenarios 24 files / 173 + 2 todo, smoke 13 match.)
 - **Evidence:** `services/api/target/surefire-reports/*.txt`; 1B log "Tests 213 passed (213)".
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:**
+- **Fix:** `55339a2`: `docs/testing/README.md` layers table from the suites.
 - **Retest:**
 
-### TF-003 · S4 · inconsistency · docs · open
+### TF-003 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** `docs/testing/README.md` "Coverage by outcome"; `docs/product/known-limitations.md` "Tests"
 - **Steps:** Compare each "Not covered" / "Covered by" claim with the tests.
@@ -454,10 +454,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** (1) O5 (README line 160) calls the "new version available" notification uncovered: `tests/scenarios/boqs.test.ts` "a newer ready model version is flagged on the BoQ (F04 §2)" asserts `boq.new_version_available`. (2) O5 calls "F08-AC4 timings" uncovered: the cached diff is asserted in `changes.test.ts` "the second compare answers the cached diff (200), quickly (F08-AC4)"; only the first open < 3 s is uncovered. (3) O5 says `line-edits` proves "edits survive a new model version": that version is the identical Duplex file (deduplicated, same parse; `changes.test.ts` line 125 says "identical file"), so it overstates (see TF-008). (4) O7 (line 162) lists the share page's `noindex` as uncovered: `apps/app/e2e-java/main-flow.spec.ts:96` asserts `x-robots-tag: noindex, nofollow` (Referrer-Policy and the rate limit really are uncovered). (5) O2 (line 157) lists F16-AC8 and AC9 uncovered: `apps/app/src/features/setup/steps.test.ts` covers them as logic, AC4 partly by `scenarios/setup.test.ts`; only rendering is missing. (6) O1 (line 156) "`models` (… retry …)": only "a `not_ifc` version can't be retried" is tested; a successful retry is `it.todo`. (7) `known-limitations.md:120` and README line 163 call "security headers" untested: `e2e-java/accounts.spec.ts` asserts the session cookie's `HttpOnly`, `SameSite=Lax`, `Path` and `403 invalid_origin`.
 - **Evidence:** the coverage audit (§C) and the cited lines.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:**
+- **Fix:** `55339a2`: the outcome map matches the suites (incl. the B6 scenarios).
 - **Retest:**
 
-### TF-004 · S3 · test-gap · suites · open
+### TF-004 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** v1-3 (A) "answers carried, exact change report"; F05-AC2 "a new model version with the same names asks nothing again"; F08-AC2
 - **Steps:** Look for a test that answers questions on Duplex v1, swaps in `Ifc2x3_Duplex_Architecture_v2.ifc`, regenerates and checks the questions and the change report through the stack.
@@ -465,10 +465,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the exact lines and elements are proven only in the engine (`engine/tests/test_diff.py` `test_duplex_revision_matches_known_changes`); `NativeWorkerTest.verifyRevisedIfc` checks 3 diff elements and no lines; no test checks that an answered question isn't asked again after a swap (`scenarios/changes` and `line-edits` upload v2 but don't look at questions).
 - **Evidence:** §C rows v1-3, F05-AC2, F08-AC2.
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:** engine test in `9698476` (`test_versions.py`: v1 answers not asked again on v2 and still apply). **Open:** the scenario part (B6).
+- **Fix:** `9698476` (engine, `test_versions.py`) and `7077e83` (`tests/scenarios/model-versions.test.ts`: v2 asks nothing, the change report matches `duplex_v1_v2_diff.json`).
 - **Retest:**
 
-### TF-005 · S3 · test-gap · suites · open
+### TF-005 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** v1-9 (A) "`402 limit_reached` and the UI"; F14-AC1 "every limit enforced with `402` and the limit name"
 - **Steps:** Look for a test per limit in `docs/product/plans-and-limits.md`.
@@ -476,7 +476,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** covered: `seats`, `activeProjects`, `maxModelVersionMb`, `maxModelsPerBoq`, `approvalWorkflow`. Untested: `libraryOrgPresets`, `processingMinutesPerMonth`, `shareLinks`. The UI's limit dialog (`e2e-java/orgs.spec.ts` "F01-AC3") is checked, but its upgrade path is not asserted.
 - **Evidence:** §C rows v1-9, F14-AC1.
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `7077e83` (`tests/scenarios/limits.test.ts`: every plan limit → `402 limit_reached`, reads and exports keep working past the minutes) and `3179d79` (browser `batch6.spec.ts @b6-limits`).
 - **Retest:**
 
 ### TF-006 · S3 · test-gap · suites · deferred
@@ -501,7 +501,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-008 · S3 · test-gap · suites · open
+### TF-008 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** v1-13 (A) "edits survive versions; Excel round trip"; F06-AC3; F08-AC3
 - **Steps:** Read `tests/scenarios/line-edits.test.ts` "a new model version keeps them" and `edits-import.test.ts`.
@@ -509,7 +509,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the "new model version" is the identical Duplex file: deduplicated, so the same parse and the same elements; a changed model (v2) is never exercised for edits. The Excel round trip has quantity, move, delete and add but no text edit; the quantity edit's reason in the export is untested.
 - **Evidence:** §C rows v1-13, F06-AC3, F08-AC3; `changes.test.ts:125` "(none: identical file, the v2 fixture fake)".
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:** engine tests in `9698476` (`test_versions.py`: five edit kinds survive v1 → v2; `test_boq_import.py`: a text edit in Excel is one description override). **Open:** the scenario part with the real v2 file (B6).
+- **Fix:** `9698476` (engine) and `7077e83` (`model-versions.test.ts` with the real v2 file; `edits-import.test.ts` text edit).
 - **Retest:**
 
 ### TF-009 · S3 · test-gap · suites · open
@@ -523,7 +523,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-010 · S3 · test-gap · suites · open
+### TF-010 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 1 · coverage audit · — · `8d22de6`
 - **Spec:** v1-5 (A); BR-20 "every write to a saved version, by every role including owner, gets `409 revision_locked`"
 - **Steps:** Read `tests/scenarios/versions.test.ts` "BR-20: a saved version refuses writes with 409 revision_locked, for every role".
@@ -531,7 +531,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** every write is tried only as `lead` (the org owner); the title claims "for every role".
 - **Evidence:** `versions.test.ts` lines 141–145.
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `7077e83`: `tests/scenarios/versions-roles.test.ts`, 8 writes × 7 roles on a saved version.
 - **Retest:**
 
 ### TF-011 · S1 · bug · java · verified
@@ -600,7 +600,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** build it, or record it as a known limitation and in screens.md.
 - **Retest:**
 
-### TF-017 · S3 · gap · app · open
+### TF-017 · S3 · gap · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` "All data screens must handle **loading** (skeletons, not spinners…), … **error** (message + retry …)"; `frontend.md` data layer rule 6 ("inline error with retry")
 - **Steps:** block `/api/v1/*` in DevTools (or stop the API) and reload models, BoQs, a BoQ, Library, notifications; throttle to Slow 3G for loading.
@@ -608,10 +608,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** no inline query error offers a retry: ~40 sites render only `<p role="alert">{message(x.error)}</p>` (e.g. `boqs/[boqId]/page.tsx:65`, `models/[modelId]/page.tsx:36`, `sheet.tsx:493`, `questions-tab.tsx:52`, `decisions-table.tsx:61`, `library-list.tsx:80`, `[org]/page.tsx:77`); retry exists only in the route `ErrorView`, the AuthGate and the failed-parse button. The share page shows "gone" for every error, network and rate limit included (`public-share.tsx:62-68`). One skeleton in the app (`[org]/page.tsx:82`); elsewhere an empty `<div aria-busy className="h-40"/>` (~35 sites). No loading state at all on `[org]/projects`, `models`, the S09 versions table (also no empty or error), "Needs you" (also no error), `library-list`, `notifications`, `account` (no error for `/me`), `versions-tab.tsx:40`, `exports-tab.tsx:30-85` (no error either). The admin orgs CSV silences its error (`orgs-table.tsx:71`).
 - **Evidence:** `decisions-table.tsx:61-62`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** a shared `<InlineError onRetry>` and shadcn `<Skeleton>` at those sites.
-- **Retest:**
+- **Fix:** `14c2e23`: shared `InlineError` (message + Try again) and `LoadingLines` skeleton at every query site; the share page says "gone" only for 404/410. Test `features/projects/states.test.tsx`, `public-share.test.tsx` (failed first); browser `e2e-java/states.spec.ts`.
+- **Retest:** L: API down → "The server is not answering…" with Try again, recovers.
 
-### TF-018 · S3 · bug · app · open
+### TF-018 · S3 · bug · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` S07 and the loading, empty and error states
 - **Steps:** as P-EST open `/{org}/projects/{p}` (with models and BoQs) on a throttled network, then with `/api/v1/projects/*/models` blocked.
@@ -619,10 +619,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** "No models yet." / "No BoQs yet." while pending and on error, no error shown (`app/(app)/[org]/projects/[projectId]/page.tsx:28,43-47,55,72-76`).
 - **Evidence:** `{models.data?.length ? (<ul>…) : (<p>{t("noModels")}</p>…)}`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** branch on `isPending`/`isError` first.
+- **Fix:** `14c2e23`: the project overview checks loading and error before "No models yet". `states.test.tsx` (failed first).
 - **Retest:**
 
-### TF-019 · S3 · bug · app · open
+### TF-019 · S3 · bug · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` "error (message + retry; `404` page for not found/no access)"; `frontend.md` rule 6
 - **Steps:** 1. `GET /projects/{p}` answers 500 → open a project page. 2. `/me` fails → reload `/{org}`. 3. a preset GET fails during setup → `/{org}/setup`. 4. `/me` fails → `/`.
@@ -630,10 +630,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** project pages stay a blank busy box forever on any non-404 error (`src/features/projects/project-context.tsx:36`); org pages show the **404 page** when `/me` fails (`src/features/orgs/org-context.tsx:46-53`); the wizard returns `loading()` forever when a preset fails (`setup-wizard.tsx:90`, `measure-step.tsx:42`, `review-step.tsx:49`), and it gates the dashboard (`[org]/page.tsx:24-28`); `/` stays blank on a `/me` error (`app/page.tsx:51`).
 - **Evidence:** `if (!project.data) return <div className="min-h-40" aria-busy="true" />;`
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `isError` first → error view with retry; 404 view only for 404 and missing memberships.
+- **Fix:** `14c2e23`: project, `/me`, wizard and preset editor errors get a retry; an unreachable API no longer signs people out (session status `unavailable`, retried every 5 s). `states.test.tsx`, `auth/adapters/native.test.ts`.
 - **Retest:**
 
-### TF-020 · S3 · bug · app · open
+### TF-020 · S3 · bug · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `permissions.md` "Create models, upload versions, edit scope: lead, estimator"; `frontend.md` rule 7 (`can(resource.permissions, …)`)
 - **Steps:** as P-VIEW or P-APR open `/{org}/projects/{p}/models`, or a version page whose parse failed retryably.
@@ -641,10 +641,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `VersionStatus` shows Retry for every role, gated only on the error code (not on `retryable`) (`src/features/models/version-status.tsx:46-50`); Java refuses (`Models.java:245`) → a 403 toast.
 - **Evidence:** `{version.error?.code !== "not_ifc" && … && (<Button … onClick={() => retry.mutate()}>…)}`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `canRetry={can("editModels")}` and gate on `retryable`.
+- **Fix:** `14c2e23` (app follows `retryable`) and `9efea85` (`ModelVersion.error.details.retryable` and `cause` always set, C13; `models.test.ts`).
 - **Retest:**
 
-### TF-021 · S2 · bug · app · open
+### TF-021 · S2 · bug · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** F15-AC2 ("BoQ values keep the project locale"); F15 §6, §11 / P35 (currency, unit system, separators and date format are org settings, per project; default narrow no-break space); `design-guidelines.md` "Numbers and units"
 - **Steps:** set the org's decimal `,` and thousands `.` and a date format; open a BoQ sheet, the line detail, `/s/{token}`, a model version page.
@@ -652,10 +652,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `OrgSettings.numberFormat`/`dateFormat` are read only by the settings form (`general-settings.tsx:103-122`); the sheet uses `new Intl.NumberFormat(locale)` of the UI locale (`sheet.tsx:107,203`); everything else uses next-intl `format.number`/`dateTime` with the UI locale and no `formats` (`app/layout.tsx:19`). `Project.locale` is never used. Only the Excel export applies `numberFormat` (`BoqExports.java:98`), so the F15 status block's "org number and date formats … are built" holds for exports only. Some counts bypass formatting (`boqs/page.tsx:97`, `library-list.tsx:129`, `project-card.tsx:41-49`).
 - **Evidence:** `sheet.tsx:202-205`.
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
-- **Fix:** part fixed: `5cc298a` (`useBoqFormat`: sheet, how it is calculated, line edits, changes, viewer; `boq-format.test.ts`, failed first) and `7bd2ae4` (`PublicShare.numberFormat`/`dateFormat`, C11). **Open:** line detail, preview, questions, version/run/export dates and the share page (next app commit).
-- **Retest:**
+- **Fix:** `5cc298a` (`useBoqFormat` in the sheet, how it is calculated, line edits, changes, viewer; `boq-format.test.ts`, failed first), `7bd2ae4` (`PublicShare.numberFormat`/`dateFormat`, C11, `shares.test.ts`), `14c2e23` (line detail, preview, questions, review, versions, run history, exports, the BoQ page, the share page). Browser spec `e2e-java/formats.spec.ts`.
+- **Retest:** L: org decimal "," and thousands "." → sheet 267,16, how it is calculated 340,575 m².
 
-### TF-022 · S3 · inconsistency · app · open
+### TF-022 · S3 · inconsistency · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** P43 (colour only where it means something: orange "to confirm", yellow "manual"); `design-guidelines.md` Status ("Edited: a small blue dot") and contrast ("Orange … fills, markers, large text only"); `design-system.md` (no hard-coded colour)
 - **Steps:** edit a quantity in the sheet; open the BoQ in a second browser; open `?tab=changes`; as P-PADM an org with an override.
@@ -663,10 +663,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** edited cell = orange corner triangle (`sheet.tsx:1201`); presence row marker and avatars orange, avatars with paper initials (~3.1 contrast) (`sheet.tsx:1138`, `boqs/presence.tsx:125`); small orange text in the Changes "changed" tag (`changes-tab.tsx:25`) and the admin "overridden" label (`admin/org-detail.tsx:124`); hex `text-[#151515]` in `source-tag.tsx:17,19`. No green found.
 - **Evidence:** `CHANGE_CLASS = { …, changed: "border-[var(--orange)] text-[var(--orange)]" }`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** blue dot; ink/blue presence; ink text on orange fills; `text-on-fill`.
+- **Fix:** `14c2e23`: orange used only as a fill (edited-cell dot, presence, change tags, admin label). `__tests__/colour-use.test.ts` (failed first).
 - **Retest:**
 
-### TF-023 · S4 · inconsistency · app · open
+### TF-023 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** F15 §1 ("No literal user-facing strings in components")
 - **Steps:** pseudo-locale `en-XA`: a BoQ with several pending changes; the New BoQ dialog; `/{org}/library/rule_set/new`; the sheet's code cell editor with a screen reader.
@@ -674,10 +674,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** lists joined with a literal `", "` (`boq-header.tsx:198-202`, `sheet.tsx:229-230`); labels composed in code (`` `${t("notes")} (${t("optional")})` `` in `create-boq-dialog.tsx:113`, `create-preset.tsx:95,98`, `preset-page.tsx:214,217`; `` `${title}: ${t("add")}` `` in `setup-tab.tsx:308`); the code cell editor is named by its column id (`sheet.tsx:1190`); an option placeholder from its id (`rule-set/question-setup.tsx:329`); `EXAMPLE.lineText` is English prose (`library/rule-set/examples.ts:16`).
 - **Evidence:** `t("run.pending", { what: otherPending.map(…).join(", ") })`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** ICU placeholders, `format.list`, a catalogue key for the editor label.
+- **Fix:** `14c2e23`: lists by `format.list`, labels by ICU keys. `__tests__/i18n-composition.test.ts` (failed first).
 - **Retest:**
 
-### TF-024 · S4 · inconsistency · app · open
+### TF-024 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `frontend.md` rule 7 ("Never infer permissions from roles in more than one place (`src/lib/permissions.ts`)")
 - **Steps:** grep `role ===` outside `permissions.ts`.
@@ -685,10 +685,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `components/errors/limit-dialog.tsx:36` (`membership?.role === "owner"` for "Upgrade"); `settings/members-settings.tsx:141` (make-owner rule inlined). Behaviour correct today.
 - **Evidence:** `const owner = membership?.role === "owner";`
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `orgCan(role, "manageBilling")`, `can("makeOwner")`.
+- **Fix:** `14c2e23`: `orgCan(...)` instead of `"owner"` literals. `lib/permissions.test.ts` (failed first).
 - **Retest:**
 
-### TF-025 · S4 · gap · app · open
+### TF-025 · S4 · gap · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` "**empty** (explains the next action)"
 - **Steps:** empty project list (archived filter), a new project's overview, an empty Library kind, a project Library, a BoQ's Exports tab with no files.
@@ -696,10 +696,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** "No projects here." (`projects.list.empty`), "No models yet." / "No BoQs yet." (`projects.overview.*`), "Nothing here yet." / "This project has no presets of its own." (`library.home.*`), "No files yet." (`boqs.exports.none`). `models.list.empty` does it right.
 - **Evidence:** `messages/en/projects.json`, `library.json`, `boqs.json`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** copy that names the action.
+- **Fix:** `14c2e23`: empty states name the next action. `__tests__/empty-states.test.ts`.
 - **Retest:**
 
-### TF-026 · S3 · gap · app · open
+### TF-026 · S3 · gap · app · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` error state
 - **Steps:** a render error on `/sign-in`, `/invite/{token}`, `/session-conflict` or `/s/{token}`; P-MEM opens `/{org}/settings/shares`.
@@ -707,10 +707,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** no `error.tsx` in `app/(public)` or the root segment, so a public-page error shows the bare English `global-error.tsx` (inline-styled, no locale, lines 8-11); `/{org}/settings/shares` renders nothing for non-admins (`settings/shares/page.tsx:15`, `return null`) while usage, billing and audit say "not allowed".
 - **Evidence:** file list of `apps/app/app/(public)`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `app/(public)/error.tsx` and `app/error.tsx` with `ErrorView`; `t("notAllowed")` on the shares page.
+- **Fix:** `14c2e23`: `app/error.tsx`, `app/(public)/error.tsx`; settings/shares says "not allowed". `__tests__/error-boundaries.test.ts` (failed first).
 - **Retest:**
 
-### TF-027 · S4 · inconsistency · docs · open
+### TF-027 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R4 · code · `8d22de6`
 - **Spec:** `screens.md` Inventory ("Every other screen in the inventory exists at its route")
 - **Steps:** compare `apps/app/app/**/page.tsx` with the inventory.
@@ -718,7 +718,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** no S-id for `/` (start and org picker), `/{org}/projects` (project list), `/{org}/settings/shares`, `/{org}/library/[kind]/new`, BoQ `?tab=review`, `/areas/[area]/…` and `/{org}/settings/[section]` (module hosts). (S36 "vendors" not built: known, F19.)
 - **Evidence:** the route list.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** add rows.
+- **Fix:** `55339a2`: screens S39–S44 and S12i.
 - **Retest:**
 
 ### TF-028 · S4 · question · docs · owner
@@ -809,7 +809,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-036 · S4 · inconsistency · java · open
+### TF-036 · S4 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** BR-62 ("A usage event is written for every parse, run and preview job that ends, whatever the plan"); `plans-and-limits.md` (processing minute = wall-clock minutes of parse, run and preview jobs)
 - **Steps:** (a) cancel a run job still queued; (b) run the sample project; (c) a job fails retryably, then succeeds; read `GET /orgs/{o}/usage`.
@@ -817,10 +817,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** usage only when `attempt.metered() && attempt.startedAt() != null` (`Jobs.java:291-296`): (a) nothing; (b) sample runs and the seeded Duplex parse are unmetered (`Runs.java:57-59`, `Models.java:214`), nothing (F02 says sample processing doesn't count as usage, so the open point is only whether an event with zero billing is still due); (c) a re-queue records nothing for the failed attempt (`Jobs.java:251-257`) and the next claim resets `started_at` (`:146-147`); a job cancelled during the retry wait counts the wait.
 - **Evidence:** the condition above.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:**
+- **Fix:** `579db30`: every ended metered job gets a usage event (cancelled too); a retried attempt's time is kept in `jobs.processing_ms` (V19) and the retry wait isn't counted. `ApiFoundationTest#aJobCancelledWhileQueuedIsMeteredWithItsEarlierAttempts` (failed first). **Owner:** do sample-project jobs get a zero-billed event? (still none).
 - **Retest:**
 
-### TF-037 · S4 · inconsistency · java · open
+### TF-037 · S4 · inconsistency · java · fixed
 - **Found by:** Stage 2 · R3 · code · `8d22de6`
 - **Spec:** `state-machines.md` ModelVersion `failed.error.code` (`not_ifc`, `unsupported_schema`, `corrupt_file`, `too_large`, `parse_timeout`, `parse_error`); no `queued → failed` in the diagram
 - **Steps:** a parse over `BOQLET_ENGINE_JOB_TIMEOUT`, or kill the worker mid-parse; cancel a queued parse; read `error.code` and the version page.
@@ -828,7 +828,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** other codes: `engine_timeout` (`JobDispatcher.java:146`), `worker_lost` (`Jobs.java:188`), `ingestion_failed`, `engine_unavailable`, `engine_process_failed` (`worker_queue.py:64`), `engine_error`, `invalid_input` (`worker.py:350-356`), `cancelled` (`ParseJob.java:45`, a `queued → failed` the diagram lacks); `parse_timeout` never produced; the app translates six codes (`messages/en/models.json:39-47`) and falls back to the English `message` (`version-status.tsx:44`). `engine_timeout` is retryable, so a model that always times out is parsed 3 times; while a job waits for its retry the version stays `processing` and the run `running`.
 - **Evidence:** `failed("engine_timeout", "The worker exceeded the job timeout.", true)`.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** engine part in `7704cd9`: the parse size error is `too_large`; a queue parse timeout is `parse_timeout`, retried once (`test_worker.py`). **Open:** Java's HTTP-path `engine_timeout`, `worker_lost`, `ingestion_failed`, `cancelled` vs the documented list; app `models.errors.too_large`.
+- **Fix:** `7704cd9` (engine), `852393e` (app texts), `9efea85` (Java: a failed version's code is one of the documented ones, `details.cause` keeps the job's; the HTTP-path `engine_timeout` is no longer retried; `state-machines.md` has `cancelled`; `ParseJobErrorsTest`).
 - **Retest:**
 
 ### TF-038 · S4 · question · docs · owner
@@ -854,7 +854,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `d5e0d8b`: `engine/ifc_boq/sheets/xlsx_guard.py` checks the zip directory (≤ 4096 parts, ≤ 64 MB expanded in rpc, 256 MB for the edits job, ≤ 100:1 per part over 1 MB) before openpyxl; code lists, templates and the edits import open through it. Test `engine/tests/test_xlsx_guard.py` (failed first: members decompressed).
 - **Retest:** L, engine rebuilt from the fix: the Stage 4 bomb (3.2 GB of shared strings in 10.9 MB) → `400 invalid_file` "The workbook is too large…" in 319 ms on `/codelists/read` and 364 ms on template import, engine ~140 MiB, other users' requests kept answering 200 (`stage4/out/s4-security/bomb-codelist.log`, `bomb-template.log`). Pushed and deployed in `1be66cb` (CI 44980195142).
 
-### TF-040 · S3 · bug · engine · open
+### TF-040 · S3 · bug · engine · fixed
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:77-78` ("no formulas evaluated"); the export's own guard (`export_xlsx.py:52-56`)
 - **Steps:** a classification named `=HYPERLINK("https://example.invalid","codes")`, published and used as the BoQ's only classification; generate, export (also via a share link with Excel); list formula cells in the Inputs sheet with openpyxl.
@@ -862,10 +862,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the Inputs sheet writes `wi.cell(row=i, column=2, value=v)` (`engine/ifc_boq/export_xlsx.py:283-285`), bypassing `_row`'s guard; openpyxl makes any `=…` string a formula. Affected: Classifications (`:279`), Rule set (`:276`), Dictionaries, Model. Every recipient, public share viewers included, gets a live formula. Unconfirmed whether Java's name validation allows a leading `=`.
 - **Evidence:** `for i, (k, v) in enumerate(info, 3): … wi.cell(row=i, column=2, value=v)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** write through `_row` (or `data_type = "s"`); check other direct `ws.cell(value=user_text)`.
+- **Fix:** `b64809f`: the export records its own formulas and turns every other formula cell into text before saving. `test_export_xlsx.py::test_user_text_that_starts_with_an_equals_sign_is_never_a_formula` (failed first: formulas in Lines H1/I1, Inputs B5/B6).
 - **Retest:**
 
-### TF-041 · S3 · inconsistency · engine · open
+### TF-041 · S3 · inconsistency · engine · fixed
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
 - **Spec:** `security.md:77-78` ("openpyxl in read-only, data-only mode (no formulas evaluated, no macros: `.xlsm` rejected)")
 - **Steps:** copy a valid code-list `.xlsx` to `codes.xlsm`; `POST /api/v1/codelists/read` with it.
@@ -873,7 +873,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `200`: the engine accepts `.xlsm` (`codelist_import.py:85`) and the picker offers it (`apps/app/src/features/library/classification/code-import.tsx:158`); template and edits imports never check the name or content type (`sheets/templates.py:480`, `boq/ImportEdits.java:43-46`). Macros never run; the documented control is missing.
 - **Evidence:** `if name.endswith((".xlsx", ".xlsm")): raw = _read_xlsx(data)`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** refuse `.xlsm` and workbooks with `vbaProject` in all three readers; drop it from `accept`.
+- **Fix:** `ff2c5f5` (engine: a `vbaProject.bin` part is refused by every reader, `WorkbookRefused`; `test_xlsx_guard.py`, failed first: did not raise) and `03189a3` (the picker no longer offers `.xlsm`).
 - **Retest:**
 
 ### TF-042 · S3 · gap · java · open
@@ -928,8 +928,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `apps/app/next.config.ts:29-39` sets headers only for `/sign-up` and `/s/*`: no nosniff, frame protection or HSTS on app pages, `X-Powered-By: Next.js` on; `/invite/[token]` has neither no-referrer nor noindex; the four Traefik routers use a `private-headers` middleware defined nowhere in the repo (`ops/pilot/traefik-routes.json:8,16,23,30`); the API probably does send HSTS, nosniff and `X-Frame-Options: DENY` via Spring Security defaults, which would make `security.md:89` wrong about the API (unconfirmed).
 - **Evidence:** `headers()` with only `/sign-up/:rest*` and `/s/:token*`.
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** a `/:path*` header block, `poweredByHeader: false`, no-referrer + noindex on `/invite/:token*`; check in or document `private-headers`; correct `security.md:89`.
-- **Retest:**
+- **Fix:** app part in `a0a34b0`: every page sends nosniff, X-Frame-Options DENY + `frame-ancestors 'none'`, Referrer-Policy, no X-Powered-By, HSTS in production; `/invite/*` no-referrer and noindex (`__tests__/headers.test.ts`). **Open (ops):** HSTS on API responses, and the `private-headers` Traefik middleware named in `ops/pilot/traefik-routes.json` is defined outside the repo.
+- **Retest:** L: `/invite/abc` sends nosniff, DENY, frame-ancestors, no-referrer, noindex, no X-Powered-By.
 
 ### TF-047 · S4 · inconsistency · java · open
 - **Found by:** Stage 2 · R5 · code · `8d22de6`
@@ -939,7 +939,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** auth answers `429 auth_throttled` (`NativeCredentials.java:41-43,128-129`), shares `rate_limited` (`ShareController.java:119-121`); no `Retry-After` or `RateLimit-*` anywhere; `set-password` has only the per-source bucket (`NativeAuthController.java:46-49`).
 - **Evidence:** `failure(TOO_MANY_REQUESTS, "auth_throttled", …)`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** one code and `Retry-After`, or change the docs.
+- **Fix:** docs in `55339a2` describe the 429s as they are (no Retry-After). **Open (optional):** one 429 code and Retry-After (Java).
 - **Retest:**
 
 ### TF-048 · S4 · inconsistency · docs · open
@@ -983,10 +983,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** a row with no unit and no quantity is taken as a group heading (`boq_import.py:109-111`), dropped, and resets `heading` to `""`, so the next new rows lose their group and land in Unclassified; new manual ids are `xlsx-{row}` (`:119`) and Java refuses an existing id (`Adjustments.java:210-214`), so a later import fails; Refs aren't checked, one bad Ref makes `Adjustments.codes` throw `unknown_code` and the whole batch fails (`Adjustments.java:223-236`).
 - **Evidence:** rows 12 (description only) and 13 ("Extra wall", m2, 5) under group 2 → `manualItems: [{'id': 'xlsx-13', … no 'codes'}]`, `problems: []`.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** engine part in `7704cd9`: headings must match what the export writes, other unit-less rows are problems, new-row ids from the row's content, Refs outside the code list are problems when the job sends `groupCodes`. Test `engine/tests/test_boq_import.py` (failed first). **Open:** Java sends `groupCodes` (`ImportEdits`).
+- **Fix:** `7704cd9` (engine) and `83cd787` (Java: the import job gets `groupBy`, `groupCodes`, `groupCodesBySystem` from the run's snapshot; scenario "a mistyped Ref…" in `edits-import.test.ts`, failed first). **Open:** the engine reads `groupCodesBySystem[primary]` (the workbook's own grouping).
 - **Retest:**
 
-### TF-052 · S3 · bug · engine · open
+### TF-052 · S3 · bug · engine · fixed
 - **Found by:** Stage 2 · R6 · code + Duplex run · `8d22de6`
 - **Spec:** BR-09 ("An edit … never silently dropped"); BR-03; CLAUDE.md rule 5
 - **Steps:** 1. move a line to D.02, then switch the revision to a classification version without D.02; generate. 2. a reorder-only edit, then the line disappears with a new model version.
@@ -994,7 +994,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. `classify.py:108,173` applies the edit only `if edit in codes`, otherwise silently falls back; `overrides._finish` records no field (`overrides.py:39-45`), so no edit marker, warning or log. 2. Java drops `sortAfter` and leaves reorder-only edits out of the engine input (`Runs.java:153-158`), so they never orphan; `RunIndex.java:93-95` ignores a missing target silently.
 - **Evidence:** Duplex, `override:{key}` codes D.02 removed from the list: old code kept, `overridden: None`, no question, no warning about the edit.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** engine part in `5719dbc`: an edit to a code no longer in the code list keeps the engine's code with a note, an `unknown_code` warning (`edit: true`) and `log.decision.edit_not_applied`; test `test_overrides.py` (failed first). **Open:** Java sends reorder-only edits in `decisions` (`Runs.java`).
+- **Fix:** `5719dbc` (engine), `852393e` (app text), `83cd787` (Java: reorder-only edits go to the engine as an empty edit; `line-edits.test.ts` failed first; the `it.fails` cell in `model-versions.test.ts` flipped).
 - **Retest:**
 
 ### TF-053 · S3 · bug · engine · fixed
@@ -1008,7 +1008,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5719dbc`: the overlap question between two models of one discipline is keyed on the model's name (stable across versions). Test `test_federation.py` (failed first). Renaming the model asks again; answers given before this change (keyed on the file name) are asked once more.
 - **Retest:**
 
-### TF-054 · S3 · inconsistency · engine · open
+### TF-054 · S3 · inconsistency · engine · fixed
 - **Found by:** Stage 2 · R6 · code + synthetic export · `8d22de6`
 - **Spec:** F12-AC1 ("its totals match the sheet"); F12 table "subtotals"; F06 §3 (per group count and the quantity sum when the unit is shared)
 - **Steps:** export a BoQ whose code list has nested or unpadded numeric codes (2 and 10).
@@ -1016,10 +1016,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the Excel groups only by the top-level code (`export_xlsx.py:110`), the sheet nests every level (`model.ts:141-170`); string sort puts "10" before "2" (`export_xlsx.py:120`), the sheet sorts numerically (`model.ts:131`); the only subtotals are Amount formulas (`=SUM(F…)`, 0 until rates are entered, `:148-155`), no quantity subtotal, so AC1 can't be checked.
 - **Evidence:** group `10` written before `2`; subtotal rows `=SUM(F7:F7)`, `=SUM(F11:F12)` only.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** same depth and numeric order as the sheet; per-group line count and single-unit quantity subtotal; F12 says what "totals" means.
+- **Fix:** `9cbd591`: nested sections by the full code path in numeric order, SUBTOTAL rows with the line count and the quantity when the unit is shared, TOTAL as SUBTOTAL; the edits import reads the deepest section. `test_export_xlsx.py` (failed first).
 - **Retest:**
 
-### TF-055 · S3 · bug · engine · open
+### TF-055 · S3 · bug · engine · fixed
 - **Found by:** Stage 2 · R6 · code · `8d22de6`
 - **Spec:** F06 §2 ("numbers use the project locale and the rule set's rounding"); F12 ("Locale: number formats … from the project locale"); F12-AC1
 - **Steps:** export lines with 3-decimal quantities, or a fractional `nr`/`item` line (a manual item of 0.4).
@@ -1027,7 +1027,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `_qfmt` fixes `#,##0.00`, `0` for nr and item, 3 decimals for t (`export_xlsx.py:64-65`): 0.4 item shows "0", 12.345 m³ shows 12.35; the sheet shows up to 6 decimals (`sheet.tsx:203`); the org `numberFormat` is only dumped as JSON on the cover (`:170`). Stored values are exact.
 - **Evidence:** the code cited.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** decimals from each line's rounding step (or as the app).
+- **Fix:** `9cbd591`: a quantity's number format uses the decimals the value has (≤ 6). `test_export_xlsx.py` (failed first).
 - **Retest:**
 
 ### TF-056 · S3 · question · engine · owner
@@ -1052,7 +1052,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** re-enqueue a failed frozen export with the stored metadata, or block the save until it succeeds.
 - **Retest:**
 
-### TF-058 · S4 · inconsistency · engine · open
+### TF-058 · S4 · inconsistency · engine · fixed
 - **Found by:** Stage 2 · R6 · code · `8d22de6`
 - **Spec:** F12 "Not in the models" ("Quantities are taken from the models only. Work not modelled as objects is included only where derived or added by hand (N manual lines)."); BR-12
 - **Steps:** export a BoQ; read cell A4 of the BoQ sheet.
@@ -1060,7 +1060,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** "Review work not in the models. This bill includes {n} manual line(s)." (`export_xlsx.py:99-100`).
 - **Evidence:** the cited line.
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** the F12 wording via a message code.
+- **Fix:** `9cbd591`: the Cover's A4 has F12's wording. `test_export_xlsx.py`.
 - **Retest:**
 
 ### TF-059 · S4 · bug · engine · fixed
@@ -1085,7 +1085,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5719dbc`: failed embedded-element pairs are counted in `log.federation.embedded_failed`. Test `test_federation.py` (failed first).
 - **Retest:**
 
-### TF-061 · S3 · inconsistency · docs · open
+### TF-061 · S3 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `docs/architecture/storage-jobs-realtime.md:14-24` (Key layout)
 - **Steps:** compare the table with the keys Java builds and the worker writes.
@@ -1093,10 +1093,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** parse artefacts are under `orgs/{orgId}/models/{modelVersionId}/{newId}/attempt-N/`, not `orgs/{orgId}/parses/{sha256}/…` (dedupe is a DB lookup); every job output has an `attempt-N/` sub-prefix (runs, diffs, exports, previews); exports are `exports/{exportId}/attempt-N/export.xlsx`, not `{fileName}`; `imports/{id}/source.xlsx` is written by the API from a multipart upload, not by a browser PUT; nothing writes `presets/{presetVersionId}/codelist.json.gz`; the temporary `internal/code-lists/{actor}/{id}` key (outside `orgs/`) is missing.
 - **Evidence:** `Models.java:323`, `Jobs.java:74-76`, `worker.py:121-122,288`, `ImportEdits.java:43-46`, `LibraryFiles.java:56`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** rewrite the table from the code.
+- **Fix:** `55339a2`: the storage key layout rewritten from the code (attempt-N, uploads, templates, internal code lists, cleanup).
 - **Retest:**
 
-### TF-062 · S3 · inconsistency · docs · open
+### TF-062 · S3 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `docs/architecture/api-conventions.md:72` ("422 | engine refused a document | `preset_invalid` (+ `problems[]`)")
 - **Steps:** publish a draft with problems; send a file the engine refuses to `POST /codelists/read`.
@@ -1104,10 +1104,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** publish answers `409 draft_has_problems` with `details.problems` (`Library.java:247`; app and scenario rely on it); an engine 422 on rpc becomes `400 engine_input` (`WorkerClient.java:55-65`); no 422 or `preset_invalid` anywhere, none in `openapi.yaml`.
 - **Evidence:** grep `preset_invalid` matches only api-conventions.md.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** replace the row (with TF-047 for the 429 row).
+- **Fix:** `55339a2`: api-conventions error rows as answered.
 - **Retest:**
 
-### TF-063 · S4 · inconsistency · docs · open
+### TF-063 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `api-conventions.md:131` ("Emails are rendered server-side in the recipient's `locale` (English only in v1)")
 - **Steps:** compare with `known-limitations.md:82-83`, F13's status block, `backend.md`, `overview.md`, `EmailDelivery.java`.
@@ -1115,10 +1115,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the others and the code say English and Serbian (`mail/EmailDelivery.java:111,140,148`).
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** correct api-conventions.md.
+- **Fix:** `55339a2`: emails in English and Serbian; no RateLimit headers.
 - **Retest:**
 
-### TF-064 · S4 · inconsistency · docs · open
+### TF-064 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `docs/architecture/deployment.md:60,67` (OpenTelemetry traces across web → api → worker, "built in BE-025")
 - **Steps:** grep for OpenTelemetry / traceparent.
@@ -1126,10 +1126,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** only the API (Micrometer tracing, `services/api/pom.xml`); app and engine none; the worker correlates through `jobId` in its logs (`worker_queue.py:21-27`); `docs/operations/pilot.md:82` says it correctly.
 - **Evidence:** grep `opentelemetry|traceparent|otel` matches only the pom.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** correct deployment.md.
+- **Fix:** `55339a2`: traces in the API only (Micrometer OTLP); jobs followed by jobId.
 - **Retest:**
 
-### TF-065 · S4 · inconsistency · docs · open
+### TF-065 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `overview.md` Intended vs built ("Client always loads up to 20,000 lines"); `known-limitations.md:66`; F06 status block
 - **Steps:** read `useLines` in `apps/app/src/api/hooks/sheet.ts:16-31`.
@@ -1137,10 +1137,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** it follows `nextCursor` to the end, 20,000 per request: every line of the run is loaded into the browser, whatever the size (worse than described for big BoQs).
 - **Evidence:** `do { … limit: 20000 … cursor = page.nextCursor ?? undefined; } while (cursor);`
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** reword the three places.
+- **Fix:** `55339a2`: overview and F06 say every line of the run is loaded (20,000 per request).
 - **Retest:**
 
-### TF-066 · S4 · inconsistency · docs · open
+### TF-066 · S4 · inconsistency · docs · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `docs/development/design-system.md:40` ("document in Storybook or a `/_dev/ui` page")
 - **Steps:** look for `.storybook` or a `_dev` route in `apps/app`.
@@ -1148,7 +1148,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** neither (`/_dev/*` was the deleted mock's prefix).
 - **Evidence:** `find apps/app/app apps/app/src -path "*dev*"` → nothing.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** drop or correct the instruction.
+- **Fix:** `55339a2`: no Storybook; components documented by their doc comments.
 - **Retest:**
 
 ### TF-067 · S4 · inconsistency · docs · open
@@ -1159,10 +1159,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. "S01–S37" in `docs/README.md:29`, `test-plan.md:167,444`; screens.md goes to S38. 2. link labels still show `../12-ifc-corpus-catalogue.md` (targets fine): `known-limitations.md:19`, `overview.md:88`, `testing/README.md:107,135`. 3. paths not from the root: `engine.md:260` `tests/test_expr.py` (→ `engine/tests/test_expr.py`), `scope-and-acceptance.md:126` `scripts/pseudo-locale.test.mjs` (→ `apps/app/scripts/…`). 4. `engine-worker.md:205` "a `GET /health` on both transports": the queue worker serves no HTTP. 5. `services/api/README.md:186` omits `/_test/auth-limits/reset` (`SuiteSupport.java:158`). 6. `commands.md:3` "Every npm script" omits `npm run perf -w @ifc-boq/tests`, `i18n:pseudo` and `start` in `apps/app`.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** edit each line.
+- **Fix:** `55339a2`: link labels, paths, `/health` on HTTP only, commands. **Open:** `services/api/README.md` lists `/_test/auth-limits/reset` (Java agent).
 - **Retest:**
 
-### TF-068 · S4 · inconsistency · ops · open
+### TF-068 · S4 · inconsistency · ops · fixed
 - **Found by:** Stage 2 · R7 · code · `8d22de6`
 - **Spec:** `test-plan.md` §9.7 (nothing points at the PoC: `apps/web`, …); P44/FE-046
 - **Steps:** `grep -n '"apps/web"' package-lock.json`.
@@ -1170,7 +1170,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `package-lock.json:355-356` has an extraneous `"apps/web"` entry (`@ifc-boq/web`), left after `cf58e32`; two provenance comments (`apps/app/src/features/library/lib/names.ts:2`, `readable.ts:2`) are harmless. Note: `npm install` on Windows also rewrites the lock's `@emnapi/*` metadata (Stage 0), so prune on one platform deliberately.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** prune the entry and commit the lockfile.
+- **Fix:** `55339a2`: the stale `apps/web` entry removed from `package-lock.json` (`npm ci` in the gate).
 - **Retest:**
 
 ### TF-069 · S4 · bug · java · refuted
@@ -1184,7 +1184,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** align limit and message.
 - **Retest:**
 
-### TF-070 · S4 · bug · ops · open
+### TF-070 · S4 · bug · ops · fixed
 - **Found by:** Stage 2 · R7 (noticed outside docs) · code · `8d22de6`
 - **Spec:** `docs/development/environment.md` (`LOCAL_*_PORT` move the local stack)
 - **Steps:** `LOCAL_MAIL_UI_PORT=18025 npm run local:up`.
@@ -1192,7 +1192,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `scripts/local.mjs:85` always prints port 8025.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** print the configured port.
+- **Fix:** `55339a2`: the printed mail URL uses `LOCAL_MAIL_UI_PORT`.
 - **Retest:**
 
 ### TF-071 · S2 · bug · java · fixed
@@ -1214,10 +1214,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** Java puts them in `details` (`billing/LimitReached.java:26-28`); the app reads `error.details.*` (`limit-dialog.tsx:38-41`) and the scenarios assert `details` (`projects.test.ts:43`, `orgs.test.ts:97`): Java, app and tests agree; the contract (and the generated TS type) says otherwise; `api-conventions.md:67` is ambiguous.
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** `LimitError` with `details.{limit,current,max}`; `api:lint`, `api:gen`; validate a real 402 with `expectSchema`.
+- **Fix:** docs in `55339a2` (`details.limit/current/max`). **Open:** `LimitError.details` in the contract (Java), then drop its KNOWN_MISMATCHES entry.
 - **Retest:**
 
-### TF-073 · S3 · gap · app · open
+### TF-073 · S3 · gap · app · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md:92-94` ("`POST` endpoints that create jobs or send emails accept `Idempotency-Key`… The frontend sets it for generate, export, open share link, save version")
 - **Steps:** grep app, contract and suites for `Idempotency`.
@@ -1225,7 +1225,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** Java implements it (`http/Idempotency.java:28-52`) on generateRun, exportRun, exportDiff, importBoqEdits, previewPreset, createShareLink, inviteMember, resendOrgInvitation, completeModelUpload, retryModelVersion, issueRevision, confirmBoq; `openapi.yaml` never declares the header (only the info text, line 7); the app never sends it; no test sends it. A double click or retry creates duplicate runs, exports, invitation emails.
 - **Evidence:** `grep -rn -i idempot apps/app/src` → nothing.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** an `IdempotencyKey` header parameter, `crypto.randomUUID()` per action, a contract test.
+- **Fix:** `14c2e23` (app sends `Idempotency-Key`), `03189a3` (a fresh key per preview, 3 s reuse), `9efea85` (the header on 13 operations in the contract, C14; a bad key → `400 invalid_parameter`; `tests/contract/idempotency.test.ts`).
 - **Retest:**
 
 ### TF-074 · S3 · bug · java · open
@@ -1261,7 +1261,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** check minutes in `createVersion` too; declare `402` on completeModelUpload, retryModelVersion, updateOrg, resendOrgInvitation.
 - **Retest:**
 
-### TF-077 · S3 · inconsistency · app · open
+### TF-077 · S3 · inconsistency · app · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `api-conventions.md:60-61` ("The UI translates by `code`… It shows `message` only as a fallback")
 - **Steps:** create a share link with public links off; export or save without a run; compare unfinished runs.
@@ -1269,10 +1269,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `useErrorMessage` (`use-error-message.ts:14-15`) shows `errors.generic` for codes not in `messages/en/errors.json`; untranslated: `public_links_off` (`ShareLinks.java:89`), `no_run` (`BoqExports.java:79`, `Boqs.java:278`, `ImportEdits.java:40,42`), `run_not_ready` (`Diffs.java:55`), `change_note_required`, `preset_archived`, `no_draft`, `model_too_large` (`Models.java:163`), `upload_size_mismatch`, `upload_parts_invalid`, `unknown_field`, `invalid_param`/`invalid_parameter`, `rate_limited`, `auth_throttled` (sign-in shows the server's English message, `native.tsx:119`).
 - **Evidence:** 0 hits per code in `apps/app/src`, `messages/en`.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `errors.codes.*` entries with params; a test diffing Java's code literals against the catalogue.
+- **Fix:** `14c2e23`: a text for every error code Java answers; sign-in translates by code. `components/errors/error-codes.test.ts` reads the Java sources (failed first).
 - **Retest:**
 
-### TF-078 · S3 · test-gap · suites · open
+### TF-078 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
 - **Spec:** `contract-changes.md` ("the suites … stay the spec that Java must pass")
 - **Steps:** `grep -rhoE 'expectSchema\("[A-Za-z]+"' tests`.
@@ -1280,8 +1280,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** only `Me` and `Plan`; all else partial `toMatchObject`; with `default-property-inclusion: non_null` (`application.yml:16`) a required field Java leaves null is silently omitted (TF-072 went unnoticed this way).
 - **Evidence:** 2 call sites.
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:** an openapi-fetch middleware in `tests/support` validating every response body.
-- **Retest:**
+- **Fix:** `7077e83`: every suite client validates each JSON response against `openapi.yaml` (`tests/support/contract.ts`); known mismatches listed by finding (TF-072, TF-189).
+- **Retest:** harness: contract and scenario suites green with it; it found TF-189.
 
 ### TF-079 · S4 · inconsistency · docs · open
 - **Found by:** Stage 2 · R1 · code · `8d22de6`
@@ -1291,7 +1291,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 413 for models is `model_too_large`, not `too_large` (`Models.java:163`); a bad parameter has three codes: `invalid_param` (most sites, e.g. `Idempotency.java:37`), `invalid_parameter` (`ApiErrors.java:39`), `invalid_cursor` (`AuditReader.java:69`); public-share operations don't declare 429. (422 row: TF-062; 403 details: TF-013; 429 headers: TF-047.)
 - **Evidence:** as cited.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** correct the table; one bad-parameter code.
+- **Fix:** docs in `55339a2` list the codes as answered. **Open:** one bad-parameter code; 429 declared on the public share operations (Java, contract).
 - **Retest:**
 
 ### TF-080 · S4 · question · contract · owner
@@ -1316,7 +1316,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** 401/`session_expired` for missing or expired sessions and 404 only for signed-in non-admins, or document 404 for both and align the suite.
 - **Retest:**
 
-### TF-082 · S3 · bug · ops · open
+### TF-082 · S3 · bug · ops · fixed
 - **Found by:** Stage 2 (during the TF-011 retest) · main session · L · `fc78b12`
 - **Spec:** `docs/development/local-setup.md` / `CLAUDE.md` (`npm run local:up` builds and starts the backend; `scripts/local.mjs` `up` runs `compose up -d --build`)
 - **Steps:** on Windows with Docker Compose v5.6.0 (Docker 29.8.2), change a file under `services/api`, then `npm run local:up`.
@@ -1324,8 +1324,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** exit 1 right after `load local bake definitions`: `additional privileges requested: pass "--allow=fs.read=services\api\Dockerfile" to grant requested privileges`. Compose v5 builds through Bake, and Bake wants an entitlement for the Dockerfile path; `COMPOSE_BAKE=false` doesn't help on v5. Stage 1 passed only because nothing needed a rebuild. CI's `local` job (Linux) is green, so it may be Windows-specific (the backslash path). Workaround used: `docker build -t boqlet-local-api:latest -f services/api/Dockerfile .`, then `docker compose -p boqlet-local -f ops/local/compose.yaml up -d --no-build api`.
 - **Evidence:** session scratchpad `lanes/logs/tf011-local-up.log`, `tf011-local-up2.log`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** have `local.mjs up` build with `docker buildx bake --allow=fs.read=…` or `docker build` per image (or pass the entitlement through), then `up -d`; check on Windows and Linux.
-- **Retest:**
+- **Fix:** `55339a2`: `scripts/local.mjs` uppercases the drive letter and runs `docker compose` from the repo root (Bake compared paths case-sensitively).
+- **Retest:** L: from a lowercase `c:\` working directory the three images build.
 
 ### TF-083 · S4 · inconsistency · java · open
 - **Found by:** Stage 3 · 3c pilot (passive) · P, L · fc78b12
@@ -1338,7 +1338,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** treat HEAD like GET for the public routes (one shared predicate with TF-011's `RequestPaths`).
 - **Retest:**
 
-### TF-084 · S4 · bug · ops · open
+### TF-084 · S4 · bug · ops · fixed
 - **Found by:** Stage 3 · 3c pilot (passive) · P · fc78b12
 - **Spec:** `docs/operations/` (the pilot checks run from an operator's machine); test-plan §9.3 (`check-public-edge.py`)
 - **Steps:** on Windows, `python ops/pilot/check-public-edge.py` in a console with the default code page.
@@ -1346,8 +1346,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `UnicodeEncodeError: 'charmap' codec can't encode character '→'` on the first `print` (cp1252), before any API check runs. With `python -X utf8` it passes.
 - **Evidence:** (session scratchpad `stage3/out/s3c-pilot/`) session scratchpad `stage3/out/s3c-pilot/notes.md`.
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** `sys.stdout.reconfigure(encoding="utf-8")` at the top, or ASCII `->`.
-- **Retest:**
+- **Fix:** `55339a2`: `check-public-edge.py` switches stdout to UTF-8 and prints `->`.
+- **Retest:** L: under cp1252 the old script raised UnicodeEncodeError, the new one prints.
 
 ### TF-085 · S1 · bug · java/app · verified
 - **Found by:** Stage 3/4 · s3a-shares · L · fc78b12
@@ -1405,20 +1405,20 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-092 · S3 · test-gap · suites · open
+### TF-092 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 3/4 · s3a-matrix · L · fc78b12
 - **Summary (spec, steps, actual, fix):** not automated: the full matrix (P-PADM, P-ANON on most rows, extra rows), C4 for every write (BoQ, share-link, decision writes), S7 search ?q= per persona, permission key vs server answer per call, owner as four-eyes submitter, four-eyes off, 409 approval_off and not_approved, TF-011 spellings per persona. Run: node setup.mjs; node matrix.mjs --delete-org; node report.mjs (~2.5 min). Fix: port with it.each, it.fails for TF-012/013/015 until fixed.
 - **Evidence:** session scratchpad `stage3/out/s3a-matrix/` (`report.txt` and the scripts named)
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `7077e83`: `tests/scenarios/permissions.test.ts` (the Stage 3 matrix: 11 personas, three phases, keys, four-eyes, admin paths); cells of open findings are `it.fails` with the finding id.
 - **Retest:**
 
-### TF-093 · S2 · bug · engine · open
+### TF-093 · S2 · bug · engine · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** change report hides an edited line whose engine qty changed; unchanged elements under the edit reported "changed". F08-AC3, BR-09, F08 §4. Steps: Duplex v1, edit qty of `walls | Interior - Partition (92mm Stud) | False |  | m2` 106.4 -> 117.04, generate, save; upload v2, Use v2, generate; POST /runs/{new}/compare; /diffs/{id}/lines and /elements. Expected: partition listed 106.4 -> 96.38 (-10.02, elements_removed) like the same BoQ without the edit; elements 1 added/1 removed/1 changed. Actual: line missing (117.04 both); 18 elements "changed: [quantities]" (edit spread over fewer elements); identical swap on BoQ "Main" (no edits) matches duplex_v1_v2_diff.json exactly; paint-walls -20.03 -> +0.02, under the 1 % filter. Evidence OUT/i2.json (I1 vs I3), probe-i3.mjs, shots/I-*-i3-edits-changes.png, i1.mjs, i1b.mjs, i2.mjs, i-browser.mjs. Fix: diff the engine quantity too, flag edited lines whose engine value changed; element changes from the model not the edited shares.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
-- **Fix:** `7bd2ae4`: snapshots of quantity-edited lines carry `engineQuantity`, the override comparison ignores the engine fields, element changes come from item lines only (`test_diff.py`, failed first); contract `LineChange.engineQuantity` (C09); the 1 % filter keeps a line whose engine value moved (scenario in `changes.test.ts`, failed first); change-report Excel engine columns. **Open:** the app shows the engine value (lands with the next app commit).
+- **Fix:** `7bd2ae4` (engine: snapshots carry `engineQuantity`, override comparison ignores engine fields, element changes from item lines; `test_diff.py`, failed first. Contract C09; the 1 % filter keeps a moved engine value, `changes.test.ts`, failed first; change-report Excel engine columns) and `14c2e23` (app: "engine 106.4 → engine 96.38" under an edited line; `model.test.ts`, failed first).
 - **Retest:**
 
 ### TF-094 · S3 · bug · java · open
@@ -1453,13 +1453,13 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-098 · S3 · bug · app · open
+### TF-098 · S3 · bug · app · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** free plan: approval toggle enabled in /settings/general (server 402 correctly; entitlements say approvalWorkflow false); 402 dialog shows raw keys "approvalWorkflow: 0 of 0 in use.", "maxModelsPerBoq: 3 of 2 in use.". Test-plan J7, F09 §4, F14 Screens. Evidence j7.json ui, shots/J7-01, J7-02, final.json E8ui, shots/E8-01. Fix: gate toggles on entitlements; translate limit names.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `14c2e23`: one name per plan limit (`errors.limit.name`, `limit.feature`) for the dialog and notifications; plan-gated toggles can't be switched on. `i18n/limits.test.ts`, `general-settings.test.tsx` (failed first); browser `batch6.spec.ts @b6-limits` (`3179d79`).
+- **Retest:** L: "Active projects: 1 of 1 in use.", Upgrade → billing; approval and four-eyes disabled with the hint.
 
 ### TF-099 · S3 · test-gap · suites · deferred
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
@@ -1469,20 +1469,20 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-100 · S3 · test-gap · suites · open
+### TF-100 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** (I): orphan_override through the stack (engine only today; seen live: orphan:footings | strip_footing |  | m3 after removing the structure model), uncached report < 3 s (1.06 s API, 1.88 s UI; cached 24 ms) + UI export, badge + "Use v2" in a browser. Scripts orphan.mjs, i2.mjs, i-browser.mjs. (I1/I2 = TF-004, I3 = TF-008.)
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `7077e83`, `3179d79`, and `83cd787` (the reorder-only orphan cell now passes).
 - **Retest:**
 
-### TF-101 · S3 · test-gap · suites · open
+### TF-101 · S3 · test-gap · suites · fixed
 - **Found by:** Stage 3/4 · s3a-versions · L · fc78b12
 - **Summary (spec, steps, actual, fix):** (J): label roll-over Z -> AA (seen A…Z, AA, AB, next AC, label_taken), saved Excel bytes + positionNo after working edits (same SHA-256), revision_locked for every role, boq_confirmed as owner (x8), share link after confirm (200), free-plan toggles in UI. Scripts j1.mjs, j1-labels.mjs, j3.mjs.
 - **Evidence:** session scratchpad `stage3/out/s3a-versions/` (`report.txt` and the scripts named)
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:**
+- **Fix:** `7077e83` (`versions-roles.test.ts`: labels to AC, `label_taken`, byte-identical saved Excel, `boq_confirmed`, share after confirm) and `3179d79` (free-plan toggles).
 - **Retest:**
 
 ### TF-102 · S2 · gap · app · fixed
@@ -1493,21 +1493,21 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5cc298a`: `elementLineChanges()` (`features/changes/model.ts`) lists a changed element's lines from both runs with before/after/Δ, passed to the viewer. Test `model.test.ts` (failed first).
 - **Retest:** L: door `1hOSvn6df7F8_7GcBWlS8Z` → "1 element selected · 2 lines", 0762 4 → 3 nr Δ −1, 0864 6 → 7 nr Δ +1.
 
-### TF-103 · S3 · bug · app · open
+### TF-103 · S3 · bug · app · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** Item-cell code listbox painted under following rows (each virtualised row absolutely positioned with a transform; z-20 stays in its row); mouse pick hits the next row's cell; keyboard works; bulk Move to unaffected. F06 §6. Evidence shots/picker-open-middle.png, dbg-picker.mjs. Fix: portal/popover.
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `14c2e23`: `SearchPicker` portal mode for the sheet's Item editor. `search-picker.test.tsx` (failed first), `states.spec.ts`.
+- **Retest:** L: the element under an option is the option; a mouse pick sets A.02.
 
-### TF-104 · S3 · bug · app · open
+### TF-104 · S3 · bug · app · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** double-click on a Quantity cell of an unselected line doesn't edit: first click opens the detail, grid narrows, cell moves x 1032 -> 816, second click misses. F06 §6. Evidence dblclick.mjs, dblclick-results.txt, shots/dblclick-after.png. Fix: keep column positions (overlay or reserved width).
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `14c2e23`: a click on an unselected line's editable cell waits out the double-click; the double-click edits that cell. `states.spec.ts`.
+- **Retest:** L: double-click on an unselected Quantity opens its editor.
 
 ### TF-105 · S3 · bug · engine · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
@@ -1517,28 +1517,28 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5719dbc`: lines sort by `overridden.engineDescription`. Test `test_overrides.py` (failed first).
 - **Retest:**
 
-### TF-106 · S3 · gap · app · open
+### TF-106 · S3 · gap · app · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** no WebGL fallback: Chromium --disable-webgl --disable-webgl2 --disable-3d-apis -> viewer stuck "Loading ... 0 of 0 shown", uncaught THREE.WebGLRenderer error (scene-view.ts:74 unguarded, no WebGL check in apps/app/src); no element list; sheet works. nfr.md. Evidence misc.mjs webgl, misc-results-webgl.txt, shots/nowebgl-viewer.png. Fix: WebGL2 check, catch, message + element list.
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `14c2e23`: without WebGL the viewer shows a message and a pickable element list. `viewer/webgl.test.ts`; `states.spec.ts` (own Chromium without WebGL, `bbea6cc`).
+- **Retest:** L (WebGL off): message and 218 elements listed.
 
-### TF-107 · S3 · gap · app · open
+### TF-107 · S3 · gap · app · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** at 1440 px split view: Quantity, Source, Storey past the sheet's edge (Storey alone at 1920); line detail opens under the 3D view at y~1488 (1440) / 1452 (1920), below the fold. F06 Layout, F07 §9. Evidence misc-results-layout.txt, shots/split-1440-line-open.png, shots/explore-sheet.png. Fix: keep Quantity in view; detail beside or overlay.
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `852393e`: the description gives way first in the split view, Source column off by default, the line detail above the 3D view.
+- **Retest:** L at 1440 px: Quantity's right edge 848 < grid 882.
 
-### TF-108 · S4 · inconsistency · engine · open
+### TF-108 · S4 · inconsistency · engine · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** Excel: Cover "Number format" raw JSON {"decimal": ".", "thousands": " "}; BoQ sheet "4 manual line(s)" vs app 1 (Excel counts flagged preliminaries); unit edit note "quantity edited: 0.9 -> 905" no units. F12, F06 §12, §6. Evidence working-B.xlsx, dump_xlsx.py.
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B4 (engine and exports (S3/S4))
-- **Fix:** part fixed in `5719dbc`: a unit edit's note names both units. **Open:** Cover number format and the manual-line count (`export_xlsx.py`).
+- **Fix:** `5719dbc` (the unit edit's note names both units) and `9cbd591` (the BoQ's own manual-line count; the number format in words). `test_overrides.py`, `test_export_xlsx.py` (failed first).
 - **Retest:**
 
 ### TF-109 · S4 · question · app · owner
@@ -1549,12 +1549,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-110 · S4 · inconsistency · app · open
+### TF-110 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 3/4 · s3a-sheet · L · fc78b12
 - **Summary (spec, steps, actual, fix):** item_text_blank warning shows the classification's internal id: "[s3a-trades-with-item-texts] Roof, Live Roof...: no value for {fire_rating}." (name is in run.classifications). F15 §1. Evidence g11-warnings.txt, shots/g1-warnings-open.png.
 - **Evidence:** session scratchpad `stage3/out/s3a-sheet/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
+- **Fix:** `852393e`: `withSystemName()` names the classification in engine messages. `i18n/engine-message.test.ts` (failed first).
 - **Retest:**
 
 ### TF-111 · S3 · test-gap · suites · deferred
@@ -1573,13 +1573,13 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-113 · S3 · gap · app · open
+### TF-113 · S3 · gap · app · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** takeover question on native sign-in shows only "Another session is active." + button "End the other session and sign in": no device, no last-active time, no Cancel. 409 body has activeSession {deviceLabel, lastSeenAt} but auth/adapters/native.tsx shows only failure.message; S31 /session-conflict never reached (signed out it redirects to /sign-in). F01 §10, F01-AC5, S31. Evidence shots/a6-02-browser2-question.png, a6.log, a6-sessions.mjs. Fix: render deviceLabel + relative lastSeenAt with S31's openElsewhere text and a Cancel, or route the 409 to /session-conflict.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `a0a34b0`: on `409 session_active` the form names the other device and its last activity (S31 texts), with Cancel. `native-form.test.tsx`; `e2e-java/sessions.spec.ts` asserts the device text and Cancel.
+- **Retest:** L: "You're signed in on campaign, last active now. Continue here and sign out there?…"; Cancel brings back Sign in.
 
 ### TF-114 · S3 · gap · java · open
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
@@ -1589,28 +1589,28 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-115 · S3 · bug · app · open
+### TF-115 · S3 · bug · app · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** the other tab after own sign-out, and after a platform admin's DELETE /admin/users/{id}/session, lands on /sign-in?...&reason=session_replaced within ~0.7 s saying "You were signed out because your account was opened on another device." (false both times; API answers the cookie 401 unauthenticated after the admin action). realtime-provider.tsx:26-28 maps every session.revoked to session_replaced. F01 §10, F19. Evidence shots/ab-32-tab2.png, shots/a6-07-admin-ended.png, ab-browser-run1.log (A9), a6.log. Fix: reason on session.revoked (replaced, signed_out, ended_by_admin), own message each or none.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
-- **Retest:**
+- **Fix:** `a0a34b0`: `reasonForRevoked()` (event status/reason, else `/me`'s code): replaced, expired or "ended" (`signedOut.session_ended`). `auth/revoked.test.ts`. Optional Java: `status` in the `session.revoked` event data.
+- **Retest:** L: a session ended elsewhere lands on sign-in with "Your session was ended…".
 
-### TF-116 · S3 · inconsistency · app · open
+### TF-116 · S3 · inconsistency · app · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** member of orgs T and X opens /{X-slug}/projects/{T project}: T's project opens inside X's chrome (switcher "S3A Other", sidebar/Library/Settings links point at X). F01-AC6, screens.md (URL carries the org slug). Evidence shots/ab-05-deeplink-mixed.png, ab-browser-run1.log (A7). Fix: compare project.orgId with the URL org in the project layout (404 or redirect).
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:**
+- **Fix:** `a0a34b0`: a project whose `orgId` isn't the URL's org shows not found. `states.test.tsx` (new case).
 - **Retest:**
 
-### TF-117 · S4 · bug · app · open
+### TF-117 · S4 · bug · app · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** 409 checkout_unavailable (billing plan pick) and 409 last_owner (leave only owned org from /account): right reason inline plus a toast "Someone else changed this in the meantime. The latest version is shown now." (generic 409 handler). screens.md, C06. Evidence shots/ab-19-checkout-unavailable.png, shots/ab-11-last-owner-leave.png. Fix: concurrency toast only for concurrency codes.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
+- **Fix:** `852393e`: only 409s about state someone else changed say "changed in the meantime". `api/query-client.test.ts` (failed first).
 - **Retest:**
 
 ### TF-118 · S4 · gap · java · open
@@ -1629,12 +1629,12 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:**
 - **Retest:**
 
-### TF-120 · S4 · inconsistency · app · open
+### TF-120 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 3/4 · s3a-accounts · L · fc78b12
 - **Summary (spec, steps, actual, fix):** usage page: total "0.1 min" while every project and kind shows "0 min" (API 0.05: parse 0.04, run 0.01); different rounding. F14-AC4, F14 Screens. Evidence shots/ab-21-usage.png, ab-browser-run1.log (B4). Fix: same precision.
 - **Evidence:** session scratchpad `stage3/out/s3a-accounts/` (`report.txt` and the scripts named)
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:**
+- **Fix:** `852393e`: one rounding for usage minutes; "under 0.1 min". `usage-settings.test.ts`.
 - **Retest:**
 
 ### TF-121 · S4 · gap · java · open
@@ -1691,7 +1691,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** pass `by` (actor's name) in `Boqs.notify` (and `reason` for reopen); a unit test that every notification kind's params satisfy its message's placeholders.
 - **Retest:**
 
-### TF-127 · S3 · inconsistency · app · open
+### TF-127 · S3 · inconsistency · app · fixed
 - **Found by:** Stage 3 · C7 · L · fc78b12
 - **Spec:** screens.md S18 (project activity: filter) and S25; BR-51; known-limitations.md ("Audit action names differ from the F09 list", which is about naming against F09, not about the app and Java disagreeing)
 - **Steps:** 1. As lead open `/{org}/projects/{p}/activity` on a project with runs and uploads. 2. Pick "What: Generated a BoQ". 3. Look at the rows of the unfiltered list.
@@ -1699,7 +1699,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the app's action list (`src/features/audit/audit-view.tsx:17-26`) uses names Java never writes: `run.finished` (Java writes `run.completed`), `revision.inputs_changed` (Java: `revision.inputs_updated`), `revision.reopened` (Java: `revision.review_withdrawn`), so "Generated a BoQ" returns nothing (`GET /projects/{p}/audit?action=run.finished` → 0 rows, `action=run.completed` → 5). Actions Java writes that the app doesn't list show as raw keys in the table and on the project overview's "Recent activity": `run.completed`, `model_version.queued`, `model_version.ready`, `model_version.failed`, also `model.archived`, `project.member_role_changed`, `share_link.*`, `member.invitation_*` (from `SELECT DISTINCT action FROM audit_events`). The row "run.completed · Run 01a2001e-… · 01a2001e-… · needs_input · …" also dumps ids as details.
 - **Evidence:** (session scratchpad `stage3/out/s3b-projects/`) OUT/b-projects-c7.log, OUT/c7-api.log, screenshots OUT/shots/c7-01-lead.png, OUT/shots/c6-03-sample-overview-ready.png (overview shows "run.completed", "model_version.ready", "model_version.queued"); probe in OUT/probe.mjs output quoted in the log.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** one list of audit actions shared by Java and the app (generated from the contract), labels for every emitted action.
+- **Fix:** `852393e`: the activity filter lists the actions Java writes, each labelled ("Another change" otherwise), no ids in Details; families labelled. `features/audit/audit-actions.test.ts` reads Java's action literals (failed first).
 - **Retest:**
 
 ### TF-128 · S3 · inconsistency · java · open
@@ -1768,7 +1768,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `259da32` (Java: a preview's other inputs may be the caller's own current drafts, same org or project; scenario in `library-publish.test.ts`) and `5cc298a` (app: neutral `invalid_preset` text; `error-messages.test.ts`, failed first).
 - **Retest:**
 
-### TF-134 · S2 · bug · app · open
+### TF-134 · S2 · bug · app · fixed
 - **Found by:** Stage 3 · L3 · L · fc78b12
 - **Spec:** F16-AC2 ("Every setup answer changes the preview within 3 s on the Duplex"); F16 step 1 ("re-run at most once per second"); F10 §6 ("runs again after each save")
 - **Steps:** 1. Org A wizard, step 1 checklist, Duplex preview. 2. Time a single toggle until the preview summary changes (6 samples). 3. Toggle "Formwork as separate item" off, and 1.3 s later "Include preliminaries" off; wait 12 s.
@@ -1776,8 +1776,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** (a) 2.84, 3.35, 3.36, 3.42, 3.48, 3.72 s from click to the new summary (the preview request leaves ~1.5 s after the click: 1 s autosave debounce, then the save; the job takes ~1.8 s). (b) after two quick answers only one preview runs: it shows formwork removed (4 lines) but not the preliminaries (2 lines), although the saved draft has both; the panel says done. `PreviewPanel` skips a save that lands while a preview is pending (`if (follow && picked && !preview.isPending)`) and never runs it later. A manual "Preview" shows the right 6 removed lines.
 - **Evidence:** (session scratchpad `stage3/out/s3b-library/`) OUT\wiz-a1.json and wiz-a3.json (`timings`, `rapid`: previews 1, draftParams has both answers, afterManualRun "6 removed"); OUT\shots\wa3-01-rapid.png; traces OUT\traces\wiz-a3.zip.
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
-- **Fix:** part fixed in `5434435`: a save during a running preview triggers one more preview (`preview-panel.test.tsx`, failed first: 1 call instead of 2); picked answers save after 100 ms; chained draft saves; 250 ms poll. Live: two quick answers → 2 previews, the last matches a manual run; the save leaves ~130 ms after the click. **Open:** click → new summary 2.7–3.3 s on a quiet machine, 4.9–5.6 s under load (draft PUT 0.55–1.3 s + preview job ~2 s): F16-AC2's 3 s needs the server path shortened.
-- **Retest:**
+- **Fix:** `5434435` (app: trailing preview), `98adfb6` (engine: check rpc 1.0 s → 11–34 ms, preview job 2.3 → 0.6 s, queue jobs from a fork server on Linux 1.5–2.7 s → 175 ms; `test_worker.py`, `test_presets.py`, `test_worker_logging.py`), `03189a3` (app: 100 ms polls in the first second; a fresh Idempotency-Key per preview).
+- **Retest:** L, Duplex, 10 wizard answers: click → new summary 1.55–2.85 s, median ~1.63 s (F16-AC2: 3 s); was 2.7–3.7 s.
 
 ### TF-135 · S2 · bug · engine · fixed
 - **Found by:** Stage 3 · K2 · L · fc78b12
@@ -1790,7 +1790,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `ecaa68a`: `presets.check` checks every slot answer against its slot (type, options, known slot) with the template reader's wording. Test `test_presets.py::test_check_reports_slot_answers_that_do_not_fit_their_slot` (failed first: `[]`).
 - **Retest:** L: `POST /presets/check` lists the three problems (banana, abc, no_such_slot).
 
-### TF-136 · S2 · bug · app · open
+### TF-136 · S2 · bug · app · fixed
 - **Found by:** Stage 3 · K5 · L · fc78b12
 - **Spec:** F10-AC5 ("an item text with `{thickness}` shows 'Reads as' with the preview model's value"); F10 §13 ("filled from the preview model's first matching line")
 - **Steps:** 1. Org A classification v1 (imported from `files\codes-3-levels-opis.xlsx`, item text "… debljine {thickness} m …"). 2. As the library editor open it in the Library, preview on the Duplex (P2). 3. Code list tab and Codes per line tab.
@@ -1798,7 +1798,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the sample shows the raw blank: "With a line of Walls from the preview: “Zidanje vanjskih zidova debljine {thickness} m …”" (Codes per line: "Item text, with this item's first line in the preview: … {thickness} …"). The preview lines carry only key, description, quantity, unit, so the blank has no value. The run itself fills it (sheet and Excel show "0.417 m", L4).
 - **Evidence:** (session scratchpad `stage3/out/s3b-library/`) OUT\k5.json, OUT\shots\k5-01-code-list.png, k5-02-codes-per-line.png; run lines in OUT\l4.json.
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
-- **Fix:** `987d9f1` (engine: preview lines carry `codes[system] = {code, text}`, `test_item_texts.py`, failed first) and `7bd2ae4` (contract `PreviewLine.codes`, C10). **Open:** the app reads the filled text (next app commit).
+- **Fix:** `987d9f1` (engine: preview lines carry `codes[system] = {code, text}`; `test_item_texts.py`, failed first), `7bd2ae4` (contract `PreviewLine.codes`, C10), `14c2e23` (app: the samples read the engine-filled text back; `item-text.test.ts`, failed first).
 - **Retest:**
 
 ### TF-137 · S3 · bug · java · open
@@ -1900,7 +1900,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** catalogue keys for every action Java writes (or rename the Java actions), an `actions.unknown` fallback instead of the raw code, `boqs.family.*` labels for the filter; a unit test diffing Java's audit action literals against the catalogue.
 - **Retest:**
 
-### TF-146 · S3 · gap · app · open
+### TF-146 · S3 · gap · app · fixed
 - **Found by:** Stage 3 · S3 (expired session mid-edit) · L · fc78b12
 - **Spec:** test-plan S3 ("an expired session mid-edit (the edit isn't lost silently)"); screens.md error state; F06 inline edits
 - **Steps:** 1. As an estimator open a BoQ sheet, double-click a quantity, type 321.5. 2. Expire the session (DB: `UPDATE sessions SET last_seen_at = now() - interval '13 hours'` on the estimator's own row). 3. Press Enter.
@@ -1908,10 +1908,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `POST /boqs/{b}/overrides/batch` → 401; the app goes straight to `/sign-in?returnTo=…&reason=session_expired` with "You were signed out after a long time without activity. Sign in again to continue." Nothing says the typed quantity was not saved, no draft is kept (no storage of pending edits in `src/features/boq-sheet`), and `line_overrides` has no row for the line. After signing in the sheet shows the old quantity. The same happens to any other unsaved input (editor, dialogs) because `signedOut()` navigates away.
 - **Evidence:** (session scratchpad `stage3/out/s3b-ux/`) s3b.mjs, s3b-results.json (requests: `401 PUT …/presence`, `401 POST …/overrides/batch`; override count 0), shots/s3b-after-enter.png, shots/s3b-later.png. Without an open editor (s3.mjs) the app notices the expiry on its next background call and signs out cleanly (s3-results.json).
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** on `session_expired`/`session_replaced` during a mutation, keep the pending edit (sessionStorage keyed by BoQ and line) and say "Your last change was not saved"; re-offer it after sign-in.
-- **Retest:**
+- **Fix:** `852393e`: an edit refused with 401 is kept (sessionStorage) and offered again after sign-in. `kept-edits.test.ts`.
+- **Retest:** L: session expired mid-edit → after sign-in "Your last change was not saved…", Save again saved it.
 
-### TF-147 · S4 · inconsistency · app · open
+### TF-147 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 3 · P3 · L · fc78b12
 - **Spec:** F15 §6 (BoQ values formatted with the project locale; one formatting for the BoQ), design-guidelines "Numbers and units"
 - **Steps:** 1. Add manual lines with quantities 123456789.123, 0.000123 and 0 (API `POST /boqs/{b}/manual-items`), generate. 2. Compare the sheet, the share page `/s/{token}` and the Excel.
@@ -1919,7 +1919,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** sheet "0.000123" and "123,456,789.123"; share page "0" for 0.000123 (looks like a zero quantity) and "123,456,789.123"; Excel stores 0.000123 but formats `#,##0.00` so it shows "0.00"; the calculation log says "0.0001 m2". Three precisions for one line. (Negative manual quantities are refused with 400 `invalid_quantity` "Enter a quantity of zero or more", fine; a lump sum's `amount` becomes a note "amount 1234567.891" on a flagged line, engine text.)
 - **Evidence:** (session scratchpad `stage3/out/s3b-ux/`) p23.mjs, p23-results.json, shots/p23-default-sheet.png, shots/p23-orgComma-share.png, s5-export.xlsx (BoQ!D51, number_format `#,##0.00`), s5x.py output.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** one BoQ number formatter (see TF-021) with the line's rounding used by sheet, share page and Excel; never round a non-zero quantity to 0 without a marker.
+- **Fix:** `852393e` (app: up to 6 decimals, "< 0.000001" below; `boq-format.test.ts`) and `9cbd591` (Excel: the decimals the value has, TF-055).
 - **Retest:**
 
 ### TF-148 · S4 · gap · java · duplicate
@@ -1933,7 +1933,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** update `memberships.last_active_at` (throttled, e.g. once per 5 min) where the session's `last_seen_at` is touched for a request in that org; or drop the column from F01 and the UI.
 - **Retest:**
 
-### TF-149 · S4 · bug · app · open
+### TF-149 · S4 · bug · app · fixed
 - **Found by:** Stage 3 · S5 · L · fc78b12
 - **Spec:** nfr.md "Desktop first (≥ 1280 px)"; test-plan S5 (255-character names)
 - **Steps:** create a project whose 255-character name has no spaces (API accepts it; the New project form has no maxlength and accepted 300 characters); open it at 1280×720.
@@ -1941,7 +1941,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the h1 runs off the right edge and the page scrolls horizontally (`scrollWidth > innerWidth`); the projects list cell is clipped. Names with spaces, RTL, CJK, emoji, combining marks and HTML render fine (see coverage S5).
 - **Evidence:** (session scratchpad `stage3/out/s3b-ux/`) s5.mjs, s5-results.json (`project 255` hScroll true), shots/s5-project 255.png.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `break-words`/`overflow-wrap:anywhere` (or `truncate` + title) on page titles and name cells; consider a name length limit in the contract.
+- **Fix:** `852393e`: headings wrap anywhere; the projects list truncates with a title. `__tests__/a11y-layout.test.ts`.
 - **Retest:**
 
 ### TF-150 · S4 · bug · app · duplicate
@@ -1977,7 +1977,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** e2e-java: role sweep (data-driven from the matrix), escaping on sheet/share page; scenarios: Idempotency-Key replay per endpoint (also asked by TF-073).
 - **Retest:**
 
-### TF-153 · S3 · bug · app · open
+### TF-153 · S3 · bug · app · fixed
 - **Found by:** Stage 3 · R4 (trial extension) · L · fc78b12
 - **Spec:** F19 §4 ("extend a trial"), FL-12 step 3 ("Extends the org's trial by 14 days"); the date the admin picks is the date the trial ends
 - **Steps:** 1. As platform admin, in a browser on UTC+1 (Europe/Sarajevo), open /admin/orgs/{org} of an org in trial (ends 5 Dec). 2. "Set trial", click "+7 days": the date field shows 2026-12-12. 3. Reason, Save.
@@ -1985,10 +1985,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the dialog sends `${day}T23:59:59.000Z` (`org-detail.tsx`, Actions, trial `onSubmit`); the DB holds `2026-12-12 23:59:59+00` and the console shows "Trial ends Dec 13, 2026" because it formats in the viewer's zone. Any admin east of UTC sees one day more than picked; the "+N days" buttons also start from the UTC instant, so the shown date drifts each time. The org's audit has `to: 2026-12-12T23:59:59Z`.
 - **Evidence:** (session scratchpad `stage3/out/s3b-admin/`) b2-actions.json step "trial" `{"picked":"2026-12-12","shown":"Dec 13, 2026"}`; `SELECT trial_ends_at FROM subscriptions` -> `2026-12-12 23:59:59+00`; script b2-actions.mjs; shots/b2-* .
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** treat the trial end as a date: format it with `timeZone: "UTC"` everywhere it is shown (as health.tsx does for days), or send the end of the day in the admin's zone and say which zone.
+- **Fix:** `a0a34b0`: the trial end is a day, shown in UTC (`trialEnd`, `trialDay`). `admin/values.test.ts` (Sarajevo, Tokyo, New York).
 - **Retest:**
 
-### TF-154 · S3 · inconsistency · app · open
+### TF-154 · S3 · inconsistency · app · fixed
 - **Found by:** Stage 3 · R (S36 health screen) · L · fc78b12
 - **Spec:** F19 status ("Not built: … billing-webhook failures and email bounces in health (`AdminReports.health()` shows failed jobs and durations only)"); F19 §7
 - **Steps:** 1. As platform admin open /admin/health.
@@ -1996,7 +1996,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the page shows "BILLING WEBHOOK FAILURES 0" and "EMAIL BOUNCES 0". `GET /admin/health` has neither field (`AdminReports.health()`); `health.tsx` renders `format.number(h.billingWebhookFailures ?? 0)` and the same for bounces. An operator reads "no bounces" while bounces aren't counted.
 - **Evidence:** (session scratchpad `stage3/out/s3b-admin/`) b1-screens.json note "health"; shots/a-health.png; `/admin/health` response (392 B, only failedJobsPerDay and jobDurationsMs).
 - **Route:** fix now · B2 (Java correctness, security, audit (S3/S4))
-- **Fix:** render "—"/"not tracked" when the field is absent (the overview does this for revenue: `revenueNone`), or drop the two figures until they are built.
+- **Fix:** `a0a34b0`: untracked webhook failures and bounces read "not tracked yet". `admin/health.test.tsx`.
 - **Retest:**
 
 ### TF-155 · S4 · inconsistency · app · duplicate
@@ -2054,7 +2054,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `5cc298a`: the selected line has an active cell (ArrowLeft/Right over the editable cells), F2/Enter edits it. Browser spec `e2e-java/resilience.spec.ts`.
 - **Retest:** L (`stage6/app/kbd-edit.mjs`, failed on the old code): quantity edited to 77.5 with a reason and saved; the Unit editor opens by Enter.
 
-### TF-160 · S3 · bug · app · open
+### TF-160 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** test-plan §9.2 ("dialogs return focus"); WCAG 2.4.3 Focus Order
 - **Steps:** keyboard only: 1. S11 "New BoQ" → Enter → Escape. 2. BoQ header "Generate". 3. Share dialog "Create link". 4. Sheet: F2, type, Enter. 5. Setup wizard: "Start", "Use the suggested answers", "Skip".
@@ -2062,10 +2062,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** focus falls to `<body>` in each case: Create BoQ dialog closed with Escape (seen in two runs; the Share and Save-version dialogs do return focus to their trigger); after Generate (the button is replaced while running); after "Create link" (the button is replaced by the URL block); after committing an in-cell edit with Enter (focus does not return to the grid, so the arrows stop working); after each setup-wizard step change. Next Tab then continues from the browser's starting point, not from a logical place.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/keyboard.log lines "create BoQ: after Escape focus -> body … (NOT returned to trigger)", "after Generate: focus body", "after create focus: body", "after Enter: reason dialog: false focus: body", "measure step focus: body"; OUT/fl2.out, OUT/fl2-run1.out; scripts OUT/fl1.mjs, OUT/fl2.mjs, OUT/fl2b.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `finalFocus` on the Create BoQ dialog; move focus to the run status / the URL input / the grid / the new step heading.
-- **Retest:**
+- **Fix:** `852393e`: `useRefocusWhenLost` (Generate/Cancel, in-cell edits, wizard steps); share link field and Create BoQ return focus. `lib/focus.test.tsx`; `e2e-java/a11y-layout.spec.ts`.
+- **Retest:** L: F2 edit Enter → focus on the grid; Generate → Cancel → Generate; Escape → "New BoQ".
 
-### TF-161 · S3 · bug · app · open
+### TF-161 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** F06 §10 (keyboard); WAI-ARIA treegrid pattern (one Tab stop, arrows inside); WCAG 2.4.3, 2.4.6
 - **Steps:** keyboard only on the sheet: Tab to the grid, Enter (selects a line, detail opens), then Tab.
@@ -2073,10 +2073,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** every rendered row's checkbox is its own Tab stop (all named "Select line"): 45 Tabs from the grid to the split handle/viewer on the 41-line Duplex; with virtualisation, Tab keeps scrolling rows into view, so on a long BoQ anything after the grid (viewer, line detail) is practically unreachable by Tab. Arrow keys, Enter, Escape and "/" behave as F06 §10 says (see coverage).
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/keyboard.log ("Tab order after selecting a line (45)"); script OUT/fl2b.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `tabIndex=-1` on the row checkboxes (Space toggles the selected row's checkbox), name them by the line ("Select line 2.5.1 …"), a skip to the line detail.
-- **Retest:**
+- **Fix:** `852393e`: the grid is one Tab stop; Space ticks, Ctrl+A all; row boxes named. `a11y-layout.test.ts`, `a11y-layout.spec.ts`.
+- **Retest:** L: one Tab from the grid reaches the split handle.
 
-### TF-162 · S3 · bug · app · open
+### TF-162 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** design-guidelines.md "What may be text" (red text 4.9 on paper) and Accessibility ("focus is always visible (2 px --ring)"); WCAG 1.4.3 (axe color-contrast, serious) and 1.4.11
 - **Steps:** S21 settings/general "Delete organisation…" or S36 admin org detail "Suspend" (any `variant="destructive"` button, 6 call sites + confirm actions), light and dark; Tab onto it.
@@ -2084,10 +2084,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the shadcn destructive variant draws red text on a 10 % red tint: 4.21:1 light (#c62423 on #eed9d0), 4.26:1 dark (#e06a69 on #3e2626); hover (red/20) 3.59:1. Its focus indicator is a destructive/40 border + destructive/20 ring: ~1.6:1 against the button, barely visible (screenshot). axe flags both screens in both themes.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/axe-results.json (S21, S36 admin org detail; light+dark); OUT/contrast.txt; OUT/focusring.txt; OUT/shots/focus-light-destructive.png vs OUT/shots/focus-light-outline.png; scripts OUT/axe.mjs, OUT/focusring.mjs, OUT/contrast.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** destructive variant as red fill + paper text, or red text on paper with a red border; focus `ring-ring` like the other variants.
+- **Fix:** `852393e`: destructive fill 4.9:1 / 5.6:1 and full-strength focus rings. `__tests__/focus-and-destructive.test.ts` (failed first).
 - **Retest:**
 
-### TF-163 · S3 · bug · app · open
+### TF-163 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** design-guidelines.md contrast table (only "on paper" is given); WCAG 1.4.3 (axe color-contrast, serious)
 - **Steps:** sheet, select a line (ArrowDown).
@@ -2095,10 +2095,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `--muted-foreground` #6b6762 on the selected-row fill `--selection` #dce3f3 = 4.36:1 (the "Measured" source label in the selected row; axe serious). Token check: the same text on `--muted` #e8e2d6 = 4.35:1 (light), used e.g. in bg-muted notices. Dark theme passes (5.46 / 5.23).
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/fl2-axe.json ("sheet with a line selected (working)"); OUT/contrast.txt.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** darken muted-foreground (e.g. #625e59 gives ≥ 4.5 on #dce3f3 and #e8e2d6) and add "on selection / on muted" rows to the guideline's table.
+- **Fix:** `852393e`: `--muted-foreground` `#625e59` (≥ 5:1). `__tests__/tokens.test.ts` (failed first); design-guidelines updated.
 - **Retest:**
 
-### TF-164 · S3 · bug · app · open
+### TF-164 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** design-guidelines.md ("On ink (dark theme) blue and red get lighter variants for text (#7D9BE6, #E06A69)"); design-system.md (no raw colour); WCAG 1.4.3
 - **Steps:** dark theme; a BoQ whose working version uses a newer model version than the saved one (Duplex → Duplex v2); Changes tab.
@@ -2106,10 +2106,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `changes-tab.tsx:24-26` uses the raw palette `var(--blue)` / `var(--red)`, which `.dark` does not redefine: "Added" #1e4fb8 on ink 2.49:1, "Removed" #c62423 on ink 3.19:1 (axe serious, 11 px text). (The light-theme orange "Changed" tag is TF-022.) Same raw-palette pattern, not yet seen rendered: `admin/org-detail.tsx:124` orange "overridden", `sparkline.tsx` stroke.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/states2.txt, OUT/states2-axe.json ("dark changes with changes"); OUT/shots/states2-dark-changes.png; script OUT/states2.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `text-link` / `text-error` (themed tokens) for the tags.
+- **Fix:** `852393e`: themed tokens instead of raw palette colours. `colour-use.test.ts` (failed first).
 - **Retest:**
 
-### TF-165 · S3 · bug · app · open
+### TF-165 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** WCAG 2.2 2.5.8 Target Size (Minimum) (axe target-size, serious)
 - **Steps:** sheet → select a line → the elements list under the 3D view in the line detail; any screen → Tab once (skip link).
@@ -2117,10 +2117,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** `viewer-line-element` buttons are 20 px tall and stacked with no gap (safe space 16 px), 3–4 nodes per scan, light and dark; the "Skip to content" link is 133×20 px when shown and overlaps the wordmark.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/axe-results.json ("S12a line detail open"), OUT/fl2-axe.json; script OUT/axe.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `min-h-6` (24 px) on those buttons and the skip link.
+- **Fix:** `852393e`: viewer targets ≥ 24 px, skip link 40 px. `a11y-layout.test.ts`.
 - **Retest:**
 
-### TF-166 · S3 · bug · app · open
+### TF-166 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** WCAG 4.1.2 / 1.3.1 (axe label, critical) and 2.5.3 Label in Name (axe label-content-name-mismatch, serious); F15 (names from the catalogue)
 - **Steps:** 1. BoQ → Share → Create link: the created-URL field. 2. /account: the header link.
@@ -2128,10 +2128,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** the read-only URL input `data-testid="share-url"` has no label, aria-label or labelledby (critical). On /account the wordmark link shows "boqlet" but is named "Back to the start" (speech-input users saying "boqlet" can't hit it); elsewhere the wordmark is "boqlet home", which passes.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/fl2-axe.json ("share dialog with created link"); OUT/axe-results.json (S04 account, light+dark).
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `aria-label={t("linkUrl")}` on the URL input; name the account-page wordmark "boqlet home" like the shell.
+- **Fix:** `852393e`: share URL field labelled; account wordmark named. `a11y-layout.test.ts`.
 - **Retest:**
 
-### TF-167 · S3 · bug · app · open
+### TF-167 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** WCAG 2.4.2 Page Titled (A); nfr.md WCAG 2.2 AA
 - **Steps:** open sign-in, dashboard, project, models, BoQ sheet, questions, Library, settings/members, notifications, admin, share page; read `document.title`.
@@ -2139,10 +2139,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** every page is titled "boqlet"; tabs, history and screen-reader page announcements can't tell pages apart.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/titles.txt; script OUT/titles.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `generateMetadata`/`document.title` per route with the object's name.
-- **Retest:**
+- **Fix:** `852393e`: `usePageTitle` on every page. `lib/page-title.test.ts`, `a11y-layout.spec.ts`.
+- **Retest:** L: "Duplex Sheet BoQ · Sheet · Duplex Sheet · boqlet", "Notifications · boqlet".
 
-### TF-168 · S3 · bug · app · open
+### TF-168 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** test-plan §9.2 (zoom 200 %: nothing cut off or overlapping on S01, S05, S12a, S35); WCAG 1.4.4 Resize Text; nfr.md (share page usable ≥ 768 px)
 - **Steps:** viewport 640×450 CSS px at deviceScaleFactor 2 (= a 1280×900 window at 200 %); open S01, S05, S12a, S35.
@@ -2150,10 +2150,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** S01 and S05 fine. S12a: the sidebar stays 207 px wide; the project tabs and BoQ tabs run past the right edge (page scrollWidth 782 > 640: "Activity", "Settings", "Exports", "Versions" off-screen, "ACTI…" cut). S35: the 3D view is 1205 px wide (page scrollWidth 1205), so the share page scrolls sideways; the sheet itself reflows.
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/zoom-sr.txt; OUT/shots/zoom200-S12a-viewport.png, OUT/shots/zoom200-S35-crop.png, OUT/shots/zoom200-S01.png, OUT/shots/zoom200-S05.png; script OUT/zoom-sr.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** collapse the sidebar and let the tab rows scroll/wrap below ~1000 px; `max-w-full` on the share page's viewer container.
-- **Retest:**
+- **Fix:** `852393e`: the sidebar folds below 1024 px, tab rows wrap, the viewer box doesn't overflow. `a11y-layout.test.ts`.
+- **Retest:** L: 200 % zoom, BoQ and share page 640 px wide, no overflow.
 
-### TF-169 · S4 · inconsistency · app · open
+### TF-169 · S4 · inconsistency · app · fixed
 - **Found by:** Stage 4 · 4.2 · L · fc78b12
 - **Spec:** design-guidelines.md Accessibility ("focus is always visible (2 px --ring)"); WAI-ARIA landmarks; test-plan §9.2 (moderate/minor go into one S4)
 - **Steps:** see evidence.
@@ -2161,7 +2161,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** axe found **no moderate or minor violations** on any screen or state (WCAG tags only). Smaller things seen by hand: (a) buttons and inputs show focus as a 1 px `--ring` border plus a 2 px ring at 30 % opacity (#b2bed6 on paper, 1.6:1), not the 2 px `--ring` the guideline promises (the 1 px border alone passes 3:1); (b) the share page has no `<main>` landmark (the app shell's skip link targets `#main`, the share page has neither); (c) the 41 row checkboxes all have the same name "Select line" (also in the S3 grid finding). BoQ and project tabs are links with `aria-current="page"` (fine; arrows don't move between them, as expected for links).
 - **Evidence:** (session scratchpad `stage4/out/s4-a11y/`) OUT/focusring.txt, OUT/shots/focus-light-outline.png; OUT/zoom-sr.txt (share: `"main":0`); OUT/keyboard.log.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** `focus-visible:ring-ring` at full strength (or change the guideline); `<main id="main">` on the share page.
+- **Fix:** `852393e`: focus ring (TF-162), the share page is `<main id="main">`, row boxes named (TF-161). `a11y-layout.test.ts`.
 - **Retest:**
 
 ### TF-170 · S3 · test-gap · suites · deferred
@@ -2175,7 +2175,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `apps/app/e2e-java/a11y.spec.ts` with `@axe-core/playwright` (already a devDependency) failing on serious/critical, plus a keyboard spec.
 - **Retest:**
 
-### TF-171 · S3 · bug · app · open
+### TF-171 · S3 · bug · app · fixed
 - **Found by:** Stage 4 · 4.5 widths · L · fc78b12
 - **Spec:** docs/architecture/nfr.md "Browser support": "Read-only views (saved BoQ version, share page, vendor request page) usable at >= 768 px"; test plan §9.5 widths.
 - **Steps:** 1. Save a version of a Duplex BoQ. 2. Open it (Versions › Open, `?tab=sheet&version=<id>`) in a 768 px wide window (Chromium, Firefox or WebKit). 3. Look at the sheet.
@@ -2183,10 +2183,10 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** identical in Chromium 158, Firefox 159 and WebKit 27.2. The app sidebar (208 px) stays open at 768 px, so the sheet grid is 496 px wide against 920 px of columns. You see No., Item and Description, and Unit is cut off ("UN"). The Quantity column (left 784 px) is outside the grid: you only see it by scrolling the grid sideways (after that it is at 360-488 px). The empty Item column takes 128 px. On the working version at 768 px the BoQ tab row also makes the whole page scroll sideways (document scrollWidth 782 for viewport 768, `tab-versions` sticks out), on the Sheet, Questions and Versions tabs. Below 768 px (not required): the signed-in shell's top bar is 460 px wide (page scrolls sideways at 390/360) and the sheet grid shrinks to 88-118 px, so the app can't be used on a phone.
 - **Evidence:** (session scratchpad `stage4/out/s4-compat/`) shots/w-<browser>-savedVersion-768.png, shots/col-<browser>-savedVersion-768-scrolled.png, shots/w-<browser>-sheet-768.png, widths-chromium-firefox-webkit.json, columns.json; scripts widths.mjs, columns.mjs (all in …/scratchpad/stage4/out/s4-compat/).
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** at < 1024 px, collapse the sidebar into a menu and hide or narrow the empty Item column, so Quantity stays in view in a read-only version; wrap or scroll the BoQ tab row inside itself.
-- **Retest:** columns.mjs: `savedVersion @768` qtyVisible true; widths.mjs: `sheet@768` overflowX false.
+- **Fix:** `852393e`: at 768 px the sidebar folds and Item shows only while grouping. `a11y-layout.spec.ts`.
+- **Retest:** L: a saved version at 768 px shows Quantity, no sideways scroll.
 
-### TF-172 · S4 · bug · app · open
+### TF-172 · S4 · bug · app · fixed
 - **Found by:** Stage 4 · 4.5 widths · L · fc78b12
 - **Spec:** test plan §9.5 "below 768 px (nothing breaks so badly that the share page can't be read)"; nfr.md browser support.
 - **Steps:** 1. Open a public share link (no cookie) at 390 px or 360 px wide (Chromium, Firefox, WebKit).
@@ -2194,8 +2194,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** same in all three engines. The page doesn't scroll sideways (scrollWidth = viewport) and the title, search and descriptions are readable. But description cells don't wrap, so the table is 577 px wide inside a 312-342 px scroll box. Unit and Quantity (left 525 px) are off-screen, and you only see the numbers by swiping the table sideways. Nothing on the page says the table scrolls. The page is fine at 768 px and up (Quantity at 649-744 px).
 - **Evidence:** (session scratchpad `stage4/out/s4-compat/`) shots/w-<browser>-share-360.png, shots/w-<browser>-share-390.png, shots/col-<browser>-share-360-scrolled.png, columns.json, widths.mjs, columns.mjs.
 - **Route:** fix now · B3 (app UX, states, a11y, i18n (S3/S4))
-- **Fix:** let the description wrap on narrow screens (no `whitespace-nowrap` below `sm`), or stack unit and quantity under the description.
-- **Retest:** columns.mjs: `share @360` qtyVisible true without scrolling.
+- **Fix:** `852393e`: the share description cell wraps. `a11y-layout.spec.ts`.
+- **Retest:** L: 360 px, Quantity at 336 px.
 
 ### TF-173 · S4 · question · app · owner
 - **Found by:** Stage 4 · 4.5 FL-2 (all browsers) · L · fc78b12
@@ -2264,7 +2264,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** port these to `NativeAuthTest` (auth, origin) and `tests/scenarios` (isolation, signed URLs with a short TTL override, names) and one Playwright spec for escaping.
 - **Retest:**
 
-### TF-179 · S2 · bug · java · open
+### TF-179 · S2 · bug · java · fixed
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
 - **Spec:** v1-10 / nfr.md "Lines page (500 lines) p95 ≤ 500 ms" (test plan §9.1: "with a small load, for example 20 virtual users"); F06 §1 (runs up to 20,000 lines)
 - **Steps:** 1. A run with 20,500 lines in my own org (Duplex run, rows copied in SQL: prep20k.mjs). 2. 20 concurrent clients loop `GET /runs/{id}/lines?limit=500` for 60 s on the local stack (load2.mjs). 3. One client: limit=1, 50, 500 and cursor=20000 (probe-lines.mjs).
@@ -2272,8 +2272,8 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** p50 2,090 / p95 2,868 / p99 3,527 ms (9 req/s, 0 errors). One client: limit=1 259 ms, limit=50 260 ms, limit=500 309 ms, cursor=20000 772 ms; the same request on a 41-line run takes 11 ms. The cost grows with the run, not the page: every call runs `count(*)` over the run and `positions.positions(...)` (`BoqExports.positions`, `RunReads.java` lines()), which reads the codes of every line of the run and numbers them in Java, then `OFFSET` pagination. The harness passes (219 ms) only because its run has 500 lines.
 - **Evidence:** (session scratchpad `stage4/out/s4-perf/`) measure.log "load2 … lines" and "lines probe"; load2.json; services/api/src/main/java/com/boqlet/api/boq/RunReads.java (`var positionsByKey = positions.positions(id, …)`)
 - **Route:** fix now · B1 (S1/S2 and what hits the deployed pilot now)
-- **Fix:** part fixed in `f09befd`: positions cached per run and grouping, page picked by sort_index, lines converted from the tree. `NativeWorkerTest#verifyLargeRunPages` (20,500 lines; 1-line page at 20,000: 1,068 → 34 ms; failed first). L, 20 clients 60 s: p50 618, **p95 1,022 ms** (was 2,868), 29 req/s. **Open:** p95 ≤ 500 ms not met (per-line JSON work); next: stream the stored line JSON.
-- **Retest:**
+- **Fix:** `f09befd` (positions per run, page by sort_index) and `9efea85` (each line's JSON stored at indexing in `run_lines.view`, V18, sent as stored; byte-identical to the typed path, asserted in `NativeWorkerTest`). `NativeWorkerTest#verifyLargeRunPages` (failed first).
+- **Retest:** L, 20,500 lines, 500-line pages, 20 clients 60 s: p95 **122 ms at the API** (access log, p50 80), 679 ms at a client through Docker Desktop's port forwarding on a loaded laptop (was 2,868). To confirm from a Linux client (Stage 7).
 
 ### TF-180 · S2 · gap · ops · owner
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
@@ -2286,7 +2286,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** separate pools (or a reserved slot) for runs vs parses, concurrency ≥ 2 where the CPUs allow; or restate the target in nfr.md for a single-slot deployment.
 - **Retest:**
 
-### TF-181 · S3 · inconsistency · docs · open
+### TF-181 · S3 · inconsistency · docs · fixed
 - **Found by:** Stage 4 · 4.1 · L · fc78b12
 - **Spec:** docs/testing/README.md "Engine timing" (`PERF_OUT=<file>` appends JSON lines); nfr.md "Federated medium pair" row; test plan §9.1
 - **Steps:** 1. `PERF_OUT=x.jsonl engine/.venv/Scripts/python.exe tests/perf/engine_timing.py fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc`. 2. Compare the federated pair in the campaign (NBU office Arch-1 + Eng-CON) with nfr.md.
@@ -2294,7 +2294,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** 1. engine_timing.py never reads `PERF_OUT` (it only prints; no file written). 2. The office pair is 15.2 MB and 1,303 elements (below the medium class, 10k–50k elements and 50–300 MB; near the small one, < 1k elements and < 20 MB), while nfr.md's row names the NBU Medical Clinic pair (18 + 19 MB): the "medium pair" target is checked against a small pair and the two measurements are not comparable.
 - **Evidence:** (session scratchpad `stage4/out/s4-perf/`) tests/perf/engine_timing.py (`emit` prints only); engine-fed.out; measure.log "fed parse … elements 805 / 498"
 - **Route:** fix now · B5 (docs, ops, contract wording)
-- **Fix:** write `PERF_OUT` in engine_timing.py (or drop the sentence); name one federated reference pair in nfr.md, the catalogue and the test plan.
+- **Fix:** `55339a2`: `engine_timing.py` prints JSON lines (no PERF_OUT claim); one federated reference pair named everywhere.
 - **Retest:**
 
 ### TF-182 · S2 · bug · app · fixed
@@ -2354,7 +2354,7 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Actual:** passing but untested here (script paths): engine kill mid-parse and mid-run with re-queue (worker-kill.mjs), graceful engine restart mid-parse (worker-kill.mjs restart), queue reclaim after a database restart (db-restart.mjs), API restart during a stream (sse-restart.mjs), older app on a newer Flyway history (rollback.log, manual SQL), backup and restore into a throwaway Postgres and SeaweedFS (backup-restore.sh, verify-restore.py: the storage half isn't in `BackupRestoreTest`), xlsx bomb on the RPCs (mkbomb.py, bomb.mjs; TF-039's fix).
 - **Evidence:** (session scratchpad `stage4/out/s4-resilience/`) the scripts above in OUT
 - **Route:** fix now · B6 (API-level test gaps (scenarios, JUnit, engine tests))
-- **Fix:** `NativeWorkerTest` cases: destroy the worker process mid-job and restart it (job succeeds, attempts ≤ 2), stop it for 60 s (after the fix of the transport finding), restart the Testcontainers Postgres mid-job; a Playwright check for the SSE reconnect; a CI step that starts the previous release's API image against the migrated schema.
+- **Fix:** `3179d79` (browser: missed events replayed with the exact Last-Event-ID; the xlsx bomb in `test_xlsx_guard.py`). **Open:** NativeWorkerTest process-control cases (worker kill, engine restart, DB restart), the CI rollback step, BackupRestoreTest's storage half.
 - **Retest:**
 
 ### TF-187 · S3 · gap · engine · fixed
@@ -2367,12 +2367,32 @@ deferred · owner · won't fix. Full definitions in `test-plan.md` §10.
 - **Fix:** `f172e84`: the rpc engine reads at most two workbooks at once; a third waits up to 5 s, then `503` with Retry-After (API: `engine_unavailable`). Test in `engine/tests/test_xlsx_guard.py` (failed first: no bound).
 - **Retest:**
 
-### TF-188 · S4 · gap · tests · open
+### TF-188 · S4 · gap · tests · fixed
 - **Found by:** Stage 6 · S1 push gate (clean clone, `browserSmokeAgainstJava`) · harness · 1be66cb
 - **Spec:** test-plan §11.2 (the gate is trusted only if it is deterministic); `docs/testing/README.md` browser smoke
 - **Steps:** run the browser smoke on a fresh `.next-java` (first run after `npm ci`).
 - **Expected:** 13/13, every run.
 - **Actual:** the first spec, `accounts.spec.ts:9` (F01-AC1 sign-up), failed once: `set-password` answered 204, then no `POST /auth/sign-in` was ever sent and `data-session` stayed empty for 20 s (the sign-in submit landed before the cold-compiled page hydrated). The rerun on the same commit, with the build cache warm, passed 13/13. Trace: session scratchpad `stage6/trace1/trace.zip`.
 - **Route:** fix now · B6 (API-level test gaps)
+- **Fix:** `a0a34b0`: `<html data-hydrated>` once React runs (`components/hydration.tsx`); the browser helpers wait for it (`hydrated(page)` in `signInWithForm`, `setPasswordWithForm`). The cold-start race also exposed TF-190.
+- **Retest:**
+
+### TF-189 · S3 · bug · java · open
+- **Found by:** Stage 6 · B6 (TF-078's response validation in the suites) · harness · 9698476
+- **Spec:** `openapi.yaml` `RunLine` (`quantity` required, `number | null`); `api-conventions.md` (responses match the contract)
+- **Steps:** a run with a flagged line (quantity `null`); `GET /runs/{runId}/lines/by-key?key=…` for it (`sheet.test.ts` F06-AC2).
+- **Expected:** `quantity: null` in the body, as `GET /runs/{id}/lines` sends it.
+- **Actual:** the field is missing: `default-property-inclusion: non_null` drops it on the line-detail path. The suites list it as the known mismatch `getLine 200` (`tests/support/contract.ts`).
+- **Route:** fix now · B2 (Java correctness)
 - **Fix:**
+- **Retest:**
+
+### TF-190 · S2 · bug · app · fixed
+- **Found by:** Stage 6 · B2 app fix agent, from TF-188's trace · harness, L · 852393e
+- **Spec:** `docs/architecture/security.md` (credentials only in POST bodies, never in URLs or logs); OWASP ASVS 2.x (no secrets in URLs)
+- **Steps:** open `/sign-in` on a cold or slow page and press Sign in before React has hydrated (seen in the browser smoke right after set-password).
+- **Expected:** nothing is sent until the form works, or a POST; never the password in a URL.
+- **Actual:** the native form had no `method`, so the browser submitted it as `GET /sign-in?email=…&password=…`: the password landed in the URL, the browser history and any access log on the way (Traefik on P). Seen in the TF-188 trace (`stage6/trace1/trace.zip`).
+- **Route:** fix now · B2 (found in Stage 6)
+- **Fix:** `a0a34b0`: the form is `method="post"` and its submit is disabled until hydration (`useHydrated()`); `src/auth/adapters/native-form.test.tsx`. **Owner:** check whether P's access logs hold such URLs and purge them.
 - **Retest:**
