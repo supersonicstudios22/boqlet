@@ -101,12 +101,17 @@ def _read(wb, info, report):
     seen = set()
     heading = ""
     # A formula typed into a read column without a saved value reads as empty: report it, skip the row (TF-177).
-    blank = uncached_formulas(wb, sheets={"BoQ"}, columns={*COLS.values(), "I"}, limit=1000)
-    for _, row, column in blank:
-        _problem(report, row, column, UNCACHED)
-    blank_rows = {row for _, row, _ in blank}
+    # The export's own subtotal formulas (quantity and amount, TF-054) are not edits.
+    blank: dict[int, list[str]] = {}
+    for _, row, column in uncached_formulas(wb, sheets={"BoQ"}, columns={*COLS.values(), "I"}, limit=1000):
+        blank.setdefault(row, []).append(column)
     for r, row in enumerate(ws.iter_rows(min_row=FIRST, max_col=KEY_COL, values_only=True), FIRST):
-        if r in blank_rows:
+        if r in blank:
+            label = str(row[1] or "").strip()
+            if not row[KEY_COL - 1] and (label.startswith("Subtotal") or label == "TOTAL"):
+                continue
+            for column in blank[r]:
+                _problem(report, r, column, UNCACHED)
             seen.add(str(row[KEY_COL - 1] or ""))      # a line on such a row is not proposed as excluded either
             continue
         ref, desc, unit, qty = row[:4]

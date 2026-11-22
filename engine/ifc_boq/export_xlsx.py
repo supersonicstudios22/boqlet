@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from datetime import datetime
 
 from openpyxl import Workbook
@@ -37,7 +38,6 @@ SMALL = Font(name=F, size=9, italic=True, color="595959")
 THIN = Side(style="thin", color="D0D0D0")
 BOX = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
 NUM = '#,##0.00;-#,##0.00;"-"'
-NUM3 = '#,##0.000;-#,##0.000;"-"'
 WRAP = Alignment(wrap_text=True, vertical="top")
 
 
@@ -61,8 +61,50 @@ def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=())
             x.alignment = WRAP
 
 
-def _qfmt(unit):
-    return NUM3 if unit in ("t",) else ("0" if unit in ("nr", "item") else NUM)
+def _decimals(value) -> int:
+    """The decimals a quantity has (up to 6, as the sheet shows them: sheet.tsx)."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return 2
+    text = f"{round(value, 6):.6f}".rstrip("0")
+    return len(text.split(".")[1])
+
+
+def _qfmt(value, decimals=None):
+    """A quantity's number format with the decimals it has: 0.4 item is not "0", 12.345 m3 is not 12.35 (TF-055)."""
+    d = _decimals(value) if decimals is None else decimals
+    base = "#,##0" + ("." + "0" * d if d else "")
+    return f'{base};-{base};"-"'
+
+
+def _natural(code: str):
+    """Codes in the sheet's order: digit runs compare as numbers, "2" before "10" (model.ts byCode)."""
+    return [(0, int(part), "") if part.isdigit() else (1, 0, part.lower()) for part in re.findall(r"\d+|\D+", code)]
+
+
+SEPARATORS = {".": "point", ",": "comma", " ": "space", "\u00a0": "space", "\u202f": "space", "'": "apostrophe", "": "none"}
+
+
+def _number_format(fmt: dict) -> str:
+    """The org's number format in words with a sample (TF-108), e.g. "1 234 567,89 (decimal comma, thousands space)"."""
+    decimal, thousands = fmt.get("decimal", "."), fmt.get("thousands", "")
+    sample = f"1{thousands}234{thousands}567{decimal}89"
+    return f"{sample} (decimal {SEPARATORS.get(decimal, repr(decimal))}, thousands {SEPARATORS.get(thousands, repr(thousands))})"
+
+
+class _Group:
+    """A section of the BoQ sheet: one level of the grouping code's path."""
+
+    def __init__(self, code: str, title: str):
+        self.code, self.title, self.children, self.lines = code, title, {}, []
+
+    def child(self, code: str, title: str) -> "_Group":
+        return self.children.setdefault(code, _Group(code, title))
+
+    def all_lines(self) -> list:
+        return [*self.lines, *(line for child in self.children.values() for line in child.all_lines())]
+
+    def sorted_children(self) -> list:
+        return sorted(self.children.values(), key=lambda g: (g.code == "~", _natural(g.code)))
 
 
 def _description(line, primary):
@@ -101,61 +143,84 @@ def export(result: dict, meta: dict) -> bytes:
     ws["A2"].font = SMALL
     ws["A3"] = "Enter rates in the yellow column. Amounts and totals are formulas. Yellow rows are flagged: quantity to be confirmed."
     ws["A3"].font = SMALL
-    manual_count = sum(l["ruleKind"] == "manual" and not l.get("excluded") for l in lines)
-    ws["A4"] = f"Review work not in the models. This bill includes {manual_count} manual line(s)."
+    # The BoQ's own manual lines (the app's count), not the rule set's preliminaries (TF-108); F12's wording (TF-058).
+    manual_count = sum(l["ruleId"].startswith("boq.") and not l.get("excluded") for l in lines)
+    ws["A4"] = ("Quantities are taken from the models only. Work not modelled as objects is included only where "
+                f"derived or added by hand ({manual_count} manual line{'' if manual_count == 1 else 's'}).")
     ws["A4"].font = SMALL
     _header(ws, 5, ["Ref", "Description", "Unit", "Quantity", "Rate", "Amount", "Source", "Notes"],
             [10, 70, 7, 12, 11, 14, 10, 50])
     ws.freeze_panes = "A6"
-    groups: dict[tuple, list] = {}
+    # Groups nest by the grouping code's path, every level, in the sheet's numeric order (F06 §3, TF-054).
+    root = _Group("", "")
     for l in lines:
         if l.get("excluded"):
             continue
         c = l["codes"].get(primary) if primary else None
-        top = (c["path"][0]["code"], c["path"][0]["title"]) if c else ("~", "Unclassified")
-        groups.setdefault(top, []).append(l)
-    r = 6
-    subtotal_cells = []
+        node = root
+        for step in (c["path"] if c and c.get("path") else [{"code": "~", "title": "Unclassified"}]):
+            node = node.child(str(step["code"]), step["title"])
+        node.lines.append(l)
     roundtrip_rows = []
     position_numbers = meta.get("positionNumbers") or {}
     if position_numbers:
         ws["J5"] = "No."
         ws["J5"].font, ws["J5"].fill, ws["J5"].border = H_FONT, H_FILL, BOX
         ws.column_dimensions["J"].width = 12
-    for (code, title), ls in sorted(groups.items(), key=lambda kv: kv[0][0]):
-        _row(ws, r, [code if code != "~" else "", title, "", "", "", "", "", ""], BOLD, SEC_FILL)
+
+    def write_line(r, l, section):
+        c = l["codes"].get(primary) if primary else None
+        flagged = l["quantity"] is None
+        notes = l.get("notes", [])
+        description = _description(l, primary)
+        if description != l["description"]:
+            notes = [*notes, f"Measured as: {l['description']}"]
+        if measured := l.get("overridden", {}).get("engineDescription"):
+            notes = [*notes, f"Measured as: {measured}"]
+        if reason := l.get("overridden", {}).get("reason"):
+            if not any(reason in note for note in notes):
+                notes = [*notes, "Reason: " + reason]
+        _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
+                     f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
+             NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
+        ws.cell(row=r, column=4).number_format = _qfmt(l["quantity"])
+        ws.cell(row=r, column=5).fill = IN_FILL
+        ws.cell(row=r, column=5).font = INPUT
+        ws.cell(row=r, column=5).number_format = NUM
+        ws.cell(row=r, column=6).number_format = NUM
+        roundtrip_rows.append((r, l["key"], section))
+        if position := position_numbers.get(l["key"]):
+            ws.cell(r, 10, str(position)).data_type = "s"
+
+    def write_group(group, r, depth):
+        """A section's heading, its lines, its sub-sections and its subtotal. SUBTOTAL skips the nested
+        subtotals, so every level sums its lines once; the quantity only when the unit is shared, as the sheet."""
+        _row(ws, r, [group.code if group.code != "~" else "", group.title, "", "", "", "", "", ""], BOLD, SEC_FILL)
+        ws.cell(row=r, column=2).alignment = Alignment(indent=depth)
         r += 1
         first = r
-        for l in ls:
-            c = l["codes"].get(primary) if primary else None
-            flagged = l["quantity"] is None
-            notes = l.get("notes", [])
-            description = _description(l, primary)
-            if description != l["description"]:
-                notes = [*notes, f"Measured as: {l['description']}"]
-            if measured := l.get("overridden", {}).get("engineDescription"):
-                notes = [*notes, f"Measured as: {measured}"]
-            if reason := l.get("overridden", {}).get("reason"):
-                if not any(reason in note for note in notes):
-                    notes = [*notes, "Reason: " + reason]
-            _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
-                         f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
-                 NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
-            ws.cell(row=r, column=4).number_format = _qfmt(l["unit"])
-            ws.cell(row=r, column=5).fill = IN_FILL
-            ws.cell(row=r, column=5).font = INPUT
-            ws.cell(row=r, column=5).number_format = NUM
-            ws.cell(row=r, column=6).number_format = NUM
-            roundtrip_rows.append((r, l["key"], code if code != "~" else ""))
-            if position := position_numbers.get(l["key"]):
-                ws.cell(r, 10, str(position)).data_type = "s"
+        for l in group.lines:
+            # The section a line was exported under: what the edits import compares a moved row with.
+            write_line(r, l, group.code if group.code != "~" else "")
             r += 1
-        _row(ws, r, ["", f"Subtotal {title}", "", "", "", f"=SUM(F{first}:F{r - 1})", "", ""], BOLD, SUB_FILL,
-             formula_cols=(6,))
+        for child in group.sorted_children():
+            r = write_group(child, r, depth + 1)
+        members = group.all_lines()
+        units = {l["unit"] for l in members}
+        shared = next(iter(units)) if len(units) == 1 and any(l["quantity"] is not None for l in members) else None
+        _row(ws, r, ["", f"Subtotal {group.title}", shared or "", f"=SUBTOTAL(9,D{first}:D{r - 1})" if shared else "", "",
+                     f"=SUBTOTAL(9,F{first}:F{r - 1})", "", f"{len(members)} line{'' if len(members) == 1 else 's'}"],
+             BOLD, SUB_FILL, formula_cols=(4, 6))
+        ws.cell(row=r, column=2).alignment = Alignment(indent=depth)
+        if shared:
+            ws.cell(row=r, column=4).number_format = _qfmt(None, max(_decimals(l["quantity"]) for l in members))
         ws.cell(row=r, column=6).number_format = NUM
-        subtotal_cells.append(f"F{r}")
-        r += 2
-    _row(ws, r, ["", "TOTAL", "", "", "", "=" + ("+".join(subtotal_cells) if subtotal_cells else "0"), "", ""],
+        return r + 2
+
+    r = 6
+    for group in root.sorted_children():
+        r = write_group(group, r, 0)
+    _row(ws, r, ["", "TOTAL", "", "", "", f"=SUBTOTAL(9,F6:F{max(r - 1, 6)})", "", ""],
          Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
     if meta.get("boqId"):
@@ -172,7 +237,7 @@ def export(result: dict, meta: dict) -> bytes:
             ("Status", "WORKING" if working else status), ("Model", meta.get("modelName")),
             ("Grouping", systems[0]["name"] if systems else None), ("Generated", meta.get("generatedAt")),
             ("Saved by", meta.get("issuedBy")), ("Saved at", meta.get("issuedAt")), ("Note", meta.get("issueNote")),
-            ("Locale", meta.get("locale")), ("Number format", json.dumps(meta["numberFormat"], ensure_ascii=False)
+            ("Locale", meta.get("locale")), ("Number format", _number_format(meta["numberFormat"])
              if meta.get("numberFormat") else None),
         ]
         for row, (heading, value) in enumerate(((name, data) for name, data in details if data is not None), 3):
@@ -203,7 +268,7 @@ def export(result: dict, meta: dict) -> bytes:
         params = ", ".join(f"{k}={json.dumps(v)}" for k, v in l["trace"].get("params", {}).items())
         _row(wc, r, [l["description"], l["quantity"], l["unit"],
                      f"{l['trace']['formula']}" + (f"   [{params}]" if params else ""), ""], BOLD, SEC_FILL, wrap_cols=(1, 4))
-        wc.cell(row=r, column=2).number_format = _qfmt(l["unit"])
+        wc.cell(row=r, column=2).number_format = _qfmt(l["quantity"])
         r += 1
         for item in l["trace"].get("steps", []):
             _row(wc, r, ["    " + describe_step(item), item["value"], item.get("unit"), "", ""], SMALL)
@@ -211,7 +276,7 @@ def export(result: dict, meta: dict) -> bytes:
         for e in l["trace"]["elements"]:
             _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], e.get("note"), e["guid"]],
                  NORMAL, None, wrap_cols=(1, 4))
-            wc.cell(row=r, column=2).number_format = _qfmt(l["unit"]) if l["unit"] not in ("nr", "item") else "0.###"
+            wc.cell(row=r, column=2).number_format = _qfmt(e["quantity"])
             r += 1
         if l.get("trace", {}).get("sourceLine"):
             _row(wc, r, ["    derived from line: " + l["trace"]["sourceLine"], "", "", "", ""], SMALL)
@@ -245,7 +310,7 @@ def export(result: dict, meta: dict) -> bytes:
         vals += [l["trace"]["formula"], len(l["trace"]["elements"]), loc.get("storey") or ", ".join(loc.get("storeys", [])),
                  "; ".join(l.get("notes", []))]
         _row(wl, i, vals)
-        wl.cell(row=i, column=6).number_format = _qfmt(l["unit"])
+        wl.cell(row=i, column=6).number_format = _qfmt(l["quantity"])
     wl.auto_filter.ref = f"A1:{get_column_letter(len(cols))}{len(lines) + 1}"
 
     # ------------------------------------------------------------------ Log

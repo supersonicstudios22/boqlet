@@ -42,3 +42,85 @@ def test_without_a_line_order_the_engine_order_stays(duplex_parsed):
     unordered = [key for key, _ in _rows(export(result, meta))]
     partial = [key for key, _ in _rows(export(result, {**meta, "lineOrder": [unordered[-1]]}))]
     assert sorted(partial) == sorted(unordered)
+
+
+def _sheet(workbook_bytes, name="BoQ"):
+    return load_workbook(BytesIO(workbook_bytes))[name]
+
+
+def _coded(result, codes):
+    """The result with the first lines put under the given code paths of a system "nested"."""
+    import copy
+    out = copy.deepcopy(result)
+    for line, path in zip(out["lines"], codes):
+        line["codes"]["nested"] = {"system": "nested", "code": path[-1][0], "title": path[-1][1], "source": "map",
+                                   "path": [{"code": c, "title": t} for c, t in path]}
+    return out
+
+
+def test_groups_nest_by_the_code_path_in_numeric_order_with_counts_and_shared_unit_totals(duplex_parsed):
+    """TF-054 (F06 §3, F12-AC1): the sheet's groups, every level, "2" before "10"; each subtotal counts its
+    lines and sums the quantity when they share a unit; amounts are SUBTOTALs, so levels don't add twice."""
+    result = run(duplex_parsed)
+    two, ten = [("2", "Two"), ("2.1", "Two one")], [("10", "Ten"), ("10.1", "Ten one")]
+    result = _coded(result, [two, two, ten, ten])
+    lines = result["lines"]
+    lines[0].update(unit="m2", quantity=1.5)
+    lines[1].update(unit="m2", quantity=2.25)
+    lines[2].update(unit="m3", quantity=3.0)
+    lines[3].update(unit="nr", quantity=4)
+    sheet = _sheet(export(result, {"classifications": [{"id": "nested", "name": "Nested"}]}))
+    rows = {r: [sheet.cell(r, c).value for c in range(1, 9)] for r in range(6, sheet.max_row + 1)}
+    headings = [(v[0], v[1]) for v in rows.values() if v[0] and v[2] in (None, "") and v[3] in (None, "")]
+    assert headings[:4] == [("2", "Two"), ("2.1", "Two one"), ("10", "Ten"), ("10.1", "Ten one")]
+    subtotal = {v[1]: (r, v) for r, v in rows.items() if str(v[1] or "").startswith("Subtotal")}
+    r21, two_one = subtotal["Subtotal Two one"]
+    assert two_one[2] == "m2" and two_one[3].startswith("=SUBTOTAL(9,D") and two_one[5].startswith("=SUBTOTAL(9,F")
+    assert two_one[7] == "2 lines"
+    assert subtotal["Subtotal Two"][1][3].startswith("=SUBTOTAL(9,D") and subtotal["Subtotal Two"][1][7] == "2 lines"
+    ten_row = subtotal["Subtotal Ten"][1]
+    assert ten_row[2] in (None, "") and ten_row[3] in (None, "") and ten_row[7] == "2 lines"   # m3 and nr: no sum
+    total = next(v for v in rows.values() if v[1] == "TOTAL")
+    assert total[5] == f"=SUBTOTAL(9,F6:F{max(r for r, v in rows.items() if v[1] == 'TOTAL') - 1})"
+
+
+def test_quantities_show_the_decimals_the_sheet_shows(duplex_parsed):
+    """TF-055: 0.4 item is not "0", 12.345 m3 is not 12.35."""
+    result = run(duplex_parsed)
+    first = next(l for l in result["lines"] if l["quantity"] is not None)
+    second = next(l for l in result["lines"] if l["quantity"] is not None and l is not first)
+    third = next(l for l in result["lines"] if l["quantity"] is not None and l not in (first, second))
+    first.update(unit="item", quantity=0.4)
+    second.update(unit="m3", quantity=12.345)
+    third.update(unit="nr", quantity=12)
+    sheet = _sheet(export(result, {"boqId": "b", "classifications": [{"id": "acme-cost-codes", "name": "ACME"}]}))
+    formats = {sheet.cell(r, 9).value: sheet.cell(r, 4).number_format for r in range(6, sheet.max_row + 1) if sheet.cell(r, 9).value}
+    assert formats[first["key"]].startswith("#,##0.0;") and formats[second["key"]].startswith("#,##0.000;")
+    assert formats[third["key"]].startswith("#,##0;")
+
+
+def test_the_not_in_the_models_note_and_the_cover_read_as_f12_says(duplex_parsed):
+    """TF-058, TF-108: the F12 note with the BoQ's own manual lines (not the rule set's preliminaries),
+    and the number format in words, not JSON."""
+    from ifc_boq import presets
+    from ifc_boq.pipeline import get_boq
+    rules, library = presets.load_rule_set("as-modelled")
+    result = get_boq(duplex_parsed, rules, [presets.load_classification("acme-cost-codes")], [presets.load_dictionary("global-seed")],
+                     presets.resolution(), rule_library=library,
+                     manual_items=[{"id": "hoarding", "kind": "preliminary", "description": "Site hoarding", "unit": "m", "quantity": 42}])
+    assert sum(l["ruleKind"] == "manual" for l in result["lines"]) > 1        # the rule set's preliminaries too
+    data = export(result, {"boq": "Tender", "classifications": [{"id": "acme-cost-codes", "name": "ACME"}],
+                           "numberFormat": {"decimal": ",", "thousands": " "}})
+    assert _sheet(data)["A4"].value == ("Quantities are taken from the models only. Work not modelled as objects is "
+                                         "included only where derived or added by hand (1 manual line).")
+    cover = {row[0]: row[1] for row in _sheet(data, "Cover").iter_rows(min_row=3, values_only=True) if row[0]}
+    assert cover["Number format"] == "1 234 567,89 (decimal comma, thousands space)"
+
+
+def test_an_unedited_export_with_nested_groups_imports_as_nothing_to_apply(duplex_parsed):
+    """The edits import reads the nested sections back (TF-054 with TF-051's headings)."""
+    from ifc_boq.sheets import boq_import
+    two, ten = [("2", "Two"), ("2.1", "Two one")], [("10", "Ten"), ("10.1", "Ten one"), ("10.1.5", "Ten one five")]
+    result = _coded(run(duplex_parsed), [two, two, ten, [("10", "Ten")]])
+    data = export(result, {"boqId": "b", "classifications": [{"id": "nested", "name": "Nested"}]})
+    assert boq_import.read(data, {"boqId": "b", "primary": "nested", "lines": result["lines"]}) == {"overrides": [], "manualItems": [], "problems": []}
