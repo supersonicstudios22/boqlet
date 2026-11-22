@@ -11,14 +11,19 @@ import { keys } from "@/api/keys";
 
 /** How long after the last change a draft is saved (F10 §3). */
 export const AUTOSAVE_MS = 1000;
+/**
+ * For a picked answer (a choice, a checkbox) rather than typing: saved almost at once, so the preview
+ * follows within F16's 3 s (TF-134); quick clicks still go in one save.
+ */
+export const ANSWER_SAVE_MS = 100;
 
 export type SaveStatus = "idle" | "pending" | "saving" | "saved" | "conflict" | "error";
 
 export interface Draft<D> {
   /** The document being edited: the draft's, or the latest version's until the first change. */
   doc: D | undefined;
-  /** Change the document; saved `AUTOSAVE_MS` after the last change (the first save starts the draft). */
-  setDoc: (next: D) => void;
+  /** Change the document; saved `delayMs` (default `AUTOSAVE_MS`) after the last change (the first save starts the draft). */
+  setDoc: (next: D, delayMs?: number) => void;
   status: SaveStatus;
   /** The engine's problems with the last saved document (from the save's check). */
   problems: string[];
@@ -91,10 +96,12 @@ export function useDraft<D>(preset: Preset): Draft<D> {
   const parentVersion = usePresetVersion(preset.kind === "rule_set" ? (extendsVersionId ?? undefined) : undefined);
   const parent = (parentVersion.data ? ((parentVersion.data.flattened ?? parentVersion.data.doc) as RuleSet) : null) ?? null;
 
-  const save = useCallback(
-    async (force = false) => {
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = null;
+  // One save at a time: a second one waits for the first (same ETag otherwise: a 409 with ourselves).
+  const chain = useRef<Promise<void>>(Promise.resolve());
+  const saveNow = useCallback(
+    async (force: boolean) => {
+      // Saved meanwhile by the save before this one.
+      if (!force && !dirty.current && etag.current) return;
       const body = latest.current;
       if (body === undefined) return;
       setStatus("saving");
@@ -131,15 +138,25 @@ export function useDraft<D>(preset: Preset): Draft<D> {
     },
     [client, preset.id],
   );
+  const save = useCallback(
+    (force = false) => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      const next = chain.current.then(() => saveNow(force));
+      chain.current = next;
+      return next;
+    },
+    [saveNow],
+  );
 
   const setDoc = useCallback(
-    (next: D) => {
+    (next: D, delayMs = AUTOSAVE_MS) => {
       latest.current = next;
       dirty.current = true;
       setLocal(next);
       setStatus("pending");
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => void save(), AUTOSAVE_MS);
+      timer.current = setTimeout(() => void save(), delayMs);
     },
     [save],
   );

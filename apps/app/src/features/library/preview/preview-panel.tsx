@@ -54,13 +54,24 @@ export function PreviewPanel({ preset, saves, onResult, fixed, otherInputs }: {
     preview.mutate({ modelVersionIds: [fixed.versionId], ...(otherInputs ? { otherInputs } : {}) });
   }, [fixed, preview, otherInputs]);
 
-  // Re-run after each save while following (one at a time: a save during a run waits for the next).
+  // Re-run after each save while following, one at a time: a save during a run gets one more run
+  // when that one ends (TF-134: the last answer was never previewed).
   const lastSaves = useRef(saves);
+  const behind = useRef(false);
+  const pending = preview.isPending;
+  const mutate = preview.mutate;
   useEffect(() => {
     if (saves === lastSaves.current) return;
     lastSaves.current = saves;
-    if (follow && picked && !preview.isPending) preview.mutate({ modelVersionIds: [picked.versionId], ...(otherInputs ? { otherInputs } : {}) });
-  }, [saves, follow, picked, preview, otherInputs]);
+    if (!follow || !picked) return;
+    if (pending) behind.current = true;
+    else mutate({ modelVersionIds: [picked.versionId], ...(otherInputs ? { otherInputs } : {}) });
+  }, [saves, follow, picked, pending, mutate, otherInputs]);
+  useEffect(() => {
+    if (pending || !behind.current) return;
+    behind.current = false;
+    if (follow && picked) mutate({ modelVersionIds: [picked.versionId], ...(otherInputs ? { otherInputs } : {}) });
+  }, [pending, follow, picked, mutate, otherInputs]);
 
   const choose = (v: PickedModelVersion | null) => {
     setPicked(v);

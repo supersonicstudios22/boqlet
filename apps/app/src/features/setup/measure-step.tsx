@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { answerParams, effectiveSlots, type OwnParams } from "@/features/library/rule-set/model";
 import { Answer } from "@/features/library/rule-set/questions-tab";
 import { isPatch } from "@/features/library/shared/doc";
-import type { Draft } from "@/features/library/shared/use-draft";
+import { ANSWER_SAVE_MS, type Draft } from "@/features/library/shared/use-draft";
 import { cn } from "@/lib/utils";
 import { measureScreens, missingAnswers, sectionTitle, type Screen } from "./steps";
 
@@ -51,7 +51,9 @@ export function MeasureStep({ preset, draft, orgSlug, onDone, screenIndex, onScr
   const setAnswer = (n: string, v: Param["value"]) => {
     const own = ((doc as { params?: OwnParams }).params ?? {}) as OwnParams;
     const params = answerParams(own, slots, n, v, patch, patch ? parent?.params[n]?.value : undefined);
-    draft.setDoc({ ...doc, params } as OurRuleType);
+    // A picked answer saves almost at once, so the preview follows within 3 s (F16-AC2, TF-134); typing waits as usual.
+    const picked = slots[n]?.type === "boolean" || slots[n]?.type === "choice";
+    draft.setDoc({ ...doc, params } as OurRuleType, picked ? ANSWER_SAVE_MS : undefined);
   };
   const next = () => {
     setTried(true);

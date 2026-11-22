@@ -151,7 +151,7 @@ export interface PreviewOutput {
   jobId: string;
 }
 
-const PREVIEW_POLL_MS = 400;
+const PREVIEW_POLL_MS = 250;
 const PREVIEW_TIMEOUT_MS = 180_000;
 
 /**
