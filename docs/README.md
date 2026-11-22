@@ -66,6 +66,7 @@ docs/
     contract-changes.md        how to change the HTTP contract; C01–C07
     design-guidelines.md       the owner's visual direction (P43): tokens, type, colour meanings
     design-system.md           components and patterns (the guidelines win where they differ)
+  brand/                       the owner's logo: boqlet.svg, and the animation (boqlet.mp4, boqlet.gif) the sign-in splash follows
   testing/
     README.md                  test strategy: layers, how to run each against the real backend, CI, definition of done, coverage by outcome
     test-plan.md               the full test campaign (stages 0–7, journeys, personas)

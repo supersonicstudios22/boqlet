@@ -9,6 +9,7 @@ import { AuthProvider } from "@/auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { APP_NAME } from "@/config";
 import { HydrationMark } from "@/components/hydration";
+import { Splash } from "@/components/shell/splash";
 
 export const metadata: Metadata = { title: { default: APP_NAME, template: `%s · ${APP_NAME}` } };
 
@@ -18,6 +19,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <HydrationMark />
+        <Splash />
         <NextIntlClientProvider>
           <ThemeProvider>
             <AuthProvider>{children}</AuthProvider>

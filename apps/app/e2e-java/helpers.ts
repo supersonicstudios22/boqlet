@@ -128,6 +128,14 @@ export async function signInWithForm(page: Page, email: string, opts: SignInOpti
   }
   if (opts.landing) await expect(page).toHaveURL(opts.landing);
   else await expect(page.locator("html")).toHaveAttribute("data-session", "active");
+  await skipSplash(page);
+}
+
+/** The logo animation after a sign-in covers the page for ~5 s: skipped with a click, as a person may. */
+export async function skipSplash(page: Page) {
+  const splash = page.getByTestId("splash");
+  if (await splash.isVisible()) await splash.click().catch(() => {});
+  await expect(splash).toHaveCount(0);
 }
 
 /** Sets the password on the native sign-up page (a setup link or an invitation) and signs in. */

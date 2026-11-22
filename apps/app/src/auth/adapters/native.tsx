@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Wordmark } from "@/components/shell/wordmark";
+import { requestSplash } from "@/components/shell/splash";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "@/config";
@@ -150,6 +151,8 @@ function NativeForm({ setup }: { setup: boolean }) {
             email: data.get("email"), password: data.get("password"), takeover: conflict, deviceLabel: "Web browser",
           });
       if (response.ok) {
+        // A sign-in opens the app with the logo animation; setting a password leads to sign-in first.
+        if (!setup) requestSplash();
         window.location.replace(setup ? localAuthUrl({ returnTo, email }) : returnTo);
         return;
       }

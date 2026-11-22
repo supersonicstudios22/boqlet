@@ -194,10 +194,17 @@ represents progress.
 ## Brand
 
 - The product name is **boqlet**, always lowercase.
-- Until the owner supplies the wordmark as SVG, set it in Inter Tight 800.
-- The name comes from one config value (`APP_NAME`), not literals spread through the code.
-- It appears in the top bar, sign-in, emails and the share page footer ("Made with boqlet" on
-  the free plan, F18).
+- The logo is the owner's: [docs/brand/](../brand/) holds the SVG (`boqlet.svg`) and the
+  animation (`boqlet.mp4`, `boqlet.gif`). "boq" is the brand purple (`--brand`, #6D3CE0; lighter on
+  ink so it keeps 3:1), "let" the text colour. The app draws it from one module
+  (`apps/app/src/components/shell/logo.ts`) as the `Wordmark` component, sized by the font size.
+- The name comes from one config value (`APP_NAME`), not literals spread through the code; the
+  logo's accessible name is `APP_NAME`.
+- The logo appears in the top bar, sign-in and the share page footer ("Made with boqlet" on the
+  free plan, F18); emails name the product in text.
+- **Sign-in splash**: after each sign-in the app opens with the logo animation (5.3 s, timed from
+  `boqlet.mp4`: "o", "ooo", "boq", "boqlet") over the app while it loads, then fades into it. Once
+  per sign-in, never on a reload; a click or any key skips it.
 - Poster-style section labels ("NO. 03 — MEASURE", "IFC → BOQ") may be used in the expressive
   places above.
 
@@ -219,7 +226,8 @@ status marks), always with text or a tooltip. No decorative icons.
   decorative.
 - Wizard and onboarding: the shapes move between steps and the dimension line draws as you
   progress, both short (≤ 400 ms).
-- `prefers-reduced-motion` turns every movement off.
+- The sign-in splash (Brand) is the one longer animation: once per sign-in, skippable.
+- `prefers-reduced-motion` turns every movement off (the splash shows the finished logo briefly).
 
 ## Accessibility
 

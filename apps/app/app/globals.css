@@ -41,6 +41,8 @@
   --ring: #1e4fb8;
 
   /* The product's own semantic tokens */
+  /* The logo's purple ("boq" in the wordmark, docs/brand/boqlet.svg). */
+  --brand: #6d3ce0;
   --link: #1e4fb8;
   --selection: #dce3f3;
   --selection-bar: var(--link);
@@ -117,6 +119,8 @@
   --input: #7a766f;
   --ring: #7d9be6;
 
+  /* Lighter on ink so the logo keeps 3:1 (WCAG non-text contrast). */
+  --brand: #8f6af0;
   --link: #7d9be6;
   --selection: #1f2a44;
   --status-derived: #7d9be6;
@@ -136,6 +140,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-brand: var(--brand);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);

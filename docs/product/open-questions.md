@@ -9,7 +9,7 @@ here first (with "Blocks: <task>") and then asked (`docs/development/workflow.md
 
 | When | Must be answered | Who |
 |---|---|---|
-| Open | The boqlet wordmark as SVG (light and dark) and a favicon; until then it is set in the display face | Owner |
+| Open | A favicon (the wordmark SVG and its animation arrived 2026-11-22, `docs/brand/`, P56) | Owner |
 | ~~Start of phase 2 (BE-000)~~ *Done 2026-11-16: answers in `docs/decisions.md` (backend decisions).* | Every item in `docs/archive/plan/backend-decisions-to-make.md`: the open ones D1–D18 (budget, auth, hosting, compute, uploads, abuse, engine upgrades, delivery, operations, data protection, contract changes; Q16 and Q17 among them) and the decisions already in the plan B1–B20, to confirm or change, after the agent's analysis (P47) | The backend owner (whoever runs phase 2), asked by the backend agent; product-behaviour changes (including how users are told about engine upgrades, D14) go to the product owner |
 | When the owner schedules BE-032 (a future todo, P51) | A hosting account for a separate staging environment, with credentials the agent can use | Owner |
 | ~~Before FE-047 (release)~~ | Confirm the pilot host becomes production (P51), the domain, and the provider secrets for email (D6) and billing (D7) (auth is native, P50); whether the pricing module is on at launch; the go to merge `v_1` into `main`. *Answered 2026-11-21, the owner: email and billing stay as the pilot has them (no new provider for the release). The go to merge: given 2026-11-21; merged and released as v1.0.0.* | Owner |
