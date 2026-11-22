@@ -62,7 +62,10 @@ public class IdentityService {
         }
 
         String name = token.getClaimAsString("name");
+        // The contract caps a person's name at 120 characters (PATCH /me, set-password); a provider's claim too (TF-174).
+        if (name != null && name.length() > 120) name = name.substring(0, Character.isHighSurrogate(name.charAt(119)) ? 119 : 120);
         String locale = token.getClaimAsString("locale");
+        if (locale != null && locale.length() > 64) locale = null;
         database.update("""
                 INSERT INTO users (id, auth_subject, email, name, locale) VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT DO NOTHING

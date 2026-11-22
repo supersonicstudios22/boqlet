@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class Adjustments {
+    /** A manual line's ID becomes its line key; the whole item is bounded like a line description (TF-174). */
+    private static final int MAX_MANUAL_ID = 200;
+    private static final int MAX_MANUAL_ITEM = 20_000;
     private final JdbcTemplate database;
     private final StoredJson json;
     private final BoqAccess access;
@@ -201,6 +204,11 @@ class Adjustments {
 
     private ObjectNode manual(BoqAccess.Scope scope, UUID id, ManualItemInput input) {
         var item = json.object(input.getItem());
+        // The item is an engine document (Map in the generated DTO), so the contract's limits can't reach it (TF-174).
+        if (item.path("id").asText().length() > MAX_MANUAL_ID || item.toString().length() > MAX_MANUAL_ITEM) {
+            throw bad("invalid_body", "A manual line has an ID of at most " + MAX_MANUAL_ID + " characters and at most "
+                    + MAX_MANUAL_ITEM + " characters in all.");
+        }
         String code = required(item.path("id").asText(), "A manual line needs an ID.");
         required(item.path("description").asText(), "A manual line needs a description.");
         required(item.path("unit").asText(), "A manual line needs a unit.");

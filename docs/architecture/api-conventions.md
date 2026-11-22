@@ -68,7 +68,7 @@ The UI translates by `code` (with `details` as params). It shows `message` only 
 | 403 | role not allowed | `forbidden` (+ `required`), `four_eyes` |
 | 404 | missing or not visible | `not_found` |
 | 409 | blocked by state | `invalid_transition`, `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
-| 413 | upload too large | `too_large` |
+| 413 | upload or request body too large | `too_large` |
 | 422 | engine refused a document | `preset_invalid` (+ `problems[]`) |
 | 429 | rate limit | `rate_limited` (+ `Retry-After`) |
 | 500/503 | server or engine unavailable | `internal`, `engine_unavailable` |

@@ -63,7 +63,7 @@ class ApiFoundationTest {
         properties.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         properties.add("spring.datasource.username", POSTGRES::getUsername);
         properties.add("spring.datasource.password", POSTGRES::getPassword);
-        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test,platform@example.test");
+        properties.add("boqlet.auth.pilot-emails", () -> "pilot@example.test,owner@example.test,platform@example.test,limits@example.test");
         properties.add("boqlet.auth.invitation-secret", () -> "local-test-signing-secret-2026-only");
     }
 
@@ -74,6 +74,7 @@ class ApiFoundationTest {
     @Autowired JdbcTemplate database;
     @Autowired Invitations invitations;
     @Autowired EntitlementService entitlements;
+    @Autowired jakarta.validation.Validator validator;
 
     @Test
     void healthUsesPostgresqlAndPreservesTheRequestId() throws Exception {
@@ -306,6 +307,59 @@ class ApiFoundationTest {
                 """, Long.class, UUID.fromString(org))).isEqualTo(1L);
     }
 
+    /** TF-174: strings, arrays and bodies are bounded, so one member can't make responses (or the heap) huge. */
+    @Test
+    void requestStringsArraysAndBodiesAreBounded() throws Exception {
+        var limits = session("limits");
+        http.perform(auth(patch("/api/v1/me"), "limits", limits).content("{\"name\":\"" + "n".repeat(121) + "\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_body"));
+        http.perform(auth(patch("/api/v1/me"), "limits", limits).content("{\"name\":\"" + "n".repeat(120) + "\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("n".repeat(120)));
+        http.perform(auth(post("/api/v1/orgs"), "limits", limits)
+                .content("{\"name\":\"" + "o".repeat(201) + "\",\"slug\":\"limits-firm\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_body"));
+        String org = json.readTree(http.perform(auth(post("/api/v1/orgs"), "limits", limits)
+                .content("{\"name\":\"Limits firm\",\"slug\":\"limits-firm\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        String project = json.readTree(http.perform(auth(post("/api/v1/orgs/" + org + "/projects"), "limits", limits)
+                .content("{\"name\":\"Limits\"}")).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asText();
+        String decisions = "/api/v1/projects/" + project + "/decisions?dryRun=true";
+        var many = new StringBuilder("{\"decisions\":[");
+        for (int i = 0; i <= 10_000; i++) {
+            many.append(i == 0 ? "" : ",").append("{\"questionId\":\"unmatched:IfcWall:q").append(i)
+                    .append("\",\"kind\":\"unmatched\",\"answer\":\"skip\"}");
+        }
+        http.perform(auth(post(decisions), "limits", limits).content(many.append("]}").toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_body"));
+        String one = "{\"decisions\":[{\"questionId\":\"unmatched:IfcWall:q\",\"kind\":\"unmatched\",\"answer\":%s%s}]}";
+        http.perform(auth(post(decisions), "limits", limits).content(one.formatted("\"skip\"", ",\"note\":\"" + "x".repeat(4001) + "\"")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_body"));
+        http.perform(auth(post(decisions), "limits", limits).content(one.formatted("\"" + "x".repeat(4001) + "\"", "")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_body"));
+        http.perform(auth(post(decisions), "limits", limits).content(one.formatted("\"skip\"", ",\"note\":\"fine\"")))
+                .andExpect(status().isOk());
+
+        // A JSON body over 1 MiB is refused before it is parsed; the document operations allow 32 MiB.
+        http.perform(auth(patch("/api/v1/me"), "limits", limits).content("{\"name\":\"" + "n".repeat(1 << 20) + "\"}"))
+                .andExpect(status().isPayloadTooLarge()).andExpect(jsonPath("$.code").value("too_large"));
+        assertThat(database.queryForObject("SELECT name FROM users WHERE auth_subject = 'limits'", String.class))
+                .isEqualTo("n".repeat(120));
+        var padded = new StringBuilder("{\"decisions\":[");
+        for (int i = 0; i < 400; i++) {
+            padded.append(i == 0 ? "" : ",").append("{\"questionId\":\"unmatched:IfcWall:p").append(i)
+                    .append("\",\"kind\":\"unmatched\",\"answer\":\"skip\",\"note\":\"").append("x".repeat(3000)).append("\"}");
+        }
+        assertThat(padded.length()).isGreaterThan(1 << 20);
+        http.perform(auth(post(decisions), "limits", limits).content(padded.append("]}").toString()))
+                .andExpect(status().isOk());
+
+        // Optional (JsonNullable) fields are validated through their value too.
+        var edit = new com.boqlet.contract.model.LineOverrideInput("line").sortAfter("previous line");
+        assertThat(validator.validate(edit)).isEmpty();
+        assertThat(validator.validate(edit.sortAfter("k".repeat(4001)))).hasSize(1);
+    }
+
     private Cookie session(String token) throws Exception {
         return http.perform(openSession(token, false)).andExpect(status().isCreated())
                 .andReturn().getResponse().getCookie("boqlet_session");
@@ -330,7 +384,7 @@ class ApiFoundationTest {
                 String subject = switch (token) {
                     case "pilot-a", "pilot-b" -> "pilot";
                     case "owner", "owner-b" -> "owner";
-                    case "uninvited", "unverified", "guest", "platform" -> token;
+                    case "uninvited", "unverified", "guest", "platform", "limits" -> token;
                     case "suite-olivia", "suite-ivana", "suite-marko", "suite-ana", "suite-victor", "suite-pat" -> token;
                     // People the shared scenarios sign up (com.boqlet.suite.SuiteSupport): the person is
                     // the subject; each browser of theirs is its own provider session (sid).

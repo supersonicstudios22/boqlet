@@ -82,7 +82,15 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 - Formulas from users are evaluated only by the engine's safe evaluator (`expr.py`, never
   `eval`, D21).
 - JSON inputs are validated against the OpenAPI schemas by Java's generated interfaces and bean
-  validation: `400 unknown_field`, `invalid_body` (`tests/contract/validation.test.ts`).
+  validation: `400 unknown_field`, `invalid_body` (`tests/contract/validation.test.ts`). Every
+  free-text request field has a `maxLength` and every request array a `maxItems` (the families are
+  listed in the contract's `info.description`); the fields the generated DTOs can't reach are
+  checked in code: a decision's text answer (`Decisions`), a manual line (`Adjustments`), the native
+  sign-in and set-password bodies (`NativeCredentials`, `Sessions`), a provider's name claim
+  (`IdentityService`, cut to 120). The database refuses a person's name over 254 characters (V17).
+- Request bodies other than multipart uploads are capped by `RequestSizeFilter`: 1 MiB, 32 MiB for
+  the operations that carry engine documents or batches; larger answers `413 too_large` before
+  anything parses them (TF-174).
 
 ## Data protection
 

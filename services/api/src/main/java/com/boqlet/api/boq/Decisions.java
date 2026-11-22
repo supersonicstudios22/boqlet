@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class Decisions {
+    /** The contract's `maxLength` of a text answer (`DecisionInput.answer` is a scalar of any type, TF-174). */
+    private static final int MAX_ANSWER = 4000;
     private static final Set<String> KINDS = Set.of("unknown_name", "missing_data", "unmatched", "double_claim", "unclassified",
             "classification_conflict", "contradiction", "overlap", "orphan_override");
     private final JdbcTemplate database;
@@ -247,6 +249,9 @@ public class Decisions {
     private void check(String key, String kind, JsonNode answer, JsonNode question, UUID project, UUID actor) {
         if (!(answer.isNull() || answer.isNumber() || answer.isBoolean() || answer.isTextual())) {
             throw badAnswer(key, "Choose a scalar answer.");
+        }
+        if (answer.isTextual() && answer.asText().length() > MAX_ANSWER) {
+            throw invalid("invalid_body", "An answer has at most " + MAX_ANSWER + " characters.");
         }
         if (answer.isNumber() && answer.decimalValue().signum() < 0) throw badAnswer(key, "Enter zero or more.");
         if (question == null) return;

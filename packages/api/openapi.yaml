@@ -7,6 +7,14 @@ info:
     Conventions (auth, errors, pagination, idempotency, SSE) are in `docs/architecture/api-conventions.md`.
     Engine shapes are referenced from `packages/types/schema/*.schema.json` (generated from
     `packages/types/src`), never redefined here.
+
+    Request limits (TF-174): free-text fields have a `maxLength` and request arrays a `maxItems`
+    (person names 120 characters, other names and labels 200, notes, reasons, comments and
+    descriptions 4,000, line descriptions and code-list cells 10,000, line keys and question ids
+    4,000); a value over its limit answers `400 invalid_body`. A JSON request body is at most
+    1 MiB, or 32 MiB for the operations that carry engine documents or batches (`saveDraft`,
+    `checkPreset`, `buildCodeList`, `namesInModel`, `upsertDecisions`, `applyLineEdits`); a larger
+    body answers `413 too_large`. Uploads have their own limits.
 servers:
   - url: /api/v1
 security:
@@ -59,8 +67,8 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                locale: { type: string }
+                name: { type: string, maxLength: 120 }
+                locale: { type: string, maxLength: 64 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
   /me/notification-preferences:
@@ -122,7 +130,7 @@ paths:
               type: object
               required: [confirmName]
               properties:
-                confirmName: { type: string }
+                confirmName: { type: string, maxLength: 200 }
       responses:
         "202": { description: Deletion scheduled }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -193,7 +201,7 @@ paths:
               type: object
               required: [email, role]
               properties:
-                email: { type: string, format: email }
+                email: { type: string, format: email, maxLength: 254 }
                 role: { $ref: "#/components/schemas/OrgRole" }
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/OrgInvitation" } } } }
@@ -340,8 +348,8 @@ paths:
               type: object
               required: [planId, returnUrl]
               properties:
-                planId: { type: string }
-                returnUrl: { type: string }
+                planId: { type: string, maxLength: 64 }
+                returnUrl: { type: string, maxLength: 2048 }
       responses:
         "200": { description: Redirect target, content: { application/json: { schema: { $ref: "#/components/schemas/RedirectUrl" } } } }
         "409": { description: No self-service checkout (`checkout_unavailable`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
@@ -358,7 +366,7 @@ paths:
               type: object
               required: [returnUrl]
               properties:
-                returnUrl: { type: string }
+                returnUrl: { type: string, maxLength: 2048 }
       responses:
         "200": { description: Redirect target, content: { application/json: { schema: { $ref: "#/components/schemas/RedirectUrl" } } } }
   /webhooks/billing/{provider}:
@@ -558,10 +566,10 @@ paths:
               type: object
               required: [fileName, sizeBytes]
               properties:
-                fileName: { type: string }
+                fileName: { type: string, maxLength: 255 }
                 sizeBytes: { type: integer }
-                sha256: { type: string }
-                note: { type: string }
+                sha256: { type: string, maxLength: 64 }
+                note: { type: string, maxLength: 4000 }
       responses:
         "201":
           description: Created
@@ -599,12 +607,13 @@ paths:
               properties:
                 parts:
                   type: array
+                  maxItems: 10000
                   items:
                     type: object
                     required: [partNumber, etag]
                     properties:
                       partNumber: { type: integer }
-                      etag: { type: string }
+                      etag: { type: string, maxLength: 256 }
       responses:
         "200": { description: Version queued or ready (deduplicated), content: { application/json: { schema: { $ref: "#/components/schemas/ModelVersion" } } } }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -643,9 +652,10 @@ paths:
             schema:
               type: object
               properties:
-                dictionaryVersionIds: { type: array, items: { type: string, format: uuid } }
+                dictionaryVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
                 draftDictionaries:
                   type: array
+                  maxItems: 50
                   description: Unsaved dictionary docs (Library editor), most specific last
                   items: { $ref: "../types/schema/dictionary.schema.json#/definitions/Dictionary" }
       responses:
@@ -692,9 +702,9 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                description: { type: string }
-                basedOn: { type: string }
+                name: { type: string, maxLength: 200 }
+                description: { type: string, maxLength: 4000 }
+                basedOn: { type: string, maxLength: 200 }
                 starred: { type: boolean }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Preset" } } } }
@@ -756,7 +766,7 @@ paths:
               type: object
               required: [changeNote]
               properties:
-                changeNote: { type: string }
+                changeNote: { type: string, maxLength: 4000 }
       responses:
         "200": { description: Published version, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersion" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
@@ -775,7 +785,7 @@ paths:
               properties:
                 kind: { $ref: "#/components/schemas/PresetKind" }
                 doc: { description: Engine document }
-                parentVersionIds: { type: array, items: { type: string, format: uuid } }
+                parentVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CheckResponse" } } } }
   /presets/{presetId}/preview:
@@ -793,7 +803,7 @@ paths:
               properties:
                 draft: { type: boolean, default: true }
                 presetVersionId: { type: string, format: uuid }
-                modelVersionIds: { type: array, items: { type: string, format: uuid } }
+                modelVersionIds: { type: array, maxItems: 100, items: { type: string, format: uuid } }
                 compareWithPublished: { type: boolean, default: true }
                 otherInputs: { $ref: "#/components/schemas/RevisionInputsPartial" }
       responses:
@@ -854,7 +864,7 @@ paths:
               type: object
               required: [decisions]
               properties:
-                decisions: { type: array, items: { $ref: "#/components/schemas/DecisionInput" } }
+                decisions: { type: array, maxItems: 10000, items: { $ref: "#/components/schemas/DecisionInput" } }
                 addToProjectDictionary: { type: boolean, default: true }
       responses:
         "200":
@@ -918,8 +928,8 @@ paths:
               type: object
               required: [name]
               properties:
-                name: { type: string }
-                description: { type: string }
+                name: { type: string, maxLength: 200 }
+                description: { type: string, maxLength: 4000 }
                 inputs: { $ref: "#/components/schemas/RevisionInputsPartial" }
       responses:
         "201": { description: Created with revision A, content: { application/json: { schema: { $ref: "#/components/schemas/Boq" } } } }
@@ -941,8 +951,8 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                description: { type: string }
+                name: { type: string, maxLength: 200 }
+                description: { type: string, maxLength: 4000 }
                 archived: { type: boolean, description: false restores an archived BoQ (F04 §6) }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Boq" } } } }
@@ -973,8 +983,8 @@ paths:
             schema:
               type: object
               properties:
-                label: { type: string }
-                note: { type: string }
+                label: { type: string, maxLength: 200 }
+                note: { type: string, maxLength: 4000 }
                 notModelledConfirmed: { type: boolean }
       responses:
         "200": { description: Confirmed, content: { application/json: { schema: { $ref: "#/components/schemas/Boq" } } } }
@@ -993,7 +1003,7 @@ paths:
               type: object
               required: [reason]
               properties:
-                reason: { type: string, minLength: 1 }
+                reason: { type: string, minLength: 1, maxLength: 4000 }
       responses:
         "200": { description: Reopened with a new working version, content: { application/json: { schema: { $ref: "#/components/schemas/Boq" } } } }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -1056,8 +1066,8 @@ paths:
               type: object
               required: [reviewerIds, notModelledConfirmed]
               properties:
-                reviewerIds: { type: array, items: { type: string, format: uuid }, minItems: 1 }
-                message: { type: string }
+                reviewerIds: { type: array, items: { type: string, format: uuid }, minItems: 1, maxItems: 100 }
+                message: { type: string, maxLength: 4000 }
                 notModelledConfirmed:
                   type: boolean
                   const: true
@@ -1078,7 +1088,7 @@ paths:
               type: object
               required: [comment]
               properties:
-                comment: { type: string }
+                comment: { type: string, maxLength: 4000 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BoqRevision" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
@@ -1093,7 +1103,7 @@ paths:
             schema:
               type: object
               properties:
-                comment: { type: string }
+                comment: { type: string, maxLength: 4000 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BoqRevision" } } } }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -1112,8 +1122,8 @@ paths:
             schema:
               type: object
               properties:
-                label: { type: string }
-                note: { type: string }
+                label: { type: string, maxLength: 200 }
+                note: { type: string, maxLength: 4000 }
                 notModelledConfirmed: { type: boolean, description: "Required (true) when approval is off; with approval on it was given at submit (F09 §2, BR-12)" }
       responses:
         "200": { description: Saved (frozen export job started); the response is the saved version, content: { application/json: { schema: { $ref: "#/components/schemas/BoqRevision" } } } }
@@ -1140,8 +1150,8 @@ paths:
               type: object
               required: [text]
               properties:
-                text: { type: string }
-                lineKey: { type: string }
+                text: { type: string, maxLength: 4000 }
+                lineKey: { type: string, maxLength: 4000 }
       responses:
         "201": { description: Added, content: { application/json: { schema: { $ref: "#/components/schemas/ReviewComment" } } } }
   /revisions/{revisionId}/exports:
@@ -1330,7 +1340,7 @@ paths:
               type: object
               properties:
                 format: { type: string, enum: [xlsx], default: xlsx }
-                groupBy: { type: string, description: classification id }
+                groupBy: { type: string, maxLength: 200, description: classification id }
       responses:
         "202": { $ref: "#/components/responses/JobAccepted" }
 
@@ -1485,9 +1495,9 @@ paths:
               type: object
               required: [email, password, deviceLabel]
               properties:
-                email: { type: string, description: "at most 254 characters, else `400 invalid_body`" }
-                password: { type: string }
-                deviceLabel: { type: string }
+                email: { type: string, maxLength: 254, description: "at most 254 characters, else `400 invalid_body`" }
+                password: { type: string, maxLength: 256 }
+                deviceLabel: { type: string, maxLength: 120 }
                 takeover: { type: boolean, default: false }
       responses:
         "201": { description: Signed in; the session cookie is set, content: { application/json: { schema: { $ref: "#/components/schemas/Session" } } } }
@@ -1516,9 +1526,9 @@ paths:
               type: object
               required: [token, password]
               properties:
-                token: { type: string }
-                password: { type: string }
-                name: { type: [string, "null"] }
+                token: { type: string, maxLength: 64 }
+                password: { type: string, maxLength: 256 }
+                name: { type: [string, "null"], maxLength: 120 }
       responses:
         "204": { description: Password set }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -1538,7 +1548,7 @@ paths:
               type: object
               required: [deviceLabel]
               properties:
-                deviceLabel: { type: string }
+                deviceLabel: { type: string, maxLength: 120 }
                 takeover: { type: boolean, default: false }
       responses:
         "201": { description: Session opened, content: { application/json: { schema: { $ref: "#/components/schemas/Session" } } } }
@@ -1573,7 +1583,7 @@ paths:
             schema:
               type: object
               properties:
-                lineKey: { type: [string, "null"], description: "the line being edited; null or missing for none" }
+                lineKey: { type: [string, "null"], maxLength: 4000, description: "the line being edited; null or missing for none" }
       responses:
         "200": { description: Who has the BoQ open now, content: { application/json: { schema: { $ref: "#/components/schemas/BoqPresence" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -1595,9 +1605,9 @@ paths:
             schema:
               type: object
               properties:
-                overrides: { type: array, items: { $ref: "#/components/schemas/LineOverrideInput" } }
-                removeOverrideLineKeys: { type: array, items: { type: string } }
-                manualItems: { type: array, items: { $ref: "#/components/schemas/ManualItemInput" } }
+                overrides: { type: array, maxItems: 20000, items: { $ref: "#/components/schemas/LineOverrideInput" } }
+                removeOverrideLineKeys: { type: array, maxItems: 20000, items: { type: string, maxLength: 4000 } }
+                manualItems: { type: array, maxItems: 20000, items: { $ref: "#/components/schemas/ManualItemInput" } }
       responses:
         "200":
           description: Applied
@@ -1698,7 +1708,7 @@ paths:
             schema:
               type: object
               properties:
-                label: { type: string }
+                label: { type: string, maxLength: 200 }
                 include: { $ref: "#/components/schemas/ShareInclude" }
                 expiresAt: { type: [string, "null"], format: date-time }
       responses:
@@ -1861,9 +1871,9 @@ paths:
               type: object
               required: [reason]
               properties:
-                tags: { type: [array, "null"], items: { type: string } }
+                tags: { type: [array, "null"], maxItems: 50, items: { type: string, maxLength: 64 } }
                 status: { type: string, enum: [active, suspended] }
-                reason: { type: string, minLength: 1 }
+                reason: { type: string, minLength: 1, maxLength: 4000 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AdminOrgDetail" } } } }
   /admin/orgs/{orgId}/subscription:
@@ -1880,9 +1890,9 @@ paths:
               type: object
               required: [reason]
               properties:
-                planId: { type: string }
+                planId: { type: string, maxLength: 64 }
                 trialEndsAt: { type: [string, "null"], format: date-time }
-                reason: { type: string, minLength: 1 }
+                reason: { type: string, minLength: 1, maxLength: 4000 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AdminOrgDetail" } } } }
   /admin/orgs/{orgId}/entitlement-overrides:
@@ -1899,7 +1909,7 @@ paths:
               required: [overrides, reason]
               properties:
                 overrides: { type: object, additionalProperties: true, description: "entitlement name → value; null removes the override" }
-                reason: { type: string, minLength: 1 }
+                reason: { type: string, minLength: 1, maxLength: 4000 }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AdminOrgDetail" } } } }
   /admin/orgs/{orgId}/notes:
@@ -1920,7 +1930,7 @@ paths:
               type: object
               required: [text]
               properties:
-                text: { type: string, minLength: 1 }
+                text: { type: string, minLength: 1, maxLength: 4000 }
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AdminNote" } } } }
   /admin/users:
@@ -2120,7 +2130,7 @@ components:
         viewer: { type: boolean, default: true }
         log: { type: boolean, default: false }
         excel: { type: boolean, default: false }
-        groupBy: { type: string, description: classification id }
+        groupBy: { type: string, maxLength: 200, description: classification id }
     ShareLinkCreate:
       type: object
       required: [mode]
@@ -2128,7 +2138,7 @@ components:
         mode: { type: string, enum: [pinned, latest_issued] }
         revisionId: { type: string, format: uuid, description: for pinned links; its current run is pinned }
         include: { $ref: "#/components/schemas/ShareInclude" }
-        label: { type: string }
+        label: { type: string, maxLength: 200 }
         expiresAt: { type: [string, "null"], format: date-time }
     ShareLink:
       type: object
@@ -2422,10 +2432,10 @@ components:
       type: object
       properties:
         fourEyes: { type: boolean }
-        defaultLocale: { type: string }
-        defaultCurrency: { type: string }
+        defaultLocale: { type: string, maxLength: 64 }
+        defaultCurrency: { type: string, maxLength: 64 }
         defaultUnitSystem: { type: string, enum: [metric, imperial] }
-        defaultCountry: { type: string }
+        defaultCountry: { type: string, maxLength: 64 }
         publicLinksAllowed: { type: boolean, default: true }
         approvalRequired: { type: boolean, default: false, description: "Saving a version needs review and approval (F09 §4, P29)" }
         numberFormat:
@@ -2434,19 +2444,19 @@ components:
           properties:
             decimal: { type: string, enum: [".", ","] }
             thousands: { type: string, enum: [",", ".", " ", " ", "'", ""], description: "U+202F (narrow no-break space) is the default for new orgs (F15)" }
-        dateFormat: { type: string, description: "e.g. dd.MM.yyyy (P35)" }
-        defaultLanguage: { type: string, default: en }
+        dateFormat: { type: string, maxLength: 64, description: "e.g. dd.MM.yyyy (P35)" }
+        defaultLanguage: { type: string, maxLength: 64, default: en }
     OrgCreate:
       type: object
       required: [name, slug]
       properties:
-        name: { type: string }
+        name: { type: string, maxLength: 200 }
         slug: { type: string, pattern: "^[a-z0-9-]{3,40}$" }
         settings: { $ref: "#/components/schemas/OrgSettings" }
     OrgUpdate:
       type: object
       properties:
-        name: { type: string }
+        name: { type: string, maxLength: 200 }
         slug: { type: string, pattern: "^[a-z0-9-]{3,40}$" }
         settings: { $ref: "#/components/schemas/OrgSettings" }
     Membership:
@@ -2544,8 +2554,8 @@ components:
       type: object
       properties:
         ruleSetVersionId: { type: [string, "null"], format: uuid }
-        classificationVersionIds: { type: array, items: { type: string, format: uuid } }
-        dictionaryVersionIds: { type: array, items: { type: string, format: uuid } }
+        classificationVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
+        dictionaryVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
         federationVersionId: { type: [string, "null"], format: uuid }
     Project:
       type: object
@@ -2590,33 +2600,33 @@ components:
       type: object
       required: [name]
       properties:
-        name: { type: string }
-        code: { type: string }
-        client: { type: string }
+        name: { type: string, maxLength: 200 }
+        code: { type: string, maxLength: 200 }
+        client: { type: string, maxLength: 200 }
         location:
           type: object
           properties:
-            address: { type: string }
-            country: { type: string }
-        currency: { type: string }
+            address: { type: string, maxLength: 4000 }
+            country: { type: string, maxLength: 64 }
+        currency: { type: string, maxLength: 64 }
         unitSystem: { type: string, enum: [metric, imperial] }
-        locale: { type: string }
+        locale: { type: string, maxLength: 64 }
         defaults: { $ref: "#/components/schemas/ProjectDefaults" }
         sample: { type: string, enum: [duplex], description: Create the sample project instead (FL-1) }
     ProjectUpdate:
       type: object
       properties:
-        name: { type: string }
-        code: { type: string }
-        client: { type: string }
+        name: { type: string, maxLength: 200 }
+        code: { type: string, maxLength: 200 }
+        client: { type: string, maxLength: 200 }
         location:
           type: object
           properties:
-            address: { type: string }
-            country: { type: string }
-        currency: { type: string }
+            address: { type: string, maxLength: 4000 }
+            country: { type: string, maxLength: 64 }
+        currency: { type: string, maxLength: 64 }
         unitSystem: { type: string, enum: [metric, imperial] }
-        locale: { type: string }
+        locale: { type: string, maxLength: 64 }
         defaults: { $ref: "#/components/schemas/ProjectDefaults" }
     ProjectMember:
       type: object
@@ -2673,14 +2683,14 @@ components:
       type: object
       required: [name]
       properties:
-        name: { type: string }
-        discipline: { type: string, description: "architecture, structure, mep, other federation keys, or 'detect'" }
+        name: { type: string, maxLength: 200 }
+        discipline: { type: string, maxLength: 200, description: "architecture, structure, mep, other federation keys, or 'detect'" }
         scope: { $ref: "../types/schema/run-request.schema.json#/definitions/ModelScope" }
     ModelUpdate:
       type: object
       properties:
-        name: { type: string }
-        discipline: { type: string }
+        name: { type: string, maxLength: 200 }
+        discipline: { type: string, maxLength: 200 }
         scope: { $ref: "../types/schema/run-request.schema.json#/definitions/ModelScope" }
     ModelVersionStatus: { type: string, enum: [awaiting_upload, queued, processing, ready, failed] }
     ModelVersion:
@@ -2801,10 +2811,10 @@ components:
       required: [kind, name, start]
       properties:
         kind: { $ref: "#/components/schemas/PresetKind" }
-        name: { type: string }
-        slug: { type: string }
-        description: { type: string }
-        basedOn: { type: string }
+        name: { type: string, maxLength: 200 }
+        slug: { type: string, maxLength: 200 }
+        description: { type: string, maxLength: 4000 }
+        basedOn: { type: string, maxLength: 200 }
         projectId: { type: string, format: uuid, description: Create a project-layer preset }
         start:
           type: object
@@ -2883,7 +2893,7 @@ components:
       description: Mirrors CodeListBuildRequest in packages/types/src/api.ts
       required: [rows, headerRow, hierarchy]
       properties:
-        rows: { type: array, items: { type: array, items: { type: string } } }
+        rows: { type: array, maxItems: 100000, items: { type: array, maxItems: 80, items: { type: string, maxLength: 10000 } } }
         headerRow: { type: integer }
         code: { type: integer }
         title: { type: integer }
@@ -2891,7 +2901,7 @@ components:
         description: { type: integer }
         level: { type: integer }
         hierarchy: { type: string, enum: [separator, parent, level, flat] }
-        separator: { type: [string, "null"] }
+        separator: { type: [string, "null"], maxLength: 64 }
     CodeListBuildResponse:
       type: object
       required: [codes, problems, stats]
@@ -2930,10 +2940,10 @@ components:
       type: object
       required: [questionId, kind, answer]
       properties:
-        questionId: { type: string }
-        kind: { type: string }
-        answer: { type: [string, number, boolean, "null"] }
-        note: { type: string }
+        questionId: { type: string, maxLength: 4000 }
+        kind: { type: string, maxLength: 64 }
+        answer: { type: [string, number, boolean, "null"], maxLength: 4000 }
+        note: { type: string, maxLength: 4000 }
 
     # ── boqs ──
     RevisionStatus: { type: string, enum: [draft, in_review, approved, issued] }
@@ -2952,7 +2962,7 @@ components:
       properties:
         modelId: { type: string, format: uuid }
         modelVersionId: { type: string, format: uuid }
-        discipline: { type: string }
+        discipline: { type: string, maxLength: 200 }
         scope: { $ref: "../types/schema/run-request.schema.json#/definitions/ModelScope" }
         newerVersionAvailable: { type: [integer, "null"], description: Read-only hint }
     RevisionInputs:
@@ -2969,10 +2979,10 @@ components:
       type: object
       description: Any subset of RevisionInputs; missing fields keep their value (or project defaults on create)
       properties:
-        models: { type: array, items: { $ref: "#/components/schemas/RevisionModelInput" } }
+        models: { type: array, maxItems: 100, items: { $ref: "#/components/schemas/RevisionModelInput" } }
         ruleSetVersionId: { type: string, format: uuid }
-        classificationVersionIds: { type: array, items: { type: string, format: uuid } }
-        dictionaryVersionIds: { type: array, items: { type: string, format: uuid } }
+        classificationVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
+        dictionaryVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
         federationVersionId: { type: [string, "null"], format: uuid }
         resolutionVersionId: { type: [string, "null"], format: uuid }
     ReviewComment:
@@ -3045,14 +3055,14 @@ components:
       description: "A line edit (F06 §6, P20). Omitted fields are not edited. `unit` needs `quantity` (409 unit_needs_quantity); `quantity` and `excluded` need a reason."
       required: [lineKey]
       properties:
-        lineKey: { type: string }
+        lineKey: { type: string, maxLength: 4000 }
         quantity: { type: [number, "null"], description: null = force flagged }
-        description: { type: string }
-        unit: { type: string }
-        codes: { type: object, additionalProperties: { type: string }, description: "classification id → code: moves the line to that section" }
-        sortAfter: { type: [string, "null"], description: line key it follows within its section; null = first }
+        description: { type: string, maxLength: 10000 }
+        unit: { type: string, maxLength: 64 }
+        codes: { type: object, additionalProperties: { type: string, maxLength: 4000 }, description: "classification id → code: moves the line to that section" }
+        sortAfter: { type: [string, "null"], maxLength: 4000, description: line key it follows within its section; null = first }
         excluded: { type: boolean }
-        reason: { type: string }
+        reason: { type: string, maxLength: 4000 }
     LineOverride:
       type: object
       required: [id, boqId, lineKey, createdAt]
@@ -3077,8 +3087,8 @@ components:
         codes:
           type: object
           description: "classification id → code, for the line's codes"
-          additionalProperties: { type: string }
-        sortHint: { type: string }
+          additionalProperties: { type: string, maxLength: 4000 }
+        sortHint: { type: string, maxLength: 4000 }
     ManualItemRecord:
       allOf:
         - $ref: "#/components/schemas/ManualItemInput"

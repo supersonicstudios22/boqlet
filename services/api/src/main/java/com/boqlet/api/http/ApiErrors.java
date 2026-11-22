@@ -27,6 +27,9 @@ class ApiErrors {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ApiError> unreadableBody(HttpMessageNotReadableException failure) {
+        if (failure.getCause() instanceof RequestSizeFilter.TooLarge tooLarge) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(RequestSizeFilter.TooLarge.body(tooLarge.limit));
+        }
         if (failure.getCause() instanceof UnrecognizedPropertyException unknown) {
             return ResponseEntity.badRequest().body(new ApiError("unknown_field", "Unknown request field.",
                     Map.of("field", unknown.getPropertyName())));
