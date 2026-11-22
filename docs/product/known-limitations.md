@@ -60,14 +60,20 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   (16 MB parts, `storage/ObjectStorage.java`), but the app PUTs the whole file to the first URL
   (`apps/app/src/features/models/upload.ts`). Not verified at runtime. No resume after an
   interruption. The app refuses `.ifczip`, which Java accepts.
-- Scope rules per model / BoQ are shown, not editable. Model versions can't be deleted from the UI
-  (the endpoint exists); no "used by" or note column.
+- Scope rules per model / BoQ are shown, not editable. A model can be removed (archived) from its
+  page (TF-080), but a model version can't be deleted from the UI (the endpoint exists and answers
+  `409 version_in_use` with what uses it, TF-032); no note column.
 - No default-preset pickers in project creation or settings (F02).
+- A project's unit system (metric/imperial, F02, F15 §7) is stored but has no effect yet: the engine
+  outputs metric (EN-imperial, deferred in the test campaign as TF-050).
+- No global search (FE-034, TF-016); an earlier run can't be opened read-only (FE-048, F04 §5,
+  TF-095): the sheet shows the current run and saved versions.
 - The sheet always loads up to 20,000 lines and groups in the browser (no server-side grouping
   above that, F06); item texts are one line (no three-line clamp). The viewer has no merged-mesh
   picking above 200k elements; "Show in 3D" from a question carries at most 300 GlobalIds; the
   shared filter bar lacks IFC class, type, material and "changed since".
-- Library: no "rebase on latest", no un-archive (not in the contract), no rename of ids across
+- Library: no manual "rebase on latest" (a "Based on it" clone's draft is rebased when the original is
+  published, TF-140), no un-archive (not in the contract), no rename of ids across
   documents, a JSON line diff instead of a structured version diff, no "keep other columns" on
   code-list import.
 - Setup wizard is simpler than F16: steps 2 and 3 are the full editors (no "Suggest codes", not
@@ -76,14 +82,26 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   `revision.inputs_updated`, `run.completed`, `line.edited`, `org.setup_done`); no `edits.imported`.
 
 **i18n**
-- Engine log entries, some warnings (`rule_set`, `federation_hole`), the answer options of engine
+- Engine log entries carry a stable `code` (`log.*`), but the app's catalogue has no `log.*` keys
+  yet, so the Log tab shows every entry in the engine's English (questions and warnings render from
+  their keys; TF-141). Some warnings (`rule_set`, `federation_hole`), the answer options of engine
   questions and engine line notes are English text without a code
   (`apps/app/src/i18n/engine-message.ts`). This matters once a second language is added (P07).
 - The UI ships English and the pseudo-locale only; emails are English and Serbian
   (`mail/EmailDelivery.java`).
 
 **Security**
-- No Content-Security-Policy header is set (app, Java or Traefik), although `security.md` asks for one.
+- No full Content-Security-Policy is set (the app sends only `frame-ancestors 'none'`, TF-046),
+  although `security.md` asks for one. The `private-headers` Traefik middleware the pilot's routes
+  name is defined outside this repo.
+- **Accepted for the pilot (P54, Q47; TF-045):** the engine workers hold the same full-bucket storage
+  key as the API, and the HTTP worker and its rpc take requests without a credential; the control is
+  the network boundary (internal networks, no host ports). Before a wider rollout: a scoped storage
+  identity and a shared secret ([../architecture/security.md](../architecture/security.md)).
+- Not built (TF-048): MFA (also for platform admins) and enterprise SSO; an audit row for a failed
+  permission check or a failed billing webhook; per-org data export and account deletion with
+  "deleted user" audit references. `auth_throttled` (sign-in, set-password) answers without
+  `Retry-After`, and the 429 codes differ (`rate_limited` elsewhere) (TF-047).
 
 **Operations** ([../operations/pilot.md](../operations/pilot.md))
 - **No staging environment** (P51): the pilot at booqlet.com is the only deployed environment and
@@ -94,6 +112,13 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   CI, but it is not installed on the host and has no off-host destination (`BACKUP_REMOTE`).
 - Local Windows runs of the native queue worker occasionally hung one parse for minutes (seen once;
   CI on Linux hasn't shown it). Investigate if it recurs.
+- **Runs and previews have their own queue worker (`queue-interactive`, TF-180) only once an operator
+  rolls out the new `ops/pilot/compose.yaml` on the host** ([../operations/pilot.md](../operations/pilot.md));
+  until then a run waits behind a parse on the pilot. Locally the HTTP worker has one process, so a
+  run can still wait behind a parse there.
+- Usage minutes on the queue transport are the engine's own job time (`durationMs`), not the
+  wall-clock of the job's process (its start-up is left out, TF-009); `plans-and-limits.md` says
+  "wall-clock".
 - There is no demo without a backend: running the app needs Docker ([../development/local-setup.md](../development/local-setup.md)).
 
 **Pricing module** (P48): only `openapi-pricing.yaml` and the core's extension points exist. Its only
@@ -108,20 +133,29 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   sessions, which exist only inside `NativeWorkerTest` (`mvn verify`). Run outside it, the root
   scripts `npm run test:contract` / `test:scenarios` stop at once with a message pointing to the
   harness. A test image of the API (or a "suite" profile) would let them run locally.
-- **Browser coverage after P53**: the 106 Playwright tests that ran on the mock were deleted. The
-  Java browser suite (`apps/app/e2e-java`, 13 tests) covers sign-in and accounts, sessions, orgs,
-  FL-1 to the sample BoQ, upload → parse → BoQ → Excel → share link, and co-editing. Not covered in
-  a browser any more: the sheet's edits, questions, viewer, Library editors, versions and changes,
-  exports UI, notifications, admin console, setup wizard beyond the suggested answers, the axe
-  accessibility checks (TS-003), the pseudo-locale check (v1 criterion 11) and the UI performance
-  specs (TS-002).
-- The scenario "org presets count against `libraryOrgPresets`" ran only on the mock; Java's library
-  limit has no shared scenario. Also untested: `processingMinutesPerMonth`, the `shareLinks` gate,
-  rate limits, `invalid_transition`, signed-URL lifetimes, security headers, the `.xlsm` refusal,
-  `POST /decisions/{id}/promote`, `PATCH /manual-items/{id}`, project member GET/PATCH, the
-  billing webhook; two `it.todo` (24 h `awaiting_upload` expiry, parse retry).
-- Java has integration tests (`ApiFoundationTest`, `NativeAuthTest`, `NativeWorkerTest`,
-  `BackupRestoreTest`), `AlertMonitorTest` and the ArchUnit `CoreArchitectureTest`, but no unit
-  tests for its domain packages (admin, billing, boq, library, model, org, project, …).
+- **Browser coverage after P53** (TS-005, deferred): the 106 Playwright tests that ran on the mock were
+  deleted. The Java browser suite (`apps/app/e2e-java`, 11 specs, 33 tests after the test campaign)
+  covers sign-in, accounts and sessions, orgs, FL-1 to the sample BoQ, upload → parse → BoQ → Excel
+  → share link (incl. a line's explanation), co-editing, live-update reconnects and edits through an
+  API restart, keyboard editing and focus, page titles and small screens, org number formats, the
+  limit dialog, a new model version and the change report, and the owner-answer behaviours (B7). Not
+  covered in a browser: the Library editors, the viewer beyond the no-WebGL fallback, notifications,
+  the admin console, most of the setup wizard, the axe scans (TS-003; run by hand in the campaign),
+  the pseudo-locale check (v1 criterion 11) and the UI performance specs (TS-002, TS-006). The
+  campaign's scripts in its session scratchpad were the starting point and are not in the repo.
+- Untested in the suites: signed-URL lifetimes, `POST /decisions/{id}/promote`,
+  `PATCH /manual-items/{id}`, project member GET/PATCH, the billing webhook; two `it.todo` (24 h
+  `awaiting_upload` expiry, a successful parse retry). The plan limits, rate limits,
+  `invalid_transition`, app security headers, the `.xlsm` refusal and the role matrix are covered
+  since the test campaign (`tests/scenarios/limits`, `permissions`, `AccountSecurityTest`,
+  `test_xlsx_guard.py`).
+- Java's tests are mostly integration tests (`ApiFoundationTest`, `AccountSecurityTest`,
+  `NativeAuthTest`, `NativeWorkerTest`, `BackupRestoreTest`, `ErrorResponsesTest`), with a few unit
+  tests (`JobDispatcherTest`, `ParseJobErrorsTest`, `RequestSizeFilterTest`, `HealthTimeoutTest`,
+  `AlertMonitorTest`) and the ArchUnit `CoreArchitectureTest`.
+- The API performance suite runs by hand (`PERF_OUT`), not in CI (TS-006). The 20 k-line lines page
+  under 20 clients met p95 ≤ 500 ms at the API (122 ms) but was measured from a client only on a
+  laptop through Docker Desktop (679 ms); a check from a Linux client is still to do (TF-179).
 - Workbooks are checked with openpyxl only; opening them in Excel and LibreOffice by hand is still to do.
-- The accessibility pass by keyboard and screen reader has not been done.
+- The keyboard pass was done in the test campaign (Stage 4, fixes TF-158…TF-172); a screen-reader
+  pass (NVDA) and the 15-minute first-setup test with a new person (v1-12) are still to do by hand.
