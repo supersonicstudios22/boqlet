@@ -727,6 +727,24 @@ class NativeWorkerTest {
         var updated = perform(post("/api/v1/revisions/" + next + "/runs"), cookie, 202);
         awaitJob(id(updated.path("job")), cookie);
         String after = id(updated.path("run"));
+        // P54 Q49 (TF-057): a saved version's frozen Excel whose job failed every attempt is built again from the stored
+        // run when it is asked for (here the run is only version A's: the working version B has its own); the version
+        // then points at the new export, and that one is written.
+        String frozenExport = saved.path("frozen").path("exportIds").get(0).asText();
+        String frozenJob = database.queryForObject("SELECT job_id::text FROM exports WHERE id = ?::uuid", String.class, frozenExport);
+        awaitJob(frozenJob, cookie);
+        assertThat(id(perform(post(runPath + "/exports").content("{}"), cookie, 202))).isEqualTo(frozenJob);
+        database.update("UPDATE jobs SET status = 'failed' WHERE id = ?::uuid", frozenJob);
+        String rebuiltJob = id(perform(post(runPath + "/exports").content("{}"), cookie, 202));
+        assertThat(rebuiltJob).isNotEqualTo(frozenJob);
+        String rebuilt = awaitJob(rebuiltJob, cookie).path("output").path("exportId").asText();
+        assertThat(rebuilt).isNotEqualTo(frozenExport);
+        assertThat(database.queryForObject("SELECT frozen->'exportIds'->>0 FROM boq_revisions WHERE id = ?::uuid", String.class, first))
+                .isEqualTo(rebuilt);
+        assertThat(database.queryForObject("SELECT storage_key FROM exports WHERE id = ?::uuid", String.class, rebuilt)).isNotBlank();
+        http.perform(auth(get("/api/v1/exports/" + rebuilt + "/download"), cookie)).andExpect(status().isFound());
+        // Asked again, the version answers the rebuilt file's job, as for any saved version (BR-25).
+        assertThat(id(perform(post(runPath + "/exports").content("{}"), cookie, 202))).isEqualTo(rebuiltJob);
         String diff = id(perform(post("/api/v1/runs/" + after + "/compare")
                 .content("{\"againstRunId\":\"" + run + "\"}"), cookie, 202));
         String reportId = awaitJob(diff, cookie).path("output").path("diffId").asText();
