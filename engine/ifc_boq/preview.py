@@ -8,6 +8,11 @@ def sample(line: dict) -> dict:
         result["keys"] = line["keys"]
     if storey := line.get("location", {}).get("storey"):
         result["storey"] = storey
+    # The code per classification with its item text as the engine filled it (only the engine fills blanks):
+    # the Library's "Reads as" sample (F10-AC5).
+    if codes := line.get("codes"):
+        result["codes"] = {system: {"code": entry["code"], **({"text": entry["text"]} if entry.get("text") else {})}
+                           for system, entry in codes.items()}
     return result
 
 

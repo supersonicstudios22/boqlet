@@ -39,3 +39,22 @@ def test_preset_reports_unknown_template_fields_and_bad_syntax():
     problems = presets.check("classifications", {"codeList": codes, "map": mapping})
     assert any("unknown item text field 'unavailable_field'" in problem for problem in problems)
     assert any("{thickness*}" in problem for problem in problems)
+
+
+def test_preview_lines_carry_the_engine_filled_item_text(duplex_parsed):
+    """F10-AC5 (TF-136): the Library's "Reads as" sample comes from the preview line, filled by the engine."""
+    from ifc_boq.preview import sample
+
+    codes, mapping = presets.load_classification("acme-cost-codes")
+    for code in codes["codes"]:
+        code["description"] = "Walls {thickness} m thick"
+    rules, library = presets.load_rule_set("as-modelled")
+    result = get_boq(duplex_parsed, rules, [(codes, mapping)], [presets.load_dictionary("global-seed")],
+                     presets.resolution(), rule_library=library)
+    line = next(line for line in result["lines"] if line["ruleId"] == "walls" and "Exterior - Brick on Block" in line["description"])
+    preview = sample(line)
+    assert preview["codes"] == {codes["id"]: {"code": line["codes"][codes["id"]]["code"], "text": "Walls 0.417 m thick"}}
+    uncoded = sample({**line, "codes": {}})
+    assert "codes" not in uncoded
+    plain = sample({**line, "codes": {codes["id"]: {k: v for k, v in line["codes"][codes["id"]].items() if k != "text"}}})
+    assert plain["codes"] == {codes["id"]: {"code": line["codes"][codes["id"]]["code"]}}
