@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import { useState, type ComponentType, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +26,8 @@ import { ReviewStep } from "./review-step";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { useRefocusWhenLost } from "@/lib/focus";
+import { usePageTitle } from "@/lib/page-title";
 
 type Step = OrgSetup["step"];
 const STEPS: Step[] = ["start", "measure", "items", "names", "review"];
@@ -44,9 +46,12 @@ const DictionaryEditor = dynamic(() => import("@/features/library/dictionary/dic
 export function SetupWizard() {
   const t = useTranslations("setup");
   const { org, can } = useOrg();
+  usePageTitle(2, t("title"), org.name);
   const setup = useOrgSetup(org.id);
   const save = useSaveOrgSetup(org.id);
   const [restart, setRestart] = useState(false);
+  // "Start" (or running it again) swaps the whole step: focus goes to the wizard's heading (TF-160).
+  useRefocusWhenLost(() => document.querySelector<HTMLElement>("[data-testid=setup-wizard] h1, [data-testid=setup-done] h1"), [setup.data?.ruleSetPresetId, restart]);
   if (!can("finishSetup")) return <p className="text-muted-foreground">{t("notAllowed")}</p>;
   if (setup.isError && !setup.data) return <InlineError error={setup.error} onRetry={() => setup.refetch()} />;
   if (setup.isPending) return loading();
@@ -91,6 +96,9 @@ function Wizard({ setup, onStep }: { setup: OrgSetup; onStep: (step: Step) => vo
   const items = usePreset(setup.classificationPresetId!);
   const names = usePreset(setup.dictionaryPresetId!);
   const model = useModelOf(setup.modelVersionId ?? null);
+  // A new step or screen: focus its heading when the button that led there went away (TF-160).
+  const stepBox = useRef<HTMLDivElement>(null);
+  useRefocusWhenLost(() => stepBox.current?.querySelector<HTMLElement>("h1, h2, h3"), [step, screen]);
   // A preset that can't be loaded is said, with a retry, not loaded forever (TF-019).
   const failed = [rules, items, names].find((q) => q.isError && !q.data);
   if (failed) return <InlineError error={failed.error} onRetry={() => failed.refetch()} />;
@@ -122,7 +130,7 @@ function Wizard({ setup, onStep }: { setup: OrgSetup; onStep: (step: Step) => vo
           ))}
         </nav>
         <PreviewResultContext.Provider value={previewResult}>
-          <div className="min-w-0">
+          <div ref={stepBox} className="min-w-0">
             {step === "measure" && <DraftStep key={rules.data.id} preset={rules.data} render={(draft) => <MeasureStep preset={rules.data!} draft={draft} orgSlug={org.slug} screenIndex={screen} onScreen={setScreen} onDone={() => go("items")} />} preview={model} otherInputs={null} onResult={setPreviewResult} />}
             {step === "items" && (
               <DraftStep

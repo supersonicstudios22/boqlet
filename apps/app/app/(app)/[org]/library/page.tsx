@@ -5,12 +5,14 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useOrg } from "@/features/orgs/org-context";
 import { LibraryList } from "@/features/library/library-list";
+import { usePageTitle } from "@/lib/page-title";
 
 /** S19: the org's Library (F10 §1). Members view and pick; library editors create and edit. */
 export default function LibraryPage() {
   const t = useTranslations("library.home");
   const ts = useTranslations("setup");
   const { org, can } = useOrg();
+  usePageTitle(2, t("title"), org.name);
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start gap-4">

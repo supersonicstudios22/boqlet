@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useProjectScope } from "./project-context";
+import { usePageTitle } from "@/lib/page-title";
 
 /** The project's name, the read-only banner when archived, and the project sub-navigation (screens.md). */
 const SECTIONS = [
@@ -22,6 +23,8 @@ export function ProjectHeader({ org }: { org: string }) {
   const { project, can } = useProjectScope();
   const pathname = usePathname();
   const base = `/${org}/projects/${project.id}`;
+  const current = SECTIONS.find((s) => (s.path === "" ? pathname === base : pathname.startsWith(base + s.path)));
+  usePageTitle(2, current ? t(`sections.${current.key}`) : null, project.name);
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline gap-3">
@@ -35,7 +38,7 @@ export function ProjectHeader({ org }: { org: string }) {
           {t("archived")}
         </p>
       )}
-      <nav aria-label={t("nav")} className="flex gap-6 border-b border-border">
+      <nav aria-label={t("nav")} className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border">
         {SECTIONS.filter((s) => !s.needs || can(s.needs)).map((s) => {
           const href = base + s.path;
           const active = s.path === "" ? pathname === base : pathname.startsWith(href);

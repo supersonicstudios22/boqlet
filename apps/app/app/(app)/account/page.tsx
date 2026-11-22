@@ -20,10 +20,13 @@ import { LOCALE_COOKIE, LOCALES } from "@/i18n/config";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { APP_NAME } from "@/config";
+import { usePageTitle } from "@/lib/page-title";
 
 /** S04: my name and language, email notifications (F13), my organisations, leaving one (F01). */
 export default function AccountPage() {
   const t = useTranslations("account");
+  usePageTitle(1, t("title"));
   const roles = useTranslations("common.roles");
   const message = useErrorMessage();
   const me = useMe();
@@ -40,7 +43,7 @@ export default function AccountPage() {
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-10 px-8 py-10">
-      <Link href="/" aria-label={t("home")}>
+      <Link href="/" aria-label={t("home", { appName: APP_NAME })}>
         <Wordmark />
       </Link>
       <h1 className="text-title">{t("title")}</h1>

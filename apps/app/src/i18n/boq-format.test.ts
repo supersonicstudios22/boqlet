@@ -41,3 +41,16 @@ describe("boqFormatter", () => {
     expect(boqFormatter("en", {}).dateTime(at, { dateStyle: "medium" })).toBe("Nov 21, 2026");
   });
 });
+
+describe("TF-147: one way to show a BoQ quantity", () => {
+  const f = boqFormatter("en", {});
+  it("keeps up to six decimals, so a small quantity never reads as zero", () => {
+    expect(f.quantity(0.000123)).toBe("0.000123");
+    expect(f.quantity(123456789.123)).toBe(`123${NNBSP}456${NNBSP}789.123`);
+    expect(f.quantity(0)).toBe("0");
+  });
+  it("marks a quantity below the shown precision instead of writing 0", () => {
+    expect(f.quantity(0.0000004)).toBe("< 0.000001");
+    expect(f.quantity(-0.0000004)).toBe("> -0.000001");
+  });
+});

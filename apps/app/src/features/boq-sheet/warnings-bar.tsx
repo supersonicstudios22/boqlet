@@ -2,10 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useWarnings } from "@/api/hooks/sheet";
-import { useEngineMessage } from "@/i18n/engine-message";
+import { useEngineMessage, withSystemName } from "@/i18n/engine-message";
 
 /** The run's warnings above the sheet (F06 §8), collapsible, each with its affected elements. */
-export function WarningsBar({ runId }: { runId: string }) {
+export function WarningsBar({ runId, systemNames }: { runId: string; systemNames?: ReadonlyMap<string, string> }) {
   const t = useTranslations("boqs.warnings");
   const warnings = useWarnings(runId);
   const message = useEngineMessage();
@@ -16,7 +16,8 @@ export function WarningsBar({ runId }: { runId: string }) {
       <summary className="cursor-pointer">{t("title", { count: list.length })}</summary>
       <ul className="mt-2 flex flex-col gap-1">
         {list.map((w, i) => {
-          const shown = message(w);
+          // The classification by its name, not its id (TF-110).
+          const shown = message(systemNames ? withSystemName(w, systemNames) : w);
           return (
             <li key={`${w.code}-${i}`} className="flex gap-3">
               <span className="flex-1" data-testid="warning-message" data-message={shown.source}>{shown.text}</span>

@@ -108,7 +108,7 @@ export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefin
             {edited.map((o) => (
               <li key={o.lineKey}>
                 {describe.get(o.lineKey) ?? o.lineKey}
-                {o.quantity !== undefined && o.quantity !== null ? ` → ${boqFormat.number(o.quantity, { maximumFractionDigits: 3 })}` : ""}
+                {o.quantity !== undefined && o.quantity !== null ? ` → ${boqFormat.quantity(o.quantity)}` : ""}
                 {o.reason ? <span className="text-muted-foreground"> · {o.reason}</span> : null}
               </li>
             ))}

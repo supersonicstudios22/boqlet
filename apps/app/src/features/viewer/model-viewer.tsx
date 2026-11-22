@@ -295,7 +295,7 @@ export function ModelViewer({
 
   return (
     <div
-      className={cn("flex min-h-[520px] flex-col gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring", !stacked && "lg:flex-row", className)}
+      className={cn("flex min-h-[520px] min-w-0 max-w-full flex-col gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring", !stacked && "lg:flex-row", className)}
       tabIndex={0}
       onKeyDown={onKeyDown}
       data-testid="viewer"
@@ -308,7 +308,8 @@ export function ModelViewer({
       data-mode={mode}
       data-ghosts={ghosts}
     >
-      <div className="relative min-h-[420px] flex-1 border border-border bg-muted/40">
+      {/* min-w-0 and overflow: the canvas has a pixel width and must not widen the page (TF-168). */}
+      <div className="relative min-h-[420px] min-w-0 flex-1 overflow-hidden border border-border bg-muted/40">
         <div ref={host} className="absolute inset-0" data-testid="viewer-canvas" />
         {noWebgl && <NoWebgl elements={elements} onPick={(g) => setPicked(new Set([g]))} picked={picked} />}
         {!allLoaded && !noWebgl && (
@@ -450,7 +451,7 @@ export function ModelViewer({
             <ul className="flex max-h-64 flex-col overflow-auto">
               {links.elementsOf(focusLineRow.key).map((g) => (
                 <li key={g}>
-                  <button className="w-full truncate text-left text-link hover:underline" title={g} onClick={() => setPicked(new Set([g]))} data-testid="viewer-line-element">
+                  <button className="min-h-6 w-full truncate text-left text-link hover:underline" title={g} onClick={() => setPicked(new Set([g]))} data-testid="viewer-line-element">
                     {elements[g]?.name ?? g}
                   </button>
                 </li>
@@ -499,7 +500,7 @@ function NoWebgl({ elements, onPick, picked }: { elements: SceneIndex["elements"
       <ul className="flex flex-col" aria-label={t("elementList")}>
         {rows.map(([guid, e]) => (
           <li key={guid}>
-            <button type="button" className={cn("flex w-full gap-3 px-1 text-left hover:bg-accent", picked.has(guid) && "bg-selection")} onClick={() => onPick(guid)} data-testid="viewer-list-element">
+            <button type="button" className={cn("flex min-h-6 w-full items-center gap-3 px-1 text-left hover:bg-accent", picked.has(guid) && "bg-selection")} onClick={() => onPick(guid)} data-testid="viewer-list-element">
               <span className="min-w-0 flex-1 truncate">{e.name ?? guid}</span>
               <span className="text-muted-foreground">{e.ifcClass}</span>
               <span className="w-32 truncate text-muted-foreground">{e.storey}</span>
@@ -542,7 +543,7 @@ function ChangedLines({ rows, onOpenLine }: { rows: readonly ChangedLine[]; onOp
   const t = useTranslations("viewer.changedLines");
   const format = useBoqFormat();
   const unitLabel = useUnit();
-  const qty = (v: number | null) => (v === null ? "—" : format.number(v, { maximumFractionDigits: 3 }));
+  const qty = (v: number | null) => (v === null ? "—" : format.quantity(v));
   return (
     <section className="flex flex-col gap-1" data-testid="viewer-changed-lines">
       <h4 className="label-caps text-muted-foreground">{t("title")}</h4>
@@ -570,7 +571,7 @@ function LineLink({ line, lineKey, onOpenLine, share }: { line?: { description: 
   return (
     <span className="flex gap-2">
       {onOpenLine ? (
-        <button className="min-w-0 flex-1 text-left text-link hover:underline" onClick={() => onOpenLine(lineKey)} data-testid="viewer-open-line" data-key={lineKey}>
+        <button className="min-h-6 min-w-0 flex-1 text-left text-link hover:underline" onClick={() => onOpenLine(lineKey)} data-testid="viewer-open-line" data-key={lineKey}>
           {label}
         </button>
       ) : (
@@ -632,7 +633,7 @@ function ElementPanel({
                   line={{ description: l.description, unit: l.unit }}
                   lineKey={l.lineKey}
                   onOpenLine={onOpenLine}
-                  share={l.quantity === null ? undefined : `${format.number(l.quantity, { maximumFractionDigits: 3 })} ${unitLabel(l.unit)}`}
+                  share={l.quantity === null ? undefined : `${format.quantity(l.quantity)} ${unitLabel(l.unit)}`}
                 />
               </li>
             ))}

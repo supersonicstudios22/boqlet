@@ -24,7 +24,8 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format) => Re
     return { minPercent: pct(lo), maxPercent: pct(hi), same: Math.abs(hi - lo) < 0.005 ? "true" : "false" };
   },
   "question.double_claim": (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
-  unknown_code: (p) => ({ kind: p.mapRuleId ? "rule" : "line" }),
+  // An edit moving a line to a code not in the list is not applied (BR-09, TF-052).
+  unknown_code: (p) => ({ kind: p.edit === true ? "edit" : p.mapRuleId ? "rule" : "line" }),
   item_text_blank: (p) => ({ blankRef: `{${String(p.blank ?? "")}}` }),
 };
 
@@ -58,6 +59,13 @@ export function renderEngineMessage(t: Translate, format: Format, m: EngineMessa
   } catch {
     return { text: m.message, source: "fallback" };
   }
+}
+
+/** The message with `params.system` (a classification id) as its name, when known (TF-110). */
+export function withSystemName<M extends EngineMessage>(m: M, names: ReadonlyMap<string, string>): M {
+  const id = m.params?.system;
+  const name = typeof id === "string" ? names.get(id) : undefined;
+  return name ? { ...m, params: { ...m.params, system: name } } : m;
 }
 
 /** `renderEngineMessage` with the current language. */

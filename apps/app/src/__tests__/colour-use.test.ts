@@ -22,6 +22,10 @@ describe("colour use in components", () => {
     const hits = files.flatMap(({ f, text }) => [...text.matchAll(/text-\[var\(--(orange|yellow|status-attention|status-manual|highlight)\)\]/g)].map((m) => `${f}: ${m[0]}`));
     expect(hits).toEqual([]);
   });
+  it("TF-164: no raw palette colours (they don't change in the dark theme); the themed tokens instead", () => {
+    const hits = files.flatMap(({ f, text }) => [...text.matchAll(/var\(--(blue|red|orange|yellow|ink|paper)\)/g)].map((m) => `${f}: ${m[0]}`));
+    expect(hits).toEqual([]);
+  });
   it("no hex colours in class names", () => {
     const hits = files.flatMap(({ f, text }) => [...text.matchAll(/(?:text|bg|border|fill|stroke)-\[#[0-9a-fA-F]{3,6}\]/g)].map((m) => `${f}: ${m[0]}`));
     expect(hits).toEqual([]);

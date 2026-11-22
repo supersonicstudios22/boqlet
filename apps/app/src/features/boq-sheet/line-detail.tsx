@@ -127,7 +127,7 @@ export function LineDetailBody({
   // BoQ values in the firm's format (TF-021).
   const format = useBoqFormat();
   const message = useEngineMessage();
-  const num = (v: number) => format.number(v, { maximumFractionDigits: 6 });
+  const num = (v: number) => format.quantity(v);
   const value = (v: unknown) => (typeof v === "boolean" ? (v ? t("yes") : t("no")) : typeof v === "number" ? num(v) : typeof v === "string" ? v : JSON.stringify(v));
   const slotLabel = (name: string) => lex.slotLabels.get(name) ?? slots[name]?.label ?? name;
 

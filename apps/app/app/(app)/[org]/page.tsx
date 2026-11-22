@@ -13,6 +13,7 @@ import { ProjectCard } from "@/features/projects/project-card";
 import { useCreateSample } from "@/features/projects/create-sample";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { usePageTitle } from "@/lib/page-title";
 
 /**
  * S05: what needs me, and my projects (F02 §5). Until the org's setup is finished (F16, P18) the
@@ -31,6 +32,7 @@ export default function DashboardPage() {
 }
 
 function Dashboard({ unfinished }: { unfinished: boolean }) {
+  usePageTitle(2, useTranslations("shell.nav")("dashboard"), useOrg().org.name);
   const ts = useTranslations("setup");
   const t = useTranslations("projects.dashboard");
   const relativeTime = useRelativeTime();

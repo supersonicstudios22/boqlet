@@ -25,6 +25,7 @@ import { extensions } from "@/extensions";
 import { cn } from "@/lib/utils";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { usePageTitle } from "@/lib/page-title";
 
 const TABS = ["review", "sheet", "questions", "viewer", "changes", "log", "setup", "exports", "versions"] as const;
 /** Tabs that show a saved version opened read-only (`?version=`, F09 §3). */
@@ -65,6 +66,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
 
   // A failed refetch (the API restarting, TF-183) keeps the page and its unsaved edits on screen; it
   // refetches when the API answers again (the realtime provider). Only a BoQ never loaded is an error.
+  usePageTitle(3, boq.data?.name, tab ? t(`tabs.${tab}`) : null, project.name);
   if (boq.isError && !boq.data)
     return (
       <div data-testid="boq-error">
@@ -87,7 +89,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
           </Link>
         </p>
       )}
-      <nav aria-label={t("tabs.label")} className="flex gap-6 border-b border-border">
+      <nav aria-label={t("tabs.label")} className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border">
         {tabs.map((key) => (
           <Link
             key={key}

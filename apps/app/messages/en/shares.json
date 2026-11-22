@@ -59,6 +59,7 @@
   "share": "Share",
   "orgTitle": "Share links",
   "orgIntro": "Every public link of the organisation's BoQs. Revoking one stops it at once; switching public links off in General stops them all.",
+  "linkUrl": "Link address",
   "notAllowed": "Only the organisation's owners and admins see its share links.",
   "noOrgLinks": "No share links yet.",
   "public": {

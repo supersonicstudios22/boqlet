@@ -4,9 +4,11 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authAdapter } from "@/auth";
+import { usePageTitle } from "@/lib/page-title";
 
 /** S01: the adapter's sign-in page, and why one was signed out (F01 §10). */
 export default function SignInPage() {
+  usePageTitle(1, useTranslations("auth.native")("signIn"));
   const Page = authAdapter.SignInPage;
   return (
     <Suspense>

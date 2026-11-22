@@ -160,6 +160,16 @@
       "edited": "Edited",
       "excluded": "Excluded"
     },
+    "families": {
+      "linear": "Linear (length)",
+      "planar": "Planar (area)",
+      "volumetric": "Volumetric (volume)",
+      "countable": "Countable (number)",
+      "reinforcement": "Reinforcement",
+      "assembly": "Assembly (made of parts)",
+      "space": "Spaces",
+      "void": "Openings"
+    },
     "toConfirm": "To confirm",
     "tableLabel": "Bill of quantities",
     "showingRun": "Showing the run of {when}.",
@@ -401,6 +411,7 @@
   },
   "edits": {
     "select": "Select line",
+    "selectLine": "Select line “{line}”",
     "selectAll": "Select all shown lines",
     "undo": "Undo",
     "undoHint": "Undo the last edit (Ctrl+Z)",
@@ -455,6 +466,7 @@
     "theirExcluded": "Now: excluded",
     "retrying": "Saving… The server is not answering; trying again.",
     "notSaved": "{count, plural, one {An edit was not saved: the server did not answer.} other {# edits were not saved: the server did not answer.}} It is kept here and sent again when the server is back.",
+    "notSavedSignedOut": "{count, plural, one {Your last change was not saved: you were signed out.} other {Your last # changes were not saved: you were signed out.}} Save it now, or discard it.",
     "retry": "Save again",
     "discard": "Discard",
     "codeCell": "Item code"

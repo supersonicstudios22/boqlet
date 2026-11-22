@@ -74,7 +74,7 @@ export function AdminOrgDetailView({ orgId }: { orgId: string }) {
           {o.country ? ` · ${o.country}` : ""}
         </p>
         {suspended && (
-          <p role="status" className="border-l-2 border-[var(--red)] pl-3" data-testid="admin-org-suspended">
+          <p role="status" className="border-l-2 border-[var(--status-error)] pl-3" data-testid="admin-org-suspended">
             {t("suspendedBanner")}
           </p>
         )}

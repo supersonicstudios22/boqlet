@@ -19,7 +19,7 @@ export function UsageSettings() {
   if (!usage.data) return <LoadingLines />;
   const u = usage.data;
   const ent = entitlements.data?.usage;
-  const mins = (v: number) => t("minutes", { n: format.number(v, { maximumFractionDigits: 1 }) });
+  const mins = (v: number) => minutesText(v, (n) => format.number(n, { maximumFractionDigits: 1 }), t);
   return (
     <div className="flex max-w-3xl flex-col gap-8" data-testid="usage-settings">
       <dl className="flex flex-wrap gap-10">
@@ -60,6 +60,15 @@ export function UsageSettings() {
       </section>
     </div>
   );
+}
+
+/**
+ * Minutes to one decimal, the same for the total, each project and each kind; an amount under 0.1 says
+ * "under 0.1 min", never 0 or a rounded-up 0.1 that the parts don't add up to (TF-120).
+ */
+export function minutesText(v: number, number: (n: number) => string, t: (key: "minutes" | "minutesUnder", values: { n: string }) => string): string {
+  if (v > 0 && v < 0.1) return t("minutesUnder", { n: number(0.1) });
+  return t("minutes", { n: number(Math.round(v * 10) / 10) });
 }
 
 function Figure({ label, value, testId }: { label: string; value: string; testId?: string }) {

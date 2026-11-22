@@ -10,7 +10,7 @@
     "overlap": "{count} {ifcClass} appear in both the {first} and the {second} model (overlapping by {percent}% or more). Which model should provide them?",
     "double_claim": "{count, plural, one {# element} other {# elements}} (e.g. {ifcClass} “{name}”) {count, plural, one {is} other {are}} claimed for “{claim}” by {ruleCount} rules ({rules}): {count, plural, one {it is} other {they are}} counted {ruleCount} times. Which rule should measure {count, plural, one {it} other {them}}?"
   },
-  "unknown_code": "{kind, select, rule {[{system}] Map rule “{mapRuleId}” gives the code “{code}”, which is not in the code list.} other {[{system}] Line “{description}” got the code “{code}”, which is not in the code list.}}",
+  "unknown_code": "{kind, select, rule {[{system}] Map rule “{mapRuleId}” gives the code “{code}”, which is not in the code list.} edit {[{system}] The edit moving “{description}” to the code “{code}” is not applied: the code is not in the code list.} other {[{system}] Line “{description}” got the code “{code}”, which is not in the code list.}}",
   "mixed_line": "[{system}] “{description}” mixes elements with different {fields}; map rule “{mapRuleId}” depends on it. Add the field to the rule’s line key so the line splits.",
   "item_text_blank": "[{system}] “{description}”: no value for {blankRef}.",
   "federation_storeys": "The storey name “{name}” is used at different levels in different models ({levels}).",

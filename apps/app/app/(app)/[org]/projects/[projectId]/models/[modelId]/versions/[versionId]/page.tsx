@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useModel, useModelVersion } from "@/api/hooks/models";
 import { InputCheckReport } from "@/features/models/input-check-report";
@@ -24,6 +24,7 @@ export default function ModelVersionPage({ params }: { params: Promise<{ modelId
   const { org } = useOrg();
   const { project, can } = useProjectScope();
   const [generating, setGenerating] = useState(false);
+  const generate = useRef<HTMLButtonElement>(null);
   // The 3D view of this version (F07 §7: no run, so no coverage), open on a check's elements or on all.
   const [viewer, setViewer] = useState<{ guids: string[] | null } | null>(null);
 
@@ -49,13 +50,13 @@ export default function ModelVersionPage({ params }: { params: Promise<{ modelId
         <VersionStatus version={v} detailed />
         {v.status === "ready" && can("editBoqs") && (
           // F04 §1 "From a model": presets are chosen per BoQ, never per upload.
-          <Button className="ml-auto" onClick={() => setGenerating(true)} data-testid="generate-boq-from-model">
+          <Button ref={generate} className="ml-auto" onClick={() => setGenerating(true)} data-testid="generate-boq-from-model">
             {t("generateBoq")}
           </Button>
         )}
       </div>
       {can("editBoqs") && (
-        <CreateBoqDialog orgSlug={org.slug} orgId={org.id} project={project} open={generating} onOpenChange={setGenerating} fromModel={{ modelId, versionId: v.id }} />
+        <CreateBoqDialog orgSlug={org.slug} orgId={org.id} project={project} open={generating} onOpenChange={setGenerating} fromModel={{ modelId, versionId: v.id }} returnFocus={generate} />
       )}
       {v.status === "ready" && v.summary && (
         <>

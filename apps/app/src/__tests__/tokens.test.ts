@@ -61,6 +61,12 @@ describe("light theme tokens (paper)", () => {
     expect(contrast(resolve(root, "input"), bg)).toBeGreaterThanOrEqual(3);
     expect(contrast(resolve(root, "ring"), bg)).toBeGreaterThanOrEqual(3);
   });
+  it("TF-163: secondary text stays readable on the selected-row and muted fills", () => {
+    expect(contrast(resolve(root, "muted-foreground"), resolve(root, "selection"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(root, "muted-foreground"), resolve(root, "muted"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(dark, "muted-foreground"), resolve(dark, "selection"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(dark, "muted-foreground"), resolve(dark, "muted"))).toBeGreaterThanOrEqual(4.5);
+  });
   it("orange and yellow are fills with ink text", () => {
     expect(contrast(resolve(root, "status-attention"), bg)).toBeLessThan(4.5);
     expect(contrast(resolve(root, "on-fill"), resolve(root, "status-attention"))).toBeGreaterThanOrEqual(4.5);

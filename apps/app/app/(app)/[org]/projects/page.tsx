@@ -12,12 +12,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useOrg } from "@/features/orgs/org-context";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { usePageTitle } from "@/lib/page-title";
 
 /** All projects I can see, active or archived, with a search (F02). */
 export default function ProjectsPage() {
   const t = useTranslations("projects.list");
   const relativeTime = useRelativeTime();
   const { org, can } = useOrg();
+  usePageTitle(2, t("title"), org.name);
   const [status, setStatus] = useState<"active" | "archived">("active");
   const [q, setQ] = useState("");
   const projects = useProjects(org.id, { status, ...(q ? { q } : {}) });
@@ -57,7 +59,7 @@ export default function ProjectsPage() {
           <TableBody>
             {projects.data.map((p) => (
               <TableRow key={p.id}>
-                <TableCell>
+                <TableCell className="max-w-[28rem] truncate" title={p.name}>
                   <Link href={`/${org.slug}/projects/${p.id}`} className="hover:underline">
                     {p.name}
                   </Link>

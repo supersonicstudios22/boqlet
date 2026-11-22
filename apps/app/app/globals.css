@@ -31,7 +31,7 @@
   --secondary: #e8e2d6;
   --secondary-foreground: var(--ink);
   --muted: #e8e2d6;
-  --muted-foreground: #6b6762;
+  --muted-foreground: #625e59;
   --accent: #e8e2d6;
   --accent-foreground: var(--ink);
   --destructive: #c62423;
@@ -242,6 +242,12 @@
   }
   ::selection {
     background: var(--selection);
+  }
+  /* A long name without spaces (a 255-character project name) wraps instead of widening the page (TF-149). */
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: anywhere;
   }
 }
 

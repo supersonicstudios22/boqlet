@@ -26,7 +26,7 @@ export function LineEdits({ line, editable, systemNames, actions }: { line: Shee
   const t = useTranslations("boqs.edits");
   const format = useBoqFormat();
   const edit = line.edit;
-  const num = (v: number | null) => (v === null ? t("toConfirm") : format.number(v, { maximumFractionDigits: 6 }));
+  const num = (v: number | null) => (v === null ? t("toConfirm") : format.quantity(v));
   const engineText = (field: EditField): string => {
     if (!edit) return "";
     const e = edit.engine;

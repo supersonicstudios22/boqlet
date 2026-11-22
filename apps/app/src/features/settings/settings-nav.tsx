@@ -8,6 +8,7 @@ import { extensions } from "@/extensions";
 import { useOrg } from "@/features/orgs/org-context";
 import type { OrgAction } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/lib/page-title";
 
 /** Sections and who sees them (billing: owner; usage and audit: owner and admin, F14, S25). */
 const SECTIONS: { key: string; action?: OrgAction }[] = [{ key: "general" }, { key: "members" }, { key: "billing", action: "manageBilling" }, { key: "usage", action: "seeUsage" }, { key: "shares", action: "manageShareLinks" }, { key: "audit", action: "seeAudit" }];
@@ -15,7 +16,9 @@ const SECTIONS: { key: string; action?: OrgAction }[] = [{ key: "general" }, { k
 export function SettingsNav({ org }: { org: string }) {
   const t = useTranslations("settings");
   const pathname = usePathname();
-  const { can } = useOrg();
+  const { can, org: current } = useOrg();
+  const section = pathname.split("/settings/")[1]?.split("/")[0];
+  usePageTitle(2, section && t.has(`nav.${section}`) ? t(`nav.${section}`) : null, t("title"), current.name);
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-title">{t("title")}</h1>

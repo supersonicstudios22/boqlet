@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Ellipsis } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFormatter, useTranslations } from "next-intl";
 import { api } from "@/api/client";
@@ -24,6 +24,7 @@ import { NewModelVersions } from "./new-model-versions";
 import { ReopenBoqDialog } from "./reopen-boq-dialog";
 import { ShareDialog } from "@/features/shares/share-dialog";
 import { headerState, saveBlockedReason } from "./run-state";
+import { useRefocusWhenLost } from "@/lib/focus";
 
 export function Tag({ children, filled, className, ...rest }: { children: React.ReactNode; filled?: boolean; className?: string; "data-testid"?: string }) {
   return (
@@ -47,6 +48,9 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
   const revision = boq.currentRevision;
   const can = (key: string) => revision.permissions[key] === true;
   const state = headerState(boq, runs);
+  // Generate is replaced by Cancel while the run works, and back: focus follows (TF-160).
+  const runButton = useRef<HTMLButtonElement>(null);
+  useRefocusWhenLost(runButton, [state.kind]);
   const generate = useGenerate(revision.id, boq.id);
   const activeJobId = state.kind === "active" ? state.run.jobId : undefined;
   const progress = useJobProgress(activeJobId);
@@ -91,17 +95,18 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         {boq.archived && <Tag className="border-muted-foreground text-muted-foreground">{t("status.archived")}</Tag>}
         <div className="ml-auto flex items-center gap-2">
           {state.kind === "active" && activeJobId && can("editBoqs") && (
-            <Button variant="outline" onClick={() => cancel.mutate()} disabled={cancel.isPending} data-testid="cancel-run">
+            <Button ref={runButton} variant="outline" onClick={() => cancel.mutate()} disabled={cancel.isPending} data-testid="cancel-run">
               {t("actions.cancel")}
             </Button>
           )}
           {state.kind === "failed" && can("editBoqs") && (
-            <Button onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="retry-run">
+            <Button ref={runButton} onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="retry-run">
               {t("actions.retry")}
             </Button>
           )}
           {state.kind !== "active" && state.kind !== "failed" && can("editBoqs") && (
             <Button
+              ref={runButton}
               variant={state.kind === "none" || revision.pendingChanges.length ? "default" : "outline"}
               onClick={() => generate.mutate()}
               disabled={generate.isPending}

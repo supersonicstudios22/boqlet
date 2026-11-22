@@ -92,7 +92,7 @@ export function PreviewPanel({ preset, saves, onResult, fixed, otherInputs }: {
     ...(data?.lines ?? []).map((line) => ({ line, change: changes.get(line.key) })),
     ...removed.map((c) => ({ line: c.before!, change: c })),
   ].filter((r) => !onlyChanged || r.change);
-  const qty = (q: number | null) => (q === null ? t("toConfirm") : boqFormat.number(q, { maximumFractionDigits: 3 }));
+  const qty = (q: number | null) => (q === null ? t("toConfirm") : boqFormat.quantity(q));
 
   return (
     <aside className="flex min-w-0 flex-col gap-3 rounded-[var(--radius)] border border-border p-3" data-testid="preview-panel" data-state={preview.isPending ? "running" : data ? "done" : "idle"}>

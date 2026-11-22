@@ -10,6 +10,7 @@ import { ThemeSwitch } from "@/components/shell/theme-switch";
 import { UserMenu } from "@/components/shell/user-menu";
 import { Wordmark } from "@/components/shell/wordmark";
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/lib/page-title";
 
 const SECTIONS = ["overview", "funnel", "orgs", "users", "health"] as const;
 const href = (s: (typeof SECTIONS)[number]) => (s === "overview" ? "/admin" : `/admin/${s}`);
@@ -20,6 +21,7 @@ const href = (s: (typeof SECTIONS)[number]) => (s === "overview" ? "/admin" : `/
  */
 export function AdminShell({ children }: { children: ReactNode }) {
   const t = useTranslations("admin");
+  usePageTitle(1, t("title"));
   const me = useMe();
   const pathname = usePathname();
   if (me.isPending) return <div className="min-h-dvh" aria-busy="true" />;

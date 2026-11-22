@@ -47,7 +47,7 @@ There is **no green**. Success is shown in ink with a check mark and plain words
 | On paper `#F2EDE3` | Contrast | Use |
 |---|---|---|
 | Ink | 15.7 | All text |
-| Muted `#6B6762` | 4.8 | Secondary text (4.5 needed) |
+| Muted `#625E59` | 5.5 | Secondary text (4.5 needed); 5.0 on the selected-row fill `#DCE3F3`, 5.0 on `--muted` `#E8E2D6` (TF-163) |
 | Blue `#1E4FB8` | 6.3 | Text, links, icons |
 | Red `#C62423` | 4.9 | Error text |
 | Orange `#E8590C` | 3.1 | **Fills, markers, large text only**; small text on it in ink (5.1) |
@@ -71,7 +71,7 @@ follows the OS setting and can be switched by the user.
 | `--primary-foreground` | `#F2EDE3` | `#151515` |
 | `--secondary`, `--accent` (hover, quiet fills) | `#E8E2D6` | `#2A2926` |
 | `--muted` | `#E8E2D6` | `#2A2926` |
-| `--muted-foreground` | `#6B6762` | `#A39E95` |
+| `--muted-foreground` | `#625E59` | `#A39E95` |
 | `--border` (rules, dividers) | `#D6D0C4` | `#3A3833` |
 | `--input` (control borders, 3:1) | `#8A857D` | `#7A766F` |
 | `--ring` (focus) | `#1E4FB8` | `#7D9BE6` |

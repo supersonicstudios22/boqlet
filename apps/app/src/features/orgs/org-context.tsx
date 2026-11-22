@@ -7,6 +7,7 @@ import { useMe } from "@/api/hooks/me";
 import { NotFoundView } from "@/components/errors/not-found-view";
 import { orgCan, type OrgAction, type OrgRole } from "@/lib/permissions";
 import { InlineError } from "@/components/errors/inline-error";
+import { usePageTitle } from "@/lib/page-title";
 
 export interface OrgScope {
   org: Schemas["Org"];
@@ -39,6 +40,7 @@ export function lastOrg(): string | null {
 export function OrgProvider({ slug, children }: { slug: string; children: ReactNode }) {
   const me = useMe();
   const membership = me.data?.memberships.find((m) => m.org.slug === slug);
+  usePageTitle(1, membership?.org.name);
 
   useEffect(() => {
     if (membership) rememberOrg(slug);
@@ -73,7 +75,7 @@ export function OrgProvider({ slug, children }: { slug: string; children: ReactN
 function SuspendedBanner() {
   const t = useTranslations("orgs");
   return (
-    <p role="status" className="border-b border-border bg-[var(--red)] px-4 py-2 text-center text-[var(--paper)]" data-testid="org-suspended">
+    <p role="status" className="border-b border-border bg-[var(--status-error)] px-4 py-2 text-center text-background" data-testid="org-suspended">
       {t("suspended")}
     </p>
   );

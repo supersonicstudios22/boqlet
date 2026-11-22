@@ -126,7 +126,7 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
   if (!diff.data) return <p className="text-muted-foreground" aria-busy="true" data-testid="changes-loading">{t("comparing")}</p>;
   const s = diff.data.summary;
   const n = (v: number | undefined) => format.number(v ?? 0);
-  const qty = (v: number | null | undefined) => (v === null || v === undefined ? "—" : boqFormat.number(v, { maximumFractionDigits: 3 }));
+  const qty = (v: number | null | undefined) => (v === null || v === undefined ? "—" : boqFormat.quantity(v));
   const exportExcel = () => {
     const id = toast.loading(t("exporting"));
     exporting.mutate(undefined, { onSuccess: (e) => toast.success(t("exported", { file: e.fileName }), { id }), onError: (err) => toast.error(message(err), { id }) });

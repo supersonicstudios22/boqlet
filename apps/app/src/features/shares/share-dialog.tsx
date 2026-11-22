@@ -141,10 +141,11 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
           </div>
         </form>
         {created && (
-          <div className="flex flex-col gap-2 border-l-2 border-[var(--blue)] pl-3" data-testid="share-created">
+          <div className="flex flex-col gap-2 border-l-2 border-[var(--link)] pl-3" data-testid="share-created">
             <p className="text-muted-foreground">{t("createdHint")}</p>
             <div className="flex items-center gap-2">
-              <Input readOnly value={created} onFocus={(e) => e.currentTarget.select()} data-testid="share-url" />
+              {/* The "Create link" button is replaced by the link: focus goes to it (TF-160). */}
+              <Input readOnly autoFocus value={created} aria-label={t("linkUrl")} onFocus={(e) => e.currentTarget.select()} data-testid="share-url" />
               <Button variant="outline" onClick={copy} data-testid="share-copy">
                 <Copy aria-hidden />
                 {copied ? t("copied") : t("copy")}

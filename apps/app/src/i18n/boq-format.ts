@@ -20,6 +20,12 @@ export interface BoqFormatSettings {
 
 export interface BoqFormatter {
   number: (value: number, options?: Intl.NumberFormatOptions) => string;
+  /**
+   * A BoQ quantity, the same on every screen (sheet, line detail, share page, changes, previews): up to
+   * six decimals (the engine has already rounded it as the rule set says); a quantity below that is
+   * "< 0.000001", never "0" (TF-147).
+   */
+  quantity: (value: number) => string;
   dateTime: (value: Date, options?: Intl.DateTimeFormatOptions) => string;
 }
 
@@ -79,7 +85,13 @@ export function boqFormatter(uiLocale: string, settings: BoqFormatSettings): Boq
     const time = wantsTime ? new Intl.DateTimeFormat(locale, options.timeStyle ? { timeStyle: options.timeStyle } : { hour: options.hour, minute: options.minute }).format(value) : "";
     return time ? `${datePattern(pattern, value)} ${time}` : datePattern(pattern, value);
   };
-  return { number, dateTime };
+  const QUANTITY_DIGITS = 6;
+  const quantity = (value: number) => {
+    const smallest = 10 ** -QUANTITY_DIGITS;
+    if (value !== 0 && Math.abs(value) < smallest / 2) return value > 0 ? `< ${number(smallest, { maximumFractionDigits: QUANTITY_DIGITS })}` : `> ${number(-smallest, { maximumFractionDigits: QUANTITY_DIGITS })}`;
+    return number(value, { maximumFractionDigits: QUANTITY_DIGITS });
+  };
+  return { number, quantity, dateTime };
 }
 
 const BoqFormatContext = createContext<BoqFormatSettings | null>(null);

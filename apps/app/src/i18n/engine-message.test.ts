@@ -84,3 +84,20 @@ describe("engine messages (F15 §4, contract change C01)", () => {
     expect(render({ code: "question.unmatched", params: { count: 2 }, message: "2 x IfcBeam" })).toEqual({ text: "2 x IfcBeam", source: "fallback" });
   });
 });
+
+describe("TF-052: an edit to a code that isn't in the code list", () => {
+  it("says the edit is not applied", () => {
+    const shown = render({ code: "unknown_code", params: { system: "ACME cost codes", description: "Walls", code: "D.02", edit: true }, message: "FALLBACK" });
+    expect(shown.source).toBe("key");
+    expect(shown.text).toBe("[ACME cost codes] The edit moving “Walls” to the code “D.02” is not applied: the code is not in the code list.");
+  });
+});
+
+describe("TF-110: a message names the classification, not its id", () => {
+  it("replaces params.system by the classification's name when the run has it", async () => {
+    const { withSystemName } = await import("./engine-message");
+    const m = { code: "item_text_blank", params: { system: "s3a-trades", lineKey: "k", description: "Roof", blank: "fire_rating" }, message: "x" };
+    expect(render(withSystemName(m, new Map([["s3a-trades", "Trades with item texts"]]))).text).toBe("[Trades with item texts] “Roof”: no value for {fire_rating}.");
+    expect(withSystemName(m, new Map())).toBe(m);
+  });
+});

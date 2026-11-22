@@ -22,6 +22,7 @@ import { BoqFormatProvider, useBoqFormat, type BoqFormatSettings } from "@/i18n/
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 import { isApiError } from "@/api/errors";
+import { usePageTitle } from "@/lib/page-title";
 
 /** The line's text in the grouping system (P14 item text), else the rule set's. */
 const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[system]?.text : undefined) ?? l.description;
@@ -39,6 +40,7 @@ export function PublicSharePage({ token }: { token: string }) {
   // BoQ values and the run date in the firm's format (TF-021, `PublicShare.numberFormat` / `dateFormat`;
   // optional: the defaults where the API doesn't send them). The line detail inside gets them too.
   const firm = share.data;
+  usePageTitle(1, firm?.boqName, firm?.firmName);
   const formats = useMemo<BoqFormatSettings | null>(
     () => (firm ? { numberFormat: firm.numberFormat ?? undefined, dateFormat: firm.dateFormat ?? undefined } : null),
     [firm],
@@ -114,7 +116,7 @@ export function PublicSharePage({ token }: { token: string }) {
 
   return (
     <BoqFormatProvider settings={formats}>
-    <div className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
+    <main id="main" className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
       {working && (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
           <span className="rotate-[-24deg] select-none text-[18vw] font-bold leading-none text-foreground/5">{t("working")}</span>
@@ -196,7 +198,8 @@ export function PublicSharePage({ token }: { token: string }) {
                           data-key={l.key}
                           data-source={l.source}
                         >
-                          <TableCell className="max-w-[520px]">
+                          {/* Wraps, so Unit and Quantity stay on narrow screens (TF-172). */}
+                          <TableCell className="max-w-[520px] min-w-40 whitespace-normal break-words">
                             {s.include.lineDetail ? (
                               <button
                                 type="button"
@@ -216,7 +219,7 @@ export function PublicSharePage({ token }: { token: string }) {
                             )}
                           </TableCell>
                           <TableCell>{unitLabel(l.unit)}</TableCell>
-                          <TableCell className="text-right tabular-nums">{l.quantity === null ? "—" : format.number(l.quantity, { maximumFractionDigits: 3 })}</TableCell>
+                          <TableCell className="text-right tabular-nums">{l.quantity === null ? "—" : format.quantity(l.quantity)}</TableCell>
                         </TableRow>
                       )),
                     ])}
@@ -250,7 +253,7 @@ export function PublicSharePage({ token }: { token: string }) {
             )}
           </div>
           {s.include.viewer && models.length > 0 && (
-            <section className="relative z-10 flex flex-col gap-2">
+            <section className="relative z-10 flex min-w-0 max-w-full flex-col gap-2">
               <h2 className="label-caps">{t("viewer")}</h2>
               <ModelViewer models={models} lines={lines.data ?? []} publicToken={token} focusLine={selected} onOpenLine={(key) => setSelected(key)} className="h-[560px]" />
             </section>
@@ -270,7 +273,7 @@ export function PublicSharePage({ token }: { token: string }) {
           <Wordmark />
         )}
       </footer>
-    </div>
+    </main>
     </BoqFormatProvider>
   );
 }

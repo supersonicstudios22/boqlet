@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useBoqs } from "@/api/hooks/boqs";
@@ -24,6 +24,7 @@ export default function BoqsPage() {
   const boqs = useBoqs(project.id);
   const models = useModels(project.id);
   const [creating, setCreating] = useState(false);
+  const newBoq = useRef<HTMLButtonElement>(null);
   const [showArchived, setShowArchived] = useState(false);
   const base = `/${org.slug}/projects/${project.id}/boqs`;
   const all = boqs.data ?? [];
@@ -41,7 +42,7 @@ export default function BoqsPage() {
           </label>
         )}
         {can("editBoqs") && (
-          <Button onClick={() => setCreating(true)} data-testid="new-boq">
+          <Button ref={newBoq} onClick={() => setCreating(true)} data-testid="new-boq">
             {t("list.new")}
           </Button>
         )}
@@ -100,7 +101,7 @@ export default function BoqsPage() {
           </TableBody>
         </Table>
       )}
-      {can("editBoqs") && <CreateBoqDialog orgSlug={org.slug} orgId={org.id} project={project} open={creating} onOpenChange={setCreating} />}
+      {can("editBoqs") && <CreateBoqDialog orgSlug={org.slug} orgId={org.id} project={project} open={creating} onOpenChange={setCreating} returnFocus={newBoq} />}
     </div>
   );
 }

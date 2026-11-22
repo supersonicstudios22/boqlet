@@ -7,6 +7,14 @@ export function isHandledGlobally(error: unknown): boolean {
   return isApiError(error) && (error.status === 401 || error.status === 402 || error.status === 409);
 }
 
+/**
+ * 409s about a state someone else may have changed meanwhile (a version saved, a BoQ confirmed or
+ * archived, a review started, a draft saved elsewhere): "changed in the meantime" and a refetch. Every
+ * other 409 is a refusal with its own reason (last_owner, label_taken, …), shown as that (TF-117).
+ */
+const STATE_CONFLICTS = new Set(["revision_locked", "revision_in_review", "invalid_transition", "boq_confirmed", "boq_archived", "project_archived", "model_archived", "preset_archived", "draft_conflict"]);
+const isStateConflict = (error: { code: string }) => STATE_CONFLICTS.has(error.code);
+
 export function makeQueryClient(): QueryClient {
   const client: QueryClient = new QueryClient({
     queryCache: new QueryCache({
@@ -15,7 +23,7 @@ export function makeQueryClient(): QueryClient {
         const h = globalErrorHandlers();
         if (error.status === 401) h.unauthorized(error);
         else if (error.status === 402) h.limitReached(error);
-        else if (error.status === 409) {
+        else if (error.status === 409 && isStateConflict(error)) {
           h.conflict(error);
           void client.invalidateQueries({ queryKey: query.queryKey });
         }
@@ -27,7 +35,7 @@ export function makeQueryClient(): QueryClient {
         const h = globalErrorHandlers();
         if (error.status === 401) h.unauthorized(error);
         else if (error.status === 402) h.limitReached(error);
-        else if (error.status === 409) {
+        else if (error.status === 409 && isStateConflict(error)) {
           // A mutation that explains its own conflicts inline (meta.ownConflicts) gets no toast.
           if (!mutation.meta?.ownConflicts) h.conflict(error);
           void client.invalidateQueries();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type RefObject } from "react";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -31,6 +31,7 @@ export function CreateBoqDialog({
   open,
   onOpenChange,
   fromModel,
+  returnFocus,
 }: {
   orgSlug: string;
   orgId: string;
@@ -38,6 +39,8 @@ export function CreateBoqDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fromModel?: { modelId: string; versionId: string };
+  /** Where focus goes when the dialog closes: the button that opened it (TF-160; the name field takes focus on open). */
+  returnFocus?: RefObject<HTMLElement | null>;
 }) {
   const t = useTranslations("boqs.create");
   const tc = useTranslations("common");
@@ -98,7 +101,7 @@ export function CreateBoqDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="create-boq-dialog" className="sm:max-w-xl">
+      <DialogContent data-testid="create-boq-dialog" className="sm:max-w-xl" finalFocus={returnFocus ?? true}>
         <form
           className="flex flex-col gap-4"
           onSubmit={(e) => {

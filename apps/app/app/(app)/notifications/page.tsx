@@ -10,10 +10,12 @@ import { useNotificationText } from "@/features/notifications/use-notification-t
 import { cn } from "@/lib/utils";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { usePageTitle } from "@/lib/page-title";
 
 /** S26: every notification, newest first; unread only on request; mark one or all read (F13). */
 export default function NotificationsPage() {
   const t = useTranslations("notifications");
+  usePageTitle(1, t("title"));
   const format = useFormatter();
   const text = useNotificationText();
   const [unreadOnly, setUnreadOnly] = useState(false);

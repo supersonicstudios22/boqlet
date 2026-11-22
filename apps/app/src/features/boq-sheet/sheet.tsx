@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, ChevronDown, ChevronRight, Columns3, Download, GripVertical, Plus, Undo2 } from "lucide-react";
@@ -10,7 +10,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import type { Boq, Run } from "@/api/hooks/boqs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditLines, useManualItems, useOverrides, useRemoveManualItem, useSaveManualItem, type EditBatch, type LineOverride, type LineOverrideInput, type ManualItemRecord } from "@/api/hooks/edits";
-import { isUnavailable } from "@/api/errors";
+import { isApiError, isUnavailable } from "@/api/errors";
 import { keys as queryKeys } from "@/api/keys";
 import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
@@ -43,6 +43,8 @@ import { useUnit } from "@/i18n/units";
 import { useBoqFormat } from "@/i18n/boq-format";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
+import { keepEdit, takeKeptEdits } from "./kept-edits";
+import { useRefocusWhenLost } from "@/lib/focus";
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
@@ -153,10 +155,15 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   // The selected line's active cell (TF-159): ArrowLeft/Right move it, F2 or Enter edit it.
   const [activeColumn, setActiveColumn] = useState<EditableColumn>("description");
   const [prompt, setPrompt] = useState<Prompt | null>(null);
+  // An in-cell edit or its reason dialog closes: focus goes back to the grid, so the arrows go on working (TF-160).
+  const gridRef = useRef<HTMLDivElement>(null);
+  useRefocusWhenLost(gridRef, [editing, prompt]);
   const [manualDialog, setManualDialog] = useState<{ record?: ManualItemRecord; defaults?: { codes?: Record<string, string>; sortHint?: string } } | null>(null);
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
   // Edits the API never answered (a restart or deploy, TF-183): kept here and sent again, never dropped.
-  const [unsaved, setUnsaved] = useState<{ apply: EditBatch; undo: EditBatch | null }[]>([]);
+  // An edit refused because the session ended is kept in the tab and offered again here after signing in (TF-146).
+  const [unsaved, setUnsaved] = useState<{ apply: EditBatch; undo: EditBatch | null }[]>(() => (typeof window === "undefined" || readOnly ? [] : takeKeptEdits(boq.id)));
+  const [unsavedSignedOut, setUnsavedSignedOut] = useState(() => unsaved.length > 0);
   const undoRef = useRef(undoStack);
   useLayoutEffect(() => {
     undoRef.current = undoStack;
@@ -211,7 +218,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   // One formatter for every cell (the rule set's rounding is already applied by the engine), in the
   // firm's number format and the project's locale (F15 §6, §11, TF-021).
   const boqFormat = useBoqFormat();
-  const num = useMemo(() => (v: number) => boqFormat.number(v, { maximumFractionDigits: 6 }), [boqFormat]);
+  const num = useMemo(() => (v: number) => boqFormat.quantity(v), [boqFormat]);
   // Lists in a cell (storeys, tags) in the person's language, not a literal ", " (TF-023).
   const format = useFormatter();
   const list = useCallback((items: string[]) => format.list(items, { type: "unit" }), [format]);
@@ -222,14 +229,21 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
     const engine = (l: SheetLine, field: EditField, text: string) => (l.edit?.fields.includes(field) ? te("engineHover", { value: text }) : undefined);
     return [
       col("positionNo", t("col.positionNo"), { width: "5.5rem", cell: (l) => <span className="tabular-nums" data-testid="position-no">{positions.get(l.key) ?? ""}</span> }),
-      col("item", t("col.item"), {
-        width: "8rem",
-        editable: groupBy ? "item" : undefined,
-        cell: (l) => (groupBy ? l.codes[groupBy]?.code : null),
-        engine: (l) => (groupBy && l.edit?.override.codes?.[groupBy] ? engine(l, "codes", l.edit.engine.codes[groupBy] ?? te("noCode")) : undefined),
-      }),
+      // The Item (code) column only while grouping by a classification: empty otherwise, it took room
+      // from Quantity on narrow screens (TF-171).
+      ...(groupBy
+        ? [
+            col("item", t("col.item"), {
+              width: "8rem",
+              editable: "item",
+              cell: (l) => l.codes[groupBy]?.code,
+              engine: (l) => (l.edit?.override.codes?.[groupBy] ? engine(l, "codes", l.edit.engine.codes[groupBy] ?? te("noCode")) : undefined),
+            }),
+          ]
+        : []),
       // The item text of the Group-by system when its code has one (P14, F06 §2); an edited description wins.
-      col("description", t("col.description"), { width: "minmax(16rem, 1fr)", editable: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
+      // Beside the model the description gives way first, so Quantity stays in view (TF-107).
+      col("description", t("col.description"), { width: split && hasModels ? "minmax(10rem, 1fr)" : "minmax(16rem, 1fr)", editable: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
       col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", cell: (l) => unitLabel(l.unit), engine: (l) => engine(l, "unit", unitLabel(l.edit?.engine.unit ?? "")) }),
       col("quantity", t("col.quantity"), {
         width: "8rem",
@@ -238,15 +252,15 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
         cell: (l) => (l.quantity === null ? <span title={l.notes[0] ?? toConfirm}>—</span> : num(l.quantity)),
         engine: (l) => engine(l, "quantity", l.edit?.engine.quantity === null || l.edit?.engine.quantity === undefined ? toConfirm : num(l.edit.engine.quantity)),
       }),
-      col("source", t("col.source"), { width: "7.5rem", cell: (l) => <SourceTag source={l.source} /> }),
+      col("source", t("col.source"), { width: "7.5rem", optional: true, cell: (l) => <SourceTag source={l.source} /> }),
       col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
-      col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => l.family }),
+      col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => (l.family && t.has(`families.${l.family}`) ? t(`families.${l.family}`) : l.family) }),
       col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),
       col("notes", t("col.notes"), { width: "12rem", optional: true, cell: (l) => l.notes.join(" ") }),
       // One column per extra classification (F06 §2), off by default.
       ...systems.filter((s) => s.id !== groupBy).map((s) => col(`code:${s.id}`, s.name, { width: "8rem", optional: true, cell: (l) => l.codes[s.id]?.code })),
     ];
-  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel, list]);
+  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel, list, split, hasModels]);
 
   // TanStack Table owns the columns and their visibility; the rows are the sheet's own (groups + lines).
   // It returns functions the React Compiler can't memoise, so this component is left uncompiled.
@@ -254,7 +268,8 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const table = useReactTable({
     data: [] as SheetLine[],
     columns,
-    state: { columnVisibility: { ...Object.fromEntries(systems.map((s) => [`code:${s.id}`, false])), ...visibility } },
+    // Beside the model, Source is off unless the person switched it on (TF-107): Quantity stays in view.
+    state: { columnVisibility: { ...Object.fromEntries(systems.map((s) => [`code:${s.id}`, false])), ...(split && hasModels && !("source" in visibility) ? { source: false } : {}), ...visibility } },
     onColumnVisibilityChange: setVisibility,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -339,11 +354,14 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       },
       (error: unknown) => {
         if (isUnavailable(error)) setUnsaved((u) => [...u, { apply, undo }]);
+        // Signed out (expired or taken over): the app goes to sign-in; the edit waits in this tab.
+        else if (isApiError(error) && error.status === 401) keepEdit(boq.id, { apply, undo });
       },
     );
   const sendUnsaved = async () => {
     const batches = unsaved;
     setUnsaved([]);
+    setUnsavedSignedOut(false);
     // In order: a later edit of the same line must win.
     for (const b of batches) await send(b.apply, b.undo);
   };
@@ -567,7 +585,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
           ));
   return (
     <div className="flex flex-col gap-3" data-testid="sheet" data-editable={editable ? "true" : "false"}>
-      <WarningsBar runId={run.id} />
+      <WarningsBar runId={run.id} systemNames={systemNames} />
       <SystemRulesHint run={run} userId={me.data?.user.id} />
       <NotInModelsNotice key={me.data?.user.id ?? "anonymous"} lines={all} userId={me.data?.user.id} onAddLine={editable ? () => setManualDialog({}) : undefined} />
       <div className="flex flex-wrap items-end gap-3" data-testid="sheet-toolbar">
@@ -626,7 +644,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               <option value="">{t("all")}</option>
               {options.families.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {t.has(`families.${s}`) ? t(`families.${s}`) : s}
                 </option>
               ))}
             </NativeSelect>
@@ -738,11 +756,14 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
       )}
       {hasUnsaved && (
         <div role="alert" className="flex flex-wrap items-center gap-3 border-l-2 border-[var(--status-error)] pl-3" data-testid="edit-unsaved" data-count={unsaved.length}>
-          <span>{te("notSaved", { count: unsaved.length })}</span>
+          <span>{unsavedSignedOut ? te("notSavedSignedOut", { count: unsaved.length }) : te("notSaved", { count: unsaved.length })}</span>
           <Button variant="outline" onClick={() => void sendUnsaved()} disabled={editLines.isPending} data-testid="edit-unsaved-retry">
             {te("retry")}
           </Button>
-          <Button variant="ghost" onClick={() => setUnsaved([])} data-testid="edit-unsaved-discard">
+          <Button variant="ghost" onClick={() => {
+              setUnsaved([]);
+              setUnsavedSignedOut(false);
+            }} data-testid="edit-unsaved-discard">
             {te("discard")}
           </Button>
         </div>
@@ -770,7 +791,6 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               labels={groupLabels}
               emptyText={filtering ? t("noMatches") : tn("text")}
               label={t("tableLabel")}
-              checkLabel={te("select")}
               checkAllLabel={te("selectAll")}
               pendingLabel={te("pending")}
               editingBy={markers}
@@ -778,6 +798,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               editableColumns={editable ? editableColumns : []}
               onActiveColumn={setActiveColumn}
               onEditActive={editActive}
+              gridRef={gridRef}
             />
           </div>
           <div
@@ -799,6 +820,8 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
             data-testid="split-handle"
           />
           <div className="flex min-w-0 flex-1 flex-col gap-5">
+            {/* The line's detail first, in view; the model under it (TF-107). */}
+            {renderDetail("border-l-0 pl-0 lg:w-full")}
             <ModelViewer
               key={run.id}
               stacked
@@ -812,7 +835,6 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               onOpenLine={setSelected}
               onSelectionChange={setModelSelection}
             />
-            {renderDetail("border-l-0 pl-0 lg:w-full")}
           </div>
         </div>
       ) : (
@@ -837,7 +859,6 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               labels={groupLabels}
               emptyText={filtering ? t("noMatches") : tn("text")}
               label={t("tableLabel")}
-              checkLabel={te("select")}
               checkAllLabel={te("selectAll")}
               pendingLabel={te("pending")}
               editingBy={markers}
@@ -845,6 +866,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
               editableColumns={editable ? editableColumns : []}
               onActiveColumn={setActiveColumn}
               onEditActive={editActive}
+              gridRef={gridRef}
             />
           </div>
           {renderDetail(undefined)}
@@ -953,7 +975,6 @@ function SheetGrid({
   labels,
   emptyText,
   label,
-  checkLabel,
   checkAllLabel,
   pendingLabel,
   editingBy,
@@ -961,6 +982,7 @@ function SheetGrid({
   editableColumns,
   onActiveColumn,
   onEditActive,
+  gridRef,
 }: {
   rows: Row[];
   columns: ColumnMeta[];
@@ -980,7 +1002,6 @@ function SheetGrid({
   labels: GroupLabels;
   emptyText: string;
   label: string;
-  checkLabel: string;
   checkAllLabel: string;
   pendingLabel: string;
   /** Lines others are editing (F06 §14), line key → the marker's text. */
@@ -990,8 +1011,11 @@ function SheetGrid({
   editableColumns: EditableColumn[];
   onActiveColumn: (column: EditableColumn) => void;
   onEditActive: () => void;
+  /** The grid element, for the sheet to give focus back to it (TF-160). */
+  gridRef?: RefObject<HTMLDivElement | null>;
 }) {
-  const scroller = useRef<HTMLDivElement>(null);
+  const ownScroller = useRef<HTMLDivElement>(null);
+  const scroller = gridRef ?? ownScroller;
   // Like TanStack Table, the virtualizer returns functions the React Compiler can't memoise.
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => scroller.current, estimateSize: () => ROW, overscan: 12 });
@@ -1037,6 +1061,14 @@ function SheetGrid({
           e.preventDefault();
           const at = Math.max(0, editableColumns.indexOf(activeColumn));
           onActiveColumn(editableColumns[Math.max(0, Math.min(editableColumns.length - 1, at + (e.key === "ArrowRight" ? 1 : -1)))]!);
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a" && editable) {
+          // Ctrl+A ticks every shown line, or none when all are ticked (the header box isn't a Tab stop either).
+          e.preventDefault();
+          onCheckAll(!allChecked);
+        } else if (e.key === " " && selected && editable) {
+          // Space ticks the selected line (its box is not a Tab stop, TF-161).
+          e.preventDefault();
+          api.check(selected, e.shiftKey);
         } else if (e.key === "Escape") onSelect(null);
         else if (e.key === "Enter" && !selected) move(0);
         else if (e.key === "Enter" && activeColumn) {
@@ -1051,7 +1083,7 @@ function SheetGrid({
       <div role="row" className="sticky top-0 z-10 grid min-w-fit border-b border-border bg-background" style={{ gridTemplateColumns: template, height: ROW }}>
         {editable && (
           <div role="columnheader" className="flex items-center justify-center">
-            <input type="checkbox" aria-label={checkAllLabel} checked={allChecked} onChange={(e) => onCheckAll(e.target.checked)} className="accent-[var(--link)]" data-testid="check-all" />
+            <input type="checkbox" tabIndex={-1} aria-label={checkAllLabel} aria-keyshortcuts="Control+A" checked={allChecked} onChange={(e) => onCheckAll(e.target.checked)} className="accent-[var(--link)]" data-testid="check-all" />
           </div>
         )}
         {columns.map((c) => (
@@ -1082,7 +1114,6 @@ function SheetGrid({
               editable={editable}
               codeItems={codeItems}
               api={api}
-              checkLabel={checkLabel}
               pendingLabel={pendingLabel}
               editingBy={editingBy.get(row.id)}
             />
@@ -1202,7 +1233,6 @@ const LineRowView = memo(function LineRowView({
   editable,
   codeItems,
   api,
-  checkLabel,
   pendingLabel,
   editingBy,
   activeColumn,
@@ -1219,7 +1249,6 @@ const LineRowView = memo(function LineRowView({
   editable: boolean;
   codeItems: { value: string; label: string; hint?: string }[];
   api: RowApi;
-  checkLabel: string;
   pendingLabel: string;
   editingBy?: string;
   /** This (selected) line's active cell, edited by F2 or Enter. */
@@ -1227,7 +1256,8 @@ const LineRowView = memo(function LineRowView({
 }) {
   const [over, setOver] = useState(false);
   const canEdit = editable && !line.pending;
-  const codeEditorLabel = useTranslations("boqs.edits")("codeCell");
+  const te = useTranslations("boqs.edits");
+  const codeEditorLabel = te("codeCell");
   const firstCell = useRef<EditableColumn | null>(null);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
@@ -1298,7 +1328,9 @@ const LineRowView = memo(function LineRowView({
           {canEdit && <GripVertical aria-hidden className="size-3 shrink-0 cursor-grab text-muted-foreground" />}
           <input
             type="checkbox"
-            aria-label={checkLabel}
+            // One Tab stop for the grid (TF-161): Space ticks the selected line; each box is named by its line.
+            tabIndex={-1}
+            aria-label={te("selectLine", { line: line.description })}
             checked={checked}
             disabled={line.pending}
             onChange={() => {}}

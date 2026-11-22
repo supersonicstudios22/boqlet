@@ -59,7 +59,11 @@ points `cn` at `src/lib/utils.ts` (the classic clsx + tailwind-merge helper) and
 dependency still to add. Don't run `npx shadcn add` directly: it tries to install `cn`.
 Local changes to added components (re-applied by hand after `ui:add --overwrite`): `dialog.tsx`
 translates its "Close" text (`common.close`); `button.tsx` default and icon sizes are 32 px with
-13 px text (the guidelines' control density).
+13 px text (the guidelines' control density); `button.tsx`, `badge.tsx`, `input.tsx` and `select.tsx`
+use the full-strength `ring-ring` focus ring (not `ring-ring/30`), and the destructive variant of
+`button.tsx` and `badge.tsx` is a red fill with `text-destructive-foreground` (WCAG contrast, TF-162).
+`skeleton.tsx` is used through `LoadingLines` (`src/components/loading.tsx`); a failed query shows
+`InlineError` (`src/components/errors/inline-error.tsx`, message and Try again).
 
 ## Rendering model
 
@@ -159,20 +163,27 @@ tabs, actions, badges, nav items and the `pricing` i18n namespace with the core 
 
 ```ts
 export interface AuthAdapter {
-  /** "loading" until the provider has restored a session. */
-  useSession(): { status: "loading" | "authenticated" | "anonymous"; email?: string; name?: string };
+  /**
+   * "loading" until the provider has restored a session; "unavailable" while the API can't be reached
+   * to ask (a restart, a deploy): not signed out, and the provider asks again by itself.
+   */
+  useSession(): { status: "loading" | "authenticated" | "anonymous" | "unavailable"; email?: string; name?: string };
   /** Bearer token for API calls, or null when the provider uses cookies. */
   getAccessToken(): Promise<string | null>;
   signIn(opts?: { returnTo?: string; email?: string }): Promise<void>;
   signUp(opts?: { returnTo?: string; email?: string }): Promise<void>;
   signOut(): Promise<void>;
+  /** Ask again for the session after "unavailable" (the person's Try again). */
+  retrySession?(): void;
   /** Optional embedded UI for providers that render forms in-app. */
   SignInPage?: React.ComponentType;
   SignUpPage?: React.ComponentType;
 }
 ```
 - `native` adapter (P50, the default): email and password forms on the boqlet domain; the API
-  sets an opaque HttpOnly session cookie. `keycloak` is kept for the rollback (docs/operations/auth-and-deploys.md). The
+  sets an opaque HttpOnly session cookie. Restoring the session, a 4xx means signed out; no answer or
+  a 5xx means "unavailable" (asked again every 5 s), so an API restart never signs anyone out. The
+  auth gate shows "unavailable" as an error with Try again (`retrySession`). `keycloak` is kept for the rollback (docs/operations/auth-and-deploys.md). The
   `mock` adapter (seeded users, `mock:<userId>` tokens) was removed with the mock API (P53). No
   component imports a provider SDK directly.
 

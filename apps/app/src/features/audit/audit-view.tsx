@@ -14,16 +14,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 
-/** Actions the filter offers (F09 "Audit log", the minimum set and the ones the build writes). */
+/**
+ * Actions the filter offers: the ones Java writes (F09 "Audit log"; `audit-actions.test.ts` checks them
+ * against Java's sources, TF-127). Platform-admin actions are left out of the filter.
+ */
 export const AUDIT_ACTIONS = [
-  "org.created", "org.updated", "member.invited", "member.joined", "member.role_changed", "member.removed", "session.replaced",
-  "project.created", "project.updated", "project.archived", "project.restored", "project.member_added", "project.member_removed",
-  "model.created", "model.updated", "model_version.created", "model_version.deleted",
+  "org.created", "org.updated", "org.setup_done", "member.invited", "member.invitation_resent", "member.invitation_revoked", "member.joined", "member.role_changed", "member.removed", "session.replaced",
+  "project.created", "project.updated", "project.archived", "project.restored", "project.member_added", "project.member_role_changed", "project.member_removed",
+  "model.created", "model.updated", "model.archived", "model_version.created", "model_version.queued", "model_version.ready", "model_version.failed", "model_version.deleted",
   "boq.created", "boq.updated", "boq.archived", "boq.restored", "boq.confirmed", "boq.reopened",
-  "revision.created", "revision.inputs_changed", "revision.submitted", "revision.changes_requested", "revision.approved", "revision.reopened", "version.saved",
-  "run.created", "run.finished", "run.failed", "decision.set", "decision.cleared", "decision.promoted",
+  "revision.inputs_updated", "revision.submitted", "revision.changes_requested", "revision.approved", "revision.review_withdrawn", "version.saved",
+  "run.created", "run.completed", "decision.set", "decision.cleared", "decision.promoted",
   "line.edited", "line.restored", "manual_line.added", "manual_line.updated", "manual_line.removed",
-  "export.created", "export.downloaded", "preset.created", "preset.published", "preset.archived", "org.setup_done",
+  "export.created", "export.downloaded", "share_link.created", "share_link.updated", "share_link.revoked",
+  "preset.created", "preset.updated", "preset.published", "preset.draft_discarded", "preset.archived",
 ] as const;
 
 export const AUDIT_ENTITIES = ["org", "user", "project", "model", "modelVersion", "boq", "revision", "run", "decision", "export", "preset"] as const;
@@ -54,7 +58,8 @@ export function AuditView({ scope, fileName, projectHref }: { scope: AuditScope;
   const items = pages.data?.pages.flatMap((p) => p.items) ?? [];
   const actionText = (a: string) => {
     const key = `actions.${a.replaceAll(".", "_")}`;
-    return ta.has(key) ? ta(key) : a;
+    // An action this build has no label for reads "Another change" (the code in its title), never the raw code.
+    return ta.has(key) ? ta(key) : ta("unknownAction");
   };
   const entityText = (e: string) => (t.has(`entities.${e}`) ? t(`entities.${e}`) : e);
   const any = actorId || action || entityType || fromDay || toDay;
@@ -142,7 +147,7 @@ export function AuditView({ scope, fileName, projectHref }: { scope: AuditScope;
               <TableRow key={e.id} data-testid="audit-row" data-action={e.action}>
                 <TableCell className="whitespace-nowrap tabular-nums text-muted-foreground">{format.dateTime(new Date(e.at), { dateStyle: "medium", timeStyle: "short" })}</TableCell>
                 <TableCell>{e.actor?.name ?? ta("system")}</TableCell>
-                <TableCell>{actionText(e.action)}</TableCell>
+                <TableCell title={e.action}>{actionText(e.action)}</TableCell>
                 <TableCell className="text-muted-foreground">{entityText(e.entityType)}</TableCell>
                 {scope.kind === "org" && (
                   <TableCell>
@@ -173,6 +178,7 @@ export function AuditView({ scope, fileName, projectHref }: { scope: AuditScope;
 /** A short line from an event's data: its values, in order (names, labels, reasons). */
 function details(data: Record<string, unknown> | undefined) {
   return Object.values(data ?? {})
-    .filter((v) => typeof v === "string" || typeof v === "number")
+    // Ids say nothing to a person (TF-127).
+    .filter((v) => typeof v === "number" || (typeof v === "string" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)))
     .join(" · ");
 }

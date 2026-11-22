@@ -126,6 +126,7 @@
     "notAllowed": "Only owners and admins see the usage.",
     "processing": "Processing in {month}",
     "minutes": "{n} min",
+    "minutesUnder": "under {n} min",
     "seats": "Seats in use",
     "activeProjects": "Active projects",
     "byProject": "By project",
