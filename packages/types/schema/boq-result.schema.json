@@ -2154,6 +2154,29 @@
             "type": "string"
           }
         },
+        "toConfirm": {
+          "type": "object",
+          "properties": {
+            "measured": {
+              "type": "number"
+            },
+            "elements": {
+              "type": "number"
+            },
+            "questions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "measured",
+            "elements"
+          ],
+          "additionalProperties": false,
+          "description": "A line with a quantity that still needs a look (rule 5, review A-05): some of its elements had no value (`measured` of `elements` were measured), or an element's quantity rests on an open `contradiction` question (`questions`, its ids). Absent when neither. The sheet shows the line \"To confirm\", the Excel in yellow; `stats.flaggedLines` counts it."
+        },
         "overridden": {
           "type": "object",
           "properties": {

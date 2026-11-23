@@ -176,6 +176,13 @@ export interface BoqLine {
   location?: { storey?: string; storeys?: string[] };
   tags: string[];
   notes: string[];
+  /**
+   * A line with a quantity that still needs a look (rule 5, review A-05): some of its elements had no
+   * value (`measured` of `elements` were measured), or an element's quantity rests on an open
+   * `contradiction` question (`questions`, its ids). Absent when neither. The sheet shows the line
+   * "To confirm", the Excel in yellow; `stats.flaggedLines` counts it.
+   */
+  toConfirm?: { measured: number; elements: number; questions?: string[] };
   overridden?: {
     fields: ("quantity" | "description" | "unit" | "codes" | "excluded" | "order")[];
     engineQuantity?: number | null;

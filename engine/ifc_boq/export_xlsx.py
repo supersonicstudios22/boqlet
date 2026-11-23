@@ -49,6 +49,17 @@ def _header(ws, row, cols, widths):
         ws.column_dimensions[get_column_letter(i)].width = w
 
 
+def to_confirm_note(c: dict) -> str:
+    """Why a line with a quantity is yellow (review A-05): "To confirm: 2 of 3 elements measured"."""
+    parts = []
+    if c["measured"] < c["elements"]:
+        parts.append(f"{c['measured']} of {c['elements']} elements measured")
+    if c.get("questions"):
+        n = len(c["questions"])
+        parts.append(f"rests on {n} open question{'s' if n > 1 else ''} about the file's quantities")
+    return "To confirm: " + "; ".join(parts)
+
+
 def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=()):
     for i, v in enumerate(values, 1):
         x = ws.cell(row=row, column=i, value=v)
@@ -184,8 +195,8 @@ def export(result: dict, meta: dict) -> bytes:
 
     def write_line(r, l, section):
         c = l["codes"].get(primary) if primary else None
-        flagged = l["quantity"] is None
-        notes = l.get("notes", [])
+        flagged = l["quantity"] is None or bool(l.get("toConfirm"))
+        notes = [*([to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []), *l.get("notes", [])]
         description = _description(l, primary)
         if description != l["description"]:
             notes = [*notes, f"Measured as: {l['description']}"]
@@ -322,7 +333,7 @@ def export(result: dict, meta: dict) -> bytes:
         vals.append(l.get("overridden", {}).get("engineDescription", l["description"]))
         loc = l.get("location") or {}
         vals += [l["trace"]["formula"], len(l["trace"]["elements"]), loc.get("storey") or ", ".join(loc.get("storeys", [])),
-                 "; ".join(l.get("notes", []))]
+                 "; ".join([*([to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []), *l.get("notes", [])])]
         _row(wl, i, vals)
         wl.cell(row=i, column=6).number_format = _qfmt(l["quantity"])
     wl.auto_filter.ref = f"A1:{get_column_letter(len(cols))}{len(lines) + 1}"

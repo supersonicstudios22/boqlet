@@ -156,7 +156,7 @@ export function LineDetailBody({
                 <span className="text-title tabular-nums" data-testid="detail-quantity">
                   {line.quantity === null ? "—" : num(line.quantity)} {unitLabel(line.unit)}
                 </span>
-                <SourceTag source={line.source} />
+                <SourceTag source={line.source} toConfirm={line.toConfirm} />
               </div>
 
               <Section title={t("howCalculated")}>

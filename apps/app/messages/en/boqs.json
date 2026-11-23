@@ -161,7 +161,9 @@
       "manual": "Manual",
       "flagged": "To confirm",
       "edited": "Edited",
-      "excluded": "Excluded"
+      "excluded": "Excluded",
+      "partial": "{measured} of {elements} elements measured",
+      "openQuestion": "rests on {count, plural, one {an open question} other {# open questions}} about the file's quantities"
     },
     "families": {
       "linear": "Linear (length)",

@@ -3515,6 +3515,7 @@ components:
         location: { $ref: "../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/location" }
         tags: { $ref: "../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/tags" }
         notes: { $ref: "../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/notes" }
+        toConfirm: { $ref: "../types/schema/boq-result.schema.json#/definitions/BoqLine/properties/toConfirm" }
         sortIndex: { type: integer }
         positionNo: { type: string, description: "Position number in its section, e.g. 5.3 (P30); frozen in saved versions" }
         overridden:

@@ -8,6 +8,15 @@
 import { orderSection, type SheetLine } from "./edits";
 
 export type Source = "measured" | "derived" | "manual" | "flagged";
+
+/**
+ * The source the sheet shows (review A-05): a measured or derived line the engine marks `toConfirm`
+ * (some elements without a value, or a quantity resting on an open contradiction) reads "To confirm",
+ * is found by the "to confirm" filter and counts there, like a line without a quantity.
+ */
+export function shownSource(l: { source: Source; toConfirm?: unknown }): Source {
+  return l.toConfirm && (l.source === "measured" || l.source === "derived") ? "flagged" : l.source;
+}
 /** The source filter also lists edited and excluded lines (F06 §4, §6). */
 export type SourceFilter = Source | "edited" | "excluded";
 
@@ -63,7 +72,7 @@ export function filterLines(lines: SheetLine[], f: SheetFilters, system: string 
   return lines.filter((l) => {
     if (f.keys && !f.keys.has(l.key)) return false;
     if (group && (l.codes[system!]?.path[0]?.code ?? UNCLASSIFIED) !== group) return false;
-    if (f.source === "edited" ? !l.edit : f.source === "excluded" ? !l.excluded : f.source && l.source !== f.source) return false;
+    if (f.source === "edited" ? !l.edit : f.source === "excluded" ? !l.excluded : f.source && shownSource(l) !== f.source) return false;
     if (f.storey && l.location?.storey !== f.storey && !l.location?.storeys?.includes(f.storey)) return false;
     if (f.family && l.family !== f.family) return false;
     if (f.model && !l.trace.elements.some((e) => e.model === f.model)) return false;
@@ -186,8 +195,8 @@ export function displayUnit(unit: string): string {
 }
 
 /** Lines in the BoQ by source, for "120 measured · 8 derived · 3 manual · 2 to confirm" (F06 §12). Excluded lines are out of the BoQ. */
-export function countsBySource(lines: readonly { source: Source; excluded?: boolean }[]) {
+export function countsBySource(lines: readonly { source: Source; toConfirm?: unknown; excluded?: boolean }[]) {
   const counts = { measured: 0, derived: 0, manual: 0, flagged: 0 };
-  for (const l of lines) if (!l.excluded) counts[l.source] += 1;
+  for (const l of lines) if (!l.excluded) counts[shownSource(l)] += 1;
   return counts;
 }

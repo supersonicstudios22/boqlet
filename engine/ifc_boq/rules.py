@@ -693,7 +693,7 @@ class RuleEngine:
                     "trace": {"formula": describe_spec(item["quantity"], self), "params": self.params_used(item),
                               "elements": []},
                     "tags": item.get("tags", []), "notes": [], "_parts": [], "_missing": 0, "_rule": item,
-                    "_unit_scale": {}}
+                    "_unit_scale": {}, "_questions": set()}
             self.lines[lk] = line
             self.lines_by_rule[rid].append(line)
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
@@ -703,6 +703,7 @@ class RuleEngine:
         line["_parts"].append(part)
         for field, factor in (el.get("unit_scale") or {}).items():      # measure took a stated value as a unit error
             line["_unit_scale"][(field, factor)] = line["_unit_scale"].get((field, factor), 0) + 1
+        line["_questions"].update(el.get("contradictions") or ())           # open contradictions (A-05)
         if v is None:
             line["_missing"] += 1
         else:
@@ -741,6 +742,9 @@ class RuleEngine:
                 line["notes"].append("quantity could not be determined for any element")
             elif missing:
                 line["notes"].append(f"{missing} of {n} element(s) had no value and are not included")
+            questions = sorted(line.pop("_questions", ()))
+            if line["quantity"] is not None and (missing or questions):       # a quantity that needs a look (A-05)
+                line["toConfirm"] = {"measured": n - missing, "elements": n, **({"questions": questions} if questions else {})}
             mn = item.get("minimum")
             if line["quantity"] is not None and mn and self.val(mn.get("per")) == "line":
                 m = self.convert(self.val(mn["value"]), line["unit"])
@@ -826,11 +830,13 @@ class RuleEngine:
                                                             "elements": [], "sourceLine": srcline["key"]},
                                     "tags": d.get("tags", []), "notes": [], "_fields": dict(srcline["_fields"]),
                                     "_mixed": list(srcline["_mixed"]), "location": srcline.get("location", {}),
-                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0,
+                                    "_source_key": srcline["key"], "_missing": 0, "_count": 0, "_confirm": [],
                                     "_text_context": {**sctx, "src": sctx}}
                             out[lk] = line
                             n_lines += 1
                         line["_count"] += 1
+                        if (c := srcline.get("toConfirm")) and not (srcline.get("overridden") or {}).get("fields", []).count("quantity"):
+                            line["_confirm"].append(c)
                         trace = {"guid": guid or "", "name": (sctx.get("name") or "") if guid else f"line {srcline['description']}",
                                  "quantity": None if v is None else round(v, 6), "note": txt}
                         if model_id := sctx.get("model_id"):
@@ -861,6 +867,11 @@ class RuleEngine:
                 line["quantity"], line["source"] = None, "flagged"
             elif line["_missing"]:
                 line["notes"].append(f"{line['_missing']} source(s) had no value")
+            confirm = line.pop("_confirm")
+            if line["quantity"] is not None and (line["_missing"] or confirm):   # follows its sources (A-05)
+                questions = sorted({q for c in confirm for q in c.get("questions", ())})
+                line["toConfirm"] = {"measured": line["_count"] - line["_missing"], "elements": line["_count"],
+                                     **({"questions": questions} if questions else {})}
             rnd = next((x.get("rounding") for x in self.rules.get("derived", []) if x["id"] == line["ruleId"]), None) \
                 or self.defaults.get("rounding")
             rounded = self.round_(line["quantity"], rnd)

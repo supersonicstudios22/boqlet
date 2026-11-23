@@ -677,6 +677,22 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     volume=sum(x['volume'] for x in m['embedded']),
                 ))
     out += measure_rooms(parsed, rooms, out, model_id, model_discipline, log)
+    for q in asked.values():                         # open questions about an element's stated quantities (A-05)
+        for g in q["guids"]:
+            if g in measured and q["id"] not in measured[g].setdefault("contradictions", []):
+                measured[g]["contradictions"].append(q["id"])
+    with_body = {e["id"] for e in parsed["elements"] if e["quantities"]["geometry"].get("hasBody")}
+    for _ in range(20):                              # an aggregate measured from its parts inherits theirs (a roof of slabs)
+        changed = False
+        for m in out:
+            if m["guid"] in with_body or not m.get("child_guids"):
+                continue
+            inherited = sorted({q for c in m["child_guids"] if c in measured for q in measured[c].get("contradictions", ())}
+                               | set(m.get("contradictions", ())))
+            if inherited != sorted(m.get("contradictions", ())):
+                m["contradictions"], changed = inherited, True
+        if not changed:
+            break
     if questions is not None:
         questions += list(asked.values())            # with their private fields: pipeline merges, then strips
     return out, resolutions

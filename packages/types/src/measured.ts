@@ -208,6 +208,11 @@ export interface MeasuredElement {
    * (1000 = the file says 1000 times the geometry). Lines measuring such an element carry a note.
    */
   unit_scale?: Partial<Record<MeasuredField, number>>;
+  /**
+   * Open `contradiction` questions about this element's stated quantities (their ids): its quantity
+   * rests on the engine's choice until someone answers, so the lines it feeds are `toConfirm` (A-05).
+   */
+  contradictions?: string[];
 }
 
 /**

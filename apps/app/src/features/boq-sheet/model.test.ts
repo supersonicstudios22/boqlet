@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RunLine } from "@/api/hooks/sheet";
-import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
+import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
 
 let n = 0;
 function line(path: [string, string][] | null, fields: Partial<RunLine> = {}): RunLine {
@@ -116,6 +116,24 @@ describe("countsBySource (F06 §12)", () => {
       { ...line(null), excluded: true },
     ];
     expect(countsBySource(lines)).toEqual({ measured: 2, derived: 1, manual: 1, flagged: 1 });
+  });
+});
+
+describe("lines to confirm (review A-05)", () => {
+  const partial = line(null, { key: "partial", toConfirm: { measured: 2, elements: 3 } });
+  const contradicted = line(null, { key: "contradicted", source: "derived", toConfirm: { measured: 1, elements: 1, questions: ["contradiction:volume:IfcSlab:Floor"] } });
+  const plain = line(null, { key: "plain" });
+
+  it("shows a measured or derived line the engine marks toConfirm as to confirm", () => {
+    expect(shownSource(partial)).toBe("flagged");
+    expect(shownSource(contradicted)).toBe("flagged");
+    expect(shownSource(plain)).toBe("measured");
+    expect(shownSource(line(null, { source: "manual", toConfirm: { measured: 1, elements: 2 } }))).toBe("manual");
+  });
+
+  it("finds and counts them with the lines to confirm", () => {
+    expect(filterLines([partial, contradicted, plain], { source: "flagged" }).map((l) => l.key)).toEqual(["partial", "contradicted"]);
+    expect(countsBySource([partial, contradicted, plain])).toEqual({ measured: 1, derived: 0, manual: 0, flagged: 2 });
   });
 });
 

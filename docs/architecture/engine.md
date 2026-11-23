@@ -212,6 +212,12 @@ maps read (used to decide which unknown names matter).
    same claim name on elements raise one `double_claim` question per claim and set of rules
    (before any line is made); the answer names the rule that keeps them, or "both".
 
+A line that has a quantity but needs a look gets `toConfirm` (A-05): `{measured, elements}` when some of its
+elements had no value, `questions` when an element's quantity rests on an open `contradiction` (measure marks
+such elements `contradictions`; an aggregate measured from its parts inherits its parts'). A derived line
+follows its source lines; a person's quantity edit confirms a line. `stats.flaggedLines` counts these lines
+with the lines without a quantity; the sheet shows them "To confirm" and the Excel in yellow with the reason.
+
 `finalize_lines()` flags lines where no element had a value, applies line minimum and line
 rounding, records the most common value of mixable fields (material, element_type, storey,
 ifc_class, is_external...) for classification and notes which are mixed, and sets the line's

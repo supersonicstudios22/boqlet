@@ -361,6 +361,9 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         return (0 if path else 1, path, order.get(l["ruleId"], 999), text)
 
     out_lines = []
+    for l in lines:                    # a person's quantity edit confirms the line (A-05)
+        if "quantity" in (l.get("overridden") or {}).get("fields", []):
+            l.pop("toConfirm", None)
     for l in sorted(lines, key=sort_key):
         if l.get("quantity") is not None:
             l["quantity"] = round(l["quantity"], 6)
@@ -370,7 +373,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         out_lines.append(bl)
     blocking = [q for q in questions if q["blocking"]]
     status = "needs_input" if blocking else "complete"
-    flagged = sum(1 for l in out_lines if l["quantity"] is None)
+    flagged = sum(1 for l in out_lines if l["quantity"] is None or l.get("toConfirm"))   # incl. lines to confirm (A-05)
     log.info("summary", f"{len(out_lines)} lines ({flagged} flagged), {len(questions)} open question(s) "
                         f"({len(blocking)} blocking) -> {status}",
         code="log.summary.result", params=dict(

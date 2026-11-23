@@ -253,7 +253,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
         cell: (l) => (l.quantity === null ? <span title={l.notes[0] ?? toConfirm}>—</span> : num(l.quantity)),
         engine: (l) => engine(l, "quantity", l.edit?.engine.quantity === null || l.edit?.engine.quantity === undefined ? toConfirm : num(l.edit.engine.quantity)),
       }),
-      col("source", t("col.source"), { width: "7.5rem", optional: true, cell: (l) => <SourceTag source={l.source} /> }),
+      col("source", t("col.source"), { width: "7.5rem", optional: true, cell: (l) => <SourceTag source={l.source} toConfirm={l.toConfirm} /> }),
       col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
       col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => (l.family && t.has(`families.${l.family}`) ? t(`families.${l.family}`) : l.family) }),
       col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),

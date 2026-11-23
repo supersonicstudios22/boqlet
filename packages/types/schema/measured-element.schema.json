@@ -391,6 +391,13 @@
           },
           "additionalProperties": false,
           "description": "Stated values taken as an exporter unit error: the file's value is 10^±3 or 10^±6 times the closed mesh's (within 2 %), so the geometry's value is used for that field. The factor is stated / measured (1000 = the file says 1000 times the geometry). Lines measuring such an element carry a note."
+        },
+        "contradictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Open `contradiction` questions about this element's stated quantities (their ids): its quantity rests on the engine's choice until someone answers, so the lines it feeds are `toConfirm` (A-05)."
         }
       },
       "required": [
