@@ -1,5 +1,7 @@
 # Boqlet sign-in and GitHub deployments
 
+Persistent pilot testing accounts and their operator setup are documented in [Pilot test users](test-users.md).
+
 The runbook for the one deployed environment (booqlet.com, P51): how people get accounts, and how
 a push to `main` reaches the host. Dated paragraphs ("On 2026-11-…") are the record of what was
 done and stay as written. The architecture behind sign-in: `docs/architecture/security.md`.

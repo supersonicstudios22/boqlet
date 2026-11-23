@@ -170,6 +170,15 @@ Phase, branch and mock details in P11, P38–P40, P44–P46, P52 are history now
 | P56 | **The owner's logo, and a splash after sign-in** (2026-11-22, the owner). The logo is the owner's SVG and animation (`docs/brand/`); the app draws it everywhere the wordmark was set in Inter Tight. After each sign-in the app opens with the logo animation at the owner's exact timing (5.3 s, no rewind: it stops on "boqlet"), over the app while it loads, then fades into it; once per sign-in, never on a reload, skipped by a click or any key, the finished logo only with reduced motion. Chosen over the sign-in page itself (where people type) and over a splash on every page load. Design: `docs/development/design-guidelines.md` "Brand". |
 | P57 | **Plans are the platform admin's to configure, Free is one person with one org, and anyone may sign up** (2026-11-22, the owner). Whoever registers starts on the free plan, which allows one seat and one owned org. The platform admin configures every plan, the free plan included, in the admin console: name, description, price, order, whether customers see it, which plan new orgs start on, and every limit and feature the backend enforces (seats, active projects, owned orgs per person, model size, models per BoQ, processing minutes, company presets, audit history; share links, review and approval, the export watermark; module keys). A limit is data in the plan; a new kind of limit still needs code (`EntitlementCatalogue`). A plan change applies to every org on it at once and deletes nothing: use past a lowered limit is refused from then on. One platform currency for every price; prices are shown, not charged, until a payment provider (D7). Public sign-up is a platform setting, off until the admin opens it; sign-up emails a one-hour link that proves the address, an address with an account is told so, and the answer never says which addresses have accounts. Bot protection is basic for now (a hidden field, a minimum fill time, per-address and per-email throttling), to be upgraded later. Self-service password reset by email comes with it. Refines P08 and P17 (the commercial model stays the admin's data); settles BE-D12 for now; answers Q40. |
 
+## Pilot testing accounts
+
+On 2026-11-23 the owner requested persistent seeded testing users on the deployed app.
+The operator seed creates a shared test organisation with owner, estimator, approver and
+viewer accounts, separate random passwords and a Duplex sample. Test credentials live in
+the private operator state. The seed runs explicitly and preserves passwords and existing
+test work on retry. Its four-seat and approval overrides apply only to that test organisation.
+See [Pilot test users](operations/test-users.md).
+
 ## Backend decisions (BE-000)
 
 The backend owner confirmed the backend plan and its defaults on 2026-11-16 (the questions they
