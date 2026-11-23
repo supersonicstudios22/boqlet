@@ -40,7 +40,7 @@
   "ruleId": "slabs",
   "description": "Slab, Simple floor",
   "unit": "m2",
-  "quantity": 80262.86,
+  "quantity": 80.26,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -52,7 +52,7 @@
   "ruleId": "slab-concrete",
   "description": "In-situ concrete, Simple floor",
   "unit": "m3",
-  "quantity": 13243.37,
+  "quantity": 13.24,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -88,7 +88,7 @@
   "ruleId": "rebar-estimate-slabs",
   "description": "Reinforcement to slabs (estimated)",
   "unit": "t",
-  "quantity": 1324.34,
+  "quantity": 1.32,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -196,7 +196,7 @@
   "ruleId": "slabs",
   "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
   "unit": "m2",
-  "quantity": 146199.06,
+  "quantity": 146.2,
   "source": "measured",
   "codes": {
    "demo-trades": "99"

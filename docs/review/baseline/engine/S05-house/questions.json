@@ -20,7 +20,8 @@
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": false
     }
    ]
   },
@@ -35,7 +36,10 @@
    "reported": 0.55,
    "geometry": 0.49300000553578055,
    "source": "material layer set",
-   "unit": "m"
+   "unit": "m",
+   "used": "reported",
+   "unitError": false,
+   "scale": null
   },
   "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?"
  },
@@ -58,7 +62,8 @@
     },
     {
      "value": "geometry",
-     "label": "Use the volume measured from the geometry"
+     "label": "Use the volume measured from the geometry",
+     "recommended": false
     }
    ]
   },
@@ -73,7 +78,10 @@
    "reported": 2.010723000000178,
    "geometry": 2.856211,
    "source": "PSet_Revit_Dimensions.Volume",
-   "unit": "m3"
+   "unit": "m3",
+   "used": "reported",
+   "unitError": false,
+   "scale": null
   },
   "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the volume stated in the file and the geometry disagree by +42% (e.g. 2.011 m3 from PSet_Revit_Dimensions.Volume vs 2.856 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
  },

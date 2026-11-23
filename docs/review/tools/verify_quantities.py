@@ -186,30 +186,23 @@ CHECKS = [
     dict(id="S08-column-length", sample="S08", rule="linear-other", line="450 x 450", guids=["3OQjd9jwr1COqcP44Fm6HA"],
          what="IfcColumn length m", script=("length", ["3OQjd9jwr1COqcP44Fm6HA"]), hand=3.000),
     # S08 pile cap 1175183 (IfcSlab BASESLAB): profile 3800 x 3800 mm, depth 1000 mm.
-    # plan (top) 3.800 x 3.800 = 14.440 m2. The app reports Qto_SlabBaseQuantities.NetArea = 44.08,
-    # which is the exporter's total surface (2 x 14.44 + 4 x 3.8 x 1.0 = 44.08).
+    # plan (top) 3.800 x 3.800 = 14.440 m2. The file's Qto_SlabBaseQuantities.NetArea = 44.08 is the
+    # exporter's total surface (2 x 14.44 + 4 x 3.8 x 1.0); FIXED by WP-A1 A-03 (NetArea > GrossArea skipped).
     dict(id="S08-pilecap-area", sample="S08", rule="slabs", line="3800 x 3800", guids=["3OQjd9jwr1COqcP44Fm6DW"],
-         what="IfcSlab (pile cap) top area m2", script=("top", ["3OQjd9jwr1COqcP44Fm6DW"]), hand=14.440,
-         known={"app": 44.08, "note": "QS-003: reported NetArea (an exporter error) adopted with no area "
-                                      "contradiction check; plan area is 14.44 m2 (+205 %)"}),
-    # ... edge formwork: perimeter 4 x 3.800 = 15.200 m x depth 1.000 m = 15.200 m2. The app multiplies by
-    # Qto_SlabBaseQuantities.Width = 3800 mm (the exporter put the plan width there) -> 57.76 m2
+         what="IfcSlab (pile cap) top area m2", script=("top", ["3OQjd9jwr1COqcP44Fm6DW"]), hand=14.440),
+    # ... edge formwork: perimeter 4 x 3.800 = 15.200 m x depth 1.000 m = 15.200 m2. The file's
+    # Qto_SlabBaseQuantities.Width = 3800 mm is the plan width (57.76 m2 before WP-A1 A-03, which takes the thin axis)
     dict(id="S08-pilecap-edge-formwork", sample="S08", rule="formwork-slab-edges", line="", guids=["3OQjd9jwr1COqcP44Fm6DW"],
-         what="edge formwork m2", script=("vert_faces", ["3OQjd9jwr1COqcP44Fm6DW"]), hand=15.200,
-         known={"app": 57.76, "note": "QS-003: thickness = reported Width 3.8 m although the engine's own "
-                                      "contradiction question says 1.0 m"}),
+         what="edge formwork m2", script=("vert_faces", ["3OQjd9jwr1COqcP44Fm6DW"]), hand=15.200),
     # S09 ground floor 286349: IfcRectangleProfileDef #33932 8667.5 x 16867.5 mm, depth 470 mm
-    # plan 8.6675 x 16.8675 = 146.19906 m2. The app: BaseQuantities.GrossVolume 68713.556 (the exporter
-    # wrote m2 x mm) / 0.470 m layer thickness = 146199.06 m2
+    # plan 8.6675 x 16.8675 = 146.19906 m2. Before WP-A1 (A-01) the app took BaseQuantities.GrossVolume
+    # 68713.556 (the exporter wrote m2 x mm) / 0.470 m = 146199.06 m2; it now reads BaseQuantities.GrossArea
     dict(id="S09-slab-area", sample="S09", rule="slabs", line="Floor-Grnd-Susp", guids=["3cUkl32yn9qRSPvBJVyWgQ"],
-         what="IfcSlab top area m2", script=("top", ["3cUkl32yn9qRSPvBJVyWgQ"]), hand=146.19906,
-         known={"app": 146199.056251, "note": "QS-001: a reported volume 1000x the geometry is adopted; only a "
-                                              "non-blocking question, recommending the reported value"}),
+         what="IfcSlab top area m2", script=("top", ["3cUkl32yn9qRSPvBJVyWgQ"]), hand=146.19906),
     # S09 first floor 295048: polygon -> 5.735 x 13.9675 + 0.0325 x 4.900 = 80.26286 m2; x 0.165 m
-    # = 13.24337 m3. The app adopts BaseQuantities.GrossVolume = 13243.37 (1000x)
+    # = 13.24337 m3. The file's BaseQuantities.GrossVolume = 13243.37 (1000x) is a unit error (WP-A1 A-02)
     dict(id="S09-floor-volume", sample="S09", rule="slab-concrete", line="Simple floor", guids=["3ntFzSulnDNeQ4nJrMgcOt"],
-         what="IfcSlab concrete m3", script=("volume", ["3ntFzSulnDNeQ4nJrMgcOt"]), hand=13.243372,
-         known={"app": 13243.372312, "note": "QS-001: same exporter unit error, 1000x"}),
+         what="IfcSlab concrete m3", script=("volume", ["3ntFzSulnDNeQ4nJrMgcOt"]), hand=13.243372),
 ]
 
 ABS_TOL, REL_TOL = 0.011, 0.005

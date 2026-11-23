@@ -208,7 +208,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 11.52,
+  "quantity": 5.76,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04"
@@ -244,7 +244,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 57.76,
+  "quantity": 15.2,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04"
@@ -364,7 +364,7 @@
   "ruleId": "slabs",
   "description": "Slab, 3800 x 3800 x 600mm",
   "unit": "m2",
-  "quantity": 44.08,
+  "quantity": 14.44,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -376,7 +376,7 @@
   "ruleId": "slabs",
   "description": "Slab, 400 x 400 x 900mm",
   "unit": "m2",
-  "quantity": 10.56,
+  "quantity": 0.96,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -388,7 +388,7 @@
   "ruleId": "slabs",
   "description": "Slab, 600 x 600 x 900mm",
   "unit": "m2",
-  "quantity": 11.52,
+  "quantity": 2.88,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -400,7 +400,7 @@
   "ruleId": "slabs",
   "description": "Slab, 600mm Diameter",
   "unit": "m2",
-  "quantity": 98.57,
+  "quantity": 1.2,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -412,7 +412,7 @@
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete",
   "unit": "m2",
-  "quantity": 327.6,
+  "quantity": 143.78,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -424,7 +424,7 @@
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete 250mm",
   "unit": "m2",
-  "quantity": 164.07,
+  "quantity": 70.07,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -436,7 +436,7 @@
   "ruleId": "slabs",
   "description": "Slab, Plywood double brace",
   "unit": "m2",
-  "quantity": 182.04,
+  "quantity": 90.07,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -448,7 +448,7 @@
   "ruleId": "slabs",
   "description": "Slab, Rigid Insulation",
   "unit": "m2",
-  "quantity": 184.05,
+  "quantity": 89.87,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"

@@ -26,9 +26,9 @@
  {
   "key": "walls | AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040 | True |  | m2",
   "ruleId": "walls",
-  "description": "Wall, AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040, 4490.571 mm",
+  "description": "Wall, AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040, 420 mm",
   "unit": "m2",
-  "quantity": 1.49,
+  "quantity": 15.88,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"

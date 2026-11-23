@@ -7,18 +7,19 @@
    "3cUkl32yn9qRSPvBJVyWgQ"
   ],
   "occurrences": 1,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the volume stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the volume measured from the geometry"
+     "label": "Use the volume measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -33,9 +34,12 @@
    "reported": 68713.556438,
    "geometry": 68.713556,
    "source": "BaseQuantities.GrossVolume",
-   "unit": "m3"
+   "unit": "m3",
+   "used": "geometry",
+   "unitError": true,
+   "scale": "1000"
   },
-  "message": "1 x IfcSlab 'Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC': the volume stated in the file and the geometry disagree by -100% (e.g. 68713.556 m3 from BaseQuantities.GrossVolume vs 68.714 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+  "message": "1 x IfcSlab 'Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC': the volume stated in the file and the geometry disagree by -100% (e.g. 68713.556 m3 from BaseQuantities.GrossVolume vs 68.714 m3 measured). The stated value looks like a unit error (x1000); the measured value is used. Which should be used?"
  },
  {
   "id": "contradiction:volume:IfcSlab:Simple floor",
@@ -45,18 +49,19 @@
    "3ntFzSulnDNeQ4nJrMgcOt"
   ],
   "occurrences": 1,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the volume stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the volume measured from the geometry"
+     "label": "Use the volume measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -71,9 +76,12 @@
    "reported": 13243.372312,
    "geometry": 13.243372,
    "source": "BaseQuantities.GrossVolume",
-   "unit": "m3"
+   "unit": "m3",
+   "used": "geometry",
+   "unitError": true,
+   "scale": "1000"
   },
-  "message": "1 x IfcSlab 'Simple floor': the volume stated in the file and the geometry disagree by -100% (e.g. 13243.372 m3 from BaseQuantities.GrossVolume vs 13.243 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+  "message": "1 x IfcSlab 'Simple floor': the volume stated in the file and the geometry disagree by -100% (e.g. 13243.372 m3 from BaseQuantities.GrossVolume vs 13.243 m3 measured). The stated value looks like a unit error (x1000); the measured value is used. Which should be used?"
  },
  {
   "id": "name:layer_material:Air",

@@ -23,7 +23,7 @@
    "S02": 0.04
   },
   "runSeconds": 0.01,
-  "totalSeconds": 0.53
+  "totalSeconds": 0.5
  },
  "outcome": "result",
  "status": "complete",
@@ -43,7 +43,7 @@
   "blockingQuestions": 0,
   "warnings": 0
  },
- "peakMemoryMB": 89.8,
+ "peakMemoryMB": 90.1,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

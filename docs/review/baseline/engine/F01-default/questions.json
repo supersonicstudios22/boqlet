@@ -1,5 +1,48 @@
 [
  {
+  "id": "contradiction:area:IfcSlab:Pad 2",
+  "kind": "contradiction",
+  "blocking": true,
+  "guids": [
+   "3Pf5WxDcT7yf4sAHDxknUs",
+   "1ypci01sD9aQpE0S$W9jFF"
+  ],
+  "occurrences": 2,
+  "suggestion": "geometry",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the area stated in the file",
+     "recommended": false
+    },
+    {
+     "value": "geometry",
+     "label": "Use the area measured from the geometry",
+     "recommended": true
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 2,
+   "ifcClass": "IfcSlab",
+   "typeName": "Pad 2",
+   "quantity": "area",
+   "minDifference": -0.5338408260480733,
+   "maxDifference": -0.5216004011972449,
+   "reported": 320.539117,
+   "geometry": 149.42225,
+   "source": "Qto_SlabBaseQuantities.NetArea",
+   "unit": "m2",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
+  },
+  "message": "2 x IfcSlab 'Pad 2': the area stated in the file and the geometry disagree by -53% to -52% (e.g. 320.539 m2 from Qto_SlabBaseQuantities.NetArea vs 149.422 m2 measured). The measured value is used. Which should be used?"
+ },
+ {
   "id": "contradiction:thickness:IfcSlab:600 x 600 x 900mm",
   "kind": "contradiction",
   "blocking": false,
@@ -25,18 +68,19 @@
    "1bOeIks4fCNAuMrZZw4ivm"
   ],
   "occurrences": 19,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the thickness stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -51,30 +95,76 @@
    "reported": 0.6,
    "geometry": 0.3,
    "source": "Qto_SlabBaseQuantities.Width",
-   "unit": "m"
+   "unit": "m",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
   },
-  "message": "11 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The stated value is used. Which should be used?"
+  "message": "19 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The measured value is used. Which should be used?"
+ },
+ {
+  "id": "contradiction:area:IfcSlab:Warm Roof - Timber",
+  "kind": "contradiction",
+  "blocking": true,
+  "guids": [
+   "0LKJKCHUL1kBtnlFXddz6a"
+  ],
+  "occurrences": 1,
+  "suggestion": "geometry",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the area stated in the file",
+     "recommended": false
+    },
+    {
+     "value": "geometry",
+     "label": "Use the area measured from the geometry",
+     "recommended": true
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcSlab",
+   "typeName": "Warm Roof - Timber",
+   "quantity": "area",
+   "minDifference": 9.763911064074374,
+   "maxDifference": 9.763911064074374,
+   "reported": 6.57642,
+   "geometry": 70.788,
+   "source": "Qto_SlabBaseQuantities.GrossArea",
+   "unit": "m2",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
+  },
+  "message": "1 x IfcSlab 'Warm Roof - Timber': the area stated in the file and the geometry disagree by +976% (e.g. 6.576 m2 from Qto_SlabBaseQuantities.GrossArea vs 70.788 m2 measured). The measured value is used. Which should be used?"
  },
  {
   "id": "contradiction:thickness:IfcSlab:Monolithic Landing:220mm Thickness",
   "kind": "contradiction",
-  "blocking": false,
+  "blocking": true,
   "guids": [
    "1N_4TwOEH5194SbNmRTDH0"
   ],
   "occurrences": 1,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the thickness stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -89,9 +179,54 @@
    "reported": 6.0,
    "geometry": 0.29443037974683545,
    "source": "Qto_SlabBaseQuantities.Width",
-   "unit": "m"
+   "unit": "m",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
   },
-  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the thickness stated in the file and the geometry disagree by -95% (e.g. 6 m from Qto_SlabBaseQuantities.Width vs 0.294 m measured). The stated value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the thickness stated in the file and the geometry disagree by -95% (e.g. 6 m from Qto_SlabBaseQuantities.Width vs 0.294 m measured). The measured value is used. Which should be used?"
+ },
+ {
+  "id": "contradiction:area:IfcSlab:Monolithic Landing:220mm Thickness",
+  "kind": "contradiction",
+  "blocking": true,
+  "guids": [
+   "1N_4TwOEH5194SbNmRTDH0"
+  ],
+  "occurrences": 1,
+  "suggestion": "geometry",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the area stated in the file",
+     "recommended": false
+    },
+    {
+     "value": "geometry",
+     "label": "Use the area measured from the geometry",
+     "recommended": true
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcSlab",
+   "typeName": "Monolithic Landing:220mm Thickness",
+   "quantity": "area",
+   "minDifference": 19.37833190025795,
+   "maxDifference": 19.37833190025795,
+   "reported": 0.5815,
+   "geometry": 11.85,
+   "source": "Qto_SlabBaseQuantities.GrossArea",
+   "unit": "m2",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
+  },
+  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the area stated in the file and the geometry disagree by +1938% (e.g. 0.582 m2 from Qto_SlabBaseQuantities.GrossArea vs 11.85 m2 measured). The measured value is used. Which should be used?"
  },
  {
   "id": "contradiction:thickness:IfcWall:SIP 202mm Wall - conc clad",
@@ -113,7 +248,8 @@
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": false
     }
    ]
   },
@@ -128,7 +264,10 @@
    "reported": 0.202,
    "geometry": 0.17978846080381516,
    "source": "material layer set",
-   "unit": "m"
+   "unit": "m",
+   "used": "reported",
+   "unitError": false,
+   "scale": null
   },
   "message": "2 x IfcWall 'SIP 202mm Wall - conc clad': the thickness stated in the file and the geometry disagree by -11% to -10% (e.g. 0.202 m from material layer set vs 0.18 m measured). The stated value is used. Which should be used?"
  },
@@ -152,7 +291,8 @@
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": false
     }
    ]
   },
@@ -167,30 +307,34 @@
    "reported": 0.12,
    "geometry": 0.1035407339496334,
    "source": "material layer set",
-   "unit": "m"
+   "unit": "m",
+   "used": "reported",
+   "unitError": false,
+   "scale": null
   },
   "message": "2 x IfcWall 'Interior - Partition': the thickness stated in the file and the geometry disagree by -14% (e.g. 0.12 m from material layer set vs 0.104 m measured). The stated value is used. Which should be used?"
  },
  {
   "id": "contradiction:thickness:IfcSlab:3800 x 3800 x 600mm",
   "kind": "contradiction",
-  "blocking": false,
+  "blocking": true,
   "guids": [
    "3OQjd9jwr1COqcP44Fm6DW"
   ],
   "occurrences": 1,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the thickness stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -205,9 +349,12 @@
    "reported": 3.8,
    "geometry": 1.0,
    "source": "Qto_SlabBaseQuantities.Width",
-   "unit": "m"
+   "unit": "m",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
   },
-  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The stated value is used. Which should be used?"
+  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The measured value is used. Which should be used?"
  },
  {
   "id": "unmatched:IfcSystemFurnitureElement:hood enclosure",

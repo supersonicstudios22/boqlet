@@ -27,7 +27,7 @@
  },
  "timing": {
   "parseSeconds": {
-   "S04": 1.6
+   "S04": 1.7
   },
   "runSeconds": 1.7,
   "totalSeconds": 11.6

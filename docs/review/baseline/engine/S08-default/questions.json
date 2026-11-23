@@ -14,18 +14,19 @@
    "1bOeIks4fCNAuMrZZw4ivm"
   ],
   "occurrences": 8,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the thickness stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -40,30 +41,34 @@
    "reported": 0.6,
    "geometry": 0.3,
    "source": "Qto_SlabBaseQuantities.Width",
-   "unit": "m"
+   "unit": "m",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
   },
-  "message": "8 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The stated value is used. Which should be used?"
+  "message": "8 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The measured value is used. Which should be used?"
  },
  {
   "id": "contradiction:thickness:IfcSlab:3800 x 3800 x 600mm",
   "kind": "contradiction",
-  "blocking": false,
+  "blocking": true,
   "guids": [
    "3OQjd9jwr1COqcP44Fm6DW"
   ],
   "occurrences": 1,
-  "suggestion": "reported",
+  "suggestion": "geometry",
   "answer": {
    "kind": "choice",
    "options": [
     {
      "value": "reported",
      "label": "Use the thickness stated in the file",
-     "recommended": true
+     "recommended": false
     },
     {
      "value": "geometry",
-     "label": "Use the thickness measured from the geometry"
+     "label": "Use the thickness measured from the geometry",
+     "recommended": true
     }
    ]
   },
@@ -78,9 +83,12 @@
    "reported": 3.8,
    "geometry": 1.0,
    "source": "Qto_SlabBaseQuantities.Width",
-   "unit": "m"
+   "unit": "m",
+   "used": "geometry",
+   "unitError": false,
+   "scale": null
   },
-  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The stated value is used. Which should be used?"
+  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The measured value is used. Which should be used?"
  },
  {
   "id": "name:layer_material:Damp-proofing",

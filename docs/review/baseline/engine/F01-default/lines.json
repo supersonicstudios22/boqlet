@@ -52,7 +52,7 @@
   "ruleId": "slabs",
   "description": "Slab, Generic 150mm",
   "unit": "m2",
-  "quantity": 257.72,
+  "quantity": 123.91,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.02"
@@ -64,7 +64,7 @@
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete 225mm",
   "unit": "m2",
-  "quantity": 210.89,
+  "quantity": 96.25,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.02"
@@ -76,7 +76,7 @@
   "ruleId": "slabs",
   "description": "Slab, Timber Suspended Floor",
   "unit": "m2",
-  "quantity": 157.68,
+  "quantity": 74.22,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.02"
@@ -280,7 +280,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 15.84,
+  "quantity": 7.92,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04"
@@ -328,7 +328,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 57.76,
+  "quantity": 15.2,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04"
@@ -640,7 +640,7 @@
   "ruleId": "roofs",
   "description": "Roof, Warm Roof - Timber",
   "unit": "m2",
-  "quantity": 153.61,
+  "quantity": 70.79,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "F.01"
@@ -652,7 +652,7 @@
   "ruleId": "slabs",
   "description": "Slab, 150mm Foundation Slab",
   "unit": "m2",
-  "quantity": 256.4,
+  "quantity": 123.39,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -664,7 +664,7 @@
   "ruleId": "slabs",
   "description": "Slab, 3800 x 3800 x 600mm",
   "unit": "m2",
-  "quantity": 44.08,
+  "quantity": 14.44,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -676,7 +676,7 @@
   "ruleId": "slabs",
   "description": "Slab, 400 x 400 x 900mm",
   "unit": "m2",
-  "quantity": 10.56,
+  "quantity": 0.96,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -688,7 +688,7 @@
   "ruleId": "slabs",
   "description": "Slab, 600 x 600 x 900mm",
   "unit": "m2",
-  "quantity": 15.84,
+  "quantity": 3.96,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -700,7 +700,7 @@
   "ruleId": "slabs",
   "description": "Slab, 600mm Diameter",
   "unit": "m2",
-  "quantity": 115.96,
+  "quantity": 1.41,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -712,7 +712,7 @@
   "ruleId": "slabs",
   "description": "Slab, Generic 300",
   "unit": "m2",
-  "quantity": 237.17,
+  "quantity": 109.49,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -724,7 +724,7 @@
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete",
   "unit": "m2",
-  "quantity": 327.6,
+  "quantity": 143.78,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -736,7 +736,7 @@
   "ruleId": "slabs",
   "description": "Slab, Pad 2",
   "unit": "m2",
-  "quantity": 921.16,
+  "quantity": 436.76,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -748,7 +748,7 @@
   "ruleId": "slabs",
   "description": "Slab, Plywood double brace",
   "unit": "m2",
-  "quantity": 182.04,
+  "quantity": 90.07,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"
@@ -760,7 +760,7 @@
   "ruleId": "slabs",
   "description": "Slab, Rigid Insulation",
   "unit": "m2",
-  "quantity": 184.05,
+  "quantity": 89.87,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01"

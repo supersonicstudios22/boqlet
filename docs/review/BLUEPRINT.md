@@ -206,6 +206,20 @@ its parts need different fixes (coverage table, section 7).
 | DEC-75 | **Global search** (FM-31) is planned in Phase C (C-09) as a power-user flow, not Phase D. | It is navigation, not a new capability. |
 | DEC-76 | **Reference-project accuracy validation** (PRD-007, FM-83) is the first Phase D package (WP-D1), before commercial work. | "Before any paid pilot" (PRD-007); trust precedes billing. |
 
+### 3.6 Judgement calls made while executing packages
+
+Calls a package session made where an item was ambiguous or its text disagreed with the code or with another
+item. The package's PROGRESS.md row points here.
+
+| Id | Package / item | Decision | Rationale |
+|---|---|---|---|
+| DEC-77 | WP-A1 A-02 | **999× is a unit error.** A-02's Tests line lists "999 (not a unit error)", but the rule it implements (DEC-31, A-02's approach) is "within 2 % of 10^±3 / 10^±6", and 999 is 0.1 % from 1000. The 2 % rule is kept; tests pin 999× and 1019× as unit errors and 970×, 1030× as ordinary contradictions. | The documented rule wins over one example in a test list; a band narrower than 0.1 % would miss real exports rounded to a few digits. |
+| DEC-78 | WP-A1 A-03 | **"Width exceeds the plan dimensions" applies only to clear plates** (the gate the existing thickness check uses: thin axis ≤ half the middle one, sides within 30 %). | S07/S08 steel piles are modelled as `IfcSlab` BASESLAB with `Width` = their 6 m length, consistent with their stated volume and area; their "plan" is 0.3 m, so the literal rule would turn every pile into a 0.3 m plate. |
+| DEC-79 | WP-A1 A-02…A-04 | **A contradiction's `suggestion` is what the engine uses while nobody answers**, as `Question.suggestion` is documented ("what the engine would use if nobody answers"); "recommended" and "used" are therefore the same. A question collecting several elements suggests the geometry as soon as one of them uses it (unit error, implausible value, a plate's stated Width); each element's own line note and log say what it used. | One meaning for `suggestion` in the contract; a recommendation the engine does not follow would leave the ×1000 value in a blocking run's interim sheet. |
+| DEC-80 | WP-A1 A-04 | **`presets/settings/resolution.json` is not edited**; the defaults (10 / 50) live in the type's docs and `measure.py`. | `V5__Seed_system_presets` seeds system presets once: a new key in the file would reach fresh databases only, and the pilot's copy would differ from every developer's. Absent keys take the defaults everywhere. |
+| DEC-81 | WP-A1 A-04 | **Resolution drafts are checked by the engine before publishing** (`presets.check("resolution")`, registered in `Library.java` CHECKS); `ResolutionSettings` gains optional `id` / `name`. Federation drafts stay unchecked (N-01). | A-04's "preset check refuses bad values" needs the check to run; the new scenario showed that the Library writes `id`/`name` into every resolution preset, which the schema refused, so a run on an org resolution preset could not pass the worker's schema check (a pre-existing defect, fixed because A-04's acceptance depends on it). |
+| DEC-82 | WP-A1 | **The baseline is recaptured once, in the package's last commit**, not per item; each item's baseline effect is recorded in PROGRESS.md's log with its item id. | The Phase A text ("every package that moves numbers recaptures the baseline in its last commit"); a full capture takes ~50 min. |
+
 ### 3.5 Spec-issue findings: which doc changes and how
 
 The item that implements the change also edits the doc in the same commit; doc-only corrections are in B-17.

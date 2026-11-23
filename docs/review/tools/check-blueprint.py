@@ -11,7 +11,7 @@
   - the coverage table lists all 186 findings + VER-001..007, each mapped to items (or rejected: CAS-030, CAS-032)
   - the coverage table lists FM-01..FM-123; every non-built row is mapped to an item, a non-goal or the deferral
   - the coverage table agrees with the items' Sources lines
-  - PROGRESS.md lists every package as todo
+  - PROGRESS.md lists every package with a known status (todo, in progress, done, blocked)
 Exit 0 when everything passes.
 """
 from __future__ import annotations
@@ -214,8 +214,8 @@ for w in wps:
     m = re.search(rf"^\| {re.escape(w)} \|[^|]*\| (\w[\w ]*) \|", progress, re.M)
     if not m:
         errors.append(f"PROGRESS.md: {w} missing")
-    elif m.group(1).strip() != "todo":
-        errors.append(f"PROGRESS.md: {w} status {m.group(1)!r}")
+    elif m.group(1).strip() not in ("todo", "in progress", "done", "blocked"):
+        errors.append(f"PROGRESS.md: {w} status {m.group(1)!r} (todo, in progress, done or blocked)")
 for word in ["review/blueprint"]:
     if word in bp or word in progress:
         errors.append(f"mention of {word!r} remains")
