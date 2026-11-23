@@ -33,6 +33,7 @@ from .expr import Expr, fmt
 from .federation import combine
 from .log import CalcLog
 from .measure import build as measure, building_measures, merge_question, public_question
+from .plausibility import element_warnings, line_warnings
 from .names import Resolver, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
 from .trace_steps import finish as finish_trace
@@ -267,6 +268,12 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             apply_quantity(line, edit)
     lines = item_lines + derived_lines + manual_lines
     warnings += eng.warnings
+    # plausibility (A-07, A-08): what an element is and how big it is; warnings only, never a number
+    geometry = {e["id"]: e["quantities"]["geometry"] for m in models for e in m["parsed"]["elements"]}
+    plausible = element_warnings(elements, geometry, eng.matched, resolution) + line_warnings(item_lines, elements, building, resolution)
+    for w in plausible:
+        log.warn("measure", w["message"], code="log.measure.plausibility", params=dict(warning=w["code"], **w["params"]))
+    warnings += plausible
     questions: list[dict] = list(eng.questions) + fed_questions + [public_question(q) for q in measure_questions.values()]
 
     # 4. coverage -------------------------------------------------------------------------

@@ -32,6 +32,9 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format) => Re
   // An edit moving a line to a code not in the list is not applied (BR-09, TF-052).
   unknown_code: (p) => ({ kind: p.edit === true ? "edit" : p.mapRuleId ? "rule" : "line" }),
   item_text_blank: (p) => ({ blankRef: `{${String(p.blank ?? "")}}` }),
+  // Plausibility warnings (review A-07, A-08): an absent width or wall reads "none" for the catalogue's select.
+  implausible: (p, format) => ({ width: typeof p.width === "number" ? format.number(p.width) : "none" }),
+  unhosted_opening: (p) => ({ wall: typeof p.wall === "string" && p.wall ? p.wall : "none" }),
 };
 
 /** Params as ICU values: lists in the user's language, booleans for `select`, units with superscripts, empty for null. */

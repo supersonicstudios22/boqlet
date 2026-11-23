@@ -211,6 +211,8 @@ project using it is asked again.
   Library has a resolution-settings kind (**New resolution settings**: the contradiction thresholds as
   fields, everything else as JSON) that a BoQ can pick under Setup › Advanced. The same settings say when a
   quantity stated in the file that disagrees with the geometry is asked about (**Ask above**, default 10 %)
-  and when that question blocks the BoQ (**Block above**, default 50 %; never below Ask above).
+  and when that question blocks the BoQ (**Block above**, default 50 %; never below Ask above). Its `plausibility`
+  block (JSON) tunes the warnings about implausible slabs: `maxSlabThickness`, `storeySlabAreaFactor` and
+  `slabNameWords` (add the words your models use for piles, pads and caps; an empty list turns the name check off).
 - "Suggestion" in Names in the model matches words of the name to the meanings; AI suggestions are
   not built yet.

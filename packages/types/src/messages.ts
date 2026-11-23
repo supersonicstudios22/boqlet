@@ -22,7 +22,9 @@ export type WarningCode =
   | "federation_coordinates"
   | "federation_overlap"
   | "federation_unhosted"
-  | "double_claim";
+  | "double_claim"
+  | "implausible"
+  | "unhosted_opening";
 
 export type LogCode =
   | "log.parse.model"
@@ -86,6 +88,7 @@ export type LogCode =
   | "log.manual.line"
   | "log.measure.volume_conflict"
   | "log.measure.unit_scale"
+  | "log.measure.plausibility"
   | "log.measure.adopted"
   | "log.measure.embedded"
   | "log.measure.room"

@@ -190,6 +190,20 @@ export interface ResolutionSettings {
    * @maximum 1000
    */
   contradictionBlockPct?: number;
+  /**
+   * Plausibility warnings (review A-07): never a number, never blocking. `maxSlabThickness` (m, default 1.5): a
+   * slab thicker than this; `storeySlabAreaFactor` (default 3): a storey whose floor slabs exceed this times the
+   * footprint; `slabNameWords`: whole words in a slab's name or type that say it is something else (default: pile,
+   * pad and cap in several languages, `engine/ifc_boq/plausibility.py`; an empty list turns the check off).
+   */
+  plausibility?: {
+    /** @exclusiveMinimum 0 */
+    maxSlabThickness?: number;
+    /** @minimum 1 */
+    storeySlabAreaFactor?: number;
+    /** @maxItems 200 */
+    slabNameWords?: string[];
+  };
 }
 
 export interface Resolution {

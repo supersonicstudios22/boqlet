@@ -270,6 +270,15 @@ traces and the log.
 To add a function: add it to `default_functions()` in `expr.py`, document it in the `Expr`
 comment in `packages/types/src/rules.ts` and here, add a case to `engine/tests/test_expr.py`.
 
+### Plausibility warnings (`plausibility.py`)
+
+After the rules, the pipeline checks what an element is and how big it is (A-07). These are `implausible`
+warnings: they never change a number and never block. Per element type: an `IfcSlab` thicker than its plan width
+(a pile exported as a slab) or than `plausibility.maxSlabThickness` (1.5 m), and a slab whose name or type has one
+of `plausibility.slabNameWords` as a whole word (default: pile, pad, cap in several languages). Per line: a line of
+floor slabs with more m² than footprint × storeys. Per storey: floor slabs over `storeySlabAreaFactor` (3) × the
+footprint. The settings are the resolution settings' `plausibility` block.
+
 ## Questions and decisions
 
 | Kind | Raised by | Id | Blocking | Answer type | Effect of the answer |

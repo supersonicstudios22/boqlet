@@ -17,5 +17,7 @@
   "federation_coordinates": "{first} and {second} do not overlap in space: different coordinate systems? Duplicates and overlaps between them cannot be found.",
   "federation_overlap": "{count} {ifcClass} may be counted twice ({first} and {second}).",
   "federation_unhosted": "{count, plural, one {# door or window} other {# doors or windows}} lost {count, plural, one {its} other {their}} host to another model, which has no opening in {count, plural, one {its} other {their}} place (the wall may be uncut in the model that provides it).",
-  "double_claim": "{count, plural, one {# element} other {# elements}}: rules {rules} all claim “{claim}” (possible double count)."
+  "double_claim": "{count, plural, one {# element} other {# elements}}: rules {rules} all claim “{claim}” (possible double count).",
+  "implausible": "{check, select, slab_thickness {{count} × {ifcClass} “{typeName}”: {thickness, number} m thick{width, select, none {, more than {max, number} m} other { but {width} m wide}}. Is it a slab? Check the class before pricing it as one.} slab_name {{count} × {ifcClass} “{typeName}”: the name says “{word}”. Is it a slab? Check the class before pricing it as one.} line_area {“{description}”: {area, number} m², more than the building’s footprint × storeys ({limit, number} m²).} storey_area {Storey “{storey}”: {area, number} m² of floor slabs, more than {factor, number} × the footprint ({footprint, number} m²).} other {A value looks implausible.}}",
+  "unhosted_opening": "{ifcClass} “{name}” fills no opening: no wall is reduced by it{wall, select, none {.} other { (nearest wall: “{wall}”).}}"
 }

@@ -38,6 +38,8 @@ const EXAMPLES: Record<string, Record<string, unknown>> = {
   federation_overlap: { first: "architecture", second: "structure", count: 4, ifcClass: "IfcColumn" },
   federation_unhosted: { count: 1 },
   double_claim: { count: 2, claim: "slab", rules: ["slabs", "floors"] },
+  implausible: { check: "slab_thickness", count: 11, ifcClass: "IfcSlab", typeName: "600mm Diameter", thickness: 6.002, width: 0.296, max: 1.5 },
+  unhosted_opening: { ifcClass: "IfcWindow", name: "Window 1", wall: "Basic Wall:Exterior" },
 };
 
 describe("engine messages (F15 §4, contract change C01)", () => {
@@ -82,6 +84,13 @@ describe("engine messages (F15 §4, contract change C01)", () => {
       "Rule “Walls” needs a quantity for Wall 1: no area. Enter it in m².",
     );
     expect(render({ code: "item_text_blank", params: EXAMPLES.item_text_blank, message: "" }).text).toBe("[acme] “Walls”: no value for {fire_rating}.");
+    expect(render({ code: "implausible", params: EXAMPLES.implausible, message: "" }).text).toBe(
+      "11 × IfcSlab “600mm Diameter”: 6.002 m thick but 0.296 m wide. Is it a slab? Check the class before pricing it as one.",
+    );
+    expect(render({ code: "implausible", params: { check: "slab_name", count: 2, ifcClass: "IfcSlab", typeName: "Pad 2", word: "pad" }, message: "" }).text).toBe(
+      "2 × IfcSlab “Pad 2”: the name says “pad”. Is it a slab? Check the class before pricing it as one.",
+    );
+    expect(render({ code: "unhosted_opening", params: { ...EXAMPLES.unhosted_opening, wall: null }, message: "" }).text).toBe("IfcWindow “Window 1” fills no opening: no wall is reduced by it.");
   });
 
   it("falls back to the engine's English without a code, for an unknown code, and when a param is missing", () => {

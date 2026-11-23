@@ -97,6 +97,28 @@
           "description": "Above this percentage a `contradiction` question blocks the BoQ (\"needs input\"), unless the stated value is an exporter unit error (the geometry is then used and the question stays optional). Default 50; never below `contradictionWarnPct`.",
           "minimum": 1,
           "maximum": 1000
+        },
+        "plausibility": {
+          "type": "object",
+          "properties": {
+            "maxSlabThickness": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "storeySlabAreaFactor": {
+              "type": "number",
+              "minimum": 1
+            },
+            "slabNameWords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 200
+            }
+          },
+          "additionalProperties": false,
+          "description": "Plausibility warnings (review A-07): never a number, never blocking. `maxSlabThickness` (m, default 1.5): a slab thicker than this; `storeySlabAreaFactor` (default 3): a storey whose floor slabs exceed this times the footprint; `slabNameWords`: whole words in a slab's name or type that say it is something else (default: pile, pad and cap in several languages, `engine/ifc_boq/plausibility.py`; an empty list turns the check off)."
         }
       },
       "required": [
