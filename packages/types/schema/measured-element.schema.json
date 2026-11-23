@@ -489,6 +489,13 @@
           "minItems": 3,
           "maxItems": 3,
           "description": "Outward normal, for orientation-based rules (facade direction)."
+        },
+        "layer_material": {
+          "type": "string",
+          "description": "The outermost material layer on this face (dictionary term and the file's name), from the layer set's order and direction (A-11): what a finish rule looks for, e.g. plasterboard to paint."
+        },
+        "layer_material_raw": {
+          "type": "string"
         }
       },
       "required": [

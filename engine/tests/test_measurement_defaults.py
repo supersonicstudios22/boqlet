@@ -176,3 +176,50 @@ def test_without_the_parse_field_the_box_sides_stand_in():
     f = m["footing-1"]
     assert f["vertical_face_area"] == pytest.approx(2 * (10 + 0.9) * 0.3)
     assert f["provenance"]["vertical_face_area"] == "derived"
+
+
+# ---------------------------------------------------------------- A-11: finishes on their own face, by the opening rule
+def lined_wall_doc(layers: list[tuple[str, float]], sense: str = "POSITIVE") -> dict:
+    """A 10 x 3 m wall along x with a 0.8 m2 and a 1.5 m2 opening (faces 30 - 2.3 = 27.7 m2 each), its
+    layer set stacked along +y (local y of an unrotated placement) from the first layer to the last."""
+    t = sum(th for _, th in layers)
+    ops = [{"id": "op-small", "hostId": "wall-1", "width": 0.8, "height": 1.0, "area": 0.8, "depth": t},
+           {"id": "op-big", "hostId": "wall-1", "width": 1.0, "height": 1.5, "area": 1.5, "depth": t}]
+    el = wall(t=t, volume=27.7 * t, side_a=27.7, side_b=27.7)
+    el["materialRef"] = {"kind": "layerSet", "layerSetId": "ls-1", "direction": "AXIS2", "sense": sense}
+    el["placement"] = {"origin": [0.0, 0.0, 0.0], "xAxis": [1.0, 0.0, 0.0], "zAxis": [0.0, 0.0, 1.0]}
+    d = doc(el, t=t, openings=ops)
+    d["catalogues"]["materials"] = [{"id": f"m-{i}", "name": n} for i, (n, _) in enumerate(layers)]
+    d["catalogues"]["layerSets"] = [{"id": "ls-1", "totalThickness": t,
+                                     "layers": [{"materialId": f"m-{i}", "thickness": th} for i, (_, th) in enumerate(layers)]}]
+    return d
+
+
+def paint(parsed: dict, **params) -> float:
+    from ifc_boq.pipeline import get_boq
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled",
+          "params": {k: {"value": v} for k, v in params.items()}}
+    _, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    return sum(l["quantity"] for l in r["lines"] if l["ruleId"] == "paint-walls")
+
+
+def test_paint_measures_the_faces_that_carry_plasterboard():
+    one = lined_wall_doc([("Concrete Masonry Units", 0.19), ("Plasterboard", 0.0125)])
+    both = lined_wall_doc([("Plasterboard", 0.0125), ("Metal Stud Layer", 0.1), ("Plasterboard", 0.0125)])
+    assert paint(one) == pytest.approx(27.7) and paint(both) == pytest.approx(2 * 27.7)
+    m, _ = measure(one)
+    faces = {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]}
+    assert faces == {"a": "board.plasterboard", "b": "concrete"}        # the last layer faces +y: side a
+    m, _ = measure(lined_wall_doc([("Concrete Masonry Units", 0.19), ("Plasterboard", 0.0125)], sense="NEGATIVE"))
+    assert {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]} == {"a": "concrete", "b": "board.plasterboard"}
+
+
+def test_paint_follows_the_wall_opening_rule_unless_it_has_its_own():
+    """Openings up to 1 m2 kept in the walls: the 0.8 m2 one stays in the paint too (27.7 + 0.8);
+    with a rule of its own, paint deducts every opening while the walls keep the small one."""
+    d = lined_wall_doc([("Concrete Masonry Units", 0.19), ("Plasterboard", 0.0125)])
+    assert paint(d) == pytest.approx(27.7)
+    kept = dict(wall_opening_mode="over_threshold", wall_opening_threshold=1.0)
+    assert paint(d, **kept) == pytest.approx(28.5)
+    assert paint(d, **kept, finish_openings="own", finish_opening_mode="all") == pytest.approx(27.7)

@@ -66,7 +66,7 @@ from functools import lru_cache
 import ifcopenshell.ifcopenshell_wrapper as ifc_schema
 
 from .expr import fmt
-from .geometry import CONTACT_TOL
+from .geometry import CONTACT_TOL, thin_axis
 from .log import CalcLog
 from .names import Resolver
 
@@ -632,6 +632,15 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             else:
                 for s in labels:
                     faces.append({"side": s, "gross_area": gross_area, "net_area": net_area})
+            # the outermost material layer on each face (what a finish rule looks for, A-11)
+            axis = sides["axis"] if sides else ([float(v) for v in thin_axis(obb_axes)] if obb_axes else None)
+            on_face, lf_note = face_layers(el, layer_res, axis)
+            for f in faces:
+                side = {"top": "a", "bottom": "b"}.get(f["side"], f["side"])
+                if side in on_face:
+                    f["layer_material"], f["layer_material_raw"] = on_face[side]
+            if lf_note:
+                notes.append(lf_note)
 
         # layers
         layers = [{"index": l["index"], "material": l["term"], "material_raw": l["raw"], "thickness": l["thickness"],
@@ -838,6 +847,33 @@ def add_embedded(host: dict, other: dict, volume: float, model: str | None = Non
     return True
 
 
+def face_layers(el: dict, layer_res: list[dict], axis) -> tuple[dict, str | None]:
+    """({side label: (term, raw)} of the outermost material layer on each face, note). IFC stacks a
+    layer set from the reference line along its usage's direction (LayerSetDirection of the element's
+    placement, DirectionSense): the first layer is on the face looking against it, the last on the face
+    looking along it. Side a looks along `axis` (the thin axis), side b against it. When the direction
+    cannot be read, a different first and last layer are put on b and a and the note says so (A-11)."""
+    if not layer_res:
+        return {}, None
+    first, last = layer_res[0], layer_res[-1]
+    pair = lambda l: (l["term"], l["raw"])
+    if (first["term"], first["raw"]) == (last["term"], last["raw"]):
+        return {"a": pair(last), "b": pair(first)}, None
+    ref, pl = el.get("materialRef") or {}, el.get("placement") or {}
+    dot = None
+    if axis is not None and pl.get("xAxis") and pl.get("zAxis") and ref.get("direction"):
+        x, z = pl["xAxis"], pl["zAxis"]
+        y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]]
+        d = {"AXIS1": x, "AXIS2": y, "AXIS3": z}.get(ref["direction"])
+        if d is not None:
+            sign = -1 if ref.get("sense") == "NEGATIVE" else 1
+            dot = sign * sum(a * b for a, b in zip(d, axis))
+    if dot is not None and abs(dot) > 0.5:
+        return ({"a": pair(last), "b": pair(first)} if dot > 0 else {"a": pair(first), "b": pair(last)}), None
+    return {"a": pair(last), "b": pair(first)}, (f"layer order on the faces not known: {last['raw']} taken as side a, "
+                                                 f"{first['raw']} as side b")
+
+
 def side_faces(sides: dict, contacts: list, labels: tuple, open_area: float, rooms: dict, is_external) -> list[dict]:
     """Faces of a planar element from its measured sides: one per room lying on a side (the
     room's contact area, openings shared in proportion) plus what no room covers."""
@@ -857,12 +893,20 @@ def side_faces(sides: dict, contacts: list, labels: tuple, open_area: float, roo
             faces.append({k: v for k, v in {"side": label, "gross_area": a, "net_area": a * share, "space": c["spaceId"],
                                              "space_name": name, "space_type": term, "is_external": False,
                                              "normal": normal}.items() if v is not None})
-        rest = gross - sum(min(c["area"], gross) for c in mine)
+        covered = sum(min(c["area"], gross) for c in mine)
+        rest = gross - covered
         if rest > max(0.05 * gross, 0.1) or not mine:
             f = {"side": label, "gross_area": rest, "net_area": rest * share, "normal": normal}
             if not mine and isinstance(is_external, bool):
                 f["is_external"] = is_external
             faces.append(f)
+        elif covered > 0:
+            # a sliver no room covers, or rooms overlapping: the side's room faces are scaled so they add
+            # up to the side (a finish measured per face then measures the whole side, A-11)
+            k = gross / covered
+            for f in faces[len(faces) - len(mine):]:
+                f["gross_area"] *= k
+                f["net_area"] *= k
     return faces
 
 

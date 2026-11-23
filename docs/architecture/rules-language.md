@@ -85,7 +85,7 @@ stored text. The editor only renames (`apps/app/src/features/library/lib/readabl
 (derived) items, because their context holds the source's fields under their own names too, so
 edited formulas are stored without it.
 
-Template v1 has 13 sections and 62 questions: general (lines per storey), earthworks and
+Template v1 has 13 sections and 65 questions: general (lines per storey), earthworks and
 substructure, concrete with formwork and reinforcement, walls, openings and deductions, floors and
 slabs, roofs, stairs and railings, finishes, steel and other members, services (MEP), preliminaries
 and sums, and what is included. Work that is rarely modelled (excavation, blinding, hardcore,
@@ -215,7 +215,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 | Field | Effect |
 |---|---|
 | `breakdown` | element (default), layer (one source per material layer; layer volume = area x layer thickness), face, material (layers grouped by material), child (aggregate parts) |
-| `partFilter` | expression applied after breakdown, e.g. `NOT UNDER(material, "air_gap")` |
+| `partFilter` | expression applied after breakdown, e.g. `NOT UNDER(material, "air_gap")`; an element is taken when one of its parts passes. Face parts carry `side`, the room, and `layer_material` / `layer_material_raw` (the face's outermost layer) |
 | `parts` | `skip` (default): when an enabled rule measures an aggregate's parent (roof, stair), its parts are not measured again. `include`: measure them anyway (as-modelled uses it for railings that belong to stairs) |
 | `lineKey` | fields or expressions whose values split lines; same values are summed. The unit is always part of the key |
 | `bands` | split by numeric ranges of a field, e.g. height above 3.5 m; labels appended to the description |
@@ -231,11 +231,17 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 Quantities for work that is not modelled: formwork, paint, skirting, reinforcement estimates.
 
 ```json
-{ "id": "paint-walls", "from": ["walls"], "scope": "element",
-  "where": "COUNT(src.layers WHERE UNDER(material, \"board.plasterboard\")) > 0",
-  "quantity": "SUM(src.layers.area WHERE UNDER(material, \"board.plasterboard\"))",
-  "unit": "m2", "description": "Paint to plasterboard wall surfaces", "lineKey": [], "tags": ["finish"] }
+{ "id": "paint-ceilings", "from": ["coverings"], "scope": "line",
+  "where": "predefined_type = \"CEILING\"", "quantity": "src.qty",
+  "unit": "m2", "description": "Paint to ceilings", "tags": ["finish"] }
 ```
+
+A finish measured on a face is an **item**, not a derived rule, so it can take the walls' deduction rules
+(A-11). as-modelled's `paint-walls`: every wall with a plasterboard layer, `breakdown: "face"`, `partFilter`
+`UNDER(layer_material, "board.plasterboard")` (each face's outermost layer, from the layer set's order and
+direction), and a `choose` on `finish_openings`: `as_walls` (default) deducts openings by `wall_opening_mode`,
+`wall_opening_threshold` and `opening_compare_by`; `own` by `finish_opening_mode`, `finish_opening_threshold` and
+`finish_opening_compare_by`. A face shared by several rooms deducts its share of the openings.
 
 - `scope: "element"`: evaluated per source element; `src.*` are its measured fields.
 - `scope: "line"`: evaluated per source line; `src.qty` is the line quantity, `keys.*` its line keys.
@@ -281,7 +287,7 @@ item that derived rules still read from; it found exactly that bug in an early v
 
 | Preset | Extends | What it demonstrates |
 |---|---|---|
-| `as-modelled` | | The master template (see above): 13 sections, 62 questions, 6 formula slots (each with ready-made choices), a scope for renovation work. Defaults give net quantities as modelled, all openings deducted, walls in m2 (m3 switch off by default), windows and doors counted, steel in t by nominal kg/m, roofs by developed area, 30 item rules covering every measurement family (including demolition, off by default), 12 derived (formwork walls / slab edges / footings (footings by their measured vertical faces, `vertical_face_area`); rebar estimates for slabs / walls / footings; paint to walls and ceilings; skirting; excavation, blinding, hardcore), 3 manual. Every standard-sensitive value is a slot. Reproduces the hand-made Duplex BoQ. |
+| `as-modelled` | | The master template (see above): 13 sections, 65 questions, 5 formula slots (each with ready-made choices), a scope for renovation work. Defaults give net quantities as modelled, all openings deducted, walls in m2 (m3 switch off by default), windows and doors counted, steel in t by nominal kg/m, roofs by developed area, 31 item rules covering every measurement family (including demolition, off by default; paint to plasterboard is an item on the faces that carry it, A-11), 11 derived (formwork walls / slab edges / footings (footings by their measured vertical faces, `vertical_face_area`); rebar estimates for slabs / walls / footings; paint to ceilings; skirting; excavation, blinding, hardcore), 3 manual. Every standard-sensitive value is a slot. Reproduces the hand-made Duplex BoQ. |
 | `standard-style-example` | as-modelled | What encoding a detailed standard looks like: openings over 0.5 m2 deducted with reveals added back, walls of 120 mm and more in m3, windows by area, rebar estimates on, walls replaced by `wall-layers` (one line per element type, material and thickness, air gaps skipped), derived formwork and paint re-pointed at `wall-layers`, a height band slot. Values are placeholders. |
 | `acme-house-rules` | standard-style-example | A firm's tweaks on top of a standard: three slot values, a skirting derived rule, a lump sum. |
 | `demo-tweaked` | as-modelled | The smallest possible custom rules: only three slot values changed (openings up to 1.0 m2 kept, windows by area). Compare it with as-modelled in the app. |

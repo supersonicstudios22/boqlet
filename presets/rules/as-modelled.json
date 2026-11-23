@@ -765,29 +765,92 @@
       "section": "finishes",
       "question": "Do you measure painting to plasterboard wall surfaces?"
     },
-    "paint_walls_formula": {
-      "type": "formula",
-      "unit": "m2",
-      "label": "Formula: wall paint",
-      "section": "finishes",
-      "value": "SUM(src.layers.area WHERE UNDER(material, \"board.plasterboard\"))",
-      "choices": [
-        {
-          "label": "Area of every plasterboard layer of the wall",
-          "value": "SUM(src.layers.area WHERE UNDER(material, \"board.plasterboard\"))"
-        },
-        {
-          "label": "Wall faces that bound a room, openings deducted (needs rooms in the model)",
-          "value": "SUM(faces.net_area WHERE space != null)"
-        }
+    "finish_openings": {
+      "type": "choice",
+      "value": "as_walls",
+      "options": [
+        "as_walls",
+        "own"
       ],
-      "question": "How do you calculate the painted wall area?",
-      "variables": "The wall: its layers (material, area, thickness), its faces (with the room on each), openings, net area",
-      "help": "Default: the area of every plasterboard layer of the wall.",
+      "optionLabels": {
+        "as_walls": "By the same rule as the walls",
+        "own": "By a rule of their own"
+      },
+      "label": "Openings in wall finishes",
+      "section": "finishes",
+      "question": "Are openings deducted from wall finishes (paint) by the same rule as from the walls?",
+      "help": "Default: the same rule as the walls (Openings section). Finishes are measured on each face that carries them.",
       "dependsOn": {
         "param": "paint_walls",
         "values": [
           true
+        ]
+      }
+    },
+    "finish_opening_mode": {
+      "type": "choice",
+      "value": "all",
+      "options": [
+        "none",
+        "all",
+        "over_threshold",
+        "excess_only",
+        "per_element_sum"
+      ],
+      "optionLabels": {
+        "none": "Never deduct openings",
+        "all": "Deduct every opening",
+        "over_threshold": "Deduct openings larger than a size, in full",
+        "excess_only": "Deduct only the part of each opening above a size",
+        "per_element_sum": "Deduct all openings if together they exceed a size"
+      },
+      "label": "Finish opening deduction",
+      "section": "finishes",
+      "question": "Which openings are deducted from wall finishes?",
+      "dependsOn": {
+        "param": "finish_openings",
+        "values": [
+          "own"
+        ]
+      }
+    },
+    "finish_opening_threshold": {
+      "type": "number",
+      "value": 0,
+      "unit": "m2",
+      "label": "Finish opening size limit",
+      "section": "finishes",
+      "question": "What is the size limit for deducting openings from wall finishes?",
+      "help": "In m2 when compared by area, in m when compared by width.",
+      "dependsOn": {
+        "param": "finish_opening_mode",
+        "values": [
+          "over_threshold",
+          "excess_only",
+          "per_element_sum"
+        ]
+      }
+    },
+    "finish_opening_compare_by": {
+      "type": "choice",
+      "value": "area",
+      "options": [
+        "area",
+        "width"
+      ],
+      "optionLabels": {
+        "area": "The opening's area",
+        "width": "The opening's width"
+      },
+      "label": "Finish opening size measured by",
+      "section": "finishes",
+      "question": "Is the finish size limit about an opening's area or its width?",
+      "dependsOn": {
+        "param": "finish_opening_mode",
+        "values": [
+          "over_threshold",
+          "excess_only",
+          "per_element_sum"
         ]
       }
     },
@@ -2172,6 +2235,80 @@
       "enabled": {
         "param": "include_proxies"
       }
+    },
+    {
+      "id": "paint-walls",
+      "label": "Paint to plasterboard",
+      "family": "planar",
+      "match": {
+        "all": [
+          {
+            "ifcClass": "IfcWall"
+          },
+          {
+            "expr": "COUNT(layers WHERE UNDER(material, \"board.plasterboard\")) > 0"
+          }
+        ]
+      },
+      "breakdown": "face",
+      "partFilter": "UNDER(layer_material, \"board.plasterboard\")",
+      "quantity": {
+        "kind": "choose",
+        "pick": {
+          "param": "finish_openings"
+        },
+        "options": {
+          "as_walls": {
+            "kind": "area",
+            "surface": "main",
+            "start": "gross",
+            "deductions": [
+              {
+                "what": "openings",
+                "mode": {
+                  "param": "wall_opening_mode"
+                },
+                "threshold": {
+                  "param": "wall_opening_threshold"
+                },
+                "compareBy": {
+                  "param": "opening_compare_by"
+                }
+              }
+            ]
+          },
+          "own": {
+            "kind": "area",
+            "surface": "main",
+            "start": "gross",
+            "deductions": [
+              {
+                "what": "openings",
+                "mode": {
+                  "param": "finish_opening_mode"
+                },
+                "threshold": {
+                  "param": "finish_opening_threshold"
+                },
+                "compareBy": {
+                  "param": "finish_opening_compare_by"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "description": "Paint to plasterboard wall surfaces",
+      "lineKey": [],
+      "claims": [
+        "paint"
+      ],
+      "tags": [
+        "finish"
+      ],
+      "enabled": {
+        "param": "paint_walls"
+      }
     }
   ],
   "derived": [
@@ -2262,27 +2399,6 @@
         "estimate"
       ],
       "where": "p.rebar_slab_kg_m3 > 0"
-    },
-    {
-      "id": "paint-walls",
-      "label": "Paint to plasterboard",
-      "from": [
-        "walls"
-      ],
-      "scope": "element",
-      "quantity": {
-        "param": "paint_walls_formula"
-      },
-      "unit": "m2",
-      "description": "Paint to plasterboard wall surfaces",
-      "tags": [
-        "finish"
-      ],
-      "where": "COUNT(src.layers WHERE UNDER(material, \"board.plasterboard\")) > 0",
-      "lineKey": [],
-      "enabled": {
-        "param": "paint_walls"
-      }
     },
     {
       "id": "rebar-estimate-walls",

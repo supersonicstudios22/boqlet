@@ -33,6 +33,12 @@ export interface Face {
   is_external?: boolean;
   /** Outward normal, for orientation-based rules (facade direction). */
   normal?: [number, number, number];
+  /**
+   * The outermost material layer on this face (dictionary term and the file's name), from the layer
+   * set's order and direction (A-11): what a finish rule looks for, e.g. plasterboard to paint.
+   */
+  layer_material?: string;
+  layer_material_raw?: string;
 }
 
 export interface Opening {

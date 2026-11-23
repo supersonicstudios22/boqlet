@@ -257,6 +257,9 @@ class RuleEngine:
                 ops = [o for o in ops if self.x.evaluate(d["where"], {**self.ctx(part), **o})]
             if not ops:
                 continue
+            if (share := part.get("_open_share", 1.0)) != 1.0:      # one room's part of a face (A-11)
+                whole = amount
+                amount = lambda o, whole=whole, share=share: whole(o) * share
             t = self.val(d.get("threshold")) or 0
             by = self.val(d.get("compareBy")) or ("volume" if what == "embedded" else "area")
             size = lambda o: o.get(by) or 0
@@ -454,9 +457,16 @@ class RuleEngine:
                             "_part": f"layer {l['index'] + 1} {l['material_raw']}"})
             return out
         if bd == "face" and el.get("faces"):
+            # a side split between rooms shares its openings in proportion (measure.side_faces): each face
+            # part deducts its share of the element's openings (A-11)
+            side_gross = defaultdict(float)
+            for f in el["faces"]:
+                side_gross[f["side"]] += f.get("gross_area") or 0
             return [{**el, "gross_area": f["gross_area"], "net_area": f["net_area"], "side": f["side"],
                      "space": f.get("space"), "space_name": f.get("space_name"), "space_type": f.get("space_type"),
                      "is_external": f.get("is_external", el.get("is_external")),
+                     "layer_material": f.get("layer_material"), "layer_material_raw": f.get("layer_material_raw"),
+                     "_open_share": (f.get("gross_area") or 0) / side_gross[f["side"]] if side_gross[f["side"]] else 1.0,
                      "_part": f"face {f['side']}" + (f" {f['space_name']}" if f.get("space_name") else "")} for f in el["faces"]]
         if bd == "material" and el.get("layers"):
             groups = defaultdict(float)
@@ -468,6 +478,14 @@ class RuleEngine:
         if bd == "child" and el.get("child_guids"):
             return [{**self.by_guid[c], "_part": f"child {self.by_guid[c].get('name')}"} for c in el["child_guids"] if c in self.by_guid]
         return [el]
+
+    def part_filter_passes(self, item: dict, el: dict) -> bool:
+        """`partFilter` is applied after breakdown: an element is taken when one of its parts passes
+        (with no breakdown, the element itself). A face's layer material exists only on the face (A-11)."""
+        if not item.get("partFilter"):
+            return True
+        parts = self.parts_of(item, el)
+        return any(self.x.evaluate(item["partFilter"], self.ctx(p)) for p in parts)
 
     # ---------------------------------------------------------------- template
     def render(self, tpl, part: dict, extra: dict | None = None) -> str:
@@ -505,7 +523,7 @@ class RuleEngine:
             for e in matches[i["id"]]:
                 if e["guid"] not in parents or e["guid"] in self.excluded:
                     continue
-                if i.get("partFilter") and not self.x.evaluate(i["partFilter"], self.ctx(e)):
+                if not self.part_filter_passes(i, e):
                     continue
                 taken_parents.add(e["guid"])
                 on_missing = i.get("onMissing") or self.defaults.get("onMissing")
@@ -534,7 +552,7 @@ class RuleEngine:
                 if self.ancestor_in(e, parent_measured) and (i.get("parts") or "skip") == "skip":
                     self.skipped_parts.add(e["guid"])
                     continue
-                if i.get("partFilter") and not self.x.evaluate(i["partFilter"], self.ctx(e)):
+                if not self.part_filter_passes(i, e):
                     continue
                 take.append(e)
             take += [self.by_guid[g] for g, rid in forced.items() if rid == i["id"] and g in self.by_guid

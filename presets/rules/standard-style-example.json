@@ -132,21 +132,6 @@
       }
     },
     {
-      "id": "paint-walls",
-      "label": "Paint to plasterboard",
-      "from": [
-        "wall-layers"
-      ],
-      "scope": "line",
-      "where": "UNDER(src.material, \"board.plasterboard\")",
-      "quantity": "src.qty",
-      "unit": "m2",
-      "description": "Paint to plasterboard wall surfaces",
-      "tags": [
-        "finish"
-      ]
-    },
-    {
       "id": "rebar-estimate-walls",
       "label": "Reinforcement estimate, walls",
       "from": [

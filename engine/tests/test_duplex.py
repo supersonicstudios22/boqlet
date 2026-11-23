@@ -59,8 +59,13 @@ HAND_BOQ = [
     # Before A-10: 2 x length x height per strip = 37.019 (no ends, and the overlapping lengths counted twice)
     ("formwork-footings", "", (2 * (9.283 + 18.283) + 2 * (7.483 + 16.483) - 2 * 0.9
                                + 2 * (3.2915 + 2.2 + 4.1915)) * 0.3, "m2"),   # 36.189
-    # plasterboard layers x wall area: the party walls' two layers follow their faces (A-09)
-    ("paint-walls", "", 703.185 + 2 * (78.834 - 71.670), "m2"),
+    # Paint to plasterboard (A-11): each face whose outer layer is plasterboard, by the walls' opening rule (all
+    # deducted). Both faces: partitions 106.396, plumbing 9.390, party walls 78.834; one face: furring 152 mm
+    # 58.557, furring 38 mm 2.555, exterior brick-on-block the inner face = 235.779 + 31.383 less, on the four
+    # mitred Level 2 walls, half of the 2 x 0.417 m corner allowance x 2.900 m each. Before A-11: plasterboard
+    # layers x the wall's mean area = 717.513 (703.185 before A-09)
+    ("paint-walls", "", 2 * (106.396 + 9.390 + 78.834) + 58.557 + 2.555
+                        + (235.779 + 31.383 - 4 * 0.417 * 2.900), "m2"),   # 712.677
 ]
 COUNTS = [("windows", "M_Fixed, 4835", 2), ("windows", "M_Fixed, 2800", 4), ("windows", "M_Fixed, 750", 4),
           ("windows", "M_Fixed, 819", 8), ("windows", "M_Casement", 4), ("windows", "Skylight", 2),
@@ -275,7 +280,6 @@ FORMULA_CHOICE_RULES = {  # formula slot -> (derived rule that uses it, the answ
     "formwork_walls_formula": ("formwork-walls", {}),
     "formwork_slab_edges_formula": ("formwork-slab-edges", {}),
     "formwork_footings_formula": ("formwork-footings", {}),
-    "paint_walls_formula": ("paint-walls", {}),
     # skirting_formula: the Duplex has no FLOORING coverings, so its choices are only syntax-checked (check())
 }
 
