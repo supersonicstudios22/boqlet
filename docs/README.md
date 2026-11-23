@@ -16,7 +16,7 @@ AGENTS.md                      pointer to CLAUDE.md for other agents
 README.md                      for people: what it is, requirements, start
 docs/
   README.md                    this index
-  decisions.md                 every decision: P01–P53 (product), D01–D70 (engine, early platform), BE-D/BE-B (backend)
+  decisions.md                 every decision: P01–P53 (product), D01–D71 (engine, early platform), BE-D/BE-B (backend)
   changelog.md                 what was done, newest first (a row after every task)
   product/
     overview.md                the north star: problem, users, outcomes O1–O10, journeys, value, principles, non-goals, current state, intent vs built, success criteria

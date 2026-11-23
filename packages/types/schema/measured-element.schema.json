@@ -288,6 +288,109 @@
             "type": "string"
           },
           "description": "Reported vs geometry disagreements found during verification."
+        },
+        "unit_scale": {
+          "type": "object",
+          "properties": {
+            "storey_elevation": {
+              "type": "number"
+            },
+            "length": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            },
+            "thickness": {
+              "type": "number"
+            },
+            "depth": {
+              "type": "number"
+            },
+            "diameter": {
+              "type": "number"
+            },
+            "cross_section_area": {
+              "type": "number"
+            },
+            "slope": {
+              "type": "number"
+            },
+            "elevation_base": {
+              "type": "number"
+            },
+            "elevation_top": {
+              "type": "number"
+            },
+            "profile_girth": {
+              "type": "number"
+            },
+            "gross_area": {
+              "type": "number"
+            },
+            "net_area": {
+              "type": "number"
+            },
+            "footprint_area": {
+              "type": "number"
+            },
+            "developed_area": {
+              "type": "number"
+            },
+            "floor_area": {
+              "type": "number"
+            },
+            "ceiling_area": {
+              "type": "number"
+            },
+            "wall_area": {
+              "type": "number"
+            },
+            "wall_area_net": {
+              "type": "number"
+            },
+            "skirting_length": {
+              "type": "number"
+            },
+            "gross_volume": {
+              "type": "number"
+            },
+            "net_volume": {
+              "type": "number"
+            },
+            "perimeter": {
+              "type": "number"
+            },
+            "mass": {
+              "type": "number"
+            },
+            "nominal_mass_per_length": {
+              "type": "number"
+            },
+            "density": {
+              "type": "number"
+            },
+            "bar_diameter": {
+              "type": "number"
+            },
+            "bar_count": {
+              "type": "number"
+            },
+            "bar_length": {
+              "type": "number"
+            },
+            "insulation_thickness": {
+              "type": "number"
+            },
+            "connection_count": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Stated values taken as an exporter unit error: the file's value is 10^±3 or 10^±6 times the closed mesh's (within 2 %), so the geometry's value is used for that field. The factor is stated / measured (1000 = the file says 1000 times the geometry). Lines measuring such an element carry a note."
         }
       },
       "required": [

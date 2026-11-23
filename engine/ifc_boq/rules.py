@@ -19,8 +19,11 @@ from collections import Counter, defaultdict
 
 from .expr import Expr, fmt, round_half_up
 from .log import CalcLog
+from .measure import scale_label
 from .templates import render as render_template
 from .trace_steps import collect, quantity_delta, slot, step
+
+UNIT_SCALE_FIELDS = {"net_volume": "volume", "net_area": "area", "length": "length"}   # MeasuredElement.unit_scale
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
 UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
@@ -689,7 +692,8 @@ class RuleEngine:
                     "quantity": 0.0, "source": "measured", "family": el["family"], "keys": keys,
                     "trace": {"formula": describe_spec(item["quantity"], self), "params": self.params_used(item),
                               "elements": []},
-                    "tags": item.get("tags", []), "notes": [], "_parts": [], "_missing": 0, "_rule": item}
+                    "tags": item.get("tags", []), "notes": [], "_parts": [], "_missing": 0, "_rule": item,
+                    "_unit_scale": {}}
             self.lines[lk] = line
             self.lines_by_rule[rid].append(line)
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
@@ -697,6 +701,8 @@ class RuleEngine:
                                           "quantity": None if v is None else round(v, 6), "note": note or expl})
         collect(line, part_steps, el["guid"])
         line["_parts"].append(part)
+        for field, factor in (el.get("unit_scale") or {}).items():      # measure took a stated value as a unit error
+            line["_unit_scale"][(field, factor)] = line["_unit_scale"].get((field, factor), 0) + 1
         if v is None:
             line["_missing"] += 1
         else:
@@ -725,6 +731,9 @@ class RuleEngine:
             item = line.pop("_rule")
             parts = line.pop("_parts")
             missing = line.pop("_missing")
+            for (field, factor), count in sorted(line.pop("_unit_scale", {}).items()):
+                line["notes"].append(f"{count} element(s): the {UNIT_SCALE_FIELDS.get(field, field)} stated in the file looks "
+                                     f"like a unit error (x{scale_label(factor)}); the geometry is used")
             n = len(line["trace"]["elements"])
             if missing == n:
                 line["quantity"] = None

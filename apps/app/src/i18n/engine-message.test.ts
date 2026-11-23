@@ -62,6 +62,13 @@ describe("engine messages (F15 §4, contract change C01)", () => {
     expect(render({ code: "question.contradiction", params: EXAMPLES["question.contradiction"], message: "" }).text).toBe(
       "3 × IfcWall “Party Wall”: the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?",
     );
+    // WP-A1 A-02: a stated value 1000 times the geometry is a unit error, and the geometry is used
+    expect(render({ code: "question.contradiction", message: "", params: {
+      count: 1, ifcClass: "IfcSlab", typeName: "Simple floor", quantity: "volume", minDifference: -0.999, maxDifference: -0.999,
+      reported: 13243.372, geometry: 13.243, source: "BaseQuantities.GrossVolume", unit: "m3", used: "geometry", unitError: true, scale: "1000",
+    } }).text).toBe(
+      "1 × IfcSlab “Simple floor”: the volume stated in the file and the geometry disagree by -100% (e.g. 13,243.372 m³ from BaseQuantities.GrossVolume vs 13.243 m³ measured). The stated value looks like a unit error (×1000); the measured value is used. Which should be used?",
+    );
     expect(render({ code: "question.unknown_name", params: EXAMPLES["question.unknown_name"], message: "" }).text).toBe(
       "What is “Roof” (space name)? Used 1 time. Not used by the current rules.",
     );

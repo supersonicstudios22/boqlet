@@ -11,6 +11,9 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               join-aware, see the Duplex party wall) and a warning is logged.
               Geometry volume is used only from a closed mesh (watertight, or closed with
               T-junctions, see parse.closed_surface).
+  unit errors a stated volume, area or length within UNIT_SCALE_TOL of 10^±3 / 10^±6 times
+              a closed mesh's value is an exporter unit error (D71): the geometry is used, the
+              contradiction question recommends it, `unit_scale` records the factor.
   thickness   material layer set total, else reported, else smallest extent of the
               oriented bounding box (world axes would give a rotated wall's diagonal).
   contradictions  reported volume vs a closed mesh, or a layer-set / reported thickness vs the
@@ -63,6 +66,11 @@ SOURCES = json.load(open(os.path.join(HERE, "data", "quantity_sources.json"), en
 TOLERANCE = 0.01
 CONTRADICTION = 0.10     # reported vs geometry beyond this (and THICKNESS_MIN for thickness): ask
 THICKNESS_MIN = 0.005    # m
+# a stated value this many times the closed mesh's (within UNIT_SCALE_TOL) is an exporter unit error
+# (mm3 or litres written as m3, mm2 as m2, mm as m): the geometry is used (DEC-31)
+UNIT_SCALES = (1e3, 1e-3, 1e6, 1e-6)
+UNIT_SCALE_TOL = 0.02
+QUANTITY_UNIT = {"volume": "m3", "area": "m2", "length": "m", "thickness": "m"}
 PLANAR_VERTICAL = ("IfcWall", "IfcCurtainWall", "IfcPlate")
 LINEAR_VERTICAL = ("IfcColumn", "IfcPile")
 PHASE_MAP = {"new construction": "new", "new": "new", "existing": "existing"}
@@ -138,6 +146,32 @@ def common_pset(el: dict) -> dict:
 
 def contradiction_id(what: str, cls: str, type_name: str | None) -> str:
     return f"contradiction:{what}:{cls}:{type_name or ''}"
+
+
+def unit_scale(stated: float | None, measured: float | None) -> float | None:
+    """The factor (stated / measured) when it is within UNIT_SCALE_TOL of 10^±3 or 10^±6: an exporter
+    unit error, not a modelling difference. None otherwise."""
+    if not stated or not measured or stated <= 0 or measured <= 0:
+        return None
+    r = stated / measured
+    return next((f for f in UNIT_SCALES if abs(r / f - 1) <= UNIT_SCALE_TOL), None)
+
+
+def scale_label(factor: float) -> str:
+    """1000 -> "1000", 0.001 -> "1/1000"."""
+    return f"{factor:.0f}" if factor >= 1 else f"1/{1 / factor:.0f}"
+
+
+def _unit_error(log: CalcLog, el: dict, what: str, stated: float, measured: float, factor: float, source) -> str:
+    """Log a stated value taken as a unit error; returns the note for the element."""
+    name = el.get("name") or el["id"]
+    unit = QUANTITY_UNIT[what]
+    note = (f"stated {what} {fmt(round(stated, 3))} {unit} ({source}) looks like a unit error "
+            f"(x{scale_label(factor)} the geometry): geometry {fmt(round(measured, 4))} {unit} used")
+    log.detail("measure", f"{name}: {note}", guid=el["id"], code="log.measure.unit_scale",
+               params=dict(name=name, quantity=what, stated=stated, geometry=measured, scale=scale_label(factor),
+                           source=source, unit=unit))
+    return note
 
 
 def opening_kind(o: dict) -> str:
@@ -314,6 +348,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         # volume
         net_volume, v_note = None, None
         volume_contradicted = False          # a reported volume kept while the geometry disagrees (question open)
+        unit_scaled: dict[str, float] = {}   # field -> stated / measured, for stated values taken as unit errors
         if rep["volume"][0]:
             net_volume, prov["net_volume"] = rep["volume"][0], "reported"
             v_note = f"{fmt(net_volume)} m3 from {rep['volume'][1]}"
@@ -322,9 +357,21 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 v_note += f"; geometry {fmt(round(geo_vol, 4))} m3 ({diff:+.1%})"
                 qid = contradiction_id("volume", cls, type_name or el.get("name"))
                 sure = abs(diff) > CONTRADICTION and g.get("hasBody") and closed is not False
+                scale = unit_scale(net_volume, geo_vol) if g.get("hasBody") and closed is not False else None
                 if sure and answers.get(qid) == "geometry":
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
                     v_note += f"; geometry used (answer to {qid})"
+                    if scale:
+                        unit_scaled["net_volume"] = scale
+                elif scale and answers.get(qid) != "reported":
+                    stated = net_volume
+                    net_volume, prov["net_volume"] = geo_vol, "geometry"
+                    unit_scaled["net_volume"] = scale
+                    note = _unit_error(log, el, "volume", stated, geo_vol, scale, rep["volume"][1])
+                    v_note += f"; looks like a unit error (x{scale_label(scale)}): geometry used"
+                    notes.append(note)
+                    _ask(asked, qid, "volume", cls, type_name or el.get("name"), el["id"], stated, geo_vol,
+                         rep["volume"][1], used="geometry", scale=scale)
                 elif abs(diff) > TOLERANCE:
                     notes.append(f"geometry volume differs from reported by {diff:+.1%}; reported used")
                     log.warn("measure", f"{el.get('name') or el['id']}: geometry volume {fmt(round(geo_vol, 3))} m3 vs reported "
@@ -366,6 +413,22 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             elif rep["area"][0]:
                 net_area, prov["net_area"] = rep["area"][0], "reported"
                 a_note = f"net area {fmt(round(net_area, 3))} m2 from {rep['area'][1]}"
+                # the geometry's own area: a clear plate's mean side (net of openings; a gross source
+                # is compared with the side plus its openings)
+                gross_source = rep["area"][1].rsplit(".", 1)[-1].startswith("Gross")
+                geo_area = side_mean + (open_area if gross_source else 0.0) if side_mean else None
+                qid = contradiction_id("area", cls, type_name or el.get("name"))
+                scale = unit_scale(net_area, geo_area)
+                if scale and answers.get(qid) != "reported":
+                    stated = net_area
+                    net_area, prov["net_area"] = side_mean, "geometry"
+                    unit_scaled["net_area"] = scale
+                    note = _unit_error(log, el, "area", stated, geo_area, scale, rep["area"][1])
+                    a_note += f"; looks like a unit error (x{scale_label(scale)}): {fmt(round(net_area, 3))} m2 from geometry used"
+                    notes.append(note)
+                    if answers.get(qid) != "geometry":
+                        _ask(asked, qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
+                             rep["area"][1], used="geometry", scale=scale)
             elif net_volume and thickness and volume_contradicted and side_mean:
                 # never derive an area from a volume the geometry contradicts: the measured sides instead
                 net_area, prov["net_area"] = side_mean, "geometry"
@@ -385,17 +448,30 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             gross_volume = net_volume + sum((o["area"] or 0) * (thickness or 0) for o in ops if o["kind"] != "recess") + recess_vol
 
         # linear dimensions
+        geo_len = None
+        if obb and cls in LINEAR_VERTICAL:                # along the most vertical axis (a squat pier is wider than tall)
+            geo_len = max(zip(obb, obb_axes), key=lambda ea: abs(ea[1][2]))[0]
+        elif obb and fam == "linear":
+            geo_len = max(obb)
+        elif obb and any(abs(ax[2]) < 0.5 for ax in obb_axes):
+            geo_len = max(e for e, ax in zip(obb, obb_axes) if abs(ax[2]) < 0.5)
+        elif ext:
+            geo_len = max(ext[0], ext[1])
         length = rep["length"][0]
         if length:
             prov["length"] = "reported"
-        elif obb and cls in LINEAR_VERTICAL:              # along the most vertical axis (a squat pier is wider than tall)
-            length, prov["length"] = max(zip(obb, obb_axes), key=lambda ea: abs(ea[1][2]))[0], "geometry"
-        elif obb and fam == "linear":
-            length, prov["length"] = max(obb), "geometry"
-        elif obb and any(abs(ax[2]) < 0.5 for ax in obb_axes):
-            length, prov["length"] = max(e for e, ax in zip(obb, obb_axes) if abs(ax[2]) < 0.5), "geometry"
-        elif ext:
-            length, prov["length"] = max(ext[0], ext[1]), "geometry"
+            qid = contradiction_id("length", cls, type_name or el.get("name"))
+            scale = unit_scale(length, geo_len) if g.get("hasBody") and closed is not False else None
+            if scale and answers.get(qid) != "reported":
+                stated = length
+                length, prov["length"] = geo_len, "geometry"
+                unit_scaled["length"] = scale
+                notes.append(_unit_error(log, el, "length", stated, geo_len, scale, rep["length"][1]))
+                if answers.get(qid) != "geometry":
+                    _ask(asked, qid, "length", cls, type_name or el.get("name"), el["id"], stated, geo_len,
+                         rep["length"][1], used="geometry", scale=scale)
+        elif geo_len is not None:
+            length, prov["length"] = geo_len, "geometry"
         width = el["attributes"].get("OverallWidth") or rep["width"][0]
         height = el["attributes"].get("OverallHeight") or rep["height"][0]
         if height:
@@ -486,6 +562,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             "props": props, "ifc_classifications": ifc_codes,
             "provenance": prov, "warnings": notes,
         }
+        if unit_scaled:
+            m["unit_scale"] = unit_scaled
         for k, v in hints.items():                       # name hints only fill gaps (geometry wins)
             if m.get(k) is None:
                 m[k] = v
@@ -526,34 +604,67 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 ))
     out += measure_rooms(parsed, rooms, out, model_id, model_discipline, log)
     if questions is not None:
-        questions += [public_question(q) for q in asked.values()]
+        questions += list(asked.values())            # with their private fields: pipeline merges, then strips
     return out, resolutions
 
 
-def _ask(asked: dict, qid: str, what: str, cls: str, type_name: str | None, guid: str, stated: float, geo: float, source):
-    """One `contradiction` question per (what, class, type), collecting its elements."""
+def _ask(asked: dict, qid: str, what: str, cls: str, type_name: str | None, guid: str, stated: float, geo: float, source,
+         used: str = "reported", scale: float | None = None):
+    """One `contradiction` question per (what, class, type), collecting its elements. `used`: what this
+    element takes while nobody answers ("geometry" for a unit error); `scale`: the unit-error factor."""
     q = asked.get(qid)
     diff = (geo - stated) / stated
     if q is None:
         q = asked[qid] = {"id": qid, "kind": "contradiction", "blocking": False, "guids": [], "occurrences": 0,
-                          "suggestion": "reported", "_range": [diff, diff], "_example": (stated, geo, source),
-                          "answer": {"kind": "choice", "options": [
-                              {"value": "reported", "label": f"Use the {what} stated in the file", "recommended": True},
-                              {"value": "geometry", "label": f"Use the {what} measured from the geometry"}]}}
+                          "_range": [diff, diff], "_example": (stated, geo, source), "_what": what, "_cls": cls,
+                          "_type": type_name, "_used": set(), "_scale": None}
     q["guids"].append(guid)
     q["occurrences"] += 1
     q["_range"] = [min(q["_range"][0], diff), max(q["_range"][1], diff)]
+    q["_used"].add(used)
+    q["_scale"] = q["_scale"] or scale
+    render_contradiction(q)
+
+
+def render_contradiction(q: dict) -> None:
+    """Suggestion, options, params and the English message of a contradiction question from what its
+    elements collected. The suggestion is what the engine uses while nobody answers: the geometry as
+    soon as one of its elements takes the geometry (a unit error), else the stated value."""
+    what, cls, type_name = q["_what"], q["_cls"], q["_type"]
     lo, hi = q["_range"]
-    unit = "m3" if what == "volume" else "m"
+    unit = QUANTITY_UNIT[what]
     st, ge, src = q["_example"]
+    used = "geometry" if "geometry" in q["_used"] else "reported"
+    scale = q["_scale"]
+    q["suggestion"] = used
+    q["answer"] = {"kind": "choice", "options": [
+        {"value": "reported", "label": f"Use the {what} stated in the file", "recommended": used == "reported"},
+        {"value": "geometry", "label": f"Use the {what} measured from the geometry", "recommended": used == "geometry"}]}
     spread = f"{lo:+.0%}" if abs(hi - lo) < 0.005 else f"{lo:+.0%} to {hi:+.0%}"
     q["code"] = "question.contradiction"
     q["params"] = {"count": q["occurrences"], "ifcClass": cls, "typeName": type_name, "quantity": what,
-                   "minDifference": lo, "maxDifference": hi, "reported": st, "geometry": ge, "source": src, "unit": unit}
+                   "minDifference": lo, "maxDifference": hi, "reported": st, "geometry": ge, "source": src, "unit": unit,
+                   "used": used, "unitError": scale is not None, "scale": scale_label(scale) if scale else None}
+    if scale:
+        tail = f"The stated value looks like a unit error (x{scale_label(scale)}); the measured value is used. "
+    elif used == "geometry":
+        tail = "The measured value is used. "
+    else:
+        tail = "The stated value is used; it usually allows for joins. " if what == "volume" else "The stated value is used. "
     q["message"] = (f"{q['occurrences']} x {cls} '{type_name or ''}': the {what} stated in the file and the geometry "
                     f"disagree by {spread} (e.g. {fmt(round(st, 3))} {unit} from {src} vs {fmt(round(ge, 3))} {unit} measured). "
-                    + ("The stated value is used; it usually allows for joins. " if what == "volume" else "The stated value is used. ")
-                    + "Which should be used?")
+                    + tail + "Which should be used?")
+
+
+def merge_question(existing: dict, q: dict) -> None:
+    """The same contradiction raised in another model of a federation: one question for both."""
+    existing["guids"] += q["guids"]
+    existing["occurrences"] += q["occurrences"]
+    existing["_range"] = [min(existing["_range"][0], q["_range"][0]), max(existing["_range"][1], q["_range"][1])]
+    existing["_used"] |= q["_used"]
+    existing["_scale"] = existing["_scale"] or q["_scale"]
+    existing["blocking"] = existing["blocking"] or q["blocking"]
+    render_contradiction(existing)
 
 
 def public_question(q: dict) -> dict:

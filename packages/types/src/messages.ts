@@ -85,6 +85,7 @@ export type LogCode =
   | "log.derived.line"
   | "log.manual.line"
   | "log.measure.volume_conflict"
+  | "log.measure.unit_scale"
   | "log.measure.adopted"
   | "log.measure.embedded"
   | "log.measure.room"

@@ -32,7 +32,7 @@ from .classify import classify, fill_item_texts
 from .expr import Expr, fmt
 from .federation import combine
 from .log import CalcLog
-from .measure import build as measure, building_measures
+from .measure import build as measure, building_measures, merge_question, public_question
 from .names import Resolver, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
 from .trace_steps import finish as finish_trace
@@ -210,12 +210,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         resolutions += res
         for q in qs:
             if q["id"] in measure_questions:
-                existing = measure_questions[q["id"]]
-                existing["guids"] += q["guids"]
-                existing["occurrences"] += q["occurrences"]
-                existing["params"]["count"] = existing["occurrences"]
-                existing["params"]["minDifference"] = min(existing["params"]["minDifference"], q["params"]["minDifference"])
-                existing["params"]["maxDifference"] = max(existing["params"]["maxDifference"], q["params"]["maxDifference"])
+                merge_question(measure_questions[q["id"]], q)
             else:
                 measure_questions[q["id"]] = q
     if progress:
@@ -270,7 +265,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             apply_quantity(line, edit)
     lines = item_lines + derived_lines + manual_lines
     warnings += eng.warnings
-    questions: list[dict] = list(eng.questions) + fed_questions + list(measure_questions.values())
+    questions: list[dict] = list(eng.questions) + fed_questions + [public_question(q) for q in measure_questions.values()]
 
     # 4. coverage -------------------------------------------------------------------------
     parent_of = {e["guid"]: e.get("parent_guid") for e in elements}

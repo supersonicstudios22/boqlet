@@ -202,6 +202,12 @@ export interface MeasuredElement {
   provenance: Partial<Record<string, Provenance>>;
   /** Reported vs geometry disagreements found during verification. */
   warnings: string[];
+  /**
+   * Stated values taken as an exporter unit error: the file's value is 10^±3 or 10^±6 times the closed
+   * mesh's (within 2 %), so the geometry's value is used for that field. The factor is stated / measured
+   * (1000 = the file says 1000 times the geometry). Lines measuring such an element carry a note.
+   */
+  unit_scale?: Partial<Record<MeasuredField, number>>;
 }
 
 /**

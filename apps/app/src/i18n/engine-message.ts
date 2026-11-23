@@ -21,7 +21,12 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format) => Re
     const lo = Number(p.minDifference ?? 0);
     const hi = Number(p.maxDifference ?? lo);
     const pct = (v: number) => format.number(v, { style: "percent", maximumFractionDigits: 0, signDisplay: "always" });
-    return { minPercent: pct(lo), maxPercent: pct(hi), same: Math.abs(hi - lo) < 0.005 ? "true" : "false" };
+    return {
+      minPercent: pct(lo), maxPercent: pct(hi), same: Math.abs(hi - lo) < 0.005 ? "true" : "false",
+      // runs before WP-A1 have neither: the stated value was always used
+      used: p.used === "geometry" ? "geometry" : "reported", unitError: p.unitError === true ? "true" : "false",
+      scale: typeof p.scale === "string" ? p.scale : "",
+    };
   },
   "question.double_claim": (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
   // An edit moving a line to a code not in the list is not applied (BR-09, TF-052).
