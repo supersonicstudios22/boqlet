@@ -102,7 +102,9 @@ def line_warnings(lines: list[dict], elements: list[dict], building: dict, resol
         limit = footprint * storeys
         for l in lines:
             els = [by_guid.get(x["guid"]) for x in l["trace"]["elements"]]
-            if (l.get("unit") == "m2" and l.get("quantity") and l["quantity"] > limit and els
+            # 1 % margin: a derived footprint is the largest storey's slab area, so slabs = footprint x storeys
+            # is the normal case for one storey, and the line is rounded while the limit is not (S10)
+            if (l.get("unit") == "m2" and l.get("quantity") and l["quantity"] > limit * 1.01 and els
                     and all(e and floor_slab(e) for e in els)):
                 out.append({"code": "implausible", "guids": [e["guid"] for e in els],
                             "message": f"'{l['description']}': {fmt(round(l['quantity'], 2))} m2, more than the building's "

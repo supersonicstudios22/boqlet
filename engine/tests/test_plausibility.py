@@ -71,6 +71,13 @@ def test_a_floor_line_larger_than_footprint_times_storeys_is_implausible():
     assert s["params"]["factor"] == 2.0 and s["params"]["storey"] == "Level 0"
 
 
+def test_a_floor_line_equal_to_the_derived_footprint_is_not_implausible():
+    """One storey, footprint derived from the slabs themselves: the line equals footprint x storeys (S10), no warning."""
+    r = run(doc(slab({"BaseQuantities": {"GrossArea": 120.006}}, dx=12.0, dy=10.0)))   # line 120.01 > 120.006
+    assert r["building"]["provenance"]["footprint_area"] == "derived"
+    assert not implausible(r, "line_area")
+
+
 @pytest.mark.slow
 def test_s07_warns_on_pad_2_and_the_600mm_piles():
     """A-07 acceptance (QS-013, LEAD-016)."""
