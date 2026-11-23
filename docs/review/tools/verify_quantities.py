@@ -112,12 +112,11 @@ CHECKS = [
     # S04 strip footing (ring under the house, tessellated): volume
     dict(id="S04-footing-volume", sample="S04", rule="footings", line="", guids=["0pFmhV8oD1dB40_b4pscr8"],
          what="IfcFooting volume m3", script=("volume", ["0pFmhV8oD1dB40_b4pscr8"]), hand=None),
-    # S04 footing formwork: the app uses 2 x longest plan extent x height (6.2 m x 0.3 m); the footing is a
-    # ring (plan area 12.31 m2 inside a 5.8 x 6.2 m box), whose real side faces total ~15.15 m2.
+    # S04 footing formwork: the footing is a ring (plan area 12.31 m2 inside a 5.8 x 6.2 m box), whose real
+    # side faces total ~15.15 m2. Before WP-A3 A-10 the app used 2 x longest plan extent x height (6.2 m x
+    # 0.3 m = 3.72 m2); FIXED: formwork to footings = the measured vertical faces
     dict(id="S04-footing-formwork", sample="S04", rule="formwork-footings", line="", guids=["0pFmhV8oD1dB40_b4pscr8"],
-         what="formwork to footing sides m2", script=("vert_faces", ["0pFmhV8oD1dB40_b4pscr8"]), hand=None,
-         known={"app": 3.72, "note": "QS-005: formwork_footings_formula = 2 x length x height assumes a straight "
-                                     "strip; a ring/L footing's side faces are 4x larger"}),
+         what="formwork to footing sides m2", script=("vert_faces", ["0pFmhV8oD1dB40_b4pscr8"]), hand=None),
     # S04 girder (tessellated, sloped): length
     dict(id="S04-girder-length", sample="S04", rule="linear-other", line="girder", guids=["0rh7bRO0L9fg1NzgGKU$Ut"],
          what="IfcBeam length m", script=("length", ["0rh7bRO0L9fg1NzgGKU$Ut"]), hand=None),

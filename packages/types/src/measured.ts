@@ -146,6 +146,12 @@ export interface MeasuredElement {
   net_area?: number;              // main face, after all openings
   footprint_area?: number;        // plan projection
   developed_area?: number;        // true sloped / unfolded area
+  /**
+   * Footings: the faces standing up (sides and ends) less the part against another solid (the next
+   * footing, a wall, a slab edge), from the closed mesh; else 2 x (length + width) x height (A-10).
+   * What formwork to the sides of a footing covers.
+   */
+  vertical_face_area?: number;
   faces: Face[];
 
   /* ---- rooms (IfcSpace) -------------------------------------------- */
@@ -226,7 +232,7 @@ export type MeasuredField =
   | "storey_elevation"
   | "length" | "width" | "height" | "thickness" | "depth" | "diameter"
   | "cross_section_area" | "slope" | "elevation_base" | "elevation_top" | "profile_girth"
-  | "gross_area" | "net_area" | "footprint_area" | "developed_area"
+  | "gross_area" | "net_area" | "footprint_area" | "developed_area" | "vertical_face_area"
   | "floor_area" | "ceiling_area" | "wall_area" | "wall_area_net" | "skirting_length"
   | "gross_volume" | "net_volume" | "perimeter"
   | "mass" | "nominal_mass_per_length" | "density"

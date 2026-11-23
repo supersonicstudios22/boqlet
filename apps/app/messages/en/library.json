@@ -54,6 +54,10 @@
       "label": "Developed area",
       "help": "True sloped or unfolded area (roofs, stairs)"
     },
+    "vertical_face_area": {
+      "label": "Vertical face area",
+      "help": "Footings only: sides and ends from the shape, less where they meet another element"
+    },
     "floor_area": {
       "label": "Room floor area",
       "help": "Rooms only"

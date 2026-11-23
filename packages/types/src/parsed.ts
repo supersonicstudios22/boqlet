@@ -215,6 +215,12 @@ export interface GeometryInfo {
    * thin axis, openings already cut. `a` faces along `axis` (up for slabs), `b` against it.
    */
   sides?: { axis: Vec3; a: number; b: number };
+  /**
+   * Footings: area of the mesh faces standing up (|normal z| < 0.1: sides and ends) and the part of it
+   * against or inside another closed footing, wall, slab, column, pile or beam (sampled 2 cm outside the
+   * face). Formwork goes on `area - contact` (A-10). Absent in parses made before it: measure falls back.
+   */
+  verticalFaces?: { area: number; contact: number };
   /** Where a room's surface lies on a side of this element: contact area per space (m2). */
   contacts?: { spaceId: string; side: "a" | "b"; area: number }[];
   /** Solids this element shares volume with (m3), from the overlap check (columns through slabs,

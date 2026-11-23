@@ -39,7 +39,9 @@ from . import geometry
 from .geometry import components, fix_winding
 
 ENGINE_VERSION = "0.1.0"
-# Bump when the parse output changes; a run on a parse with another number fails with parse_format_mismatch (worker.py).
+# Bump when the parse output changes so that older parses would be measured wrongly; a run on a parse with another
+# number fails with parse_format_mismatch (worker.py) and nothing re-parses automatically. An added optional field
+# that measure.py falls back without (footings' verticalFaces, A-10) does not bump it.
 # 2: openings carry objectType (recesses); rooms carry the columns standing in them (intersections).
 PARSE_FORMAT = 2
 TOLERANCE = 0.01                     # 1 % reported vs geometry
@@ -53,6 +55,9 @@ STRUCT_CLASSES = ("IfcBeam", "IfcColumn", "IfcFooting", "IfcPile", "IfcReinforci
 ARCH_CLASSES = ("IfcDoor", "IfcWindow", "IfcCovering", "IfcFurnishingElement", "IfcRailing", "IfcStair")
 INFRA_FACILITIES = ("IfcBridge", "IfcRoad", "IfcRailway", "IfcMarineFacility")
 FACE_CLASSES = ("IfcWall", "IfcSlab", "IfcCovering", "IfcPlate")   # elements whose two sides are measured
+VERTICAL_FACE_CLASSES = ("IfcFooting",)                             # elements whose faces standing up are measured
+# solids a footing's side can lie against (any material: the parser does not resolve materials)
+CONTACT_CLASSES = ("IfcFooting", "IfcWall", "IfcSlab", "IfcColumn", "IfcPile", "IfcBeam")
 SPATIAL_KIND = {"IfcProject": "project", "IfcSite": "site", "IfcBuilding": "building",
                 "IfcBuildingStorey": "storey", "IfcSpace": "space", "IfcZone": "zone",
                 "IfcFacility": "facility", "IfcFacilityPart": "facility_part"}
@@ -886,6 +891,20 @@ class Parser:
             contacts = geometry.side_contacts(m, sides["axis"], g["obbAxes"], rooms) if rooms else []
             if contacts:
                 g["contacts"] = contacts
+        # footings: the faces standing up (formwork to the sides and ends) and the part of them
+        # against another closed solid nearby (the next footing, a wall, a slab edge)
+        solids = [(e["id"], self.meshes[e["id"]]) for e in elements
+                  if e["ifcClassBase"] in CONTACT_CLASSES and e["id"] in self.meshes
+                  and e["quantities"]["geometry"].get("closed")]
+        for e in elements:
+            g = e["quantities"]["geometry"]
+            if e["ifcClassBase"] not in VERTICAL_FACE_CLASSES or e["id"] not in self.meshes or not g.get("closed"):
+                continue
+            m = self.meshes[e["id"]]
+            lo, hi = m.bounds[0] - 2 * geometry.CONTACT_OUT, m.bounds[1] + 2 * geometry.CONTACT_OUT
+            near = [o for i, o in solids if i != e["id"] and np.all(o.bounds[1] >= lo) and np.all(o.bounds[0] <= hi)]
+            vf = geometry.vertical_faces(m, near)
+            g["verticalFaces"] = {"area": r6(vf["area"]), "contact": r6(vf["contact"])}
 
     # ----- verification -----
     def verify(self, elements, materials, openings):

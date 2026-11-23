@@ -149,6 +149,10 @@
         "developed_area": {
           "type": "number"
         },
+        "vertical_face_area": {
+          "type": "number",
+          "description": "Footings: the faces standing up (sides and ends) less the part against another solid (the next footing, a wall, a slab edge), from the closed mesh; else 2 x (length + width) x height (A-10). What formwork to the sides of a footing covers."
+        },
         "faces": {
           "type": "array",
           "items": {
@@ -338,6 +342,9 @@
               "type": "number"
             },
             "developed_area": {
+              "type": "number"
+            },
+            "vertical_face_area": {
               "type": "number"
             },
             "floor_area": {

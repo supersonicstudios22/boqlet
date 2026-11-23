@@ -498,6 +498,23 @@
           "additionalProperties": false,
           "description": "Planar elements (walls, slabs, coverings, plates): area of the mesh faces on each side of the thin axis, openings already cut. `a` faces along `axis` (up for slabs), `b` against it."
         },
+        "verticalFaces": {
+          "type": "object",
+          "properties": {
+            "area": {
+              "type": "number"
+            },
+            "contact": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "area",
+            "contact"
+          ],
+          "additionalProperties": false,
+          "description": "Footings: area of the mesh faces standing up (|normal z| < 0.1: sides and ends) and the part of it against or inside another closed footing, wall, slab, column, pile or beam (sampled 2 cm outside the face). Formwork goes on `area - contact` (A-10). Absent in parses made before it: measure falls back."
+        },
         "contacts": {
           "type": "array",
           "items": {

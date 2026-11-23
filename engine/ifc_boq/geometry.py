@@ -5,6 +5,7 @@ Core engine: meshes in, numbers out. No IFC, no decisions (which number to trust
 
   room_surfaces    a room solid's floor / ceiling / wall areas, perimeter, height
   element_sides    a planar element's face area on each side of its thin axis
+  vertical_faces   a footing's faces standing up, and the part of them against another solid
   side_contacts    where a room's surface lies on a side of a planar element (m2 per room and side)
   shared_volume    solid volume two closed meshes have in common (columns through slabs, duplicates)
 
@@ -15,6 +16,7 @@ solid overlaps across a federation) reads the sidecar. Without it that work is s
 """
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +24,10 @@ import trimesh
 
 CONTACT_TOL = 0.1    # m: a room surface this close to an element face, and facing it, lies on it
 SHARED_MIN = 1e-3    # m3: solids sharing less than this only touch
+VERTICAL_NZ = 0.1    # a face whose normal has |z| below this stands up (footing sides and ends)
+CONTACT_OUT = 0.02   # m: a vertical face is in contact where a point this far outside it is in another solid
+VERTICAL_CELL = 0.2  # m: spacing of the sample points on a vertical face (contact test)
+VERTICAL_K = 40      # at most 40 x 40 sample triangles per mesh triangle
 
 
 def clip_area(poly: list, ur: tuple, vr: tuple) -> float:
@@ -76,6 +82,76 @@ def element_sides(m: trimesh.Trimesh, obb_axes) -> dict:
     dots = m.face_normals @ n
     return {"axis": [float(v) for v in n], "a": float(m.area_faces[dots > 0.9].sum()),
             "b": float(m.area_faces[dots < -0.9].sum())}
+
+
+def _lattice(tris: np.ndarray, cell: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Centres, normals and areas of an equal-area subdivision of each triangle into k x k parts
+    (k from its longest edge / cell, at most VERTICAL_K): a fixed, deterministic sample of a surface."""
+    pts, nrm, area = [], [], []
+    for t in tris:
+        u, v = t[1] - t[0], t[2] - t[0]
+        n = np.cross(u, v)
+        a = float(np.linalg.norm(n)) / 2
+        if a <= 0:
+            continue
+        e = max(np.linalg.norm(u), np.linalg.norm(v), np.linalg.norm(t[2] - t[1]))
+        bary = _bary(int(min(VERTICAL_K, max(1, np.ceil(e / cell)))))
+        pts.append(t[0] + np.outer(bary[:, 0], u) + np.outer(bary[:, 1], v))
+        nrm.append(np.repeat([n / (2 * a)], len(bary), axis=0))
+        area.append(np.full(len(bary), a / len(bary)))
+    if not pts:
+        return np.zeros((0, 3)), np.zeros((0, 3)), np.zeros(0)
+    return np.vstack(pts), np.vstack(nrm), np.concatenate(area)
+
+
+@lru_cache(maxsize=None)
+def _bary(k: int) -> np.ndarray:
+    """Barycentric (along u, along v) centres of the k x k sub-triangles of a triangle: the upright
+    one of each row i, column j, and the inverted one beside it where there is one."""
+    out = []
+    for i in range(k):
+        for j in range(k - i):
+            out.append(((i + 1 / 3) / k, (j + 1 / 3) / k))
+            if i + j < k - 1:
+                out.append(((i + 2 / 3) / k, (j + 2 / 3) / k))
+    return np.array(out)
+
+
+def vertical_faces(m: trimesh.Trimesh, others: list[trimesh.Trimesh]) -> dict:
+    """{area, contact}: area of the faces standing up (|normal z| < VERTICAL_NZ: a footing's sides and
+    ends), and the part of it against or inside another closed solid of `others` (a point CONTACT_OUT
+    outside the face lies in it: the next footing, a wall, a slab edge). Formwork goes on the rest."""
+    sel = np.abs(m.face_normals[:, 2]) < VERTICAL_NZ
+    area = float(m.area_faces[sel].sum())
+    if area <= 0 or not others:
+        return {"area": area, "contact": 0.0}
+    pts, nrm, part = _lattice(m.triangles[sel], VERTICAL_CELL)
+    probe = pts + nrm * CONTACT_OUT
+    inside = np.zeros(len(probe), dtype=bool)
+    for o in others:
+        lo, hi = o.bounds
+        near = ~inside & np.all(probe >= lo, axis=1) & np.all(probe <= hi, axis=1)
+        if near.any():
+            inside[near] = points_inside(o, probe[near])
+    return {"area": area, "contact": float(min(area, part[inside].sum()))}
+
+
+def points_inside(m: trimesh.Trimesh, pts: np.ndarray, chunk: int = 2_000_000) -> np.ndarray:
+    """Which points lie inside a closed mesh: the winding number (the solid angle its triangles
+    subtend at the point, Van Oosterom & Strackee) is about 4 pi inside and 0 outside. Plain numpy,
+    no spatial index; points x triangles in chunks."""
+    tris = m.triangles
+    out = np.zeros(len(pts), dtype=bool)
+    step = max(1, chunk // max(1, len(tris)))
+    for s in range(0, len(pts), step):
+        p = pts[s:s + step]
+        a, b, c = (tris[None, :, i, :] - p[:, None, :] for i in range(3))
+        la, lb, lc = (np.linalg.norm(x, axis=2) for x in (a, b, c))
+        det = np.einsum("ijk,ijk->ij", a, np.cross(b, c))
+        div = (la * lb * lc + np.einsum("ijk,ijk->ij", a, b) * lc + np.einsum("ijk,ijk->ij", a, c) * lb
+               + np.einsum("ijk,ijk->ij", b, c) * la)
+        out[s:s + step] = np.abs(2 * np.arctan2(det, div).sum(axis=1)) > 2 * np.pi
+    return out
 
 
 def room_index(m: trimesh.Trimesh) -> tuple:

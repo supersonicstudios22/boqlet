@@ -1203,6 +1203,7 @@
         "net_area",
         "footprint_area",
         "developed_area",
+        "vertical_face_area",
         "floor_area",
         "ceiling_area",
         "wall_area",

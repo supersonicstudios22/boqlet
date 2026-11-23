@@ -98,7 +98,9 @@ Faces and rooms (`faces_and_rooms`): for walls, slabs, coverings and plates the 
 direction along the oriented box's thin axis into side a (along the axis; up for slabs) and side b;
 for each room solid whose surface lies on a side within 0.1 m and faces it, the contact area is the
 room's triangles clipped to the element's extent (`contacts`). Room solids get floor, ceiling and wall
-areas, floor outline perimeter and height (`room`). Geometry only; decisions are in measure.
+areas, floor outline perimeter and height (`room`). Footings get the area of their faces standing up and the part of it
+against or inside another closed footing, wall, slab, column, pile or beam (`verticalFaces`: points on a fixed
+lattice 0.2 m apart, 2 cm outside the face, tested by winding number). Geometry only; decisions are in measure.
 
 The mesh measurements live in `geometry.py` (room surfaces, element sides, side contacts, shared
 volume), so federation can run the same code across files. Every mesh is also saved, in world
@@ -136,6 +138,7 @@ still need checking against a real ArchiCAD export).
 | other areas | reported, else net volume / thickness (but never from a reported volume the geometry contradicts: then the mean side area of a clear plate), else for an open surface model (road markings) the one-sided mesh area. A net area larger than the gross one of the same set is impossible and skipped. A reported area more than 10% from a clear plate's mean side area (plus its openings for a `Gross*` source) raises an area `contradiction`; outside 0.5–2× the geometry is used while unanswered (D72) | S09: the area of a slab whose stated volume is ×1000 came out ×1000 (QS-001). Revit 2021 IFC4 writes the whole surface as `NetArea`: every S07/S08 slab ×2.2–2.5 (QS-003) |
 | gross area / volume | net + the openings hosted by the element | Gives rules both starting points |
 | length | reported, else the oriented box: columns and piles along the most vertical axis, other linear elements the longest extent, others the longest horizontal extent | World axes measured rotated girders 12% short and gave columns a plan width |
+| vertical face area | footings: the faces standing up less the part against another solid (parse `verticalFaces`), else 2 x (length + width) x height | Formwork to footings was 2 x length x height: S04 ring footing 3.72 vs 15.15 m2, strip ends omitted (A-10) |
 | perimeter | reported, else for a closed slab-like prism P = (S - 2V/t) / t (includes opening edges) | Slab edge formwork had no perimeter outside Revit |
 | aggregates | an element without its own body (IfcRoof made of slabs, IfcElementAssembly) takes the sum of its parts' adopted volumes (only if every part with a body has one) and of its planar parts' areas, nested assemblies bottom up | The certification roof had no geometry of its own |
 | class | IFC2x3 generic distribution occurrences take the class their type names (IfcFlowSegment + IfcDuctSegmentType -> IfcDuctSegment); `ifc_class_raw` keeps the original | IFC2x3 has no IfcDuctSegment; rules and IFC4 files use the specific class |
@@ -358,6 +361,7 @@ keeps parsed.json, result.json and summary.json per file to compare runs after a
 | `test_duplex.py` | Acceptance: as-modelled reproduces the hand-made BoQ (`HAND_BOQ`, counts); every line explained; every line coded; party wall internal by dictionary type; slot change changes numbers (demo-tweaked); custom rules and classification (demo-custom + demo-trades); unmatched decision assigns a rule; other presets run; unknown material blocks until answered; contract tests for BoqResult and ParsedModel |
 | `test_federation.py`, `test_federation_links.py` | Several models in one run: ownership, scopes, same GlobalId, overlap questions and answers; doors to another model's openings, rooms to walls, columns through slabs, contradiction and double-claim questions |
 | `test_faces_rooms.py` | Wall sides, faces per room, rooms with net wall area and skirting |
+| `test_measurement_defaults.py` | Review WP-A3: walls by their faces (notched, prismatic, curved and open fallbacks), footings' vertical faces (pad, ring, strip against its neighbours) |
 | `test_scope_recess_building.py` | Model scopes, recess deductions, derived `building.*` values |
 | `test_overrides.py` | Line edits applied to a run; `orphan_override` |
 | `test_diff.py` | Change report on the Duplex revision; 40k lines in under 5 s |

@@ -36,6 +36,9 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
   length      reported, else the oriented box: columns and piles along the most vertical
               axis, other linear elements the longest extent (sloped and rotated members),
               others the longest horizontal extent.
+  vertical    footings: vertical_face_area = the closed mesh's faces standing up (sides and ends)
+              less the part against another solid (parse `verticalFaces`), else 2 x (length +
+              width) x height (A-10: formwork to footings).
   aggregates  an element without its own body (a roof made of slabs) takes the sum of
               its parts' adopted volume and planar area.
   class       IFC2x3 generic distribution occurrences take the class their type names
@@ -82,6 +85,7 @@ UNIT_SCALE_TOL = 0.02
 QUANTITY_UNIT = {"volume": "m3", "area": "m2", "length": "m", "thickness": "m"}
 PLANAR_VERTICAL = ("IfcWall", "IfcCurtainWall", "IfcPlate")
 LINEAR_VERTICAL = ("IfcColumn", "IfcPile")
+VERTICAL_FACE_CLASSES = ("IfcFooting",)   # formwork to their sides and ends: vertical_face_area (A-10)
 PHASE_MAP = {"new construction": "new", "new": "new", "existing": "existing"}
 # IFC Pset_<Element>Common.Status (PEnum_ElementStatus); other values (OTHER, NOTKNOWN, UNSET) count as new
 STATUS_MAP = {"NEW": "new", "EXISTING": "existing", "DEMOLISH": "demolish", "TEMPORARY": "temporary"}
@@ -593,6 +597,21 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 perimeter, prov["perimeter"] = p, "geometry"
                 p_note = f"perimeter = (surface {fmt(round(g['surfaceArea'], 3))} - 2 x volume / thickness) / thickness = {fmt(round(p, 3))} m"
 
+        # faces standing up (formwork to the sides and ends of a footing, A-10): from the closed mesh, less
+        # the part against another solid; else (a parse from before A-10, no mesh) the sides of the box
+        vertical_area, vf_note = None, None
+        vf = g.get("verticalFaces")
+        if cls in VERTICAL_FACE_CLASSES:
+            if vf and closed:
+                vertical_area, prov["vertical_face_area"] = max(0.0, vf["area"] - vf["contact"]), "geometry"
+                vf_note = (f"vertical faces {fmt(round(vf['area'], 3))} m2"
+                           + (f" less {fmt(round(vf['contact'], 3))} m2 against other elements" if vf["contact"] else "")
+                           + f" = {fmt(round(vertical_area, 3))} m2")
+            elif length and width and height:
+                vertical_area, prov["vertical_face_area"] = 2 * (length + width) * height, "derived"
+                vf_note = (f"vertical faces = 2 x (length + width) x height = 2 x ({fmt(round(length, 3))} + "
+                           f"{fmt(round(width, 3))}) x {fmt(round(height, 3))} = {fmt(round(vertical_area, 3))} m2 (no mesh faces)")
+
         # profile & mass
         profile = hints.pop("profile", None)
         if not profile and el.get("profileId") in profiles:
@@ -655,6 +674,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             "gross_area": gross_area, "net_area": net_area,
             "footprint_area": net_area if cls not in PLANAR_VERTICAL else None,
             "developed_area": net_area if cls not in PLANAR_VERTICAL else None,
+            "vertical_face_area": vertical_area,
             "faces": faces,
             "gross_volume": gross_volume, "net_volume": net_volume,
             "perimeter": perimeter, "mass": rep["mass"][0],
@@ -685,6 +705,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             bits.append(a_note)
         if p_note:
             bits.append(p_note)
+        if vf_note:
+            bits.append(vf_note)
         if f_note:
             bits.append(f_note)
         if ops:

@@ -119,3 +119,60 @@ def test_without_measured_faces_volume_over_thickness_stays(variant):
     m, _ = measure(doc(wall(volume=8.55, reported={"BaseQuantities": {"NetVolume": 8.55}}, **variant)))
     w = m["wall-1"]
     assert w["net_area"] == pytest.approx(28.5) and w["provenance"]["net_area"] == "derived"
+
+
+# ---------------------------------------------------------------- A-10: formwork to footings
+def _box(x0, y0, x1, y1, z0=0.0, z1=0.3):
+    import trimesh
+    b = trimesh.creation.box((x1 - x0, y1 - y0, z1 - z0))
+    b.apply_translation(((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2))
+    return b
+
+
+def test_vertical_faces_of_a_pad_and_a_ring():
+    from ifc_boq.geometry import vertical_faces
+    pad = vertical_faces(_box(0, 0, 1.2, 1.2, 0, 0.5), [])
+    assert pad["area"] == pytest.approx(4 * 1.2 * 0.5) and pad["contact"] == 0
+    ring = _box(0, 0, 6, 6).difference(_box(0.5, 0.5, 5.5, 5.5, -1, 1))
+    vf = vertical_faces(ring, [])
+    assert vf["area"] == pytest.approx((4 * 6 + 4 * 5) * 0.3)      # outer and inner sides: 13.2 m2
+    assert vf["contact"] == 0
+
+
+def test_a_strip_loses_the_faces_against_its_neighbours():
+    """Strip 10 x 0.9 x 0.3; one end butts a cross footing, the other ends free; a second strip
+    overlaps its side for 0.9 m. Formwork: both long sides and the free end, less 0.9 x 0.3 of side."""
+    from ifc_boq.geometry import vertical_faces
+    strip = _box(0, 0, 10, 0.9)
+    cross = _box(10, -1, 10.9, 2)                       # touching the east end
+    branch = _box(4, 0.8, 4.9, 3)                       # overlaps the north side by 0.1 m
+    vf = vertical_faces(strip, [cross, branch])
+    assert vf["area"] == pytest.approx(2 * (10 + 0.9) * 0.3)
+    assert vf["contact"] == pytest.approx(0.9 * 0.3 + 0.9 * 0.3, rel=0.02)
+    assert vertical_faces(strip, [_box(20, 0, 21, 1)])["contact"] == 0  # a solid that does not touch
+
+
+def footing(vertical: dict | None, *, length=10.0, width=0.9, height=0.3) -> dict:
+    el = wall(guid="footing-1", length=length, height=height, t=width)
+    el.update(ifcClass="IfcFooting", ifcClassBase="IfcFooting", materialRef=None,
+              attributes={"OverallWidth": width})
+    g = el["quantities"]["geometry"]
+    g.pop("sides")
+    g["bboxMax"] = [length, width, height]
+    if vertical:
+        g["verticalFaces"] = vertical
+    return el
+
+
+def test_a_footing_measures_its_vertical_faces():
+    m, _ = measure(doc(footing({"area": 6.54, "contact": 0.27})))
+    f = m["footing-1"]
+    assert f["vertical_face_area"] == pytest.approx(6.27) and f["provenance"]["vertical_face_area"] == "geometry"
+
+
+def test_without_the_parse_field_the_box_sides_stand_in():
+    """A parse from before A-10 has no `verticalFaces`: 2 x (length + width) x height."""
+    m, _ = measure(doc(footing(None)))
+    f = m["footing-1"]
+    assert f["vertical_face_area"] == pytest.approx(2 * (10 + 0.9) * 0.3)
+    assert f["provenance"]["vertical_face_area"] == "derived"

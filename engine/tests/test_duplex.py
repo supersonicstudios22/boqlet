@@ -51,7 +51,14 @@ HAND_BOQ = [
     ("slab-concrete", "150mm", 7.626, "m3"),
     ("slabs", "150mm Exterior Slab", 50.840, "m2"),
     ("formwork-walls", "", 153.797, "m2"),
-    ("formwork-footings", "", 37.019, "m2"),
+    # Formwork to the sides of the footings (A-10): the seven 900 x 300 strips' faces standing up, less where
+    # they meet = the outline of their union x 0.3 m. Outer rectangle x -0.2415..9.0415, y -18.0415..0.2415:
+    # 2 x (9.283 + 18.283) = 55.132 m. Inner edge of the ring 2 x (7.483 + 16.483) = 47.932 m, less the two
+    # 0.9 m where the internal strips (186632 / 186644 / 186656) join it, plus their exposed edges 2 x
+    # (3.2915 + 2.2 + 4.1915) = 19.366 m -> 65.498 m. (55.132 + 65.498) x 0.3 = 36.189 m2.
+    # Before A-10: 2 x length x height per strip = 37.019 (no ends, and the overlapping lengths counted twice)
+    ("formwork-footings", "", (2 * (9.283 + 18.283) + 2 * (7.483 + 16.483) - 2 * 0.9
+                               + 2 * (3.2915 + 2.2 + 4.1915)) * 0.3, "m2"),   # 36.189
     # plasterboard layers x wall area: the party walls' two layers follow their faces (A-09)
     ("paint-walls", "", 703.185 + 2 * (78.834 - 71.670), "m2"),
 ]

@@ -298,8 +298,12 @@
     },
     "formwork_footings_formula": {
       "type": "formula",
-      "value": "2 * src.length * src.height",
+      "value": "src.vertical_face_area",
       "choices": [
+        {
+          "label": "Vertical faces from the geometry: sides and ends, less faces against other elements",
+          "value": "src.vertical_face_area"
+        },
         {
           "label": "The two long sides",
           "value": "2 * src.length * src.height"
@@ -313,7 +317,8 @@
       "label": "Formula: footing formwork",
       "section": "concrete",
       "question": "How do you calculate formwork to the sides of footings?",
-      "variables": "The footing: length, width, height, perimeter",
+      "variables": "The footing: vertical face area (sides and ends from the geometry, less faces against other elements), length, width, height, perimeter",
+      "help": "Default: the faces of the footing that stand up, measured from its shape, less where it meets another footing, a wall or a slab.",
       "dependsOn": {
         "param": "formwork_separate",
         "values": [
