@@ -24,8 +24,11 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               the reported value is kept, except where it is implausible (outside 0.5-2x a closed
               mesh, D73) and for a horizontal plate's stated Width quantity (D72): there the geometry
               is used. A net area larger than its set's gross area is never read.
-  wall area   net_volume / thickness  (keeps area, volume and layers consistent;
-              authoring-tool "Area" is often inconsistent), else reported area.
+  wall area   the mean of its two measured faces (openings cut) when the mesh is a clear plate
+              standing up, its box at most WALL_FACES_BOX x the thickness (A-09: a notched or
+              partial body keeps its face area; volume / thickness is the cross-check, through the
+              thickness contradiction), else net_volume / thickness (curved walls, open meshes, no
+              sides), else reported area. Authoring-tool "Area" is often inconsistent: not used.
   other area  reported area, else net_volume / thickness (never from a reported volume the
               geometry contradicts: then a clear plate's mean side area), else (open surface
               models such as road markings) the one-sided mesh area.
@@ -71,6 +74,7 @@ TOLERANCE = 0.01
 CONTRADICTION = 0.10     # default contradictionWarnPct: reported vs geometry beyond this (and THICKNESS_MIN): ask
 CONTRADICTION_BLOCK = 0.50   # default contradictionBlockPct: beyond this the question blocks (unless a unit error)
 THICKNESS_MIN = 0.005    # m
+WALL_FACES_BOX = 1.5     # a wall's faces are its area only when its oriented box is at most this x its thickness thick
 # a stated value this many times the closed mesh's (within UNIT_SCALE_TOL) is an exporter unit error
 # (mm3 or litres written as m3, mm2 as m2, mm as m): the geometry is used (DEC-31)
 UNIT_SCALES = (1e3, 1e-3, 1e6, 1e-6)
@@ -467,8 +471,23 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         # areas
         net_area = gross_area = None
         a_note = None
+        # a wall's measured faces (A-09): a clear plate standing up whose box is no more than 1.5x its
+        # thickness thick (a curved or bent wall's faces are not all found by their normal)
+        wall_faces = bool(cls in PLANAR_VERTICAL and side_mean and thickness and abs(sides["axis"][2]) < 0.5
+                          and obb[2] <= WALL_FACES_BOX * thickness)
         if fam in ("planar", "assembly") or cls in ("IfcRoof",):
-            if cls in PLANAR_VERTICAL and net_volume and thickness:
+            if wall_faces:
+                net_area, prov["net_area"] = side_mean, "geometry"
+                a_note = (f"net area = mean of the measured faces = ({fmt(round(sides['a'], 3))} + "
+                          f"{fmt(round(sides['b'], 3))}) / 2 = {fmt(round(net_area, 3))} m2 (openings cut)")
+                if net_volume:
+                    by_volume = (net_volume + recess_vol) / thickness
+                    if abs(by_volume - net_area) > TOLERANCE * net_area:
+                        a_note += (f"; volume / thickness = {fmt(round(net_volume + recess_vol, 4))} / {fmt(thickness)} = "
+                                   f"{fmt(round(by_volume, 3))} m2 ({(by_volume - net_area) / net_area:+.1%}): the body is not a full prism")
+                if rep["area"][0] and abs(rep["area"][0] - net_area) / net_area > TOLERANCE:
+                    a_note += f" (reported {rep['area'][1]} = {fmt(round(rep['area'][0], 3))} not used)"
+            elif cls in PLANAR_VERTICAL and net_volume and thickness:
                 net_area, prov["net_area"] = (net_volume + recess_vol) / thickness, "derived"
                 a_note = f"net area = volume / thickness = {fmt(round(net_volume + recess_vol, 4))} / {fmt(thickness)} = {fmt(round(net_area, 3))} m2"
                 if recess_vol:

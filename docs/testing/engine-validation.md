@@ -39,7 +39,7 @@ About 95% of elements matched Revit to three decimals. The exceptions:
 |---|---|---|
 | Main party wall: geometry 433 m3 vs reported 25.83 m3 | Exported as a surface model with inconsistent face winding | Normals repaired before measuring; repaired volume 25.830 m3 matches exactly (`inconsistent_winding` check) |
 | Party wall stub: geometry +42% | Two 0.379 m3 overlaps with neighbouring walls at T-junctions | Reported (join-aware) value adopted; geometry minus overlaps within about 4% (`volume_mismatch`, `overlap` checks; adoption policy) |
-| Revit wall Area inconsistent with Volume on 7 walls | Level 2 exterior walls differ by about 1.2 m2 each, matching two 819 x 759 windows deducted from Volume but not Area; party walls differ 1.2-8.6 m2 | All walls measured as Volume / thickness |
+| Revit wall Area inconsistent with Volume on 7 walls | Level 2 exterior walls differ by about 1.2 m2 each, matching two 819 x 759 windows deducted from Volume but not Area; party walls differ 1.2-8.6 m2 | Prototype: all walls measured as Volume / thickness. Since review A-09 (DEC-34): walls measured by their faces net of openings; Volume / thickness is the cross-check (the party walls' bodies are not full 0.55 m prisms: 71.67 by volume, 78.83 m2 by faces) |
 | Steel beams: geometry 3.5-4.7% over reported | Section geometry vs Revit volume | Steel as length x nominal kg/m from the section name (W310X60 = 60 kg/m); volume x density as cross-check |
 | Ceilings 187462 / 187470 overlap | About 3.2 m2 of ceiling modelled twice (0.18 m3) | Flagged, not auto-corrected |
 | Other overlaps about 0.9 m3 | Beam bearings in brick walls, partitions through the joist floor, ceilings clipping walls | Normal modelling tolerance |
@@ -79,7 +79,7 @@ step must surface.
 | 2.5.2 | Ditto, parapet above roof | m2 | 31.38 |
 | 2.6.1-2.6.5 | Windows (5 types) | nr | 2 / 4 / 4 / 8 / 4 |
 | 2.6.6-2.6.7 | External doors (2 types) | nr | 2 / 2 |
-| 2.7.1 | Party wall, 550 mm | m2 | 71.67 |
+| 2.7.1 | Party wall, 550 mm | m2 | 78.83 (prototype 71.67 by volume / thickness; re-derived from the faces, A-09) |
 | 2.7.2 | Partition, 92 mm stud | m2 | 106.40 |
 | 2.7.3 | Plumbing wall, 152 mm stud | m2 | 9.39 |
 | 2.7.4 | Wall lining, 136 mm stud | m2 | 58.56 |
@@ -106,7 +106,8 @@ The engine with `as-modelled`, `global-seed` and `acme-cost-codes` must reproduc
 numbers. `HAND_BOQ` lists them as (rule id, description fragment, expected, unit); for example
 footings 16.528 m3, foundation walls 26.861/0.417 and 5.430/0.435 m2 (the engine measures walls
 in m2 by default; the m3 switch is a slot), steel 0.903 t and 1.728 t, external brick wall
-235.779 + 31.383 m2, party wall 71.670 m2, formwork to walls 153.797 m2, formwork to footings
+235.779 + 31.383 m2, party wall 78.834 m2 (16.966 x 2.900 + 2 x 4.201 x 2.795 + 2.200 x 2.795: the
+faces of the four party walls from their IFC extrusions and axis, A-09; 71.670 by volume / thickness before), formwork to walls 153.797 m2, formwork to footings
 37.019 m2, paint 703.185 m2, and counts per window and door type. All pass.
 
 Also tested: every line explained (formula and contributions present), every line coded, party

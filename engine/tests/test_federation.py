@@ -96,10 +96,11 @@ def test_certification_scene_three_disciplines():
 def test_walls_only_in_the_structural_model_are_not_lost():
     """Structure does not own a non-load-bearing sand-lime wall (architecture does), but the
     architectural model has no wall in its place: the walls are taken from structure, and a
-    warning says so. Walls total = both models' Qto NetSideArea. (Matching by family instead of
-    IFC class once paired a structural wall with the architectural roof slab.)"""
+    warning says so. Walls total = both models' walls by their measured faces (A-09; the files' Qto
+    NetSideArea is volume / thickness, 0.1 % less on the structural walls). (Matching by family instead
+    of IFC class once paired a structural wall with the architectural roof slab.)"""
     arch, struc = parsed("Architecture"), parsed("Structural")
-    q = lambda doc: sum(e["quantities"]["reported"]["Qto_WallBaseQuantities"]["NetSideArea"]
+    q = lambda doc: sum((e["quantities"]["geometry"]["sides"]["a"] + e["quantities"]["geometry"]["sides"]["b"]) / 2
                         for e in doc["elements"] if e["ifcClass"] == "IfcWall")
     r = run(scene())
     assert totals(r)["walls"] == pytest.approx(round(q(arch) + q(struc), 2), abs=0.02)

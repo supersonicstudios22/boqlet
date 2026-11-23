@@ -41,8 +41,10 @@ def test_answers_on_v1_are_not_asked_again_on_v2_and_still_apply(duplex_parsed, 
     assert {q["id"] for q in unanswered["questions"]} == {q["id"] for q in first["questions"]}   # same ids across versions
     assert answered["questions"] == []
     party = next(key for key in {l["key"] for l in answered["lines"]} if key.startswith("walls | Party Wall"))
-    by = lambda result: {l["key"]: l["quantity"] for l in result["lines"]}
-    assert by(answered)[party] != by(unanswered)[party]                                    # "geometry" applied on v2
+    # "geometry" applied on v2: named on the party walls (their area is their faces either way, A-09)
+    applied = lambda result: {d["questionId"] for l in result["lines"] if l["key"] == party
+                              for e in l["trace"]["elements"] for d in e.get("decisions", [])}
+    assert applied(answered) and applied(answered) <= {d["questionId"] for d in decided} and not applied(unanswered)
 
 
 def test_every_kind_of_line_edit_survives_a_changed_model_version(duplex_parsed, v2):

@@ -141,7 +141,7 @@ possible, flags the rest, and moves on; the user supplies the information or not
 
 | Source | Meaning | Example |
 |---|---|---|
-| Measured | From the model, verified against geometry | Wall area from volume / thickness |
+| Measured | From the model, verified against geometry | Wall area from its measured faces, checked against volume / thickness |
 | Derived | From a proxy, formula shown | Formwork from wall area; reinforcement from concrete volume x kg/m3 |
 | Manual | No model behind it: preliminaries, provisional sums, lump sums, dayworks | Site setup, 1 item |
 | Flagged | Cannot be determined; line present, quantity blank, reason stated | Worktop length when only a count exists |

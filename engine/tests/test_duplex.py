@@ -34,7 +34,11 @@ HAND_BOQ = [
     ("slabs", "Wood Joist", 118.563, "m2"),
     ("roofs", "Live Roof", 132.926, "m2"),
     ("walls", "Exterior - Brick on Block", 235.779 + 31.383, "m2"),   # walls + parapet
-    ("walls", "Party Wall", 71.670, "m2"),
+    # Party walls by their faces (A-09, DEC-34): main wall 143239 axis 16.966 m x unconnected height
+    # 2.900 m; stubs 139234 / 139347 IfcRectangleProfileDef 4.201 x 0.55 m, extruded 2.795 m (clipped at
+    # the top, faces unchanged; Revit Area 11.742 each); stub 139374 2.200 x 0.55 m x 2.795 m.
+    # Before A-09: volume / 0.55 m layer set = 71.670 (the bodies are not full 0.55 m prisms)
+    ("walls", "Party Wall", 16.966 * 2.900 + 2 * 4.201 * 2.795 + 2.200 * 2.795, "m2"),   # 78.834
     ("walls", "Partition (92mm", 106.396, "m2"),
     ("walls", "Plumbing (152mm", 9.390, "m2"),
     ("walls", "Furring (152 mm", 58.557, "m2"),
@@ -48,7 +52,8 @@ HAND_BOQ = [
     ("slabs", "150mm Exterior Slab", 50.840, "m2"),
     ("formwork-walls", "", 153.797, "m2"),
     ("formwork-footings", "", 37.019, "m2"),
-    ("paint-walls", "", 703.185, "m2"),
+    # plasterboard layers x wall area: the party walls' two layers follow their faces (A-09)
+    ("paint-walls", "", 703.185 + 2 * (78.834 - 71.670), "m2"),
 ]
 COUNTS = [("windows", "M_Fixed, 4835", 2), ("windows", "M_Fixed, 2800", 4), ("windows", "M_Fixed, 750", 4),
           ("windows", "M_Fixed, 819", 8), ("windows", "M_Casement", 4), ("windows", "Skylight", 2),

@@ -151,17 +151,17 @@ CHECKS = [
          what="IfcBeam mass t", script=("length_x60", ["2OrWItJ6zAwBNp0OUxK_l8"]), hand=0.445278, tol=(0.0005, 0.005),
          known={"app": 0.45138, "note": "QS-012: length is PSet_Revit_Dimensions.Length (analytical, +0.10 m), "
                                         "not the member's cut length; +1.4 % mass"}),
-    # S05 party wall 143239 (surface model, script only): faces 49.20 m2; app = Revit volume 25.8301 /
-    # layer-set 0.550 = 46.964 m2
+    # S05 party wall 143239 (surface model): axis 16.966 m x unconnected height 2.900 m = 49.2014 m2 of face.
+    # Before WP-A3 A-09 the app took Revit volume 25.8301 / layer-set 0.550 = 46.964 m2 (the body is not a
+    # full 0.55 m prism); FIXED: walls are measured by their faces
     dict(id="S05-partywall-area", sample="S05", rule="walls", line="Party Wall", guids=["2O2Fr$t4X7Zf8NOew3FKau"],
-         what="IfcWall area m2", script=("side_mean", ["2O2Fr$t4X7Zf8NOew3FKau"]), hand=None,
-         known={"app": 46.963849, "note": "QS-004: wall area = volume / layer-set thickness; the body is not a full "
-                                          "0.55 m prism, so the face area is 4.8 % larger"}),
-    # S05 party wall line, all four elements
+         what="IfcWall area m2", script=("side_mean", ["2O2Fr$t4X7Zf8NOew3FKau"]), hand=16.966 * 2.900),
+    # S05 party wall line, all four elements: 49.2014 + stubs 139234 / 139347 4.201 x 2.795 (IfcRectangleProfileDef,
+    # extruded 2.795) + stub 139374 2.200 x 2.795 = 78.834 m2 (71.67 by volume / thickness before A-09)
     dict(id="S05-partywall-line", sample="S05", rule="walls", line="Party Wall", guids=None,
          what="line total m2 (4 walls)", script=("side_mean", ["2O2Fr$t4X7Zf8NOew3FKau", "2O2Fr$t4X7Zf8NOew3FNbT",
                                                                "2O2Fr$t4X7Zf8NOew3FKRi", "2O2Fr$t4X7Zf8NOew3FKRH"]),
-         hand=None, known={"app": 71.67, "note": "QS-004: same rule on all four party walls; faces total 78.83 m2 (-9.1 %)"}),
+         hand=16.966 * 2.900 + 2 * 4.201 * 2.795 + 2.200 * 2.795),
     # S05 exterior brick-on-block line, all twelve walls (faces vs the app's volume / thickness)
     dict(id="S05-extwall-line", sample="S05", rule="walls", line="Exterior - Brick on Block", guids=None,
          what="line total m2 (12 walls)", script=("side_mean", "LINE"), hand=None),
