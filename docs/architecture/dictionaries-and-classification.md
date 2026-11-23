@@ -69,7 +69,10 @@ markers and zone volumes); as-modelled excludes elements made of it.
 (materials, layer materials, space names, and type names of walls, coverings and proxies; a door's
 type name rarely needs a term). A name question is **blocking** only when `unresolved` is "ask"
 and the field is referenced by the current rules or maps. The settings also carry an `ai` block
-(suggestion thresholds); **AI suggestions are not implemented** yet.
+(suggestion thresholds); **AI suggestions are not implemented** yet. `contradictionWarnPct` and
+`contradictionBlockPct` (defaults 10 and 50) are read by measure, not by name resolution: when a stated
+quantity that disagrees with the geometry raises a `contradiction` question, and when it blocks
+([engine](engine.md#questions-and-decisions)).
 
 Answers (D18, F05): an estimator's answer is stored as a project decision in the backend and sent
 with every run of that project; a library editor, admin or owner can promote a name answer to the

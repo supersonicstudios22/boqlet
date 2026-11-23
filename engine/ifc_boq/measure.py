@@ -18,10 +18,12 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               oriented bounding box (world axes would give a rotated wall's diagonal).
   contradictions  reported volume vs a closed mesh, a reported area vs a clear plate's sides, or a
               layer-set / reported thickness vs the geometry (volume over the mean side area),
-              differing by more than CONTRADICTION: a `contradiction` question asks, per class and
-              type, which to use. Unanswered, the reported value is kept, except (D72) an area
-              outside 0.5-2x the geometry and a horizontal plate's stated Width quantity, where the
-              geometry is used. A net area larger than its set's gross area is never read.
+              differing by more than contradictionWarnPct (resolution settings, default 10 %): a
+              `contradiction` question asks, per class and type, which to use; above
+              contradictionBlockPct (default 50 %) it blocks, unless a unit error (D73). Unanswered,
+              the reported value is kept, except where it is implausible (outside 0.5-2x a closed
+              mesh, D73) and for a horizontal plate's stated Width quantity (D72): there the geometry
+              is used. A net area larger than its set's gross area is never read.
   wall area   net_volume / thickness  (keeps area, volume and layers consistent;
               authoring-tool "Area" is often inconsistent), else reported area.
   other area  reported area, else net_volume / thickness (never from a reported volume the
@@ -66,7 +68,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FAMILIES = json.load(open(os.path.join(HERE, "data", "families.json"), encoding="utf-8"))["IFC_FAMILIES"]
 SOURCES = json.load(open(os.path.join(HERE, "data", "quantity_sources.json"), encoding="utf-8"))
 TOLERANCE = 0.01
-CONTRADICTION = 0.10     # reported vs geometry beyond this (and THICKNESS_MIN for thickness): ask
+CONTRADICTION = 0.10     # default contradictionWarnPct: reported vs geometry beyond this (and THICKNESS_MIN): ask
+CONTRADICTION_BLOCK = 0.50   # default contradictionBlockPct: beyond this the question blocks (unless a unit error)
 THICKNESS_MIN = 0.005    # m
 # a stated value this many times the closed mesh's (within UNIT_SCALE_TOL) is an exporter unit error
 # (mm3 or litres written as m3, mm2 as m2, mm as m): the geometry is used (DEC-31)
@@ -172,6 +175,15 @@ def unit_scale(stated: float | None, measured: float | None) -> float | None:
     return next((f for f in UNIT_SCALES if abs(r / f - 1) <= UNIT_SCALE_TOL), None)
 
 
+def contradiction_thresholds(settings: dict | None) -> tuple[float, float]:
+    """(warn, block) as fractions from the resolution settings (percentages; defaults 10 and 50). The block
+    threshold is never below the warn threshold."""
+    settings = settings or {}
+    warn = float(settings.get("contradictionWarnPct", CONTRADICTION * 100)) / 100
+    block = float(settings.get("contradictionBlockPct", CONTRADICTION_BLOCK * 100)) / 100
+    return warn, max(block, warn)
+
+
 def implausible(stated: float, measured: float) -> bool:
     """A stated value outside 0.5-2x the closed mesh's: the geometry is the likelier one (DEC-31)."""
     return not 0.5 <= stated / measured <= 2.0
@@ -215,13 +227,18 @@ def opening_record(o: dict, depth: float | None = None) -> dict:
 
 def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
           discipline: str | None = None, answers: dict | None = None,
-          questions: list | None = None) -> tuple[list[dict], list[dict]]:
+          questions: list | None = None, settings: dict | None = None) -> tuple[list[dict], list[dict]]:
     """Returns (MeasuredElement dicts, name resolutions for questions).
     model_id / discipline: set by federation (the run's id for this model, the user's tag);
     default to the file hash and the parser's discipline guess. `answers` to earlier
-    `contradiction` questions are applied; new ones are appended to `questions`."""
+    `contradiction` questions are applied; new ones are appended to `questions`. `settings`: the
+    resolution settings (contradictionWarnPct, contradictionBlockPct; defaults 10 and 50)."""
     answers = answers or {}
     asked: dict[str, dict] = {}
+    warn, block = contradiction_thresholds(settings)
+
+    def ask(*args, **kw):
+        _ask(asked, *args, block=block, **kw)
     mats = {m["id"]: m["name"] for m in parsed["catalogues"]["materials"]}
     lsets = {l["id"]: l for l in parsed["catalogues"]["layerSets"]}
     types = {t["id"]: t for t in parsed["catalogues"]["types"]}
@@ -359,25 +376,26 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         # a stated thickness the geometry contradicts (volume over the mean side area)
         if prov.get("thickness") == "reported" and plate:
             t_geo = g["volume"] / side_mean
-            if abs(t_geo - thickness) > max(CONTRADICTION * thickness, THICKNESS_MIN):
+            if abs(t_geo - thickness) > max(warn * thickness, THICKNESS_MIN):
                 qid = contradiction_id("thickness", cls, type_name or el.get("name"))
                 # a horizontal plate's stated Width (a quantity, not its layer set) is often its plan width
                 # (S08 pile cap: Width 3.8 m, 1.0 m thick): its thin axis is trusted unless answered otherwise
                 stated_quantity = cls not in PLANAR_VERTICAL and t_note != "material layer set"
+                prefer_geometry = stated_quantity or implausible(thickness, t_geo)
                 if answers.get(qid) == "geometry":
                     t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area; answer to {qid}); "
                               f"{t_note} said {fmt(thickness)}")
                     thickness, prov["thickness"] = t_geo, "geometry"
-                elif answers.get(qid) != "reported" and stated_quantity:
-                    _ask(asked, qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note,
+                elif answers.get(qid) != "reported" and prefer_geometry:
+                    ask(qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note,
                          used="geometry")
                     notes.append(f"thickness {fmt(thickness)} m ({t_note}) but the geometry is {fmt(round(t_geo, 3))} m thick: "
                                  f"geometry used")
                     t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area); {t_note} said "
-                              f"{fmt(thickness)}, contradicted by the thin axis")
+                              f"{fmt(thickness)}, " + ("contradicted by the thin axis" if stated_quantity else "outside 0.5-2x the geometry"))
                     thickness, prov["thickness"] = t_geo, "geometry"
                 elif answers.get(qid) != "reported":
-                    _ask(asked, qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note)
+                    ask(qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note)
                     notes.append(f"thickness {fmt(thickness)} m ({t_note}) but the geometry is {fmt(round(t_geo, 3))} m thick")
 
         # volume
@@ -391,7 +409,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 diff = (geo_vol - net_volume) / net_volume
                 v_note += f"; geometry {fmt(round(geo_vol, 4))} m3 ({diff:+.1%})"
                 qid = contradiction_id("volume", cls, type_name or el.get("name"))
-                sure = abs(diff) > CONTRADICTION and g.get("hasBody") and closed is not False
+                sure = abs(diff) > warn and g.get("hasBody") and closed is not False
                 scale = unit_scale(net_volume, geo_vol) if g.get("hasBody") and closed is not False else None
                 if sure and answers.get(qid) == "geometry":
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
@@ -405,8 +423,15 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     note = _unit_error(log, el, "volume", stated, geo_vol, scale, rep["volume"][1])
                     v_note += f"; looks like a unit error (x{scale_label(scale)}): geometry used"
                     notes.append(note)
-                    _ask(asked, qid, "volume", cls, type_name or el.get("name"), el["id"], stated, geo_vol,
+                    ask(qid, "volume", cls, type_name or el.get("name"), el["id"], stated, geo_vol,
                          rep["volume"][1], used="geometry", scale=scale)
+                elif sure and answers.get(qid) != "reported" and implausible(net_volume, geo_vol):
+                    stated = net_volume
+                    net_volume, prov["net_volume"] = geo_vol, "geometry"
+                    v_note += "; outside 0.5-2x the geometry: geometry used"
+                    notes.append(f"geometry volume differs from reported by {diff:+.1%}; geometry used (implausible)")
+                    ask(qid, "volume", cls, type_name or el.get("name"), el["id"], stated, geo_vol, rep["volume"][1],
+                        used="geometry")
                 elif abs(diff) > TOLERANCE:
                     notes.append(f"geometry volume differs from reported by {diff:+.1%}; reported used")
                     log.warn("measure", f"{el.get('name') or el['id']}: geometry volume {fmt(round(geo_vol, 3))} m3 vs reported "
@@ -417,7 +442,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                         ))
                     if sure and answers.get(qid) != "reported":
                         volume_contradicted = True
-                        _ask(asked, qid, "volume", cls, type_name or el.get("name"), el["id"], net_volume, geo_vol,
+                        ask(qid, "volume", cls, type_name or el.get("name"), el["id"], net_volume, geo_vol,
                              rep["volume"][1])
         elif geo_vol and closed is not False:
             net_volume, prov["net_volume"] = geo_vol, "geometry"
@@ -462,9 +487,9 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     a_note += f"; looks like a unit error (x{scale_label(scale)}): {fmt(round(net_area, 3))} m2 from geometry used"
                     notes.append(note)
                     if answers.get(qid) != "geometry":
-                        _ask(asked, qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
+                        ask(qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
                              rep["area"][1], used="geometry", scale=scale)
-                elif geo_area and abs(geo_area - net_area) > CONTRADICTION * net_area:
+                elif geo_area and abs(geo_area - net_area) > warn * net_area:
                     # reported area vs the plate's measured sides: the stated value is kept unless it is
                     # implausible (outside 0.5-2x the geometry; Revit's NetArea = whole surface is > 2x)
                     stated, diff = net_area, (geo_area - net_area) / net_area
@@ -474,7 +499,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                         net_area, prov["net_area"] = side_mean, "geometry"
                         a_note += f": {fmt(round(net_area, 3))} m2 from geometry used"
                     if answers.get(qid) not in ("geometry", "reported"):
-                        _ask(asked, qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
+                        ask(qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
                              rep["area"][1], used="geometry" if use_geo else "reported")
                         notes.append(f"area {fmt(round(stated, 3))} m2 ({rep['area'][1]}) but the geometry is "
                                      f"{fmt(round(geo_area, 3))} m2" + (": geometry used" if use_geo else ""))
@@ -517,7 +542,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 unit_scaled["length"] = scale
                 notes.append(_unit_error(log, el, "length", stated, geo_len, scale, rep["length"][1]))
                 if answers.get(qid) != "geometry":
-                    _ask(asked, qid, "length", cls, type_name or el.get("name"), el["id"], stated, geo_len,
+                    ask(qid, "length", cls, type_name or el.get("name"), el["id"], stated, geo_len,
                          rep["length"][1], used="geometry", scale=scale)
         elif geo_len is not None:
             length, prov["length"] = geo_len, "geometry"
@@ -658,7 +683,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
 
 
 def _ask(asked: dict, qid: str, what: str, cls: str, type_name: str | None, guid: str, stated: float, geo: float, source,
-         used: str = "reported", scale: float | None = None):
+         used: str = "reported", scale: float | None = None, block: float = 0.5):
     """One `contradiction` question per (what, class, type), collecting its elements. `used`: what this
     element takes while nobody answers ("geometry" for a unit error); `scale`: the unit-error factor."""
     q = asked.get(qid)
@@ -672,6 +697,9 @@ def _ask(asked: dict, qid: str, what: str, cls: str, type_name: str | None, guid
     q["_range"] = [min(q["_range"][0], diff), max(q["_range"][1], diff)]
     q["_used"].add(used)
     q["_scale"] = q["_scale"] or scale
+    # a difference above the block threshold blocks (DEC-31), unless it is explained as a unit error
+    if scale is None and abs(diff) > block + 1e-9:
+        q["blocking"] = True
     render_contradiction(q)
 
 

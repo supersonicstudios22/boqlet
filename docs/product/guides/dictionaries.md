@@ -208,7 +208,9 @@ project using it is asked again.
 
 - The order of the layers, which names are worth asking about, and what happens to names nothing
   explains are **resolution settings**: the shipped default is `presets/settings/resolution.json`; the
-  Library has a resolution-settings kind (**New resolution settings**, edited as JSON) that a BoQ can
-  pick under Setup › Advanced.
+  Library has a resolution-settings kind (**New resolution settings**: the contradiction thresholds as
+  fields, everything else as JSON) that a BoQ can pick under Setup › Advanced. The same settings say when a
+  quantity stated in the file that disagrees with the geometry is asked about (**Ask above**, default 10 %)
+  and when that question blocks the BoQ (**Block above**, default 50 %; never below Ask above).
 - "Suggestion" in Names in the model matches words of the name to the meanings; AI suggestions are
   not built yet.

@@ -24,7 +24,8 @@ import static com.boqlet.contract.model.OrgRole.*;
 @Service
 public class Library {
     private static final Map<PresetKind, String> CHECKS = Map.of(PresetKind.RULE_SET, "rules",
-            PresetKind.DICTIONARY, "dictionaries", PresetKind.CLASSIFICATION, "classifications");
+            PresetKind.DICTIONARY, "dictionaries", PresetKind.CLASSIFICATION, "classifications",
+            PresetKind.RESOLUTION, "resolution");
     private final JdbcTemplate database;
     private final StoredJson json;
     private final PresetCatalog catalog;

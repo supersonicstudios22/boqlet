@@ -205,7 +205,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     for m in models:
         qs: list[dict] = []
         m["elements"], res = measure(m["parsed"], rv, log, model_id=m["id"], discipline=m["discipline"],
-                                     answers=answers, questions=qs)
+                                     answers=answers, questions=qs, settings=resolution)
         m["boxes"] = element_boxes(m["parsed"])
         resolutions += res
         for q in qs:

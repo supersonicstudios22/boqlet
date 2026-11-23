@@ -38,7 +38,7 @@ const EDITORS: Record<PresetKind, AnyEditor> = {
   classification: dynamic(() => import("./classification/classification-editor").then((m) => m.ClassificationEditor as unknown as AnyEditor), { loading }),
   dictionary: dynamic(() => import("./dictionary/dictionary-editor").then((m) => m.DictionaryEditor as unknown as AnyEditor), { loading }),
   federation: AdvancedJson,
-  resolution: AdvancedJson,
+  resolution: dynamic(() => import("./resolution/resolution-editor").then((m) => m.ResolutionEditor as unknown as AnyEditor), { loading }),
 };
 
 /**

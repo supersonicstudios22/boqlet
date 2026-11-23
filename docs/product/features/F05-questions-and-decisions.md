@@ -1,6 +1,6 @@
 # F05 Questions and decisions
 
-> **Status (2026-11-22):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built. A run lists the questions it asked plus those its decisions answered (TF-137); a click on the preselected suggested answer accepts it (P54 Q60, TF-173); viewers see questions and decisions read-only (Q44).
+> **Status (2026-11-22):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built. A run lists the questions it asked plus those its decisions answered (TF-137); a click on the preselected suggested answer accepts it (P54 Q60, TF-173); viewers see questions and decisions read-only (Q44). A `contradiction` above the resolution settings' block threshold (default 50 %) blocks; unit errors and implausible stated values recommend the geometry (review WP-A1, D71–D73).
 > **Not built / differs:**
 > - The questions tab filters by kind and answered state only; no model filter (`apps/app/src/features/questions/questions-tab.tsx`).
 
@@ -20,7 +20,7 @@ are stored once per project and applied to every run, every BoQ and every new mo
 | `double_claim` | Two rules measure the same slab for "area" | choice of rule | yes |
 | `unclassified` | Line "Skirting, timber" has no code in "ACME cost codes" | code picker from that code list | if the map says `ask` |
 | `classification_conflict` | Two map rules give different codes | code picker | no |
-| `contradiction` | Wall W-3 reports 12.1 m³; geometry gives 9.8 m³ | choice (reported / geometry), recommended marked | no |
+| `contradiction` | Wall W-3 reports 12.1 m³; geometry gives 9.8 m³; a slab states 1000× its volume (a unit error: the geometry is used) | choice (reported / geometry), recommended marked (the geometry when the stated value is a unit error or implausible) | when the difference is above the block threshold (resolution settings, default 50%), unless a unit error |
 | `overlap` | Wall W-3 (Architecture) and W-77 (Structure) overlap 96% | choice (keep A / keep B / keep both) | yes |
 | `orphan_override` (new, EN-003) | Your override on line "…" no longer matches a line | choice (remove override / keep for later) | no |
 

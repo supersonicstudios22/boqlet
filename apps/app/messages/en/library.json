@@ -812,5 +812,13 @@
     "open": "Guided mode",
     "full": "Open in the full editor",
     "itemsIntro": "Import your item list (Code list › Import), then choose the item each kind of line gets (Codes per line). Everything else is under Advanced."
+  },
+  "resolution": {
+    "contradictions": "Stated quantities vs the geometry",
+    "contradictionsHint": "When a volume, area or thickness stated in the file disagrees with the one measured from the model's geometry, the BoQ asks which to use. A stated value 1000 times the geometry is taken as a unit error and never blocks.",
+    "warnPct": "Ask above (%)",
+    "warnPctHint": "A difference above this asks which value to use. Empty: {n} %.",
+    "blockPct": "Block above (%)",
+    "blockPctHint": "Above this the question must be answered before the BoQ is complete. Empty: {n} %. Not below “Ask above”."
   }
 }

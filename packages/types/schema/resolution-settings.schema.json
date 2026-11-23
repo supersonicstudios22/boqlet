@@ -5,6 +5,13 @@
     "ResolutionSettings": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "The preset's slug and name: the Library writes both into every resolution preset it creates."
+        },
+        "name": {
+          "type": "string"
+        },
         "layerOrder": {
           "type": "array",
           "items": {
@@ -78,6 +85,18 @@
             "additionalProperties": false
           },
           "description": "Which unresolved names are worth a question. Others keep their raw text (rules can still match raw names). A door's type name rarely needs a term; a wall's usually does. Default: every field, always."
+        },
+        "contradictionWarnPct": {
+          "type": "number",
+          "description": "Reported quantity vs geometry (measure): a stated volume, area or thickness differing from the geometry by more than this percentage raises a `contradiction` question. Default 10.",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "contradictionBlockPct": {
+          "type": "number",
+          "description": "Above this percentage a `contradiction` question blocks the BoQ (\"needs input\"), unless the stated value is an exporter unit error (the geometry is then used and the question stays optional). Default 50; never below `contradictionWarnPct`.",
+          "minimum": 1,
+          "maximum": 1000
         }
       },
       "required": [

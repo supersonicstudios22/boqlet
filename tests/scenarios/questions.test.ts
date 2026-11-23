@@ -212,3 +212,50 @@ describe("a decision the run doesn't use is not a pending change (BR-23, TF-029)
     expect(saved.response.status, JSON.stringify(saved.error)).toBe(200);
   }, 300_000);
 });
+
+describe("contradiction thresholds are resolution settings (review WP-A1, A-04)", () => {
+  it("a resolution preset's block threshold makes the Duplex party wall's contradiction block, and a bad one is refused", async () => {
+    // Its own org: Free allows one org preset (P57).
+    const lead = await signUp("Thresholds Lead", uniqueEmail("thresholds"));
+    const api = client(lead.token);
+    const { data: org } = await api.POST("/orgs", { body: { name: "Thresholds Firm", slug: slug("thresholds") } });
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex" } });
+    const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
+    const version = await uploadVersion(lead, model!.id, await duplexBytes(), "Ifc2x3_Duplex_Architecture.ifc");
+    expect((await waitForVersion(lead, version.id)).status).toBe("ready");
+
+    const { data: preset, error } = await api.POST("/orgs/{orgId}/presets", { params: { path: { orgId: org!.id } }, body: { kind: "resolution", name: `Strict ${slug("r")}`, start: { mode: "empty" } } });
+    expect(error).toBeUndefined();
+    const draftOf = async () => {
+      const p = (await api.GET("/presets/{presetId}", { params: { path: { presetId: preset!.id } } })).data!;
+      return (await api.GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: (p.draft ?? p.latestPublishedVersion)!.id } } })).data!.doc as Record<string, unknown>;
+    };
+    const save = async (values: Record<string, unknown>) =>
+      api.PUT("/presets/{presetId}/draft", { params: { path: { presetId: preset!.id } }, body: { doc: { ...(await draftOf()), ...values } } });
+    const publish = () => api.POST("/presets/{presetId}/publish", { params: { path: { presetId: preset!.id } }, body: { changeNote: "Block above 20 %" } });
+
+    // Blocking below the asking threshold is refused by the engine's check.
+    await save({ contradictionWarnPct: 10, contradictionBlockPct: 5 });
+    const bad = await publish();
+    expect(bad.response.status).toBe(409);
+    expect(bad.error).toMatchObject({ code: "draft_has_problems" });
+
+    await save({ contradictionWarnPct: 10, contradictionBlockPct: 20 });
+    const published = await publish();
+    expect(published.response.status, JSON.stringify(published.error)).toBe(200);
+
+    // The same model under the default settings: the party wall's contradictions (+42 % volume) are optional.
+    const make = async (name: string, resolutionVersionId?: string) => {
+      const created = (await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } }, body: { name, inputs: resolutionVersionId ? { resolutionVersionId } : {} } })).data!;
+      const { data: started } = await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: created.currentRevision.id } } });
+      const run = await finished(api, started!.run.id);
+      return (await questionsOf(api, run.id)).filter((q) => q.kind === "contradiction");
+    };
+    const lenient = await make("Default thresholds");
+    expect(lenient.length).toBeGreaterThan(0);
+    expect(lenient.every((q) => !q.blocking)).toBe(true);
+    const strict = await make("Strict thresholds", published.data!.id);
+    const volume = strict.find((q) => q.id === "contradiction:volume:IfcWall:Party Wall - CMU Residential Unit Dimising Wall");
+    expect(volume?.blocking).toBe(true);
+  }, 300_000);
+});

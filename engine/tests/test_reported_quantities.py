@@ -13,6 +13,7 @@ pinned without an IFC file. The `review_sample` tests re-run the review's real s
 from __future__ import annotations
 
 import copy
+from functools import lru_cache
 from pathlib import Path
 
 import pytest
@@ -72,7 +73,7 @@ def measure(parsed: dict, answers: dict | None = None, settings: dict | None = N
     rv = Resolver([presets.load_dictionary("global-seed")], resolution)
     questions: list[dict] = []
     log = CalcLog()
-    out, _ = build(parsed, rv, log, answers=answers, questions=questions)
+    out, _ = build(parsed, rv, log, answers=answers, questions=questions, settings=resolution)
     return {m["guid"]: m for m in out}, {q["id"]: q for q in questions}, log
 
 
@@ -104,12 +105,18 @@ def test_an_uncontradicted_volume_still_gives_the_area():
 
 
 # ---------------------------------------------------------------- the review samples
+@lru_cache(maxsize=None)
+def _parsed_sample(path: str) -> dict:
+    from ifc_boq.parse import parse_file
+    return parse_file(path)[0]
+
+
 def review_sample(name: str) -> dict:
+    """A review sample's parse (once per session; S08 takes ~20 s), as a copy each test may change."""
     path = SAMPLES / name
     if not path.exists():
         pytest.skip(f"review sample {name} not fetched (bash docs/review/tools/fetch-samples.sh)")
-    from ifc_boq.parse import parse_file
-    return parse_file(str(path))[0]
+    return copy.deepcopy(_parsed_sample(str(path)))
 
 
 def sample_lines(parsed: dict) -> dict:
@@ -150,11 +157,16 @@ def test_a_stated_volume_a_power_of_1000_off_the_mesh_is_a_unit_error(factor):
 @pytest.mark.parametrize("factor", [970.0, 1030.0, 100.0, 2.0])
 def test_outside_the_2_percent_band_is_not_a_unit_error(factor):
     """A-02: only 10^±3 / 10^±6 within 2 % count (DEC-31). 999x and 1019x are inside the band (tested as unit errors
-    here and above); 970x and 1030x are ordinary contradictions: the stated value is kept."""
+    here and above); 970x, 1030x and 100x are ordinary contradictions: no unit_scale, and they block (A-04), with the
+    geometry used only because they are implausible (outside 0.5-2x). 2x is plausible: the stated value is kept."""
     el = slab({"BaseQuantities": {"GrossVolume": 10.0 * factor}}, layer_thickness=0.2)
     m, qs, _ = measure(doc(el, layer_thickness=0.2))
-    assert m["slab-1"]["net_volume"] == pytest.approx(10.0 * factor) and "unit_scale" not in m["slab-1"]
-    assert qs["contradiction:volume:IfcSlab:Test floor"]["params"]["unitError"] is False
+    q = qs["contradiction:volume:IfcSlab:Test floor"]
+    assert "unit_scale" not in m["slab-1"] and q["params"]["unitError"] is False
+    if factor > 2:
+        assert q["blocking"] and q["suggestion"] == "geometry" and m["slab-1"]["net_volume"] == pytest.approx(10.0)
+    else:
+        assert not q["blocking"] and q["suggestion"] == "reported" and m["slab-1"]["net_volume"] == pytest.approx(10.0 * factor)
 
 
 def test_999_times_is_a_unit_error():
@@ -282,3 +294,86 @@ def test_s08_pile_cap_area_and_edge_formwork():
                              for e in l["trace"]["elements"] if e["guid"] == "3OQjd9jwr1COqcP44Fm6DW")
     assert share("slabs") == pytest.approx(14.44, abs=0.01)
     assert share("formwork-slab-edges") == pytest.approx(15.20, abs=0.01)
+
+
+# ---------------------------------------------------------------- A-04: block threshold and settings
+@pytest.mark.parametrize("pct, blocking", [(49, False), (50, False), (51, True)])
+def test_a_contradiction_above_the_block_threshold_blocks(pct, blocking):
+    """A-04 (QS-002): above contradictionBlockPct (default 50) the question blocks; at or below it, it does not."""
+    el = slab({"BaseQuantities": {"NetVolume": 10.0 / (1 - pct / 100)}}, layer_thickness=0.2)   # geometry 10 m3: -pct %
+    _, qs, _ = measure(doc(el, layer_thickness=0.2))
+    assert qs["contradiction:volume:IfcSlab:Test floor"]["blocking"] is blocking
+
+
+def test_the_recommendation_follows_plausibility():
+    """A-04: outside 0.5-2x a closed mesh the geometry is recommended and used; inside, the stated value."""
+    near = slab({"BaseQuantities": {"NetVolume": 14.0}}, layer_thickness=0.2)            # geometry -29 %
+    far = slab({"BaseQuantities": {"NetVolume": 25.0}}, layer_thickness=0.2)             # geometry -60 % (0.4x)
+    m1, q1, _ = measure(doc(near, layer_thickness=0.2))
+    m2, q2, _ = measure(doc(far, layer_thickness=0.2))
+    assert q1["contradiction:volume:IfcSlab:Test floor"]["suggestion"] == "reported" and m1["slab-1"]["net_volume"] == pytest.approx(14.0)
+    q = q2["contradiction:volume:IfcSlab:Test floor"]
+    assert q["suggestion"] == "geometry" and q["blocking"] and m2["slab-1"]["net_volume"] == pytest.approx(10.0)
+
+
+def test_a_unit_error_never_blocks():
+    el = slab({"BaseQuantities": {"GrossVolume": 10000.0}}, layer_thickness=0.2)
+    _, qs, _ = measure(doc(el, layer_thickness=0.2))
+    assert not qs["contradiction:volume:IfcSlab:Test floor"]["blocking"]
+
+
+def test_the_thresholds_are_settings():
+    """A-04: contradictionWarnPct and contradictionBlockPct come from the resolution settings."""
+    el = slab({"BaseQuantities": {"NetVolume": 10.8}}, layer_thickness=0.2)                # geometry -7.4 %
+    _, qs, _ = measure(doc(el, layer_thickness=0.2))
+    assert not qs
+    _, qs, _ = measure(doc(el, layer_thickness=0.2), settings={"contradictionWarnPct": 5})
+    assert not qs["contradiction:volume:IfcSlab:Test floor"]["blocking"]
+    _, qs, _ = measure(doc(el, layer_thickness=0.2), settings={"contradictionWarnPct": 5, "contradictionBlockPct": 6})
+    assert qs["contradiction:volume:IfcSlab:Test floor"]["blocking"]
+
+
+def test_a_blocking_contradiction_makes_the_run_need_input():
+    from ifc_boq.pipeline import get_boq
+    el = slab({"BaseQuantities": {"NetVolume": 25.0, "GrossArea": 50.0}}, layer_thickness=0.2)
+    rs, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(doc(el, layer_thickness=0.2), rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    assert r["status"] == "needs_input"
+    assert [q["id"] for q in r["questions"] if q["blocking"]] == ["contradiction:volume:IfcSlab:Test floor"]
+
+
+@pytest.mark.parametrize("doc_, ok", [
+    ({}, True),
+    ({"contradictionWarnPct": 10, "contradictionBlockPct": 50}, True),
+    ({"contradictionWarnPct": 20, "contradictionBlockPct": 20}, True),
+    ({"contradictionBlockPct": 5}, False),                      # below the default warn threshold
+    ({"contradictionWarnPct": 0}, False),                       # schema minimum 1
+    ({"contradictionWarnPct": 150}, False),                     # schema maximum 100
+    ({"contradictionBlockPct": "50"}, False),
+    ({"id": "strict", "name": "Strict"}, True),                 # the Library writes both into every preset it creates
+])
+def test_the_resolution_check_accepts_and_refuses_thresholds(doc_, ok):
+    base = presets.resolution()
+    problems = presets.check("resolution", {**base, **doc_})
+    assert (not problems) is ok, problems
+
+
+@pytest.mark.slow
+def test_s07_landing_and_s08_pile_cap_thickness_block_and_recommend_the_geometry():
+    """A-04 acceptance: S07 landing (-95 %) and S08 pile cap (-74 %) block with the geometry recommended."""
+    for sample, qid in (("S07-revit-arc-ifc4.ifc", "contradiction:thickness:IfcSlab:Monolithic Landing:220mm Thickness"),
+                        ("S08-revit-str-ifc4.ifc", "contradiction:thickness:IfcSlab:3800 x 3800 x 600mm")):
+        r = sample_lines(review_sample(sample))
+        q = next(q for q in r["questions"] if q["id"] == qid)
+        assert q["blocking"] and q["suggestion"] == "geometry", (sample, q)
+
+
+@pytest.mark.slow
+def test_s05_party_wall_contradictions_stay_optional():
+    """A-04 acceptance: the Duplex party wall (thickness -16 % to -10 %, volume +42 %) does not block."""
+    from ifc_boq.parse import parse_file
+    from ifc_boq.paths import FIXTURES
+    parsed = parse_file(str(FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture.ifc"))[0]
+    r = sample_lines(parsed)
+    cq = [q for q in r["questions"] if q["kind"] == "contradiction"]
+    assert cq and not any(q["blocking"] for q in cq) and all(q["suggestion"] == "reported" for q in cq)

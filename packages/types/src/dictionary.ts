@@ -152,6 +152,9 @@ export interface Dictionary {
  * ========================================================================== */
 
 export interface ResolutionSettings {
+  /** The preset's slug and name: the Library writes both into every resolution preset it creates. */
+  id?: string;
+  name?: string;
   /** Default ["project", "company", "global"]: first layer with a match wins. */
   layerOrder?: ("project" | "company" | "global")[];
   /** Within a layer. Default ["exact", "startsWith", "regex", "contains"]. */
@@ -172,6 +175,21 @@ export interface ResolutionSettings {
    * a wall's usually does. Default: every field, always.
    */
   askFor?: { field: DictField; when?: Expr }[];
+  /**
+   * Reported quantity vs geometry (measure): a stated volume, area or thickness differing from the
+   * geometry by more than this percentage raises a `contradiction` question. Default 10.
+   * @minimum 1
+   * @maximum 100
+   */
+  contradictionWarnPct?: number;
+  /**
+   * Above this percentage a `contradiction` question blocks the BoQ ("needs input"), unless the stated
+   * value is an exporter unit error (the geometry is then used and the question stays optional).
+   * Default 50; never below `contradictionWarnPct`.
+   * @minimum 1
+   * @maximum 1000
+   */
+  contradictionBlockPct?: number;
 }
 
 export interface Resolution {

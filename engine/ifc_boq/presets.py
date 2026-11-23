@@ -330,7 +330,7 @@ def scope_problems(scope) -> list[str]:
 def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
     """Problems with a draft preset, as messages. [] = the engine would accept it.
 
-    kind: rules | dictionaries | classifications ({"codeList", "map"}) | model-scope (a model's `scope`).
+    kind: rules | dictionaries | classifications ({"codeList", "map"}) | resolution | model-scope (a model's `scope`).
     `library`: other unsaved drafts of the same kind, so a draft patch can extend a draft.
     Uses the same checks as loading and the preset tests; never runs a model.
     """
@@ -383,6 +383,17 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
                     problems.append(f"'{x['id']}': regex does not compile: {err}")
         for dup in {i for i in [e["id"] for e in doc["entries"]] if [e["id"] for e in doc["entries"]].count(i) > 1}:
             problems.append(f"entry id '{dup}' is used more than once")
+        return problems + _expr_problems({k: v for k, v in doc.items() if k != "id"})
+    if kind == "resolution":
+        problems = _schema_problems(doc, "resolution", "")
+        if problems:
+            return problems
+        from .measure import CONTRADICTION, CONTRADICTION_BLOCK
+        warn = doc.get("contradictionWarnPct", CONTRADICTION * 100)
+        block = doc.get("contradictionBlockPct", CONTRADICTION_BLOCK * 100)
+        if block < warn:
+            problems.append(f"contradictionBlockPct ({block:g}) is below contradictionWarnPct ({warn:g}): a contradiction "
+                            f"must be asked before it can block")
         return problems + _expr_problems({k: v for k, v in doc.items() if k != "id"})
     if kind == "classifications":
         from .templates import check as check_item_text
