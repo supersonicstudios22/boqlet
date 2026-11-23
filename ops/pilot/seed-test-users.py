@@ -152,6 +152,9 @@ def seed():
                 }, status=201)
         state.update(orgId=org_id, projectId=project_id,
                      projectUrl=APP + "/pilot-test/projects/" + project_id)
+        if not state.get("setupReady"):
+            owner.api("/orgs/" + org_id + "/setup", "PUT", {"status": "done", "step": "review"})
+            state["setupReady"] = True
         save(state)
         for _ in range(180):
             boqs = owner.api("/projects/" + project_id + "/boqs")

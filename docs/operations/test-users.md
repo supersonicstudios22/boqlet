@@ -16,11 +16,15 @@ random password. The operator keeps the passwords and direct project link in
 that file to testers through the operator's private channel. The reserved `.invalid`
 addresses receive no email, so password recovery for these accounts is operator-assisted.
 The accounts have the normal single-active-session behavior.
+The sample uses shipped presets, and the test organisation's initial setup is marked complete
+so the owner opens the prepared project immediately. Subsequent wizard restarts are preserved.
 
 The seed was installed and run on 2026-11-23 against the deployed app. All four logins and
 project access passed, the viewer's project update returned 403, the Duplex BoQ completed,
 and a repeat seed preserved the credential file byte for byte. This task deploys test data
 and its operator script directly; it requires no new application image.
+The owner and viewer also signed in through the live form in fresh Chromium sessions and
+opened the prepared project.
 
 The explicit operator command is `python3 ops/pilot/seed-test-users.py` on the server.
 It sets passwords through the public native-auth API, creates the organisation and sample
