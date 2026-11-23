@@ -1,0 +1,230 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "pipes | IfcCableSegment | None | None |  | m",
+  "ruleId": "pipes",
+  "description": "IfcCableSegment -, system -",
+  "unit": "m",
+  "quantity": 33.35,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.01"
+  },
+  "elements": 18
+ },
+ {
+  "key": "pipes | IfcDuctSegment | None | None |  | m",
+  "ruleId": "pipes",
+  "description": "IfcDuctSegment -, system -",
+  "unit": "m",
+  "quantity": 4.29,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "pipes | IfcPipeSegment | None | None |  | m",
+  "ruleId": "pipes",
+  "description": "IfcPipeSegment -, system -",
+  "unit": "m",
+  "quantity": 303.41,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.01"
+  },
+  "elements": 407
+ },
+ {
+  "key": "mep-items | IfcBoiler | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcBoiler - -",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "mep-items | IfcController | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcController - -",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "mep-items | IfcDuctFitting | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcDuctFitting - -",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "mep-items | IfcElectricAppliance | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcElectricAppliance - -",
+  "unit": "nr",
+  "quantity": 14.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 14
+ },
+ {
+  "key": "mep-items | IfcFan | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcFan - -",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "mep-items | IfcHeatExchanger | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcHeatExchanger - -",
+  "unit": "nr",
+  "quantity": 14.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 14
+ },
+ {
+  "key": "mep-items | IfcLightFixture | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcLightFixture - -",
+  "unit": "nr",
+  "quantity": 28.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 28
+ },
+ {
+  "key": "mep-items | IfcOutlet | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcOutlet - -",
+  "unit": "nr",
+  "quantity": 47.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 47
+ },
+ {
+  "key": "mep-items | IfcPipeFitting | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcPipeFitting - -",
+  "unit": "nr",
+  "quantity": 356.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 356
+ },
+ {
+  "key": "mep-items | IfcProtectiveDevice | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcProtectiveDevice - -",
+  "unit": "nr",
+  "quantity": 6.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 6
+ },
+ {
+  "key": "mep-items | IfcPump | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcPump - -",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "mep-items | IfcSanitaryTerminal | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcSanitaryTerminal - -",
+  "unit": "nr",
+  "quantity": 16.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 16
+ },
+ {
+  "key": "mep-items | IfcValve | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcValve - -",
+  "unit": "nr",
+  "quantity": 8.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 8
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

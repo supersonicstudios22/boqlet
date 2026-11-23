@@ -1,0 +1,146 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "footings | house - foundation |  | m3",
+  "ruleId": "footings",
+  "description": "Concrete foundation, house - foundation",
+  "unit": "m3",
+  "quantity": 3.69,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-footings | footings | house - foundation |  | m3 | m2",
+  "ruleId": "formwork-footings",
+  "description": "Formwork to sides of foundations",
+  "unit": "m2",
+  "quantity": 3.72,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 1
+ },
+ {
+  "key": "linear-other | IfcBeam | house - girder |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, house - girder",
+  "unit": "m",
+  "quantity": 24.7,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 6
+ },
+ {
+  "key": "walls | house - inner wall | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - inner wall, 200 mm",
+  "unit": "m2",
+  "quantity": 15.22,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house back | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house back, 200 mm",
+  "unit": "m2",
+  "quantity": 21.43,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house front right | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house front right, 200 mm",
+  "unit": "m2",
+  "quantity": 3.73,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house front | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house front, 200 mm",
+  "unit": "m2",
+  "quantity": 14.66,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "other-components | IfcChimney | house - chimney |  | nr",
+  "ruleId": "other-components",
+  "description": "IfcChimney, house - chimney",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "J.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "other-components | IfcDiscreteAccessory | beam shoe |  | nr",
+  "ruleId": "other-components",
+  "description": "IfcDiscreteAccessory, beam shoe",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "J.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

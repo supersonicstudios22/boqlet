@@ -1,0 +1,24 @@
+{
+ "run": "S14-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S14",
+   "file": "S14-not-an-ifc.ifc",
+   "sha256": "de73fa3a7f28c6acce098a084bae104ac4df552f417590ce2e5b8e404f9309e2",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S14": {
+   "job": "deduplicated",
+   "versionStatus": "failed",
+   "error": null
+  }
+ },
+ "outcome": "parse_failed",
+ "timing": {
+  "totalSeconds": 2.9
+ }
+}

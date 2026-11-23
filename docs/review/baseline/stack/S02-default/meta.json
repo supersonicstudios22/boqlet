@@ -1,0 +1,41 @@
+{
+ "run": "S02-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S02",
+   "file": "S02-column-straight-rectangle-tessellation.ifc",
+   "sha256": "58bb9b2cae96edf2c368de95f526650f3f282e4e7fc37c0065c501bdbeed00a1",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S02": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "structure"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S02": 1.6
+  },
+  "runSeconds": 1.6,
+  "totalSeconds": 11.6
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 4
+ }
+}

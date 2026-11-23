@@ -1,0 +1,60 @@
+{
+ "run": "F01-house",
+ "config": "house",
+ "presets": {
+  "rules": "acme-house-rules",
+  "dicts": [
+   "global-seed",
+   "acme-company"
+  ],
+  "classes": [
+   "acme-cost-codes",
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S07",
+   "file": "S07-revit-arc-ifc4.ifc",
+   "sha256": "c4dd3612f126a0ca5a57f0e75d28f3e5da62751def85a452d849883c2892b518",
+   "discipline": "architecture"
+  },
+  {
+   "id": "S08",
+   "file": "S08-revit-str-ifc4.ifc",
+   "sha256": "8c16c7ecf76786568c5374e624575cbd3586ec646468dad6f9ea3c9a4e97239f",
+   "discipline": "structure"
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S07": 113.91,
+   "S08": 154.77
+  },
+  "runSeconds": 20.88,
+  "totalSeconds": 371.14
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "acme-house-rules",
+  "version": "2026.1"
+ },
+ "counts": {
+  "elements": 4581,
+  "measuredElements": 4364,
+  "excludedElements": 1,
+  "unmatchedElements": 3,
+  "lines": 144,
+  "flaggedLines": 4,
+  "decisionsApplied": 0,
+  "questions": 70,
+  "blockingQuestions": 62,
+  "warnings": 13
+ },
+ "peakMemoryMB": 1556.2,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

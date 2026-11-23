@@ -1,0 +1,41 @@
+{
+ "run": "S05-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S05",
+   "file": "S05-duplex-architecture-ifc2x3.ifc",
+   "sha256": "b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S05": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S05": 4.8
+  },
+  "runSeconds": 1.7,
+  "totalSeconds": 15.6
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 41
+ }
+}

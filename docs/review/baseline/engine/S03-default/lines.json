@@ -1,0 +1,158 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "slabs | house - groundfloor |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, house - groundfloor",
+  "unit": "m2",
+  "quantity": 25.75,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | house - groundfloor |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, house - groundfloor",
+  "unit": "m3",
+  "quantity": 6.44,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | house - groundfloor |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 7.25,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house left | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house left, 200 mm",
+  "unit": "m2",
+  "quantity": 21.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house right back | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house right back, 200 mm",
+  "unit": "m2",
+  "quantity": 8.93,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house right front | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house right front, 200 mm",
+  "unit": "m2",
+  "quantity": 6.35,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | plumbing wall | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, plumbing wall, 24 mm",
+  "unit": "m2",
+  "quantity": 6.86,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "roofs | gable_roof |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, gable_roof",
+  "unit": "m2",
+  "quantity": 53.61,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "F.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "unmatched-proxies | house - chimney |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object house - chimney",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | sand bedding |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object sand bedding",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ }
+]

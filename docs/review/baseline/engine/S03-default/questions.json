@@ -1,0 +1,182 @@
+[
+ {
+  "id": "name:material:composite_element_roof",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "composite_element_roof",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "composite_element_roof",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'composite_element_roof' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:type_name:geo-reference",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "geo-reference",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "geo-reference",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'geo-reference' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - chimney",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - chimney",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - chimney",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - chimney' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - gross volume",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - gross volume",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - gross volume",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - gross volume' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house left",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house left",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house left",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house left' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house right back",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house right back",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house right back",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house right back' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house right front",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house right front",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house right front",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house right front' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:origin",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "origin",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "origin",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'origin' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:sand bedding",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "sand bedding",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "sand bedding",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'sand bedding' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ }
+]

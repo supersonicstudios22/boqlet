@@ -1,0 +1,51 @@
+{
+ "run": "S09-standard",
+ "config": "standard",
+ "presets": {
+  "rules": "standard-style-example",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S09",
+   "file": "S09-samplehouse-ifc4.ifc",
+   "sha256": "7606dc4e96b538d6fe7f2fa76655f26186d64d0226f8a10fbc141b9f2cd6cbfe",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S09": 4.92
+  },
+  "runSeconds": 0.14,
+  "totalSeconds": 6.76
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "standard-style-example",
+  "version": "0.1.0"
+ },
+ "counts": {
+  "elements": 64,
+  "measuredElements": 20,
+  "excludedElements": 18,
+  "unmatchedElements": 0,
+  "lines": 17,
+  "flaggedLines": 4,
+  "decisionsApplied": 0,
+  "questions": 12,
+  "blockingQuestions": 9,
+  "warnings": 0
+ },
+ "peakMemoryMB": 193.2,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

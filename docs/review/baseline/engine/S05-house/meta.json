@@ -1,0 +1,53 @@
+{
+ "run": "S05-house",
+ "config": "house",
+ "presets": {
+  "rules": "acme-house-rules",
+  "dicts": [
+   "global-seed",
+   "acme-company"
+  ],
+  "classes": [
+   "acme-cost-codes",
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S05",
+   "file": "S05-duplex-architecture-ifc2x3.ifc",
+   "sha256": "b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S05": 5.8
+  },
+  "runSeconds": 0.21,
+  "totalSeconds": 8.26
+ },
+ "outcome": "result",
+ "status": "complete",
+ "ruleSet": {
+  "id": "acme-house-rules",
+  "version": "2026.1"
+ },
+ "counts": {
+  "elements": 239,
+  "measuredElements": 211,
+  "excludedElements": 21,
+  "unmatchedElements": 0,
+  "lines": 67,
+  "flaggedLines": 4,
+  "decisionsApplied": 0,
+  "questions": 4,
+  "blockingQuestions": 0,
+  "warnings": 0
+ },
+ "peakMemoryMB": 162.9,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

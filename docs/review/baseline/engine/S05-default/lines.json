@@ -1,0 +1,494 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "walls | Foundation - Concrete (417mm) | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Foundation - Concrete (417mm), 417 mm",
+  "unit": "m2",
+  "quantity": 64.42,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "walls | Foundation - Concrete (435mm) | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Foundation - Concrete (435mm), 435 mm",
+  "unit": "m2",
+  "quantity": 12.48,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 3
+ },
+ {
+  "key": "footings | Bearing Footing - 900 x 300 |  | m3",
+  "ruleId": "footings",
+  "description": "Concrete foundation, Bearing Footing - 900 x 300",
+  "unit": "m3",
+  "quantity": 16.53,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 7
+ },
+ {
+  "key": "slabs | 127mm Slab on Grade |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 127mm Slab on Grade",
+  "unit": "m2",
+  "quantity": 129.69,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | 150mm Exterior Slab on Grade |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 150mm Exterior Slab on Grade",
+  "unit": "m2",
+  "quantity": 50.84,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slab-concrete | 127mm Slab on Grade |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 127mm Slab on Grade",
+  "unit": "m3",
+  "quantity": 16.47,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slab-concrete | 150mm Exterior Slab on Grade |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 150mm Exterior Slab on Grade",
+  "unit": "m3",
+  "quantity": 7.63,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "formwork-walls | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces",
+  "unit": "m2",
+  "quantity": 153.8,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 7
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 127mm Slab on Grade |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 8.78,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 2
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 150mm Exterior Slab on Grade |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 6.11,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 2
+ },
+ {
+  "key": "formwork-footings | footings | Bearing Footing - 900 x 300 |  | m3 | m2",
+  "ruleId": "formwork-footings",
+  "description": "Formwork to sides of foundations",
+  "unit": "m2",
+  "quantity": 37.02,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 7
+ },
+ {
+  "key": "steel-sections | W310X60 |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel W310X60",
+  "unit": "t",
+  "quantity": 0.9,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "steel-sections | W410X60 |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel W410X60",
+  "unit": "t",
+  "quantity": 1.73,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 6
+ },
+ {
+  "key": "walls | Exterior - Brick on Block | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Exterior - Brick on Block, 417 mm",
+  "unit": "m2",
+  "quantity": 267.16,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 12
+ },
+ {
+  "key": "walls | Interior - Furring (152 mm Stud) | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - Furring (152 mm Stud), 152 mm",
+  "unit": "m2",
+  "quantity": 58.56,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 6
+ },
+ {
+  "key": "walls | Interior - Furring (38 mm Stud) | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - Furring (38 mm Stud), 54 mm",
+  "unit": "m2",
+  "quantity": 2.56,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 8
+ },
+ {
+  "key": "walls | Interior - Partition (92mm Stud) | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - Partition (92mm Stud), 124 mm",
+  "unit": "m2",
+  "quantity": 106.4,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 18
+ },
+ {
+  "key": "walls | Interior - Plumbing (152mm Stud) | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - Plumbing (152mm Stud), 184 mm",
+  "unit": "m2",
+  "quantity": 9.39,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "walls | Party Wall - CMU Residential Unit Dimising Wall | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
+  "unit": "m2",
+  "quantity": 71.67,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 4
+ },
+ {
+  "key": "windows | M_Casement | 819mm x 759mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Casement, 819mm x 759mm",
+  "unit": "nr",
+  "quantity": 4.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "windows | M_Fixed | 2800mm x 2410mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Fixed, 2800mm x 2410mm",
+  "unit": "nr",
+  "quantity": 4.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "windows | M_Fixed | 4835mm x 2420mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Fixed, 4835mm x 2420mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "windows | M_Fixed | 750mm x 2200mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Fixed, 750mm x 2200mm",
+  "unit": "nr",
+  "quantity": 4.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "windows | M_Fixed | 819mm x 759mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Fixed, 819mm x 759mm",
+  "unit": "nr",
+  "quantity": 8.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 8
+ },
+ {
+  "key": "windows | M_Skylight | 1180 x 1170mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Skylight, 1180 x 1170mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "doors | M_Single-Flush | 0762 x 2032mm | False |  | nr",
+  "ruleId": "doors",
+  "description": "Door M_Single-Flush, 0762 x 2032mm",
+  "unit": "nr",
+  "quantity": 4.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 4
+ },
+ {
+  "key": "doors | M_Single-Flush | 0864 x 2032mm | False |  | nr",
+  "ruleId": "doors",
+  "description": "Door M_Single-Flush, 0864 x 2032mm",
+  "unit": "nr",
+  "quantity": 6.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 6
+ },
+ {
+  "key": "doors | M_Single-Flush | 1250mm x 2010mm | True |  | nr",
+  "ruleId": "doors",
+  "description": "Door M_Single-Flush, 1250mm x 2010mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "doors | M_Single-Glass 1 | 0813 x 2420mm | True |  | nr",
+  "ruleId": "doors",
+  "description": "Door M_Single-Glass 1, 0813 x 2420mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "roofs | Live Roof over Wood Joist Flat Roof |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, Live Roof over Wood Joist Flat Roof",
+  "unit": "m2",
+  "quantity": 132.93,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "F.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Residential - Wood Joist with Subflooring |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Residential - Wood Joist with Subflooring",
+  "unit": "m2",
+  "quantity": 118.56,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "stairs | Residential - 200mm Max Riser 250mm Tread |  | nr",
+  "ruleId": "stairs",
+  "description": "Stair Residential - 200mm Max Riser 250mm Tread",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "railings | 1100mm Guard Rail |  | m",
+  "ruleId": "railings",
+  "description": "Railing 1100mm Guard Rail",
+  "unit": "m",
+  "quantity": 16.67,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.03"
+  },
+  "elements": 2
+ },
+ {
+  "key": "railings | 900mm Handrail Only |  | m",
+  "ruleId": "railings",
+  "description": "Railing 900mm Handrail Only",
+  "unit": "m",
+  "quantity": 9.49,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.03"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Finish Floor - Ceramic Tile |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Finish Floor - Ceramic Tile",
+  "unit": "m2",
+  "quantity": 44.91,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01"
+  },
+  "elements": 6
+ },
+ {
+  "key": "slabs | Finish Floor - Wood |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Finish Floor - Wood",
+  "unit": "m2",
+  "quantity": 196.92,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01"
+  },
+  "elements": 8
+ },
+ {
+  "key": "coverings | CEILING | Gypsum Board |  | m2",
+  "ruleId": "coverings",
+  "description": "CEILING, Gypsum Board",
+  "unit": "m2",
+  "quantity": 243.46,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.02"
+  },
+  "elements": 13
+ },
+ {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 703.19,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "H.03"
+  },
+  "elements": 50
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

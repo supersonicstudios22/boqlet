@@ -1,0 +1,41 @@
+{
+ "run": "S12-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S12",
+   "file": "S12-ios-478-walls-missing-subtractions.ifc",
+   "sha256": "393de14c26b4ab9423941d750c1be60ec5b419da43d3f74f4c237f9cc77e7f85",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S12": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S12": 53.9
+  },
+  "runSeconds": 4.1,
+  "totalSeconds": 70.6
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 5
+ }
+}

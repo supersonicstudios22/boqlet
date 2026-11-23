@@ -1,0 +1,51 @@
+{
+ "run": "S07-tweaked",
+ "config": "tweaked",
+ "presets": {
+  "rules": "demo-tweaked",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S07",
+   "file": "S07-revit-arc-ifc4.ifc",
+   "sha256": "c4dd3612f126a0ca5a57f0e75d28f3e5da62751def85a452d849883c2892b518",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S07": 74.7
+  },
+  "runSeconds": 0.43,
+  "totalSeconds": 78.93
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "demo-tweaked",
+  "version": "0.1.0"
+ },
+ "counts": {
+  "elements": 454,
+  "measuredElements": 222,
+  "excludedElements": 32,
+  "unmatchedElements": 3,
+  "lines": 73,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 67,
+  "blockingQuestions": 61,
+  "warnings": 0
+ },
+ "peakMemoryMB": 1600.6,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

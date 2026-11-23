@@ -1,0 +1,86 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "walls | AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040 | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040, 4490.571 mm",
+  "unit": "m2",
+  "quantity": 1.49,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "windows | None | 1-Flügelfenster 24 |  | nr",
+  "ruleId": "windows",
+  "description": "Window -, 1-Flügelfenster 24",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "windows | None | 2-Flügelfenster 1+1 24 |  | nr",
+  "ruleId": "windows",
+  "description": "Window -, 2-Flügelfenster 1+1 24",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "windows | None | 2-Flügelfenster 24 |  | nr",
+  "ruleId": "windows",
+  "description": "Window -, 2-Flügelfenster 24",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

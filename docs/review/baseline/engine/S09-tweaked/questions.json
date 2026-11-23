@@ -1,0 +1,278 @@
+[
+ {
+  "id": "contradiction:volume:IfcSlab:Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWgQ"
+  ],
+  "occurrences": 1,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the volume stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the volume measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcSlab",
+   "typeName": "Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+   "quantity": "volume",
+   "minDifference": -0.9990000000063742,
+   "maxDifference": -0.9990000000063742,
+   "reported": 68713.556438,
+   "geometry": 68.713556,
+   "source": "BaseQuantities.GrossVolume",
+   "unit": "m3"
+  },
+  "message": "1 x IfcSlab 'Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC': the volume stated in the file and the geometry disagree by -100% (e.g. 68713.556 m3 from BaseQuantities.GrossVolume vs 68.714 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+ },
+ {
+  "id": "contradiction:volume:IfcSlab:Simple floor",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "3ntFzSulnDNeQ4nJrMgcOt"
+  ],
+  "occurrences": 1,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the volume stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the volume measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcSlab",
+   "typeName": "Simple floor",
+   "quantity": "volume",
+   "minDifference": -0.9990000000235589,
+   "maxDifference": -0.9990000000235589,
+   "reported": 13243.372312,
+   "geometry": 13.243372,
+   "source": "BaseQuantities.GrossVolume",
+   "unit": "m3"
+  },
+  "message": "1 x IfcSlab 'Simple floor': the volume stated in the file and the geometry disagree by -100% (e.g. 13243.372 m3 from BaseQuantities.GrossVolume vs 13.243 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+ },
+ {
+  "id": "name:layer_material:Air",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "layer_material",
+  "raw": "Air",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "layer_material",
+   "raw": "Air",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Air' (layer material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:layer_material:Damp-proofing",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "layer_material",
+  "raw": "Damp-proofing",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "layer_material",
+   "raw": "Damp-proofing",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Damp-proofing' (layer material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Air",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Air",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Air",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Air' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Door - Handle",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Door - Handle",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Door - Handle",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'Door - Handle' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Laminate, Ivory, Matte",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Laminate, Ivory, Matte",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Laminate, Ivory, Matte",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Laminate, Ivory, Matte' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Window Frame",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Window Frame",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Window Frame",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'Window Frame' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:space_name:Roof",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Roof",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Roof",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Roof' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:type_name:Plain",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "Plain",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "Plain",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'Plain' (type name)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:Wall-Ext_102Bwk-75Ins-100LBlk-12P",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "Wall-Ext_102Bwk-75Ins-100LBlk-12P",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "Wall-Ext_102Bwk-75Ins-100LBlk-12P",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'Wall-Ext_102Bwk-75Ins-100LBlk-12P' (type name)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:Wall-Partn_12P-70MStd-12P",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "Wall-Partn_12P-70MStd-12P",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "Wall-Partn_12P-70MStd-12P",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'Wall-Partn_12P-70MStd-12P' (type name)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ }
+]

@@ -1,0 +1,41 @@
+{
+ "run": "S11-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S11",
+   "file": "S11-ios-1948-wall-wrong-geometry.ifc",
+   "sha256": "776049ebea8c06b0c50f2d2e976a30480a29152c00e3d7da8fc0a34bbf3f33c6",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S11": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S11": 6.9
+  },
+  "runSeconds": 2.0,
+  "totalSeconds": 18.9
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 7
+ }
+}

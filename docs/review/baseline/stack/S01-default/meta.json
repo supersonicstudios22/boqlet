@@ -1,0 +1,41 @@
+{
+ "run": "S01-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S01",
+   "file": "S01-wall-with-opening-and-window.ifc",
+   "sha256": "73b0e45d931d5dc13bfee5fdc7bd80f796526445458b2de74c4168d209097832",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S01": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S01": 1.7
+  },
+  "runSeconds": 1.7,
+  "totalSeconds": 12.5
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 5
+ }
+}

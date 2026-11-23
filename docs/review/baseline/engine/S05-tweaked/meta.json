@@ -1,0 +1,51 @@
+{
+ "run": "S05-tweaked",
+ "config": "tweaked",
+ "presets": {
+  "rules": "demo-tweaked",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S05",
+   "file": "S05-duplex-architecture-ifc2x3.ifc",
+   "sha256": "b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S05": 9.7
+  },
+  "runSeconds": 0.36,
+  "totalSeconds": 13.58
+ },
+ "outcome": "result",
+ "status": "complete",
+ "ruleSet": {
+  "id": "demo-tweaked",
+  "version": "0.1.0"
+ },
+ "counts": {
+  "elements": 239,
+  "measuredElements": 150,
+  "excludedElements": 82,
+  "unmatchedElements": 0,
+  "lines": 41,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 4,
+  "blockingQuestions": 0,
+  "warnings": 0
+ },
+ "peakMemoryMB": 165.5,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

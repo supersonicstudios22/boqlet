@@ -1,0 +1,41 @@
+{
+ "run": "S05-house",
+ "config": "house",
+ "samples": [
+  {
+   "id": "S05",
+   "file": "S05-duplex-architecture-ifc2x3.ifc",
+   "sha256": "b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed",
+   "discipline": "architecture"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S05": {
+   "job": "deduplicated",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 5
+ },
+ "timing": {
+  "parseSeconds": {
+   "S05": 0.8
+  },
+  "runSeconds": 6.2,
+  "totalSeconds": 37.2
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 67
+ }
+}

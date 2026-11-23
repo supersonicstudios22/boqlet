@@ -1,0 +1,22 @@
+// LEAD-002: project defaults are frozen to the preset versions current at project creation.
+import { session, ctx, show, arr } from "./lib.mjs";
+const lib = await session("vb-lib@review.test");
+const a = await session("vb-a@review.test");
+const { org } = await ctx(a);
+const asModelled = "9d493c18-59b5-3526-8341-2b9f9797b59b";
+let r = await lib.call("POST", `/orgs/${org.id}/presets`, { kind: "rule_set", name: "VB measuring rules", start: { mode: "copy", fromVersionId: asModelled } });
+show("create rule set", r); const R = r.json.id;
+const v1 = await lib.call("POST", `/presets/${R}/publish`, { changeNote: "v1" }); show("publish v1", v1);
+show("star", await lib.call("PATCH", `/presets/${R}`, { starred: true }));
+const pA = (await a.call("POST", `/orgs/${org.id}/projects`, { name: "VB House A" })).json;
+console.log("House A defaults.ruleSetVersionId", pA.defaults?.ruleSetVersionId, "== v1", pA.defaults?.ruleSetVersionId === v1.json.id);
+let head = (await lib.call("GET", `/presets/${R}`)).json;
+const doc = (await lib.call("GET", `/preset-versions/${head.latestPublishedVersion.id}`)).json.doc;
+show("draft v2", await lib.call("PUT", `/presets/${R}/draft`, { doc: { ...doc, name: "VB measuring rules (v2)" } }));
+const v2 = await lib.call("POST", `/presets/${R}/publish`, { changeNote: "v2" }); show("publish v2", v2);
+const pB = (await a.call("POST", `/orgs/${org.id}/projects`, { name: "VB House B" })).json;
+const bA = (await a.call("POST", `/projects/${pA.id}/boqs`, { name: "A after v2" })).json;
+const bB = (await a.call("POST", `/projects/${pB.id}/boqs`, { name: "B after v2" })).json;
+console.log("new BoQ in House A (after v2) ruleSet", bA.currentRevision.inputs.ruleSetVersionId === v1.json.id ? "v1" : bA.currentRevision.inputs.ruleSetVersionId === v2.json.id ? "v2" : "?");
+console.log("new BoQ in House B ruleSet", bB.currentRevision.inputs.ruleSetVersionId === v2.json.id ? "v2" : "?");
+console.log("BoQ A JSON mentions newer preset?", JSON.stringify(bA).match(/newer[A-Za-z]*/g));

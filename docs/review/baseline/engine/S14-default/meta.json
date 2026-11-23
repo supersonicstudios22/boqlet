@@ -1,0 +1,34 @@
+{
+ "run": "S14-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S14",
+   "file": "S14-not-an-ifc.ifc",
+   "sha256": "de73fa3a7f28c6acce098a084bae104ac4df552f417590ce2e5b8e404f9309e2",
+   "discipline": null
+  }
+ ],
+ "outcome": "error",
+ "error": {
+  "type": "Error",
+  "message": "Unable to parse IFC SPF header"
+ },
+ "timing": {
+  "totalSeconds": 0.0
+ },
+ "peakMemoryMB": 70.4,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

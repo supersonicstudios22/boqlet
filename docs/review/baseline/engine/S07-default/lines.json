@@ -1,0 +1,878 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "walls | Foundation - 300mm Concrete | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Foundation - 300mm Concrete, 300 mm",
+  "unit": "m2",
+  "quantity": 30.21,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | 600 x 600 x 900mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 600 x 600 x 900mm",
+  "unit": "m2",
+  "quantity": 15.84,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 11
+ },
+ {
+  "key": "slabs | 600mm Diameter |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 600mm Diameter",
+  "unit": "m2",
+  "quantity": 63.78,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 11
+ },
+ {
+  "key": "slabs | Concrete-Domestic 425mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Concrete-Domestic 425mm",
+  "unit": "m2",
+  "quantity": 87.47,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Generic 150mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 150mm",
+  "unit": "m2",
+  "quantity": 257.72,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Insitu Concrete 225mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 225mm",
+  "unit": "m2",
+  "quantity": 210.89,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Timber Suspended Floor |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Timber Suspended Floor",
+  "unit": "m2",
+  "quantity": 157.68,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | 600 x 600 x 900mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 600 x 600 x 900mm",
+  "unit": "m3",
+  "quantity": 1.19,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 11
+ },
+ {
+  "key": "slab-concrete | Concrete-Domestic 425mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Concrete-Domestic 425mm",
+  "unit": "m3",
+  "quantity": 16.35,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | Insitu Concrete 225mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 225mm",
+  "unit": "m3",
+  "quantity": 21.66,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "formwork-walls | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces",
+  "unit": "m2",
+  "quantity": 903.29,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 17
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Concrete-Domestic 425mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 10.55,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 15.84,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 11
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 18.39,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 2
+ },
+ {
+  "key": "steel-sections | L127X127X9.5 |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel L127X127X9.5",
+  "unit": "t",
+  "quantity": 0.16,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slab-concrete | 150mm Foundation Slab |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 150mm Foundation Slab",
+  "unit": "m3",
+  "quantity": 18.51,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 9.61,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 1
+ },
+ {
+  "key": "linear-other | IfcColumn | M_1000 |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcColumn, M_1000",
+  "unit": "m",
+  "quantity": 4.53,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | CL_W1 | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, CL_W1, 280 mm",
+  "unit": "m2",
+  "quantity": 227.7,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 6
+ },
+ {
+  "key": "walls | Cavity wall_sliders | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Cavity wall_sliders, 280 mm",
+  "unit": "m2",
+  "quantity": 9.37,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | Interior - 165 Partition (1-hr) | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - 165 Partition (1-hr), 165.1 mm",
+  "unit": "m2",
+  "quantity": 17.25,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 3
+ },
+ {
+  "key": "walls | Interior - Partition | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Interior - Partition, 120 mm",
+  "unit": "m2",
+  "quantity": 182.1,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 14
+ },
+ {
+  "key": "walls | Retaining - 300mm Concrete | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Retaining - 300mm Concrete, 300 mm",
+  "unit": "m2",
+  "quantity": 193.08,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 10
+ },
+ {
+  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+  "unit": "m2",
+  "quantity": 108.69,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 4
+ },
+ {
+  "key": "walls | Wall - Timber Clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 120.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 7
+ },
+ {
+  "key": "walls | Wall - Timber Clad | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 42.75,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "curtain-walls | SH_Curtain wall |  | m2",
+  "ruleId": "curtain-walls",
+  "description": "Curtain wall, SH_Curtain wall",
+  "unit": "m2",
+  "quantity": 132.53,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.03"
+  },
+  "elements": 9
+ },
+ {
+  "key": "windows | M_Skylight | 1180 x 1170mm |  | nr",
+  "ruleId": "windows",
+  "description": "Window M_Skylight, 1180 x 1170mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "windows | Single Window | Standard |  | nr",
+  "ruleId": "windows",
+  "description": "Window Single Window, Standard",
+  "unit": "nr",
+  "quantity": 15.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 15
+ },
+ {
+  "key": "doors | M_Double-Flush | 1730 x 2134mm | None |  | nr",
+  "ruleId": "doors",
+  "description": "Door M_Double-Flush, 1730 x 2134mm",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "doors | Pocket_Slider_Door_5851 | 2.027 x 0.945 | False |  | nr",
+  "ruleId": "doors",
+  "description": "Door Pocket_Slider_Door_5851, 2.027 x 0.945",
+  "unit": "nr",
+  "quantity": 3.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 3
+ },
+ {
+  "key": "doors | Single-Flush | 800 x 2100 | False |  | nr",
+  "ruleId": "doors",
+  "description": "Door Single-Flush, 800 x 2100",
+  "unit": "nr",
+  "quantity": 7.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 7
+ },
+ {
+  "key": "roofs | SG Metal Panels roof |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, SG Metal Panels roof",
+  "unit": "m2",
+  "quantity": 173.14,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "F.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "roofs | Warm Roof - Timber |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, Warm Roof - Timber",
+  "unit": "m2",
+  "quantity": 153.61,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "F.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | 150mm Foundation Slab |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 150mm Foundation Slab",
+  "unit": "m2",
+  "quantity": 256.4,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Generic 300 |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 300",
+  "unit": "m2",
+  "quantity": 237.17,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Pad 2 |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Pad 2",
+  "unit": "m2",
+  "quantity": 921.16,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "stairs | Stair |  | nr",
+  "ruleId": "stairs",
+  "description": "Stair Stair",
+  "unit": "nr",
+  "quantity": 3.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.02"
+  },
+  "elements": 3
+ },
+ {
+  "key": "railings | SH_1100mm |  | m",
+  "ruleId": "railings",
+  "description": "Railing SH_1100mm",
+  "unit": "m",
+  "quantity": 66.61,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.03"
+  },
+  "elements": 10
+ },
+ {
+  "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",
+  "ruleId": "coverings",
+  "description": "CEILING, 3000 x 3000mm Grid",
+  "unit": "m2",
+  "quantity": 154.3,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 670.3,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "H.03"
+  },
+  "elements": 29
+ },
+ {
+  "key": "mep-items | IfcDistributionElement | None | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcDistributionElement - -",
+  "unit": "nr",
+  "quantity": 9.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 9
+ },
+ {
+  "key": "mep-items | IfcLightFixture | NOTDEFINED | None |  | nr",
+  "ruleId": "mep-items",
+  "description": "IfcLightFixture NOTDEFINED -",
+  "unit": "nr",
+  "quantity": 10.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "K.02"
+  },
+  "elements": 10
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "unmatched-proxies | Alex |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Alex",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Fine China - Plate |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Fine China - Plate",
+  "unit": "nr",
+  "quantity": 8.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 8
+ },
+ {
+  "key": "unmatched-proxies | Hawthorn - 25' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Hawthorn - 25'",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Honey Locust - 25' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Honey Locust - 25'",
+  "unit": "nr",
+  "quantity": 8.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 8
+ },
+ {
+  "key": "unmatched-proxies | Largetooth Aspen - 25' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Largetooth Aspen - 25'",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Lombardy Poplar - 40' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Lombardy Poplar - 40'",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | M_RPC Beetle |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object M_RPC Beetle",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Built-under Dishwasher G 4101 U CS |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Built-under Dishwasher G 4101 U CS",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Fridge/Freezer KF 1911 Vi |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Fridge/Freezer KF 1911 Vi",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Induction Cooktop 6350 LPT |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Induction Cooktop 6350 LPT",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Microwave M 8260-2 |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Microwave M 8260-2",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Oven H 5681 BP |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Oven H 5681 BP",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Tumble Dryer T 7944 C |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Tumble Dryer T 7944 C",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Miele Washing Machine W 5820 WPS |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Miele Washing Machine W 5820 WPS",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Rangehood DA-2210 |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Rangehood DA-2210",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Red Ash - 25' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Red Ash - 25'",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Red Maple - 30' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Red Maple - 30'",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 2
+ },
+ {
+  "key": "unmatched-proxies | Scarlet Oak - 42' |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Scarlet Oak - 42'",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 2
+ },
+ {
+  "key": "unmatched-proxies | Solarworld Sunmodule Plus |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Solarworld Sunmodule Plus",
+  "unit": "nr",
+  "quantity": 12.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "unmatched-proxies | Vase (3)-with Flower |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Vase (3)-with Flower",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Walvit |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Walvit",
+  "unit": "nr",
+  "quantity": 4.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 4
+ },
+ {
+  "key": "unmatched-proxies | Water Glass |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Water Glass",
+  "unit": "nr",
+  "quantity": 8.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 8
+ },
+ {
+  "key": "unmatched-proxies | White |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object White",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | Wine Bottles |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object Wine Bottles",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | YinYin |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object YinYin",
+  "unit": "nr",
+  "quantity": 3.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 3
+ },
+ {
+  "key": "unmatched-proxies | fire place hang |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object fire place hang",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "unmatched-proxies | water |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object water",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ }
+]

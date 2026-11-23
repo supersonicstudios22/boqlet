@@ -1,0 +1,28 @@
+{
+ "run": "S13-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S13",
+   "file": "S13-truncated-duplex.ifc",
+   "sha256": "74dab90474b3ef538e15a8b36ad8af83d0348df2737e4f65bd0cb8c00885e488",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S13": {
+   "job": "failed",
+   "versionStatus": "failed",
+   "error": {
+    "code": "parse_error",
+    "message": "Could not parse IFC model",
+    "retryable": false
+   }
+  }
+ },
+ "outcome": "parse_failed",
+ "timing": {
+  "totalSeconds": 9.1
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "run": "S03-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S03",
+   "file": "S03-simple-scene-architecture-ifc2x3.ifc",
+   "sha256": "c4db65ba847f6b369a95d6c54fa11f4750cbe6d59f021934e8923d8d578e5885",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S03": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S03": 1.6
+  },
+  "runSeconds": 1.6,
+  "totalSeconds": 11.7
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 13
+ }
+}

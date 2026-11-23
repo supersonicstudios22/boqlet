@@ -1,0 +1,51 @@
+{
+ "run": "S04-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S04",
+   "file": "S04-simple-scene-structural-ifc4x3.ifc",
+   "sha256": "db64895488aad4eab082c8292f5632145b0fc864c0642d4fe667404882bacf27",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S04": 0.37
+  },
+  "runSeconds": 0.04,
+  "totalSeconds": 0.99
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 17,
+  "measuredElements": 14,
+  "excludedElements": 2,
+  "unmatchedElements": 0,
+  "lines": 12,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 6,
+  "blockingQuestions": 6,
+  "warnings": 0
+ },
+ "peakMemoryMB": 101.8,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

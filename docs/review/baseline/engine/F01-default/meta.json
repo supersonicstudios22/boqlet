@@ -1,0 +1,58 @@
+{
+ "run": "F01-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S07",
+   "file": "S07-revit-arc-ifc4.ifc",
+   "sha256": "c4dd3612f126a0ca5a57f0e75d28f3e5da62751def85a452d849883c2892b518",
+   "discipline": "architecture"
+  },
+  {
+   "id": "S08",
+   "file": "S08-revit-str-ifc4.ifc",
+   "sha256": "8c16c7ecf76786568c5374e624575cbd3586ec646468dad6f9ea3c9a4e97239f",
+   "discipline": "structure"
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S07": 85.6,
+   "S08": 75.18
+  },
+  "runSeconds": 4.96,
+  "totalSeconds": 189.7
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 4581,
+  "measuredElements": 4332,
+  "excludedElements": 33,
+  "unmatchedElements": 3,
+  "lines": 99,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 70,
+  "blockingQuestions": 62,
+  "warnings": 11
+ },
+ "peakMemoryMB": 1563.7,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

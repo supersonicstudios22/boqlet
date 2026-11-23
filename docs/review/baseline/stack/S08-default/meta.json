@@ -1,0 +1,41 @@
+{
+ "run": "S08-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S08",
+   "file": "S08-revit-str-ifc4.ifc",
+   "sha256": "8c16c7ecf76786568c5374e624575cbd3586ec646468dad6f9ea3c9a4e97239f",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S08": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S08": 117.0
+  },
+  "runSeconds": 19.5,
+  "totalSeconds": 241.4
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 40
+ }
+}

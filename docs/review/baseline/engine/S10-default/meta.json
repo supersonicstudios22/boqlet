@@ -1,0 +1,51 @@
+{
+ "run": "S10-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S10",
+   "file": "S10-schependomlaan-planning-ifc2x3-65mb.ifc",
+   "sha256": "57fafa59f03b18c05be211a456e346bdd0445d5c35d66522e598d339e81dfcf4",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S10": 66.54
+  },
+  "runSeconds": 2.97,
+  "totalSeconds": 84.59
+ },
+ "outcome": "result",
+ "status": "complete",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 3505,
+  "measuredElements": 3505,
+  "excludedElements": 0,
+  "unmatchedElements": 0,
+  "lines": 15,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 0,
+  "blockingQuestions": 0,
+  "warnings": 0
+ },
+ "peakMemoryMB": 796.5,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

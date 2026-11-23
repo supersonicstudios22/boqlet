@@ -1,0 +1,40 @@
+{
+ "job": {
+  "error": {
+   "code": "parse_error",
+   "message": "Could not parse IFC model",
+   "retryable": false
+  },
+  "id": "<uuid>",
+  "output": {
+   "modelVersionId": "<uuid>"
+  },
+  "status": "failed",
+  "subjectId": "<uuid>",
+  "subjectType": "modelVersion",
+  "type": "parse"
+ },
+ "version": {
+  "error": {
+   "code": "parse_error",
+   "details": {
+    "retryable": false
+   },
+   "message": "Could not parse IFC model"
+  },
+  "fileName": "S13-truncated-duplex.ifc",
+  "id": "<uuid>",
+  "identicalToVersion": null,
+  "modelId": "<uuid>",
+  "number": 1,
+  "parseJobId": "<uuid>",
+  "sizeBytes": 1000000,
+  "status": "failed",
+  "uploadedAt": "<ts>",
+  "uploadedBy": {
+   "id": "<uuid>",
+   "name": "Review Baseline"
+  },
+  "usedBy": []
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "job": {
+  "status": "deduplicated"
+ },
+ "version": {
+  "error": {
+   "code": "not_ifc",
+   "details": {
+    "retryable": false
+   },
+   "message": "The file is missing its IFC or IFCZIP header."
+  },
+  "fileName": "S14-not-an-ifc.ifc",
+  "id": "<uuid>",
+  "identicalToVersion": null,
+  "modelId": "<uuid>",
+  "number": 1,
+  "parseJobId": null,
+  "sizeBytes": 74,
+  "status": "failed",
+  "uploadedAt": "<ts>",
+  "uploadedBy": {
+   "id": "<uuid>",
+   "name": "Review Baseline"
+  },
+  "usedBy": []
+ }
+}

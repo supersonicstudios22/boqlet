@@ -1,0 +1,34 @@
+{
+ "run": "S13-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S13",
+   "file": "S13-truncated-duplex.ifc",
+   "sha256": "74dab90474b3ef538e15a8b36ad8af83d0348df2737e4f65bd0cb8c00885e488",
+   "discipline": null
+  }
+ ],
+ "outcome": "error",
+ "error": {
+  "type": "IndexError",
+  "message": "tuple index out of range"
+ },
+ "timing": {
+  "totalSeconds": 0.96
+ },
+ "peakMemoryMB": 94.0,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

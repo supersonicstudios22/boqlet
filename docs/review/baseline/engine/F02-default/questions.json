@@ -1,0 +1,140 @@
+[
+ {
+  "id": "contradiction:thickness:IfcWall:Party Wall - CMU Residential Unit Dimising Wall",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "2O2Fr$t4X7Zf8NOew3FNbT",
+   "2O2Fr$t4X7Zf8NOew3FKRi",
+   "2O2Fr$t4X7Zf8NOew3FKRH"
+  ],
+  "occurrences": 3,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the thickness stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the thickness measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 3,
+   "ifcClass": "IfcWall",
+   "typeName": "Party Wall - CMU Residential Unit Dimising Wall",
+   "quantity": "thickness",
+   "minDifference": -0.15545439761084587,
+   "maxDifference": -0.10363635357130817,
+   "reported": 0.55,
+   "geometry": 0.49300000553578055,
+   "source": "material layer set",
+   "unit": "m"
+  },
+  "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?"
+ },
+ {
+  "id": "contradiction:volume:IfcWall:Party Wall - CMU Residential Unit Dimising Wall",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "2O2Fr$t4X7Zf8NOew3FKRH"
+  ],
+  "occurrences": 1,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the volume stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the volume measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcWall",
+   "typeName": "Party Wall - CMU Residential Unit Dimising Wall",
+   "quantity": "volume",
+   "minDifference": 0.4204895453027329,
+   "maxDifference": 0.4204895453027329,
+   "reported": 2.010723000000178,
+   "geometry": 2.856211,
+   "source": "PSet_Revit_Dimensions.Volume",
+   "unit": "m3"
+  },
+  "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the volume stated in the file and the geometry disagree by +42% (e.g. 2.011 m3 from PSet_Revit_Dimensions.Volume vs 2.856 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+ },
+ {
+  "id": "name:space_name:Roof",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Roof",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Roof",
+   "count": 2,
+   "blocking": false
+  },
+  "message": "What is 'Roof' (space name)? Used 2 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:space_name:Roof MEP Space",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Roof MEP Space",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Roof MEP Space",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Roof MEP Space' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:space_name:Room",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Room",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Room",
+   "count": 2,
+   "blocking": false
+  },
+  "message": "What is 'Room' (space name)? Used 2 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ }
+]

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# verify-quantities: independent recomputation of chosen element quantities (hand arithmetic + own
+# IfcOpenShell mesh arithmetic) compared with boqlet's BoQ lines. Wrapper that runs verify_quantities.py
+# with the engine's virtual environment. --help for options; exit 0 = all OK/KNOWN, 1 = mismatch.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/../../.." && pwd)"
+PY="$ROOT/engine/.venv/Scripts/python.exe"; [[ -x "$PY" ]] || PY="$ROOT/engine/.venv/bin/python"
+[[ -x "$PY" ]] || { echo "engine/.venv missing: run npm install (or npm run setup:engine)" >&2; exit 3; }
+export PYTHONUTF8=1
+exec "$PY" "$HERE/verify_quantities.py" "$@"

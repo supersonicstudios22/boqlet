@@ -1,0 +1,53 @@
+{
+ "run": "S07-house",
+ "config": "house",
+ "presets": {
+  "rules": "acme-house-rules",
+  "dicts": [
+   "global-seed",
+   "acme-company"
+  ],
+  "classes": [
+   "acme-cost-codes",
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S07",
+   "file": "S07-revit-arc-ifc4.ifc",
+   "sha256": "c4dd3612f126a0ca5a57f0e75d28f3e5da62751def85a452d849883c2892b518",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S07": 94.71
+  },
+  "runSeconds": 0.95,
+  "totalSeconds": 103.04
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "acme-house-rules",
+  "version": "2026.1"
+ },
+ "counts": {
+  "elements": 454,
+  "measuredElements": 254,
+  "excludedElements": 0,
+  "unmatchedElements": 3,
+  "lines": 115,
+  "flaggedLines": 4,
+  "decisionsApplied": 0,
+  "questions": 67,
+  "blockingQuestions": 61,
+  "warnings": 8
+ },
+ "peakMemoryMB": 1586.9,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

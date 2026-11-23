@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# compare-baseline: re-run the review samples and diff against docs/review/baseline/.
+# Wrapper that runs compare_baseline.py with the engine's virtual environment. --help for options.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/../../.." && pwd)"
+PY="$ROOT/engine/.venv/Scripts/python.exe"; [[ -x "$PY" ]] || PY="$ROOT/engine/.venv/bin/python"
+[[ -x "$PY" ]] || { echo "engine/.venv missing: run npm install (or npm run setup:engine)" >&2; exit 3; }
+export PYTHONUTF8=1
+exec "$PY" "$HERE/compare_baseline.py" "$@"

@@ -1,0 +1,182 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "slabs | None |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, -",
+  "unit": "m2",
+  "quantity": 2568.87,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.02"
+  },
+  "elements": 279
+ },
+ {
+  "key": "linear-other | IfcBeam | None |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, -",
+  "unit": "m",
+  "quantity": 499.06,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 174
+ },
+ {
+  "key": "linear-other | IfcColumn | None |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcColumn, -",
+  "unit": "m",
+  "quantity": 38.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 23
+ },
+ {
+  "key": "linear-other | IfcMember | None |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcMember, -",
+  "unit": "m",
+  "quantity": 19.5,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 9
+ },
+ {
+  "key": "walls | None | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, -, 100 mm",
+  "unit": "m2",
+  "quantity": 2094.35,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 880
+ },
+ {
+  "key": "plates | IfcBuildingElementPart | None | None |  | m2",
+  "ruleId": "plates",
+  "description": "IfcBuildingElementPart, -",
+  "unit": "m2",
+  "quantity": 152.27,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.03"
+  },
+  "elements": 277
+ },
+ {
+  "key": "windows | None | None |  | nr",
+  "ruleId": "windows",
+  "description": "Window -, -",
+  "unit": "nr",
+  "quantity": 259.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.01"
+  },
+  "elements": 259
+ },
+ {
+  "key": "doors | None | None | None |  | nr",
+  "ruleId": "doors",
+  "description": "Door -, -",
+  "unit": "nr",
+  "quantity": 205.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "E.02"
+  },
+  "elements": 205
+ },
+ {
+  "key": "stairs | None |  | nr",
+  "ruleId": "stairs",
+  "description": "Stair -",
+  "unit": "nr",
+  "quantity": 9.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.02"
+  },
+  "elements": 9
+ },
+ {
+  "key": "railings | None |  | m",
+  "ruleId": "railings",
+  "description": "Railing -",
+  "unit": "m",
+  "quantity": 112.82,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.03"
+  },
+  "elements": 90
+ },
+ {
+  "key": "coverings | None | None |  | m2",
+  "ruleId": "coverings",
+  "description": "--",
+  "unit": "m2",
+  "quantity": 1523.3,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.02"
+  },
+  "elements": 1214
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "unmatched-proxies | None |  | nr",
+  "ruleId": "unmatched-proxies",
+  "description": "Unclassified object -",
+  "unit": "nr",
+  "quantity": 86.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 86
+ }
+]

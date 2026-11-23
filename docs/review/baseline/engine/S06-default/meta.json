@@ -1,0 +1,51 @@
+{
+ "run": "S06-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S06",
+   "file": "S06-duplex-mep-ifc2x3.ifc",
+   "sha256": "13976a8e223f177a6d7123679e4b02e750cd90c13f7bb20c593be125d9407119",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S06": 528.06
+  },
+  "runSeconds": 0.38,
+  "totalSeconds": 530.52
+ },
+ "outcome": "result",
+ "status": "complete",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 968,
+  "measuredElements": 926,
+  "excludedElements": 42,
+  "unmatchedElements": 0,
+  "lines": 19,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 3,
+  "blockingQuestions": 0,
+  "warnings": 0
+ },
+ "peakMemoryMB": 555.4,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

@@ -1,0 +1,122 @@
+[
+ {
+  "id": "name:type_name:geo-reference",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "geo-reference",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "geo-reference",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'geo-reference' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - inner wall",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - inner wall",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - inner wall",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - inner wall' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house back",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house back",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house back",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house back' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house front",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house front",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house front",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house front' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:house - outer wall - house front right",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "house - outer wall - house front right",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "house - outer wall - house front right",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'house - outer wall - house front right' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ },
+ {
+  "id": "name:type_name:origin",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "origin",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "origin",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'origin' (type name)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ }
+]

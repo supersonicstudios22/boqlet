@@ -1,0 +1,41 @@
+{
+ "run": "S07-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S07",
+   "file": "S07-revit-arc-ifc4.ifc",
+   "sha256": "c4dd3612f126a0ca5a57f0e75d28f3e5da62751def85a452d849883c2892b518",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S07": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S07": 76.9
+  },
+  "runSeconds": 5.1,
+  "totalSeconds": 104.6
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 73
+ }
+}

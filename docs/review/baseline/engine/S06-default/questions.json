@@ -1,0 +1,62 @@
+[
+ {
+  "id": "name:space_name:Roof",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Roof",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Roof",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Roof' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:space_name:Roof MEP Space",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Roof MEP Space",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Roof MEP Space",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Roof MEP Space' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:space_name:Room",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Room",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Room",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Room' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ }
+]

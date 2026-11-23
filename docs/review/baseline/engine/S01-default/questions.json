@@ -1,0 +1,42 @@
+[
+ {
+  "id": "name:layer_material:Name of the material used for the wall",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "layer_material",
+  "raw": "Name of the material used for the wall",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "layer_material",
+   "raw": "Name of the material used for the wall",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Name of the material used for the wall' (layer material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Name of the material used for the wall",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Name of the material used for the wall",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Name of the material used for the wall",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Name of the material used for the wall' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ }
+]

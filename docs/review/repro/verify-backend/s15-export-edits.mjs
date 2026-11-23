@@ -1,0 +1,24 @@
+// CAS-002: edit a line, then export the current run (what the sheet's Excel button does: useExportRun(run.id)).
+import { session, ctx, show, arr, waitJob } from "./lib.mjs";
+import { writeFileSync } from "node:fs";
+const est = await session("vb-est@review.test");
+const { project } = await ctx(est);
+const boq = arr((await est.call("GET", `/projects/${project.id}/boqs`)).json).find((b) => b.name === "Duplex quantities");
+const rev = boq.currentRevision; const run = rev.currentRun;
+console.log("working version", rev.label, rev.status, "run", run?.id, "pending", JSON.stringify(rev.pending ?? rev.pendingChanges));
+const lines = (await est.call("GET", `/runs/${run.id}/lines?limit=100`)).json.items;
+const t = lines.find((l) => l.quantity && l.unit === "m2" && !l.overridden && /Slab|Floor/i.test(l.description)) ?? lines.find((l) => l.quantity && !l.overridden);
+console.log("edit", t.key, t.quantity, "-> 123.45");
+show("edit", await est.call("POST", `/boqs/${boq.id}/overrides`, { lineKey: t.key, quantity: 123.45, reason: "verify CAS-002" }));
+const after = (await est.call("GET", `/boqs/${boq.id}`)).json.currentRevision;
+console.log("after edit pending", JSON.stringify(after.pending), "same run", after.currentRun.id === run.id);
+const job = (await est.call("POST", `/runs/${run.id}/exports`, { format: "xlsx" })).json;
+const done = await waitJob(est.call, job.id);
+console.log("export job", done.status, JSON.stringify(done.output).slice(0, 200));
+const exportId = done.output?.exportId ?? done.subjectId;
+const dl = await est.call("GET", `/exports/${exportId}/download`, undefined, { raw: true });
+const loc = dl.headers.get("location");
+const file = Buffer.from(await (await fetch(loc)).arrayBuffer());
+writeFileSync("docs/review/_scratch/verify-backend/cas002.xlsx", file);
+console.log("saved", file.length, "bytes; edited key", JSON.stringify(t.key));
+writeFileSync("docs/review/_scratch/verify-backend/cas002-key.txt", t.description + "\n" + t.quantity);

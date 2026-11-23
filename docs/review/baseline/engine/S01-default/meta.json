@@ -1,0 +1,51 @@
+{
+ "run": "S01-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S01",
+   "file": "S01-wall-with-opening-and-window.ifc",
+   "sha256": "73b0e45d931d5dc13bfee5fdc7bd80f796526445458b2de74c4168d209097832",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S01": 0.1
+  },
+  "runSeconds": 0.02,
+  "totalSeconds": 0.58
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 2,
+  "measuredElements": 2,
+  "excludedElements": 0,
+  "unmatchedElements": 0,
+  "lines": 5,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 2,
+  "blockingQuestions": 2,
+  "warnings": 0
+ },
+ "peakMemoryMB": 91.5,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

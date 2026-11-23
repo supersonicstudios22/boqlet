@@ -1,0 +1,6 @@
+# Shell scripts and their extensionless wrappers must keep LF endings (bash fails on CRLF).
+*.sh text eol=lf
+tools/compare-baseline text eol=lf
+tools/verify-quantities text eol=lf
+*.xlsx binary
+*.gz binary

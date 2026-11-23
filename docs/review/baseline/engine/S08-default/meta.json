@@ -1,0 +1,51 @@
+{
+ "run": "S08-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S08",
+   "file": "S08-revit-str-ifc4.ifc",
+   "sha256": "8c16c7ecf76786568c5374e624575cbd3586ec646468dad6f9ea3c9a4e97239f",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S08": 40.36
+  },
+  "runSeconds": 1.14,
+  "totalSeconds": 49.16
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 4151,
+  "measuredElements": 4131,
+  "excludedElements": 1,
+  "unmatchedElements": 0,
+  "lines": 40,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 7,
+  "blockingQuestions": 4,
+  "warnings": 0
+ },
+ "peakMemoryMB": 769.6,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

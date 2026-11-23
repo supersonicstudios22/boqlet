@@ -1,0 +1,41 @@
+{
+ "run": "S09-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S09",
+   "file": "S09-samplehouse-ifc4.ifc",
+   "sha256": "7606dc4e96b538d6fe7f2fa76655f26186d64d0226f8a10fbc141b9f2cd6cbfe",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S09": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S09": 24.1
+  },
+  "runSeconds": 2.1,
+  "totalSeconds": 36.6
+ },
+ "runJob": "succeeded",
+ "status": "needs_input",
+ "outcome": "result",
+ "counts": {
+  "lines": 15
+ }
+}

@@ -1,0 +1,185 @@
+[
+ {
+  "id": "contradiction:thickness:IfcSlab:600 x 600 x 900mm",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4ir1",
+   "1bOeIks4fCNAuMrZZw4itq",
+   "1bOeIks4fCNAuMrZZw4it3",
+   "1bOeIks4fCNAuMrZZw4is$",
+   "1bOeIks4fCNAuMrZZw4ish",
+   "1bOeIks4fCNAuMrZZw4isd",
+   "1bOeIks4fCNAuMrZZw4ivq",
+   "1bOeIks4fCNAuMrZZw4ivm"
+  ],
+  "occurrences": 8,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the thickness stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the thickness measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 8,
+   "ifcClass": "IfcSlab",
+   "typeName": "600 x 600 x 900mm",
+   "quantity": "thickness",
+   "minDifference": -0.5,
+   "maxDifference": -0.5,
+   "reported": 0.6,
+   "geometry": 0.3,
+   "source": "Qto_SlabBaseQuantities.Width",
+   "unit": "m"
+  },
+  "message": "8 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The stated value is used. Which should be used?"
+ },
+ {
+  "id": "contradiction:thickness:IfcSlab:3800 x 3800 x 600mm",
+  "kind": "contradiction",
+  "blocking": false,
+  "guids": [
+   "3OQjd9jwr1COqcP44Fm6DW"
+  ],
+  "occurrences": 1,
+  "suggestion": "reported",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "reported",
+     "label": "Use the thickness stated in the file",
+     "recommended": true
+    },
+    {
+     "value": "geometry",
+     "label": "Use the thickness measured from the geometry"
+    }
+   ]
+  },
+  "code": "question.contradiction",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcSlab",
+   "typeName": "3800 x 3800 x 600mm",
+   "quantity": "thickness",
+   "minDifference": -0.7368421052631579,
+   "maxDifference": -0.7368421052631579,
+   "reported": 3.8,
+   "geometry": 1.0,
+   "source": "Qto_SlabBaseQuantities.Width",
+   "unit": "m"
+  },
+  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The stated value is used. Which should be used?"
+ },
+ {
+  "id": "name:layer_material:Damp-proofing",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "layer_material",
+  "raw": "Damp-proofing",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "layer_material",
+   "raw": "Damp-proofing",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'Damp-proofing' (layer material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:layer_material:Rubble",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "layer_material",
+  "raw": "Rubble",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "layer_material",
+   "raw": "Rubble",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'Rubble' (layer material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Softwood, Lumber",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Softwood, Lumber",
+  "occurrences": 171,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Softwood, Lumber",
+   "count": 171,
+   "blocking": true
+  },
+  "message": "What is 'Softwood, Lumber' (material)? Used 171 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:space_name:Area",
+  "kind": "unknown_name",
+  "blocking": false,
+  "field": "space_name",
+  "raw": "Area",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "space_name",
+   "raw": "Area",
+   "count": 1,
+   "blocking": false
+  },
+  "message": "What is 'Area' (space name)? Used 1 time(s). Not used by the current rules.",
+  "answer": {
+   "kind": "term",
+   "category": "space"
+  }
+ },
+ {
+  "id": "name:type_name:CL_W1",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "CL_W1",
+  "occurrences": 9,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "CL_W1",
+   "count": 9,
+   "blocking": true
+  },
+  "message": "What is 'CL_W1' (type name)? Used 9 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ }
+]

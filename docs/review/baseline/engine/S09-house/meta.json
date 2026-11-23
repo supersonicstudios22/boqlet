@@ -1,0 +1,53 @@
+{
+ "run": "S09-house",
+ "config": "house",
+ "presets": {
+  "rules": "acme-house-rules",
+  "dicts": [
+   "global-seed",
+   "acme-company"
+  ],
+  "classes": [
+   "acme-cost-codes",
+   "demo-trades"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S09",
+   "file": "S09-samplehouse-ifc4.ifc",
+   "sha256": "7606dc4e96b538d6fe7f2fa76655f26186d64d0226f8a10fbc141b9f2cd6cbfe",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S09": 5.37
+  },
+  "runSeconds": 0.17,
+  "totalSeconds": 6.87
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "acme-house-rules",
+  "version": "2026.1"
+ },
+ "counts": {
+  "elements": 64,
+  "measuredElements": 34,
+  "excludedElements": 4,
+  "unmatchedElements": 0,
+  "lines": 26,
+  "flaggedLines": 5,
+  "decisionsApplied": 0,
+  "questions": 12,
+  "blockingQuestions": 9,
+  "warnings": 0
+ },
+ "peakMemoryMB": 193.4,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

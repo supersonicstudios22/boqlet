@@ -1,0 +1,41 @@
+{
+ "run": "S10-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S10",
+   "file": "S10-schependomlaan-planning-ifc2x3-65mb.ifc",
+   "sha256": "57fafa59f03b18c05be211a456e346bdd0445d5c35d66522e598d339e81dfcf4",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S10": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "architecture"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S10": 257.8
+  },
+  "runSeconds": 28.7,
+  "totalSeconds": 386.0
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 15
+ }
+}

@@ -1,0 +1,482 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "footings | Bearing Footing - 900 x 300 |  | m3",
+  "ruleId": "footings",
+  "description": "Concrete foundation, Bearing Footing - 900 x 300",
+  "unit": "m3",
+  "quantity": 14.56,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "B.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "formwork-footings | footings | Bearing Footing - 900 x 300 |  | m3 | m2",
+  "ruleId": "formwork-footings",
+  "description": "Formwork to sides of foundations",
+  "unit": "m2",
+  "quantity": 33.72,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03"
+  },
+  "elements": 4
+ },
+ {
+  "key": "steel-sections | None |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel -",
+  "unit": "t",
+  "quantity": 3.92,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 23
+ },
+ {
+  "key": "steel-sections | 200PFC |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel 200PFC",
+  "unit": "t",
+  "quantity": 0.07,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "steel-sections | 200UB25.4 |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel 200UB25.4",
+  "unit": "t",
+  "quantity": 3.94,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 35
+ },
+ {
+  "key": "steel-sections | HSS63 |  | t",
+  "ruleId": "steel-sections",
+  "description": "Structural steel HSS63",
+  "unit": "t",
+  "quantity": 0.46,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.01"
+  },
+  "elements": 12
+ },
+ {
+  "key": "slab-concrete | 3800 x 3800 x 600mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 3800 x 3800 x 600mm",
+  "unit": "m3",
+  "quantity": 14.44,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | 400 x 400 x 900mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 400 x 400 x 900mm",
+  "unit": "m3",
+  "quantity": 0.86,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 6
+ },
+ {
+  "key": "slab-concrete | 600 x 600 x 900mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 600 x 600 x 900mm",
+  "unit": "m3",
+  "quantity": 0.86,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 8
+ },
+ {
+  "key": "slab-concrete | 600mm Diameter |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, 600mm Diameter",
+  "unit": "m3",
+  "quantity": 7.21,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 17
+ },
+ {
+  "key": "slab-concrete | Insitu Concrete |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete",
+  "unit": "m3",
+  "quantity": 79.08,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slab-concrete | Insitu Concrete 250mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 250mm",
+  "unit": "m3",
+  "quantity": 31.53,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "rebar | None |  | t",
+  "ruleId": "rebar",
+  "description": "Reinforcement, dia - mm",
+  "unit": "t",
+  "quantity": 4.19,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.03"
+  },
+  "elements": 3680
+ },
+ {
+  "key": "formwork-walls | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces",
+  "unit": "m2",
+  "quantity": 651.81,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 9
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 40.05,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 2
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 11.52,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 8
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 96.16,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 17
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 23.92,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 57.76,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 400 x 400 x 900mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 3.84,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 6
+ },
+ {
+  "key": "linear-other | IfcBeam | 30mm |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, 30mm",
+  "unit": "m",
+  "quantity": 57.12,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 16
+ },
+ {
+  "key": "linear-other | IfcBeam | 356mm |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, 356mm",
+  "unit": "m",
+  "quantity": 162.73,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 27
+ },
+ {
+  "key": "linear-other | IfcBeam | 88.9x5.0CHS |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, 88.9x5.0CHS",
+  "unit": "m",
+  "quantity": 54.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 18
+ },
+ {
+  "key": "linear-other | IfcBeam | SC15012 |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, SC15012",
+  "unit": "m",
+  "quantity": 312.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 96
+ },
+ {
+  "key": "linear-other | IfcBeam | Timber_50 x150 _ContentGenerator |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, Timber_50 x150 _ContentGenerator",
+  "unit": "m",
+  "quantity": 194.66,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 65
+ },
+ {
+  "key": "linear-other | IfcBeam | Timber_50 x200 |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcBeam, Timber_50 x200",
+  "unit": "m",
+  "quantity": 237.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 106
+ },
+ {
+  "key": "linear-other | IfcColumn | 450 x 450mm |  | m",
+  "ruleId": "linear-other",
+  "description": "IfcColumn, 450 x 450mm",
+  "unit": "m",
+  "quantity": 3.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.05"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | CL_W1 | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, CL_W1, 280 mm",
+  "unit": "m2",
+  "quantity": 321.76,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 9
+ },
+ {
+  "key": "slabs | 3800 x 3800 x 600mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 3800 x 3800 x 600mm",
+  "unit": "m2",
+  "quantity": 44.08,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | 400 x 400 x 900mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 400 x 400 x 900mm",
+  "unit": "m2",
+  "quantity": 10.56,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 6
+ },
+ {
+  "key": "slabs | 600 x 600 x 900mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 600 x 600 x 900mm",
+  "unit": "m2",
+  "quantity": 11.52,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 8
+ },
+ {
+  "key": "slabs | 600mm Diameter |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, 600mm Diameter",
+  "unit": "m2",
+  "quantity": 98.57,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 17
+ },
+ {
+  "key": "slabs | Insitu Concrete |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete",
+  "unit": "m2",
+  "quantity": 327.6,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Insitu Concrete 250mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 250mm",
+  "unit": "m2",
+  "quantity": 164.07,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Plywood double brace |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Plywood double brace",
+  "unit": "m2",
+  "quantity": 182.04,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Rigid Insulation |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Rigid Insulation",
+  "unit": "m2",
+  "quantity": 184.05,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "stairs | Stair |  | nr",
+  "ruleId": "stairs",
+  "description": "Stair Stair",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

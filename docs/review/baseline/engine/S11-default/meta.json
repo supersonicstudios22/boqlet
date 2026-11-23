@@ -1,0 +1,51 @@
+{
+ "run": "S11-default",
+ "config": "default",
+ "presets": {
+  "rules": "as-modelled",
+  "dicts": [
+   "global-seed"
+  ],
+  "classes": [
+   "acme-cost-codes"
+  ]
+ },
+ "samples": [
+  {
+   "id": "S11",
+   "file": "S11-ios-1948-wall-wrong-geometry.ifc",
+   "sha256": "776049ebea8c06b0c50f2d2e976a30480a29152c00e3d7da8fc0a34bbf3f33c6",
+   "discipline": null
+  }
+ ],
+ "timing": {
+  "parseSeconds": {
+   "S11": 1.83
+  },
+  "runSeconds": 0.05,
+  "totalSeconds": 3.07
+ },
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 7,
+  "measuredElements": 4,
+  "excludedElements": 0,
+  "unmatchedElements": 0,
+  "lines": 7,
+  "flaggedLines": 3,
+  "decisionsApplied": 0,
+  "questions": 2,
+  "blockingQuestions": 2,
+  "warnings": 0
+ },
+ "peakMemoryMB": 108.8,
+ "versions": {
+  "python": "3.10.7",
+  "ifcopenshell": "0.9.0"
+ }
+}

@@ -1,0 +1,206 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "demo-trades": "00"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "demo-trades": "00"
+  },
+  "elements": 0
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "demo-trades": "00"
+  },
+  "elements": 0
+ },
+ {
+  "key": "slabs | Simple floor |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Simple floor",
+  "unit": "m2",
+  "quantity": 80262.86,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | Simple floor |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Simple floor",
+  "unit": "m3",
+  "quantity": 13243.37,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "roofs | Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr",
+  "unit": "m2",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Simple floor |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 6.51,
+  "source": "derived",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "rebar-estimate-slabs | slab-concrete | Simple floor |  | m3 | t",
+  "ruleId": "rebar-estimate-slabs",
+  "description": "Reinforcement to slabs (estimated)",
+  "unit": "t",
+  "quantity": 1324.34,
+  "source": "derived",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "wall-layers | None | masonry.brick | 0.29 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "masonry.brick, 290 mm (normal height)",
+  "unit": "m2",
+  "quantity": 44.13,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "02"
+  },
+  "elements": 3
+ },
+ {
+  "key": "wall-layers | None | metal | 0.07 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "metal, 70 mm (normal height)",
+  "unit": "m2",
+  "quantity": 19.85,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "windows | Windows_Sgl_Plain | 1810x1210mm |  | m2",
+  "ruleId": "windows",
+  "description": "Window Windows_Sgl_Plain, 1810x1210mm",
+  "unit": "m2",
+  "quantity": 8.76,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "04"
+  },
+  "elements": 4
+ },
+ {
+  "key": "doors | Doors_ExtDbl_Flush | 1810x2110mm | True |  | nr",
+  "ruleId": "doors",
+  "description": "Door Doors_ExtDbl_Flush, 1810x2110mm",
+  "unit": "nr",
+  "quantity": 1.0,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "04"
+  },
+  "elements": 1
+ },
+ {
+  "key": "doors | Doors_IntSgl | 810x2110mm | False |  | nr",
+  "ruleId": "doors",
+  "description": "Door Doors_IntSgl, 810x2110mm",
+  "unit": "nr",
+  "quantity": 2.0,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "04"
+  },
+  "elements": 2
+ },
+ {
+  "key": "coverings | CEILING | Plain |  | m2",
+  "ruleId": "coverings",
+  "description": "CEILING, Plain",
+  "unit": "m2",
+  "quantity": 76.11,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "06"
+  },
+  "elements": 3
+ },
+ {
+  "key": "wall-layers | None | finish.plaster | 0.0125 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "finish.plaster, 12.5 mm (normal height)",
+  "unit": "m2",
+  "quantity": 39.69,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "06"
+  },
+  "elements": 4
+ },
+ {
+  "key": "curtain-walls | Curtain_Wall-Exterior_Glazing |  | m2",
+  "ruleId": "curtain-walls",
+  "description": "Curtain wall, Curtain_Wall-Exterior_Glazing",
+  "unit": "m2",
+  "quantity": 31.09,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+  "unit": "m2",
+  "quantity": 146199.06,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 1
+ }
+]

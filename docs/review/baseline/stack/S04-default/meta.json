@@ -1,0 +1,41 @@
+{
+ "run": "S04-default",
+ "config": "default",
+ "samples": [
+  {
+   "id": "S04",
+   "file": "S04-simple-scene-structural-ifc4x3.ifc",
+   "sha256": "db64895488aad4eab082c8292f5632145b0fc864c0642d4fe667404882bacf27",
+   "discipline": "detect"
+  }
+ ],
+ "layer": "stack",
+ "parse": {
+  "S04": {
+   "job": "succeeded",
+   "versionStatus": "ready",
+   "error": null
+  }
+ },
+ "inputs": {
+  "models": [
+   {
+    "discipline": "structure"
+   }
+  ],
+  "presetVersions": 2
+ },
+ "timing": {
+  "parseSeconds": {
+   "S04": 1.6
+  },
+  "runSeconds": 1.7,
+  "totalSeconds": 11.6
+ },
+ "runJob": "succeeded",
+ "status": "complete",
+ "outcome": "result",
+ "counts": {
+  "lines": 12
+ }
+}
