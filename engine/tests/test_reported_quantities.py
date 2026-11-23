@@ -211,3 +211,74 @@ def test_s09_floor_volume_is_the_geometry():
     assert r["building"]["gross_volume"] < 1000
     cq = [q for q in r["questions"] if q["kind"] == "contradiction" and q["id"].startswith("contradiction:volume:IfcSlab")]
     assert len(cq) == 2 and all(q["suggestion"] == "geometry" for q in cq)
+
+
+# ---------------------------------------------------------------- A-03: slab areas and thickness
+def test_a_net_area_larger_than_the_gross_area_is_not_used():
+    """A-03 (QS-003): Revit 2021 IFC4 writes the whole surface as NetArea; the set's GrossArea is the slab's area."""
+    surface = 2 * 50.0 + 2 * 15.0 * 0.2
+    el = slab({"Qto_SlabBaseQuantities": {"NetArea": surface, "GrossArea": 50.0, "NetVolume": 10.0, "Width": 0.2}})
+    m, qs, _ = measure(doc(el))
+    s = m["slab-1"]
+    assert s["net_area"] == pytest.approx(50.0) and s["provenance"]["net_area"] == "reported"
+    assert any("impossible" in w for w in s["warnings"]) and not qs
+
+
+def test_an_implausible_reported_area_gives_way_to_the_geometry():
+    """A-03: NetArea = surface with no GrossArea in the set (S07 "Pad 2"): an area contradiction, geometry used."""
+    el = slab({"Qto_SlabBaseQuantities": {"NetArea": 2 * 50.0 + 2 * 15.0 * 0.2, "NetVolume": 10.0}})
+    m, qs, _ = measure(doc(el))
+    assert m["slab-1"]["net_area"] == pytest.approx(50.0) and m["slab-1"]["provenance"]["net_area"] == "geometry"
+    q = qs["contradiction:area:IfcSlab:Test floor"]
+    assert q["suggestion"] == "geometry" and q["params"]["unit"] == "m2" and not q["params"]["unitError"]
+
+
+def test_a_plausible_area_difference_asks_but_keeps_the_stated_area():
+    el = slab({"Qto_SlabBaseQuantities": {"NetArea": 40.0, "NetVolume": 10.0}})         # geometry 50 m2 (+25 %)
+    m, qs, _ = measure(doc(el))
+    assert m["slab-1"]["net_area"] == pytest.approx(40.0)
+    assert qs["contradiction:area:IfcSlab:Test floor"]["suggestion"] == "reported"
+    m2, qs2, _ = measure(doc(el), answers={"contradiction:area:IfcSlab:Test floor": "geometry"})
+    assert m2["slab-1"]["net_area"] == pytest.approx(50.0) and not qs2
+
+
+def test_a_gross_area_is_compared_with_the_sides_plus_the_openings():
+    el = slab({"BaseQuantities": {"GrossArea": 50.0}})
+    parsed = doc(el)
+    parsed["elements"][0]["quantities"]["geometry"]["sides"] = {"a": 46.0, "b": 46.0, "axis": [0.0, 0.0, 1.0]}
+    parsed["openings"] = [{"id": "o-1", "hostId": "slab-1", "area": 4.0, "width": 2.0, "height": 2.0, "depth": 0.2}]
+    _, qs, _ = measure(parsed)
+    assert not qs
+
+
+def test_a_slab_width_beyond_its_thin_axis_is_not_its_thickness():
+    """A-03 (QS-003): S08's pile cap states Width 3.8 m (its plan size); it is 1.0 m thick. The thin axis is used and
+    the thickness contradiction recommends the geometry."""
+    el = slab({"Qto_SlabBaseQuantities": {"GrossArea": 14.44, "NetArea": 44.08, "NetVolume": 14.44, "Width": 3.8,
+                                          "Perimeter": 15.2}}, dx=3.8, dy=3.8, t=1.0, type_name="3800 x 3800 x 600mm")
+    m, qs, _ = measure(doc(el))
+    s = m["slab-1"]
+    assert s["thickness"] == pytest.approx(1.0) and s["provenance"]["thickness"] == "geometry"
+    assert s["net_area"] == pytest.approx(14.44) and s["perimeter"] == pytest.approx(15.2)
+    assert qs["contradiction:thickness:IfcSlab:3800 x 3800 x 600mm"]["suggestion"] == "geometry"
+    m2, _, _ = measure(doc(el), answers={"contradiction:thickness:IfcSlab:3800 x 3800 x 600mm": "reported"})
+    assert m2["slab-1"]["thickness"] == pytest.approx(3.8)
+
+
+def test_a_layer_set_thickness_is_still_kept_while_asked():
+    """Only a stated quantity gives way to the thin axis; a layer set (a wall's or slab's build-up) is kept and asked."""
+    el = slab({}, layer_thickness=0.25)                               # mesh 0.2 m thick
+    m, qs, _ = measure(doc(el, layer_thickness=0.25))
+    assert m["slab-1"]["thickness"] == pytest.approx(0.25)
+    assert qs["contradiction:thickness:IfcSlab:Test floor"]["suggestion"] == "reported"
+
+
+@pytest.mark.slow
+def test_s08_pile_cap_area_and_edge_formwork():
+    """A-03 (QS-003): S08 pile cap 3OQjd9jwr1COqcP44Fm6DW: 14.44 m2 (not the 44.08 m2 surface), edge formwork
+    15.2 m x 1.0 m = 15.20 m2 (not x 3.8 m)."""
+    r = sample_lines(review_sample("S08-revit-str-ifc4.ifc"))
+    share = lambda rule: sum(e["quantity"] or 0 for l in r["lines"] if l["ruleId"] == rule
+                             for e in l["trace"]["elements"] if e["guid"] == "3OQjd9jwr1COqcP44Fm6DW")
+    assert share("slabs") == pytest.approx(14.44, abs=0.01)
+    assert share("formwork-slab-edges") == pytest.approx(15.20, abs=0.01)

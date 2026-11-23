@@ -7,12 +7,12 @@ it changes.
 | Series | Scope | Where below |
 |---|---|---|
 | **P01–P53** | Product, platform and process decisions of the product owner (Nov 2026). Win over the D-series where they overlap | [Product decisions](#product-decisions-p01p53) |
-| **D01–D71** | Engine, licensing, early platform and stack decisions (Aug–Nov 2026) | [Engine and platform decisions](#engine-and-platform-decisions-d01d71) |
+| **D01–D72** | Engine, licensing, early platform and stack decisions (Aug–Nov 2026) | [Engine and platform decisions](#engine-and-platform-decisions-d01d72) |
 | **BE-D1–BE-D18, BE-B1–BE-B20** | The backend owner's answers at BE-000 (16 Nov 2026). Called D1–D18 / B1–B20 in older docs; renamed here so they don't collide with D01–D18 | [Backend decisions](#backend-decisions-be-000) |
 
 Contract changes (C01–C07) are listed in [development/contract-changes.md](development/contract-changes.md).
 
-## Engine and platform decisions (D01–D71)
+## Engine and platform decisions (D01–D72)
 
 Oldest first within each theme. Status is one of:
 **Active**, **Revised** (still holds, with changes noted), **Superseded** (replaced; kept so
@@ -52,10 +52,11 @@ later one wins.
 | D21 | Oct 2026 | **A safe expression language**, parsed to an AST and evaluated by the engine only. Never Python `eval`; never a second evaluator in the browser (preview goes through the engine). | Users write formulas; two evaluators drift apart. | Active |
 | D22 | Oct 2026 | Rule language levels: **parameters** (slots) + **formulas**. Scripts as an escape hatch only if ever needed (security and support cost). | Parameters and formulas cover the vast majority of real rules. | Active (no scripts) |
 | D23 | Oct 2026 | The engine **runs any rules but does not judge them**. It catches mechanical problems (integrity, missing fields, unmatched or double-claimed elements); whether a rule matches a standard is the author's responsibility. Shipped presets are examples, not the product. | Source-agnostic engine; the product is engine + rule language + editor. | Active |
-| D24 | Oct 2026 | Adoption policy: trust **reported quantities** (IFC quantity sets, then authoring-tool sets) over geometry when both exist, log mismatches; wall area = volume / thickness; steel by nominal kg/m from the section name. | The Duplex showed reported values are join-aware while geometry double counts junctions; Revit wall Area was inconsistent with Volume. Details in docs/architecture/engine.md and 09. | Active (v0, revisit with more files); **revised by D71** (a stated value a power of 1000 off the closed mesh is an exporter unit error: the geometry is used) |
+| D24 | Oct 2026 | Adoption policy: trust **reported quantities** (IFC quantity sets, then authoring-tool sets) over geometry when both exist, log mismatches; wall area = volume / thickness; steel by nominal kg/m from the section name. | The Duplex showed reported values are join-aware while geometry double counts junctions; Revit wall Area was inconsistent with Volume. Details in docs/architecture/engine.md and 09. | Active (v0, revisit with more files); **revised by D71, D72** (unit errors; impossible or implausible reported areas and a slab's stated Width give way to the geometry) |
 | D25 | Oct 2026 | Aggregates: measure the **parent** (roof, stair) and skip its parts by default; a rule can opt parts back in (`parts: "include"`, used for stair railings). | Avoids double counting while keeping railings measurable. | Active |
 | D26 | Oct 2026 | Every line carries a **trace** (formula, parameter values, each element's share, source line for derived lines) and the run carries an ordered **calculation log**. | Professionals do not trust untraceable numbers; it is also how developers debug rules. | Active |
 | D71 | 23 Nov 2026 | **Exporter unit errors**: a stated volume, area or length within 2 % of 10^±3 or 10^±6 times the closed mesh's value is taken as a unit error. The geometry's value is used, the `contradiction` question keeps its deterministic id (`contradiction:{volume\|area\|length}:{class}:{type}`), stays non-blocking and recommends (`suggestion`) the geometry, the element records `unit_scale`, and its lines carry a note. Answering "reported" keeps the stated value. | Review QS-001 / DEC-31: S09 (an IFC4 sample house) states every slab volume ×1000; adopting it priced the main slab at 68,714 m³. Only a closed mesh qualifies, so a broken mesh never overrides the file. Revises D24. | Active (review WP-A1, A-02) |
+| D72 | 23 Nov 2026 | **Reported areas and slab thickness are checked against the geometry.** A net area larger than the gross area of the same quantity set is impossible and not used. A reported area more than the contradiction threshold away from a clear plate's measured sides raises `contradiction:area:{class}:{type}`; while unanswered the geometry is used when the stated value is outside 0.5–2× the geometry (implausible), else the stated value. A horizontal plate's stated thickness quantity (`Qto_*.Width`, not a layer set) that the thin axis contradicts gives way to the geometry while unanswered; a layer-set thickness is kept and asked as before. | Review QS-003 / DEC-31: Revit 2021 IFC4 writes a slab's whole surface as `NetArea` (S07 ×2.22, S08 ×2.54) and a pile cap's plan size as `Width` (3.8 m for a 1.0 m cap); both were adopted silently. A layer set is the designer's build-up, a `Width` quantity is an exporter's guess. Revises D24. | Active (review WP-A1, A-03) |
 
 ### Licensing and content
 

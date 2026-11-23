@@ -16,10 +16,12 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               contradiction question recommends it, `unit_scale` records the factor.
   thickness   material layer set total, else reported, else smallest extent of the
               oriented bounding box (world axes would give a rotated wall's diagonal).
-  contradictions  reported volume vs a closed mesh, or a layer-set / reported thickness vs the
-              geometry (volume over the mean side area), differing by more than CONTRADICTION:
-              the reported value is kept and a non-blocking `contradiction` question asks, per
-              class and type, whether to use the geometry instead.
+  contradictions  reported volume vs a closed mesh, a reported area vs a clear plate's sides, or a
+              layer-set / reported thickness vs the geometry (volume over the mean side area),
+              differing by more than CONTRADICTION: a `contradiction` question asks, per class and
+              type, which to use. Unanswered, the reported value is kept, except (D72) an area
+              outside 0.5-2x the geometry and a horizontal plate's stated Width quantity, where the
+              geometry is used. A net area larger than its set's gross area is never read.
   wall area   net_volume / thickness  (keeps area, volume and layers consistent;
               authoring-tool "Area" is often inconsistent), else reported area.
   other area  reported area, else net_volume / thickness (never from a reported volume the
@@ -122,14 +124,27 @@ _SOURCE_PATTERNS = {kind: [(re.compile(fnmatch.translate(set_glob)).match, prop)
                     for kind, sources in SOURCES.items() if isinstance(sources, list)}
 
 
-def find_reported(el: dict, kind: str):
-    """First reported value for a quantity kind: (value, "Set.Prop") or (None, None)."""
+def _number(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+
+
+def find_reported(el: dict, kind: str, skipped: list | None = None):
+    """First reported value for a quantity kind: (value, "Set.Prop") or (None, None).
+    A net value larger than the gross one of the same set (NetArea > GrossArea, NetSideArea >
+    GrossSideArea) is impossible by definition and skipped; Revit 2021 IFC4 writes the whole surface
+    as Qto_SlabBaseQuantities.NetArea (QS-003). Areas only: for volumes it is not known which one is wrong
+    (S08's GrossVolume is the x1000 one). `skipped` collects (source, net, gross) of those."""
     for matches, prop in _SOURCE_PATTERNS.get(kind, []):
         for bucket in (el["quantities"]["reported"], el["psets"]):
             for set_name, props in bucket.items():
                 if matches(set_name):
                     v = props.get(prop)
-                    if isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0:
+                    if _number(v):
+                        gross = props.get("Gross" + prop[3:]) if kind == "area" and prop.startswith("Net") else None
+                        if _number(gross) and v > gross * (1 + TOLERANCE):
+                            if skipped is not None:
+                                skipped.append((f"{set_name}.{prop}", float(v), float(gross)))
+                            continue
                         return float(v), f"{set_name}.{prop}"
     return None, None
 
@@ -155,6 +170,11 @@ def unit_scale(stated: float | None, measured: float | None) -> float | None:
         return None
     r = stated / measured
     return next((f for f in UNIT_SCALES if abs(r / f - 1) <= UNIT_SCALE_TOL), None)
+
+
+def implausible(stated: float, measured: float) -> bool:
+    """A stated value outside 0.5-2x the closed mesh's: the geometry is the likelier one (DEC-31)."""
+    return not 0.5 <= stated / measured <= 2.0
 
 
 def scale_label(factor: float) -> str:
@@ -304,7 +324,11 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         obb, obb_axes = g.get("obbExtents"), g.get("obbAxes")
         closed = g.get("closed", g.get("watertight", True))
 
-        rep = {k: find_reported(el, k) for k in ("volume", "area", "length", "width", "height", "thickness", "perimeter", "mass")}
+        skipped_areas: list[tuple[str, float, float]] = []
+        rep = {k: find_reported(el, k, skipped_areas if k == "area" else None)
+               for k in ("volume", "area", "length", "width", "height", "thickness", "perimeter", "mass")}
+        for src, net, gross in skipped_areas:
+            notes.append(f"{src} {fmt(round(net, 3))} m2 is larger than the gross {fmt(round(gross, 3))} m2: impossible, not used")
 
         # thickness
         thickness = None
@@ -337,9 +361,20 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             t_geo = g["volume"] / side_mean
             if abs(t_geo - thickness) > max(CONTRADICTION * thickness, THICKNESS_MIN):
                 qid = contradiction_id("thickness", cls, type_name or el.get("name"))
+                # a horizontal plate's stated Width (a quantity, not its layer set) is often its plan width
+                # (S08 pile cap: Width 3.8 m, 1.0 m thick): its thin axis is trusted unless answered otherwise
+                stated_quantity = cls not in PLANAR_VERTICAL and t_note != "material layer set"
                 if answers.get(qid) == "geometry":
                     t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area; answer to {qid}); "
                               f"{t_note} said {fmt(thickness)}")
+                    thickness, prov["thickness"] = t_geo, "geometry"
+                elif answers.get(qid) != "reported" and stated_quantity:
+                    _ask(asked, qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note,
+                         used="geometry")
+                    notes.append(f"thickness {fmt(thickness)} m ({t_note}) but the geometry is {fmt(round(t_geo, 3))} m thick: "
+                                 f"geometry used")
+                    t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area); {t_note} said "
+                              f"{fmt(thickness)}, contradicted by the thin axis")
                     thickness, prov["thickness"] = t_geo, "geometry"
                 elif answers.get(qid) != "reported":
                     _ask(asked, qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note)
@@ -429,6 +464,20 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     if answers.get(qid) != "geometry":
                         _ask(asked, qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
                              rep["area"][1], used="geometry", scale=scale)
+                elif geo_area and abs(geo_area - net_area) > CONTRADICTION * net_area:
+                    # reported area vs the plate's measured sides: the stated value is kept unless it is
+                    # implausible (outside 0.5-2x the geometry; Revit's NetArea = whole surface is > 2x)
+                    stated, diff = net_area, (geo_area - net_area) / net_area
+                    a_note += f"; geometry {fmt(round(geo_area, 3))} m2 ({diff:+.1%})"
+                    use_geo = answers.get(qid) == "geometry" or (answers.get(qid) != "reported" and implausible(stated, geo_area))
+                    if use_geo:
+                        net_area, prov["net_area"] = side_mean, "geometry"
+                        a_note += f": {fmt(round(net_area, 3))} m2 from geometry used"
+                    if answers.get(qid) not in ("geometry", "reported"):
+                        _ask(asked, qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
+                             rep["area"][1], used="geometry" if use_geo else "reported")
+                        notes.append(f"area {fmt(round(stated, 3))} m2 ({rep['area'][1]}) but the geometry is "
+                                     f"{fmt(round(geo_area, 3))} m2" + (": geometry used" if use_geo else ""))
             elif net_volume and thickness and volume_contradicted and side_mean:
                 # never derive an area from a volume the geometry contradicts: the measured sides instead
                 net_area, prov["net_area"] = side_mean, "geometry"
