@@ -22,10 +22,10 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S09": 3.26
+   "S09": 2.57
   },
-  "runSeconds": 0.08,
-  "totalSeconds": 3.99
+  "runSeconds": 0.07,
+  "totalSeconds": 3.26
  },
  "outcome": "result",
  "status": "needs_input",
@@ -39,7 +39,7 @@
   "excludedElements": 4,
   "unmatchedElements": 0,
   "lines": 26,
-  "flaggedLines": 5,
+  "flaggedLines": 11,
   "decisionsApplied": 0,
   "questions": 12,
   "blockingQuestions": 9,

@@ -18,10 +18,10 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S05": 3.53
+   "S05": 3.19
   },
-  "runSeconds": 0.09,
-  "totalSeconds": 4.49
+  "runSeconds": 0.24,
+  "totalSeconds": 5.69
  },
  "outcome": "result",
  "status": "complete",
@@ -35,7 +35,7 @@
   "excludedElements": 82,
   "unmatchedElements": 0,
   "lines": 41,
-  "flaggedLines": 3,
+  "flaggedLines": 5,
   "decisionsApplied": 0,
   "questions": 4,
   "blockingQuestions": 0,
