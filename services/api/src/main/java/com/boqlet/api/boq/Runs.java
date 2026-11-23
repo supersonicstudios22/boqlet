@@ -154,6 +154,7 @@ public class Runs {
             var decision = json.object(Map.of("questionId", row.path("questionId").asText(), "scope", "project"));
             decision.set("answer", row.get("answer"));
             if (row.has("note")) decision.set("note", row.get("note"));
+            for (String field : List.of("decidedBy", "decidedAt")) if (row.hasNonNull(field)) decision.set(field, row.get(field));
             result.add(decision);
         }
         for (JsonNode row : snapshot.path("overrides")) {

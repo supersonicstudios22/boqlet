@@ -200,3 +200,16 @@ export function countsBySource(lines: readonly { source: Source; toConfirm?: unk
   for (const l of lines) if (!l.excluded) counts[shownSource(l)] += 1;
   return counts;
 }
+
+type TraceElement = { guid: string; decisions?: { questionId: string; answer: unknown; by?: string; at?: string }[] };
+
+/** The decisions a step's elements rest on (review A-06), once each, with how many of the elements they decided. */
+export function stepDecisions(elements: readonly TraceElement[]) {
+  const out = new Map<string, NonNullable<TraceElement["decisions"]>[number] & { count: number }>();
+  for (const e of elements)
+    for (const d of e.decisions ?? []) {
+      const seen = out.get(d.questionId);
+      out.set(d.questionId, seen ? { ...seen, count: seen.count + 1 } : { ...d, count: 1 });
+    }
+  return [...out.values()];
+}

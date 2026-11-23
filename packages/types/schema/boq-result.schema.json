@@ -2093,6 +2093,13 @@
                   },
                   "model": {
                     "type": "string"
+                  },
+                  "decisions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/TraceDecision"
+                    },
+                    "description": "The decisions that changed how this element was measured (review A-06): a `contradiction` answer (which value was used), a `missing_data` value. `by` / `at`: who answered and when, when the job input carries them (`Decision.decidedBy`, `decidedAt`)."
                   }
                 },
                 "required": [
@@ -2259,6 +2266,31 @@
         "flagged"
       ],
       "description": "Where a line's quantity comes from."
+    },
+    "TraceDecision": {
+      "type": "object",
+      "properties": {
+        "questionId": {
+          "type": "string"
+        },
+        "answer": {
+          "description": "The answer as the decision holds it: a string (\"geometry\"), a number (a `missing_data` value), a boolean or null. Typed `unknown` so the schema is `{}`: the API's Java models cannot hold a multi-type field nested in an engine schema (it generates a union class Jackson cannot read)."
+        },
+        "by": {
+          "type": "string",
+          "description": "The person who answered (their name at the time of the run)."
+        },
+        "at": {
+          "type": "string",
+          "description": "When they answered (ISO 8601)."
+        }
+      },
+      "required": [
+        "questionId",
+        "answer"
+      ],
+      "additionalProperties": false,
+      "description": "A decision a line's element rests on, as its trace names it (review A-06)."
     },
     "TraceStep": {
       "type": "object",

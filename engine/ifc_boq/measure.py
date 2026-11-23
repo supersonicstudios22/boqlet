@@ -272,6 +272,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         cls = el["ifcClassBase"]
         notes: list[str] = []
         prov: dict[str, str] = {}
+        decided: list[str] = []          # contradiction answers that decided how it is measured (A-06)
         type_cls = types.get(el.get("typeId"), {}).get("ifcClass", "")
         cls_note = None
         if cls in GENERIC_2X3 and type_cls.endswith("Type") and type_cls[:-4] != cls:
@@ -378,6 +379,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             t_geo = g["volume"] / side_mean
             if abs(t_geo - thickness) > max(warn * thickness, THICKNESS_MIN):
                 qid = contradiction_id("thickness", cls, type_name or el.get("name"))
+                if answers.get(qid) in ("geometry", "reported"):
+                    decided.append(qid)
                 # a horizontal plate's stated Width (a quantity, not its layer set) is often its plan width
                 # (S08 pile cap: Width 3.8 m, 1.0 m thick): its thin axis is trusted unless answered otherwise
                 stated_quantity = cls not in PLANAR_VERTICAL and t_note != "material layer set"
@@ -411,6 +414,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 qid = contradiction_id("volume", cls, type_name or el.get("name"))
                 sure = abs(diff) > warn and g.get("hasBody") and closed is not False
                 scale = unit_scale(net_volume, geo_vol) if g.get("hasBody") and closed is not False else None
+                if (sure or scale) and answers.get(qid) in ("geometry", "reported"):
+                    decided.append(qid)
                 if sure and answers.get(qid) == "geometry":
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
                     v_note += f"; geometry used (answer to {qid})"
@@ -479,6 +484,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 geo_area = side_mean + (open_area if gross_source else 0.0) if side_mean else None
                 qid = contradiction_id("area", cls, type_name or el.get("name"))
                 scale = unit_scale(net_area, geo_area)
+                if (scale or (geo_area and abs(geo_area - net_area) > warn * net_area)) and answers.get(qid) in ("geometry", "reported"):
+                    decided.append(qid)
                 if scale and answers.get(qid) != "reported":
                     stated = net_area
                     net_area, prov["net_area"] = side_mean, "geometry"
@@ -536,6 +543,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             prov["length"] = "reported"
             qid = contradiction_id("length", cls, type_name or el.get("name"))
             scale = unit_scale(length, geo_len) if g.get("hasBody") and closed is not False else None
+            if scale and answers.get(qid) in ("geometry", "reported"):
+                decided.append(qid)
             if scale and answers.get(qid) != "reported":
                 stated = length
                 length, prov["length"] = geo_len, "geometry"
@@ -638,6 +647,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         }
         if unit_scaled:
             m["unit_scale"] = unit_scaled
+        if decided:
+            m["decisions"] = decided
         for k, v in hints.items():                       # name hints only fill gaps (geometry wins)
             if m.get(k) is None:
                 m[k] = v

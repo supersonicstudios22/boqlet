@@ -218,6 +218,11 @@ such elements `contradictions`; an aggregate measured from its parts inherits it
 follows its source lines; a person's quantity edit confirms a line. `stats.flaggedLines` counts these lines
 with the lines without a quantity; the sheet shows them "To confirm" and the Excel in yellow with the reason.
 
+Each trace element names the **decisions** that decided how it was measured (A-06): the `contradiction`
+answers measure applied (`MeasuredElement.decisions`) and a `missing_data` value, with `by` / `at` when the job
+input's `Decision` carries `decidedBy` / `decidedAt` (Java sends the author's name and the time).
+`stats.decisionsApplied` counts every decision the run used (`answeredQuestionIds`) plus the edited lines.
+
 `finalize_lines()` flags lines where no element had a value, applies line minimum and line
 rounding, records the most common value of mixable fields (material, element_type, storey,
 ifc_class, is_external...) for classification and notes which are mixed, and sets the line's

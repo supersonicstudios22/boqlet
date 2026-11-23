@@ -107,6 +107,21 @@ export interface Decision {
   decidedAt?: string;
 }
 
+/** A decision a line's element rests on, as its trace names it (review A-06). */
+export interface TraceDecision {
+  questionId: string;
+  /**
+   * The answer as the decision holds it: a string ("geometry"), a number (a `missing_data` value), a boolean or
+   * null. Typed `unknown` so the schema is `{}`: the API's Java models cannot hold a multi-type field nested
+   * in an engine schema (it generates a union class Jackson cannot read).
+   */
+  answer: unknown;
+  /** The person who answered (their name at the time of the run). */
+  by?: string;
+  /** When they answered (ISO 8601). */
+  at?: string;
+}
+
 /** An engine decision with a questionId of `override:{lineKey}`. */
 export interface LineOverrideEdit {
   quantity?: number | null;
@@ -167,7 +182,15 @@ export interface BoqLine {
   trace: {
     formula: string;
     params: Record<string, unknown>;
-    elements: { guid: string; name?: string; quantity: number | null; note?: string; model?: string }[];
+    elements: {
+      guid: string; name?: string; quantity: number | null; note?: string; model?: string;
+      /**
+       * The decisions that changed how this element was measured (review A-06): a `contradiction` answer
+       * (which value was used), a `missing_data` value. `by` / `at`: who answered and when, when the
+       * job input carries them (`Decision.decidedBy`, `decidedAt`).
+       */
+      decisions?: TraceDecision[];
+    }[];
     sourceLine?: string;           // derived lines: the line they were derived from
     /** "How it is calculated" in steps (P25, F06 §5, EN-013): the values of the steps before `result` add up to it. */
     steps?: TraceStep[];

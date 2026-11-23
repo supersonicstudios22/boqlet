@@ -49,6 +49,12 @@ def _header(ws, row, cols, widths):
         ws.column_dimensions[get_column_letter(i)].width = w
 
 
+def decision_note(d: dict) -> str:
+    """A decision an element rests on, for the Calculation sheet (A-06): "per decision contradiction:...= geometry (A. Person, 2026-11-23)"."""
+    who = ", ".join(x for x in (d.get("by"), (d.get("at") or "")[:10]) if x)
+    return f"per decision {d['questionId']} = {json.dumps(d.get('answer'))}" + (f" ({who})" if who else "")
+
+
 def to_confirm_note(c: dict) -> str:
     """Why a line with a quantity is yellow (review A-05): "To confirm: 2 of 3 elements measured"."""
     parts = []
@@ -299,7 +305,8 @@ def export(result: dict, meta: dict) -> bytes:
             _row(wc, r, ["    " + describe_step(item), item["value"], item.get("unit"), "", ""], SMALL)
             r += 1
         for e in l["trace"]["elements"]:
-            _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], e.get("note"), e["guid"]],
+            note = "; ".join(x for x in [e.get("note"), *map(decision_note, e.get("decisions") or ())] if x)
+            _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], note, e["guid"]],
                  NORMAL, None, wrap_cols=(1, 4))
             wc.cell(row=r, column=2).number_format = _qfmt(e["quantity"])
             r += 1

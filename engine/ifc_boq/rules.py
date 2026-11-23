@@ -621,12 +621,14 @@ class RuleEngine:
         v, unit, expl = self.quantity(item["quantity"], part, part_steps)
         note = None
         source = "measured"
+        decided = list(el.get("decisions") or ())          # the answers measure applied to this element (A-06)
         if v is None:
             on = item.get("onMissing") or self.defaults.get("onMissing") or "flag"
             qid = f"missing:{rid}:{el['guid']}"
             if qid in self.decisions and isinstance(self.decisions[qid], (int, float)):
                 v = float(self.decisions[qid])
                 note, source = f"value supplied by user ({fmt(v)})", "user"
+                decided.append(qid)
                 expl += f"; user answer {fmt(v)}"
             elif isinstance(on, dict):
                 v = float(self.val(on["default"]))
@@ -698,7 +700,8 @@ class RuleEngine:
             self.lines_by_rule[rid].append(line)
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
                                           "name": (el.get("name") or "") + (f" [{part['_part']}]" if part.get("_part") else ""),
-                                          "quantity": None if v is None else round(v, 6), "note": note or expl})
+                                          "quantity": None if v is None else round(v, 6), "note": note or expl,
+                                          **({"decisions": [self.trace_decision(q) for q in decided]} if decided else {})})
         collect(line, part_steps, el["guid"])
         line["_parts"].append(part)
         for field, factor in (el.get("unit_scale") or {}).items():      # measure took a stated value as a unit error
@@ -717,6 +720,12 @@ class RuleEngine:
                 name=el.get('name') or el['guid'], part=part.get('_part'), calculation=expl, quantity=v,
                 unit=unit,
             ))
+
+    def trace_decision(self, qid: str) -> dict:
+        """A decision as a line's trace names it: the answer, and who gave it when (A-06)."""
+        meta = (getattr(self.decisions, "meta", None) or {}).get(qid) or {}
+        return {"questionId": qid, "answer": dict.get(self.decisions, qid) if isinstance(self.decisions, dict) else None,
+                **{k: v for k, v in (("by", meta.get("by")), ("at", meta.get("at"))) if v}}
 
     def params_used(self, item) -> dict:
         blob = json.dumps(item)

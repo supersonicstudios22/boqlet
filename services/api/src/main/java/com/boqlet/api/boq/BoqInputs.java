@@ -133,14 +133,21 @@ class BoqInputs {
     }
 
     List<ObjectNode> decisions(UUID project) {
+        // Who answered and when go to the engine, which names them in the lines' traces (review A-06); the
+        // snapshot comparison (changes) looks at answers only, so they never make a revision pending.
         return database.query("""
-                SELECT question_id, kind, answer::text, question::text, note FROM decisions WHERE project_id = ? AND superseded_at IS NULL
-                ORDER BY question_id
+                SELECT d.question_id, d.kind, d.answer::text, d.question::text, d.note, d.decided_at, u.name AS decided_by_name
+                FROM decisions d LEFT JOIN users u ON u.id = d.decided_by AND u.deleted_at IS NULL
+                WHERE d.project_id = ? AND d.superseded_at IS NULL
+                ORDER BY d.question_id
                 """, (row, index) -> {
             var decision = json.object(Map.of("questionId", row.getString("question_id"), "kind", row.getString("kind")));
             decision.set("answer", json.read(row.getString("answer"), JsonNode.class));
             if (row.getString("question") != null) decision.set("question", json.read(row.getString("question"), JsonNode.class));
             if (row.getString("note") != null) decision.put("note", row.getString("note"));
+            if (row.getString("decided_by_name") != null) decision.put("decidedBy", row.getString("decided_by_name"));
+            var at = row.getTimestamp("decided_at");
+            if (at != null) decision.put("decidedAt", at.toInstant().toString());
             return decision;
         }, project);
     }

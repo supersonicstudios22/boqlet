@@ -185,7 +185,8 @@ class PublicShares {
                 if (step.path("params") instanceof ObjectNode params) params.remove(List.of("by", "reason", "note"));
             }
             for (var element : trace.path("elements")) {
-                if (element instanceof ObjectNode item) item.remove("note");
+                // the decisions an element rests on name who answered (A-06): private, like notes (BR-56)
+                if (element instanceof ObjectNode item) item.remove(List.of("note", "decisions"));
             }
             if (!detail) {
                 trace.putArray("elements");

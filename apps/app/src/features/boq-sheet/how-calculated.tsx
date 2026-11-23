@@ -10,6 +10,7 @@ import type { LineDetail } from "@/api/hooks/sheet";
 import { toReadable, type Lexicon } from "@/features/library/lib/readable";
 import { cn } from "@/lib/utils";
 import { useUnit } from "@/i18n/units";
+import { stepDecisions } from "./model";
 
 type Step = NonNullable<LineDetail["trace"]["steps"]>[number];
 
@@ -139,6 +140,7 @@ function StepRow({
       ? "—"
       : `${format.number(step.value, { maximumFractionDigits: step.kind === "round" ? 6 : 3, ...(SIGNED.has(step.kind) ? { signDisplay: "exceptZero" } : {}) })} ${unitLabel(unit)}`;
   const elements = step.elements?.length ? line.trace.elements.filter((e) => step.elements!.includes(e.guid)) : [];
+  const decisions = stepDecisions(elements);
   // Rule-set values this step used: its `param`, and a deduction's mode.
   const settings = [step.param, typeof p.modeParam === "string" ? p.modeParam : undefined].filter((s): s is string => !!s);
   const slotLabel = (name: string) => lex.slotLabels.get(name) ?? slots[name]?.label ?? (tl.has(`names.${name}.label`) ? tl(`names.${name}.label`) : name);
@@ -184,6 +186,16 @@ function StepRow({
       )}
       {step.kind === "start" && typeof p.formula === "string" && <p className="text-muted-foreground">{toReadable(p.formula.split("   ->   ")[0]!, lex)}</p>}
       {num("missing") > 0 && <p className="text-muted-foreground">{t("missingNote", { count: num("missing") })}</p>}
+      {decisions.map((d) => (
+        <p key={d.questionId} className="text-muted-foreground" data-testid="how-decision" data-question={d.questionId}>
+          {t("decision", {
+            answer: d.answer === "geometry" ? t("answerGeometry") : d.answer === "reported" ? t("answerReported") : typeof d.answer === "number" ? withUnit(d.answer, unit) : String(d.answer),
+            count: d.count,
+            who: d.by ?? "none",
+            when: d.at ? format.dateTime(new Date(d.at), { dateStyle: "medium" }) : "none",
+          })}
+        </p>
+      ))}
       {step.kind === "edit" && str("reason") && <p className="text-muted-foreground">{t("reason", { reason: str("reason") })}</p>}
       {settings.map((slot) =>
         libraryHref ? (

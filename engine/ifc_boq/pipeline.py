@@ -108,6 +108,7 @@ class _Answers(dict):
     def __init__(self, *args):
         super().__init__(*args)
         self.used: set[str] = set()
+        self.meta: dict[str, dict] = {}     # who answered and when, by question id (A-06)
 
     def get(self, key, default=None):
         if dict.__contains__(self, key):
@@ -144,6 +145,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     decisions = decisions or []
     overrides = from_decisions(decisions)
     answers = _Answers({d["questionId"]: d.get("answer") for d in decisions})
+    answers.meta = {d["questionId"]: {"by": d.get("decidedBy"), "at": d.get("decidedAt")} for d in decisions}
 
     models = ([{"id": None, "parsed": parsed}] if isinstance(parsed, dict) and "header" in parsed
               else [dict(m) for m in parsed])
@@ -336,7 +338,6 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     fill_item_texts(lines, classifications, rv.expr, {"p": eng.params, "building": building}, warnings)
 
     # 6. questions & decisions ----------------------------------------------------------
-    applied = [q for q in questions if q["id"] in answers]
     for d in decisions:
         if d["questionId"].startswith("override:"):
             continue
@@ -373,6 +374,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         out_lines.append(bl)
     blocking = [q for q in questions if q["blocking"]]
     status = "needs_input" if blocking else "complete"
+    answered = answered_ids(answers, rv)
     flagged = sum(1 for l in out_lines if l["quantity"] is None or l.get("toConfirm"))   # incl. lines to confirm (A-05)
     log.info("summary", f"{len(out_lines)} lines ({flagged} flagged), {len(questions)} open question(s) "
                         f"({len(blocking)} blocking) -> {status}",
@@ -388,7 +390,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         "ruleSet": ruleset_snapshot,
         "lines": out_lines,
         "questions": questions,
-        "answeredQuestionIds": answered_ids(answers, rv),
+        "answeredQuestionIds": answered,
         "warnings": warnings,
         "checks": [c if len(models) == 1 else {**c, "id": f"{m['fileName']}:{c['id']}"}
                    for m in models for c in m["parsed"]["verification"]["checks"]],
@@ -397,7 +399,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         "stats": {
             "elements": len(elements), "measuredElements": len(eng.matched), "excludedElements": len(eng.excluded),
             "unmatchedElements": unmatched_n, "lines": len(out_lines), "flaggedLines": flagged,
-            "decisionsApplied": len(applied) + sum("overridden" in line for line in out_lines),
+            # every decision the run used, not only those answering a question it raised (A-06, QS-010)
+            "decisionsApplied": len(answered) + sum("overridden" in line for line in out_lines),
             "durationMs": int((time.time() - t0) * 1000),
         },
     }

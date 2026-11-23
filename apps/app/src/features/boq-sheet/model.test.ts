@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RunLine } from "@/api/hooks/sheet";
-import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
+import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
 
 let n = 0;
 function line(path: [string, string][] | null, fields: Partial<RunLine> = {}): RunLine {
@@ -154,5 +154,14 @@ describe("the sheet's filter shared with the model (F07 §9)", () => {
 
   it("offers the top-level groups in code order, Unclassified last", () => {
     expect(topGroups(lines, "acme").map((g) => g.code)).toEqual(["2", "10", UNCLASSIFIED]);
+  });
+});
+
+describe("decisions on a calculation step (review A-06)", () => {
+  it("lists each decision once with the number of elements it decided", () => {
+    const volume = { questionId: "contradiction:volume:IfcWall:Party", answer: "geometry", by: "Ana", at: "2026-11-23T09:30:00Z" };
+    const thickness = { questionId: "contradiction:thickness:IfcWall:Party", answer: "geometry" };
+    const out = stepDecisions([{ guid: "a", decisions: [volume, thickness] }, { guid: "b", decisions: [thickness] }, { guid: "c" }]);
+    expect(out).toEqual([{ ...volume, count: 1 }, { ...thickness, count: 2 }]);
   });
 });

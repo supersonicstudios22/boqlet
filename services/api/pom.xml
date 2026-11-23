@@ -191,6 +191,12 @@
                                         flags="g">
                                     <fileset dir="${project.build.directory}/contract/types/schema" includes="*.schema.json"/>
                                 </replaceregexp>
+                                <!-- A trace element's decisions (review A-06) are optional: the generated model starts the
+                                     list empty, so it would write "decisions": [] on every element of every line (and into
+                                     public share lines, BR-56). Leave an empty list out. -->
+                                <replace file="${project.build.directory}/contract/types/schema/boq-result.schema.json"
+                                         token="&quot;decisions&quot;: {"
+                                         value="&quot;decisions&quot;: { &quot;x-field-extra-annotation&quot;: &quot;@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)&quot;,"/>
                             </target>
                         </configuration>
                     </execution>

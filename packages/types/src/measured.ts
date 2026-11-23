@@ -213,6 +213,8 @@ export interface MeasuredElement {
    * rests on the engine's choice until someone answers, so the lines it feeds are `toConfirm` (A-05).
    */
   contradictions?: string[];
+  /** The `contradiction` answers (question ids) that decided how this element was measured (A-06). */
+  decisions?: string[];
 }
 
 /**

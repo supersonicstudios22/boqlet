@@ -125,6 +125,8 @@ describe("answering (F05 §2, §3)", () => {
     const second = await generate(api);
     expect(second.status).toBe("complete");
     expect(second.stats!.blockingQuestions).toBe(0);
+    // Every decision the run used is counted (review A-06), not only answers to questions it raised.
+    expect(second.stats!.decisionsApplied).toBeGreaterThanOrEqual(open.length);
     expect(await pendingChanges(api)).toEqual([]);
 
     // The new run lists the answered questions with their answers, not as changed after the run.
@@ -257,5 +259,18 @@ describe("contradiction thresholds are resolution settings (review WP-A1, A-04)"
     const strict = await make("Strict thresholds", published.data!.id);
     const volume = strict.find((q) => q.id === "contradiction:volume:IfcWall:Party Wall - CMU Residential Unit Dimising Wall");
     expect(volume?.blocking).toBe(true);
-  }, 300_000);
+
+    // Answering it moves the party wall: the run counts the decision and the line names who answered (A-06).
+    const answer = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId: project!.id } }, body: { decisions: [{ questionId: volume!.id, kind: "contradiction", answer: "geometry" }] } });
+    expect(answer.response.status).toBe(200);
+    const bill = (await api.GET("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } } })).data!.find((b) => b.name === "Strict thresholds")!;
+    const { data: again } = await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: bill.currentRevision.id } } });
+    const run = await finished(api, again!.run.id);
+    expect(run.stats!.decisionsApplied).toBeGreaterThanOrEqual(1);
+    const lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } })).data!.items;
+    const party = lines.find((l) => l.ruleId === "walls" && l.description.includes("Party Wall"))!;
+    const named = party.trace.elements.flatMap((e) => e.decisions ?? []).find((d) => d.questionId === volume!.id);
+    expect(named).toMatchObject({ answer: "geometry", by: "Thresholds Lead" });
+    expect(Date.parse(named!.at!)).not.toBeNaN();
+  }, 360_000);
 });
