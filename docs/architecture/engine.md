@@ -277,7 +277,9 @@ warnings: they never change a number and never block. Per element type: an `IfcS
 (a pile exported as a slab) or than `plausibility.maxSlabThickness` (1.5 m), and a slab whose name or type has one
 of `plausibility.slabNameWords` as a whole word (default: pile, pad, cap in several languages). Per line: a line of
 floor slabs with more m² than footprint × storeys. Per storey: floor slabs over `storeySlabAreaFactor` (3) × the
-footprint. The settings are the resolution settings' `plausibility` block.
+footprint. The settings are the resolution settings' `plausibility` block. In any model (A-08), a door or window
+that fills no opening and is not part of an aggregate raises `unhosted_opening`, naming the nearest wall by
+bounding box: no wall is reduced by it (federation's `federation_unhosted` covers a host left to another model).
 
 ## Questions and decisions
 

@@ -83,3 +83,22 @@ def test_s07_warns_on_pad_2_and_the_600mm_piles():
 def test_s03_and_s05_raise_no_plausibility_warning(duplex_parsed):
     assert not implausible(sample_lines(duplex_parsed))
     assert not implausible(sample_lines(review_sample("S03-simple-scene-architecture-ifc2x3.ifc")))
+
+
+# ---------------------------------------------------------------- A-08
+def unhosted(result: dict) -> list[dict]:
+    return [w for w in result["warnings"] if w["code"] == "unhosted_opening"]
+
+
+def test_the_duplex_v2_window_without_a_host_is_named_with_the_nearest_wall():
+    """A-08 acceptance (QS-018): v2 of the Duplex has a window with no IfcRelFillsElement; v1 has none."""
+    from ifc_boq.parse import parse_file
+    from ifc_boq.paths import FIXTURES
+    v2 = parse_file(str(FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture_v2.ifc"))[0]
+    (w,) = unhosted(run(v2))
+    assert w["guids"][0] == "1FM6kRbt1Q98O7nMvcxWi0" and w["params"]["ifcClass"] == "IfcWindow"
+    assert w["params"]["wall"] and len(w["guids"]) == 2
+
+
+def test_the_duplex_v1_has_no_unhosted_door_or_window(duplex_parsed):
+    assert not unhosted(run(duplex_parsed))

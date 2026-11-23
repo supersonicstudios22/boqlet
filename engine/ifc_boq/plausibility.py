@@ -1,9 +1,9 @@
 """
-plausibility.py - warnings about what an element is and how big it is (review WP-A2, A-07).
+plausibility.py - warnings about what an element is and how big it is (review WP-A2, A-07, A-08).
 
 A BoQ can be "complete" and still hold an element that is not what its class says (topography or piles exported
 as slabs) or a door no wall knows about. These checks never change a number and never block: they are run
-warnings (`implausible`) shown in the sheet's warnings, the review summary and the Excel's
+warnings (`implausible`, `unhosted_opening`) shown in the sheet's warnings, the review summary and the Excel's
 Questions sheet. Thresholds and name words come from the resolution settings (`plausibility`, see
 packages/types/src/dictionary.ts); none of them is a measuring rule.
 
@@ -14,6 +14,8 @@ packages/types/src/dictionary.ts); none of them is a measuring rule.
   line_area       a line of floor slabs (not roof or landing slabs: a pitched roof's true area exceeds its plan)
                   with more m2 than the building's footprint x storeys
   storey_area     a storey whose floor slabs cover more than `storeySlabAreaFactor` (default 3) x the footprint
+  unhosted        a door or window that fills no opening and is not part of an aggregate: no wall is reduced by
+                  it (any model; the federation has its own `federation_unhosted` for hosts left to another model)
 """
 from __future__ import annotations
 
@@ -35,6 +37,8 @@ SLAB_NAME_WORDS = (
     "šip", "šipovi", "naglavnica",                               # sr
 )
 FLOOR_SLAB_EXCLUDE = ("ROOF", "LANDING")
+HOSTED = ("IfcDoor", "IfcWindow")
+WALLS = ("IfcWall", "IfcWallStandardCase", "IfcCurtainWall")
 
 
 def settings_of(resolution: dict | None) -> tuple[float, float, set[str]]:
@@ -120,3 +124,23 @@ def line_warnings(lines: list[dict], elements: list[dict], building: dict, resol
                                        "footprint": round(footprint, 3)}})
     return out
 
+def _gap(a: tuple, b: tuple) -> float:
+    """Distance between two boxes (0 when they touch or overlap)."""
+    return sum(max(0.0, max(a[0][i], b[0][i]) - min(a[1][i], b[1][i])) ** 2 for i in range(3)) ** 0.5
+
+
+def unhosted_warnings(elements: list[dict], boxes: dict[str, tuple]) -> list[dict]:
+    """A door or window that fills no opening and is not part of an aggregate (a curtain wall's doors are): no wall
+    is reduced by it. Names the nearest wall by bounding box (A-08)."""
+    walls = [e for e in elements if e["ifc_class"] in WALLS and e["guid"] in boxes]
+    out = []
+    for d in elements:
+        if d["ifc_class"] not in HOSTED or d.get("host_guid") or d.get("parent_guid") or d["guid"] not in boxes:
+            continue
+        near = min(walls, key=lambda w: _gap(boxes[d["guid"]], boxes[w["guid"]]), default=None)
+        wall = (near.get("name") or near["guid"]) if near else None
+        msg = (f"{d['ifc_class']} '{d.get('name') or d['guid']}' fills no opening: no wall is reduced by it"
+               + (f" (nearest wall: '{wall}')." if wall else "."))
+        out.append({"code": "unhosted_opening", "message": msg, "guids": [d["guid"]] + ([near["guid"]] if near else []),
+                    "params": {"ifcClass": d["ifc_class"], "name": d.get("name") or d["guid"], "wall": wall}})
+    return out
