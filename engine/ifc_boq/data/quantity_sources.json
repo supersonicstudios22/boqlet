@@ -1,5 +1,5 @@
 {
-  "_doc": "Where reported quantities are looked for, in priority order. Each entry is [property-set glob, property name]. IFC quantity sets (quantities.reported) are searched first, then property sets (psets), so standard BaseQuantities win over authoring-tool sets. Add authoring tools here, not in code. Rooms (IfcSpace): floor_area, ceiling_area, wall_area, wall_area_net, room_perimeter. Revit's room Area is deliberately not a source: it follows a Revit setting (wall centre, core or finish).",
+  "_doc": "Where reported quantities are looked for, in priority order. Each entry is [property-set glob, property name]. IFC quantity sets (quantities.reported) are searched first, then property sets (psets), so standard BaseQuantities win over authoring-tool sets. Every Qto_*BaseQuantities name has its generic BaseQuantities twin (IFC4 exports such as the S09 sample house write only BaseQuantities). Within a kind, net names come before gross ones. Add authoring tools here, not in code. Rooms (IfcSpace): floor_area, ceiling_area, wall_area, wall_area_net, room_perimeter. Revit's room Area is deliberately not a source: it follows a Revit setting (wall centre, core or finish).",
   "volume": [
     [
       "Qto_*BaseQuantities",
@@ -52,6 +52,10 @@
       "NetArea"
     ],
     [
+      "Qto_*BaseQuantities",
+      "NetSideArea"
+    ],
+    [
       "BaseQuantities",
       "NetArea"
     ],
@@ -62,6 +66,18 @@
     [
       "Qto_*BaseQuantities",
       "GrossArea"
+    ],
+    [
+      "BaseQuantities",
+      "GrossArea"
+    ],
+    [
+      "Qto_*BaseQuantities",
+      "GrossSideArea"
+    ],
+    [
+      "BaseQuantities",
+      "GrossSideArea"
     ],
     [
       "PSet_Revit_Dimensions",
@@ -128,6 +144,14 @@
       "Depth"
     ],
     [
+      "BaseQuantities",
+      "Width"
+    ],
+    [
+      "BaseQuantities",
+      "Depth"
+    ],
+    [
       "PSet_Revit_Dimensions",
       "Thickness"
     ]
@@ -158,6 +182,10 @@
     [
       "BaseQuantities",
       "NetWeight"
+    ],
+    [
+      "BaseQuantities",
+      "GrossWeight"
     ]
   ],
   "floor_area": [

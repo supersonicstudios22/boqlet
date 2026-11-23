@@ -36,3 +36,6 @@ ifc_boq = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "slow: re-runs a review sample (docs/review/_samples); skipped when the samples are not fetched",
+]

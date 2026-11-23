@@ -35,7 +35,7 @@ State at the start (unchanged code, 2026-11-23): `compare-baseline` 0 difference
 
 | Package | Title | Status | Prerequisites | Items | Session date | Commits | Baseline changes | Notes |
 |---|---|---|---|---|---|---|---|---|
-| WP-A1 | Reported quantities vs geometry (the ×1000 and ×2 slab errors) | todo | — | A-01, A-02, A-03, A-04 |  |  |  |  |
+| WP-A1 | Reported quantities vs geometry (the ×1000 and ×2 slab errors) | in progress | — | A-01, A-02, A-03, A-04 | 2026-11-23 |  |  |  |
 | WP-A2 | Flags, decisions and plausibility | todo | WP-A1 | A-05, A-06, A-07, A-08 |  |  |  |  |
 | WP-A3 | Measurement defaults: walls, finishes, reveals, formwork | todo | WP-A2 | A-09, A-10, A-11, A-12, A-13 |  |  |  |  |
 | WP-A4 | Measurement defaults: slabs, roofs, proxies, steel | todo | WP-A3 | A-14, A-15, A-16, A-17 |  |  |  |  |

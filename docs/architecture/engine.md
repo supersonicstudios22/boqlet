@@ -124,7 +124,7 @@ strength classes, steel profiles, pipe sizes). Results are cached per (field, ra
 
 This is where the engine decides **which number to trust**. It never looks at rules. Constants
 live at the top of the file; the list of reported-quantity sources is data
-(`data/quantity_sources.json`: IFC `Qto_*BaseQuantities` first, then `BaseQuantities`, then
+(`data/quantity_sources.json`: IFC `Qto_*BaseQuantities` first, then their generic `BaseQuantities` twins, then
 authoring-tool sets such as `PSet_Revit_Dimensions`; ArchiCAD entries are placeholders that
 still need checking against a real ArchiCAD export).
 
@@ -133,7 +133,7 @@ still need checking against a real ArchiCAD export).
 | volume | reported if present, else geometry, but only from a **closed** mesh (watertight, or closed with T-junctions). If both exist and differ by more than 1%, the reported value is still used and a warning is logged; beyond 10% (`CONTRADICTION`) a `contradiction` question asks per class and type whether to use the geometry | Reported values are join-aware; geometry double counts at junctions (Duplex party wall stub: geometry +42%). Tessellated exports leave T-junctions; their volume is exact |
 | thickness | material layer set total, else reported, else smallest extent of the **oriented** bounding box (of the largest body). A stated thickness more than 10% (and 5 mm) away from the geometry's (volume / mean side area) raises a `contradiction` question | World-axis extents gave a rotated bridge wall a thickness of 10.39 m. Duplex party wall: layers 0.55 m, geometry 0.46-0.50 m |
 | wall area | net volume / thickness, else reported area | Keeps area, volume and layers consistent; Revit's Area disagreed with Volume on 7 Duplex walls |
-| other areas | reported, else net volume / thickness, else for an open surface model (road markings) the one-sided mesh area | |
+| other areas | reported, else net volume / thickness (but never from a reported volume the geometry contradicts: then the mean side area of a clear plate), else for an open surface model (road markings) the one-sided mesh area | S09: the area of a slab whose stated volume is ×1000 came out ×1000 (QS-001) |
 | gross area / volume | net + the openings hosted by the element | Gives rules both starting points |
 | length | reported, else the oriented box: columns and piles along the most vertical axis, other linear elements the longest extent, others the longest horizontal extent | World axes measured rotated girders 12% short and gave columns a plan width |
 | perimeter | reported, else for a closed slab-like prism P = (S - 2V/t) / t (includes opening edges) | Slab edge formwork had no perimeter outside Revit |

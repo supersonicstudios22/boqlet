@@ -19,8 +19,9 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               class and type, whether to use the geometry instead.
   wall area   net_volume / thickness  (keeps area, volume and layers consistent;
               authoring-tool "Area" is often inconsistent), else reported area.
-  other area  reported area, else net_volume / thickness, else (open surface models
-              such as road markings) the one-sided mesh area.
+  other area  reported area, else net_volume / thickness (never from a reported volume the
+              geometry contradicts: then a clear plate's mean side area), else (open surface
+              models such as road markings) the one-sided mesh area.
   gross       net + area of the openings hosted by the element.
   length      reported, else the oriented box: columns and piles along the most vertical
               axis, other linear elements the longest extent (sloped and rotated members),
@@ -289,14 +290,17 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         else:
             t_note = None
 
-        # a stated thickness the geometry contradicts (volume over the mean side area), only for a
-        # clear plate: its thin axis much thinner than its width, both sides about the same size
-        # (a wall stub shorter than it is thick has its "sides" at the ends)
+        # a clear plate: closed, its thin axis much thinner than its width, both sides about the same
+        # size (a wall stub shorter than it is thick has its "sides" at the ends). Only then are the
+        # mean side area and volume / mean side area the geometry's own area and thickness.
         sides = g.get("sides")
-        if (prov.get("thickness") == "reported" and fam == "planar" and closed and g.get("volume") and sides
-                and obb and obb[2] <= 0.5 * obb[1]
-                and min(sides["a"], sides["b"]) >= 0.7 * max(sides["a"], sides["b"]) > 0):
-            t_geo = g["volume"] / ((sides["a"] + sides["b"]) / 2)
+        plate = bool(fam == "planar" and closed and g.get("volume") and sides and obb and obb[2] <= 0.5 * obb[1]
+                     and min(sides["a"], sides["b"]) >= 0.7 * max(sides["a"], sides["b"]) > 0)
+        side_mean = (sides["a"] + sides["b"]) / 2 if plate else None
+
+        # a stated thickness the geometry contradicts (volume over the mean side area)
+        if prov.get("thickness") == "reported" and plate:
+            t_geo = g["volume"] / side_mean
             if abs(t_geo - thickness) > max(CONTRADICTION * thickness, THICKNESS_MIN):
                 qid = contradiction_id("thickness", cls, type_name or el.get("name"))
                 if answers.get(qid) == "geometry":
@@ -309,6 +313,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
 
         # volume
         net_volume, v_note = None, None
+        volume_contradicted = False          # a reported volume kept while the geometry disagrees (question open)
         if rep["volume"][0]:
             net_volume, prov["net_volume"] = rep["volume"][0], "reported"
             v_note = f"{fmt(net_volume)} m3 from {rep['volume'][1]}"
@@ -329,6 +334,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                             difference=diff,
                         ))
                     if sure and answers.get(qid) != "reported":
+                        volume_contradicted = True
                         _ask(asked, qid, "volume", cls, type_name or el.get("name"), el["id"], net_volume, geo_vol,
                              rep["volume"][1])
         elif geo_vol and closed is not False:
@@ -360,6 +366,11 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             elif rep["area"][0]:
                 net_area, prov["net_area"] = rep["area"][0], "reported"
                 a_note = f"net area {fmt(round(net_area, 3))} m2 from {rep['area'][1]}"
+            elif net_volume and thickness and volume_contradicted and side_mean:
+                # never derive an area from a volume the geometry contradicts: the measured sides instead
+                net_area, prov["net_area"] = side_mean, "geometry"
+                a_note = (f"net area {fmt(round(net_area, 3))} m2 = mean side area from geometry "
+                          f"(not volume / thickness: the stated volume is contradicted)")
             elif net_volume and thickness:
                 net_area, prov["net_area"] = (net_volume + recess_vol) / thickness, "derived"
                 a_note = f"net area = volume / thickness = {fmt(round(net_area, 3))} m2"
