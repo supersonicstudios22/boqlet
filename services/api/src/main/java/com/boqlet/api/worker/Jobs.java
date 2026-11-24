@@ -241,7 +241,7 @@ public class Jobs {
     }
 
     @Transactional
-    public void ingestQueueJob(UUID id, boolean failedIngestion) {
+    public void ingestQueueJob(UUID id, JsonNode failure) {
         database.query("""
                 SELECT * FROM jobs WHERE id = ? AND status = 'running' AND transport = 'postgres'
                     AND (worker_result IS NOT NULL OR NOT worker_announced) FOR NO KEY UPDATE SKIP LOCKED
@@ -249,9 +249,7 @@ public class Jobs {
                 row.getBoolean("cancel_requested"), json.read(row.getString("worker_result"), JsonNode.class)), id)
                 .stream().findFirst().ifPresent(delivery -> {
             var attempt = delivery.attempt();
-            if (failedIngestion) {
-                var failure = json.object(Map.of("status", "failed", "error", Map.of(
-                        "code", "ingestion_failed", "message", "The server could not ingest the worker result.", "retryable", true)));
+            if (failure != null) {                         // the result could not be stored (`ingestion_failed` / `result_invalid`)
                 complete(attempt, delivery.cancelled(), failure);
                 return;
             }

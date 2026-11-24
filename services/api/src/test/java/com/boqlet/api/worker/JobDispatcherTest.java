@@ -72,6 +72,27 @@ class JobDispatcherTest {
     }
 
     @Test
+    void aResultThatBreaksAConstraintFailsWithoutARetry() throws Exception {
+        // review A-25: two questions with one id break run_questions' primary key on every attempt
+        var done = mapper.readTree("{\"status\":\"succeeded\",\"output\":{}}");
+        when(worker.run(any(), any(), any())).thenReturn(done);
+        var duplicate = new IllegalStateException("Could not index worker output.",
+                new java.sql.SQLException("duplicate key value violates unique constraint \"run_questions_pkey\"", "23505"));
+        var calls = new AtomicInteger();
+        org.mockito.Mockito.doAnswer(call -> {
+            if (calls.incrementAndGet() == 1) throw duplicate;
+            return null;
+        }).when(jobs).finish(any(), any(), any());
+        dispatcher.execute(attempt);
+        var result = ArgumentCaptor.forClass(JsonNode.class);
+        verify(jobs, times(2)).finish(eq(attempt), any(), result.capture());
+        var error = result.getAllValues().get(1).path("error");
+        assertThat(error.path("code").asText()).isEqualTo("result_invalid");
+        assertThat(error.path("retryable").asBoolean()).isFalse();
+        assertThat(JobDispatcher.invalidResult(new IllegalStateException("network"))).isFalse();
+    }
+
+    @Test
     void aResultTheDatabaseRefusesForAMomentIsRecordedOnceItIsBack() throws Exception {
         var done = mapper.readTree("{\"status\":\"succeeded\",\"output\":{}}");
         when(worker.run(any(), any(), any())).thenReturn(done);

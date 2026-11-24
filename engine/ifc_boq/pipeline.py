@@ -355,6 +355,14 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         log.info("decision", f"answer applied: {d['questionId']} = {d.get('answer')!r}",
             code="log.decision.answer_applied", params=dict(questionId=d['questionId'], answer=d.get('answer')))
     questions = [q for q in questions if q["id"] not in answers]
+    unique: dict[str, dict] = {}
+    for q in questions:              # BR-04: one question per id (review A-25); a repeat adds its elements to the first
+        first = unique.setdefault(q["id"], q)
+        if first is not q:
+            first["occurrences"] = (first.get("occurrences") or 1) + (q.get("occurrences") or 1)
+            first["guids"] = list(dict.fromkeys([*(first.get("guids") or ()), *(q.get("guids") or ())]))
+            first["blocking"] = first["blocking"] or q["blocking"]
+    questions = list(unique.values())
     for q in questions:
         log.add("summary", f"question ({'blocking' if q['blocking'] else 'info'}): {q['message']}",
                 "warning" if q["blocking"] else "info",

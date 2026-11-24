@@ -297,7 +297,7 @@ bounding box: no wall is reduced by it (federation's `federation_unhosted` cover
 | Kind | Raised by | Id | Blocking | Answer type | Effect of the answer |
 |---|---|---|---|---|---|
 | `unknown_name` | pipeline (names nobody resolved) | `name:{field}:{raw}` | only if `unresolved = "ask"` and the field is referenced by the rules or maps, and `askFor` allows it | term (filtered by category) | becomes a decision-layer dictionary entry; the name resolves on every later run |
-| `missing_data` | rules, `onMissing: "ask"` | `missing:{ruleId}:{guid}` | yes | number (in the line unit) | value used for that element, marked user-supplied |
+| `missing_data` | rules, `onMissing: "ask"` | `missing:{ruleId}:{guid}`, one per rule and element: a breakdown's parts share it (`occurrences` counts them, A-25) | yes | number (in the line unit) | value used for that element (each of its parts without a value), marked user-supplied |
 | `unmatched` | pipeline coverage | `unmatched:{ifc_class}:{type_name}` | no | rule id or `exclude` | elements forced into that rule, or excluded |
 | `unclassified` | classify, `onUnmapped: "ask"` | `unclassified:{system}:{lineKey}` | no | code from that list | code applied with source `decision` |
 | `classification_conflict` | classify, `onConflict: "ask"` | `classconflict:{system}:{lineKey}` | no | code | (answer currently informative; first rule still wins) |
@@ -307,6 +307,8 @@ bounding box: no wall is reduced by it (federation's `federation_unhosted` cover
 | `duplicate_conflict` | federation, copies of one GlobalId in several models that differ in class, type, material, or thickness / volume / area / length beyond `contradictionWarnPct` (D86) | `duplicate_conflict:{guid}` | when a quantity differs by more than `contradictionBlockPct` | choice: a model key (the copy to measure); `suggestion` = the copy used unanswered (the owning discipline's) | that model's copy is measured; the trace names the decision |
 | `orphan_override` | overrides, a line edit whose line is not in this run | `orphan:{lineKey}` | no | choice: `dismiss` | the edit is dropped (BR-09) |
 
+A result never holds two questions with one id (the pipeline merges a repeat into the first, BR-04; the API's
+`run_questions` key would refuse it, and a result it refuses fails as `result_invalid`, not retried).
 Ids are built from content so the same situation produces the same id on every run and every
 new model version; that is what lets stored decisions re-apply (D19). A decision with
 `answer: null` dismisses a question. Status is `needs_input` only while a blocking question is

@@ -98,3 +98,41 @@ def test_child_parts_add_up_to_a_rolled_up_aggregate(duplex_parsed):
     assert rolled
     for g, e in rolled.items():
         assert parts[g] == pytest.approx(e["net_volume"], abs=1e-5), g
+
+
+# ------------------------------------------------------------------ missing values asked per element (review A-25)
+def test_a_missing_value_is_asked_once_per_element_and_the_answer_fills_every_part(duplex_parsed):
+    """ENG-003: a layer breakdown with onMissing "ask" raised one `missing:{rule}:{guid}` per layer, 50 duplicate
+    ids on the Duplex, and the API could not store the run. One question per element now, its occurrences the
+    parts; the answer is used for each part that has no value."""
+    item = {"id": "wall-mass", "label": "Wall mass", "match": {"ifcClass": "IfcWall"}, "breakdown": "layer",
+            "quantity": {"kind": "mass", "basis": "reported", "unit": "kg"}, "onMissing": "ask", "lineKey": [],
+            "description": "Wall mass", "claims": ["mass"]}
+    r = run_with(duplex_parsed, item)
+    asked = [q for q in r["questions"] if q["id"].startswith("missing:wall-mass:")]
+    ids = [q["id"] for q in asked]
+    assert asked and len(ids) == len(set(ids))
+    assert all(q["id"] == f"missing:wall-mass:{q['guids'][0]}" for q in asked)
+    assert any(q["occurrences"] > 1 for q in asked)                    # layered walls: one question, several parts
+    every = [q["id"] for q in r["questions"]]
+    assert len(every) == len(set(every))
+    q = next(q for q in asked if q["occurrences"] > 1)
+    flat, classes, dicts, resolution = _flat_with(item)
+    rs, lib = presets.load_rule_set("as-modelled")
+    r2 = get_boq(copy.deepcopy(duplex_parsed), flat, classes, dicts, resolution,
+                 [{"questionId": q["id"], "scope": "project", "answer": 10}], lib)
+    parts = [e for l in r2["lines"] if l["ruleId"] == "wall-mass" for e in l["trace"]["elements"] if e["guid"] == q["guids"][0]]
+    assert len(parts) == q["occurrences"] and all(e["quantity"] == pytest.approx(10) for e in parts)
+    assert q["id"] not in {x["id"] for x in r2["questions"]}
+
+
+def _flat_with(*items):
+    rs, lib = presets.load_rule_set("as-modelled")
+    flat = copy.deepcopy(flatten(rs, {}))
+    flat["items"] += list(items)
+    return flat, [], [presets.load_dictionary("global-seed")], presets.resolution()
+
+
+def test_question_ids_are_unique_in_every_result(duplex_breakdowns):
+    ids = [q["id"] for q in duplex_breakdowns["questions"]]
+    assert len(ids) == len(set(ids))

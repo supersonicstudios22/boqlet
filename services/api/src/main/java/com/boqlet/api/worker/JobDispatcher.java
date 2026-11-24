@@ -81,10 +81,10 @@ class JobDispatcher {
         try {
             for (UUID job : jobs.pendingQueueJobs()) {
                 try {
-                    jobs.ingestQueueJob(job, false);
+                    jobs.ingestQueueJob(job, null);
                 } catch (RuntimeException failure) {
                     LOG.error("Could not ingest queue job {}.", job, failure);
-                    jobs.ingestQueueJob(job, true);
+                    jobs.ingestQueueJob(job, ingestionFailure(failure));
                 }
             }
         } catch (RuntimeException failure) {
@@ -148,7 +148,7 @@ class JobDispatcher {
         } catch (RuntimeException failure) {
             LOG.error("Could not ingest job {}.", attempt.id(), failure);
             try {
-                jobs.finish(attempt, id, failed("ingestion_failed", "The server could not ingest the worker result.", true));
+                jobs.finish(attempt, id, ingestionFailure(failure));
             } catch (RuntimeException retryFailure) {
                 LOG.error("Could not record ingestion failure for job {}.", attempt.id(), retryFailure);
             }
@@ -204,6 +204,26 @@ class JobDispatcher {
                 Thread.sleep(1000);
             }
         }
+    }
+
+    /**
+     * Why a worker result could not be stored. A result the database refuses for its content (an integrity
+     * constraint: two questions with one id, ENG-003) fails the same way on every attempt, so it is not retryable
+     * (`result_invalid`, review A-25); anything else may be a passing problem (`ingestion_failed`, retryable).
+     */
+    JsonNode ingestionFailure(Throwable failure) {
+        return invalidResult(failure)
+                ? failed("result_invalid", "The engine's result could not be stored: it breaks a rule of the data (for example two questions with one id). Running it again gives the same result.", false)
+                : failed("ingestion_failed", "The server could not ingest the worker result.", true);
+    }
+
+    static boolean invalidResult(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof org.springframework.dao.DataIntegrityViolationException) return true;
+            if (cause instanceof java.sql.SQLException sql && sql.getSQLState() != null && sql.getSQLState().startsWith("23")) return true;
+            if (cause.getCause() == cause) break;
+        }
+        return false;
     }
 
     private JsonNode failed(String code, String message, boolean retryable) {

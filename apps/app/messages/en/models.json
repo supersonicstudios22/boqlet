@@ -50,6 +50,7 @@
       "engine_timeout": "Processing took too long and was stopped.",
       "worker_lost": "Processing stopped unexpectedly. Try again.",
       "ingestion_failed": "The processed model could not be stored. Try again.",
+      "result_invalid": "The processed model could not be stored: the result breaks a rule of the data. Trying again gives the same result; tell us about it.",
       "engine_process_failed": "Processing stopped unexpectedly. Try again.",
       "engine_error": "The model could not be processed.",
       "invalid_input": "The model could not be read for processing."

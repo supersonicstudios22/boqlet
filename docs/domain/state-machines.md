@@ -27,7 +27,8 @@ stateDiagram-v2
   still recorded).
 - `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `too_large`,
   `parse_timeout`, `parse_error`, `cancelled`, `upload_expired`. A job failure with another code (the worker's or the
-  backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`…) is stored as
+  backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`, `result_invalid` (a result the database
+  refuses for its content, not retried, review A-25)…) is stored as
   `parse_timeout` (timeouts) or `parse_error`, its own code kept in `error.details.cause` (`ParseJob`, TF-037).
 
 ## Job

@@ -80,7 +80,8 @@
     },
     "errors": {
       "engine_unavailable": "the processing service is not available. Try again in a moment.",
-      "run_error": "the engine could not build this BoQ."
+      "run_error": "the engine could not build this BoQ.",
+      "result_invalid": "the engine's result breaks a rule of the data (for example two questions with one id), so it could not be stored. Generating again gives the same result: change the rule set."
     },
     "answersPending": "{count, plural, one {# answer} other {# answers}} not applied yet –"
   },

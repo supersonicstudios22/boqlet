@@ -181,6 +181,7 @@ class RuleEngine:
         self.defaults = rules.get("defaults", {})
         self.questions: list[dict] = []
         self.warnings: list[dict] = []
+        self._asked: dict[str, dict] = {}          # missing_data questions by id (one per rule and element)
         self.lines: dict[tuple, dict] = {}
         self.lines_by_rule: dict[str, list[dict]] = defaultdict(list)
         self.matched: set[str] = set()
@@ -731,12 +732,19 @@ class RuleEngine:
                     code="log.quantity.skipped", params=dict(name=el.get('name'), reason=expl))
                 return
             elif on == "ask":
-                self.questions.append({
-                    "id": qid, "kind": "missing_data", "blocking": True, "guids": [el["guid"]],
-                    "code": "question.missing_data",
-                    "params": {"rule": item.get("label", rid), "name": el.get("name"), "reason": expl, "unit": unit},
-                    "message": f"Rule '{item.get('label', rid)}' needs a quantity for {el.get('name')}: {expl}. Enter it in {unit}.",
-                    "answer": {"kind": "number", "unit": unit}})
+                # one question per rule and element (review A-25): a breakdown's parts share it, `occurrences`
+                # counts them, and the answer is used for each part without a value
+                asked = self._asked.get(qid)
+                if asked is not None:
+                    asked["occurrences"] += 1
+                else:
+                    self._asked[qid] = {
+                        "id": qid, "kind": "missing_data", "blocking": True, "guids": [el["guid"]], "occurrences": 1,
+                        "code": "question.missing_data",
+                        "params": {"rule": item.get("label", rid), "name": el.get("name"), "reason": expl, "unit": unit},
+                        "message": f"Rule '{item.get('label', rid)}' needs a quantity for {el.get('name')}: {expl}. Enter it in {unit}.",
+                        "answer": {"kind": "number", "unit": unit}}
+                    self.questions.append(self._asked[qid])
                 note = "waiting for user input"
             else:
                 note = f"missing: {expl}"

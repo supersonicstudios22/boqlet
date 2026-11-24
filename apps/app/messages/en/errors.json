@@ -14,6 +14,7 @@
     "ownedOrgs": "You already own {max, plural, one {an organisation} other {# organisations}} on the plan new organisations start on. Open it from the organisation menu, or ask boqlet to change its plan."
   },
   "codes": {
+    "result_invalid": "The engine's result could not be stored: it breaks a rule of the data. Trying again gives the same result; change the rule set or tell us about it.",
     "revision_locked": "This BoQ is locked: it was saved or confirmed. Reopen it or work on the current version.",
     "invalid_transition": "That step is not possible in the current state.",
     "deadline_passed": "The deadline has passed.",
