@@ -2659,7 +2659,8 @@
         "double_claim",
         "implausible",
         "unhosted_opening",
-        "double_count"
+        "double_count",
+        "code_check"
       ],
       "description": "Existing warning codes are also used by consumers to filter warnings."
     },

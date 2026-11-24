@@ -231,6 +231,11 @@ export function MapTab({ map, onChange, titles, table, initial, kinds, itemLabel
                       <Num value={rule.priority} onChange={(v) => set(put(rule, "priority", v))} step={1} placeholder="0" />
                     </Field>
                   </Section>
+                  <Section title={t("check")}>
+                    <Field label={t("expect")} hint={t("expectHint")} wide>
+                      <ExprInput value={rule.expect} onChange={(v) => set(put(rule, "expect", v || undefined))} placeholder={t("expectExample")} aria-label={t("expect")} />
+                    </Field>
+                  </Section>
                   <details className="rounded-[var(--radius)] border border-border p-3">
                     <summary className="cursor-pointer">{t("moreOptions")}</summary>
                     <div className="mt-3">

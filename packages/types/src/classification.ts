@@ -106,6 +106,12 @@ export interface MapRule {
   /** Higher wins when several rules match. Default 0; ties go to the first rule. */
   priority?: number;
   note?: string;
+  /**
+   * A condition every line this rule codes should meet (same fields as `where`), e.g.
+   * `NOT (is_external = true)` on internal walls. A line the rule codes that does not meet it keeps
+   * the code and gets a `code_check` warning: the code contradicts the model (review A-21).
+   */
+  expect?: Expr;
 }
 
 export interface ClassificationMap {

@@ -4390,7 +4390,7 @@ export interface components {
          * @description Existing warning codes are also used by consumers to filter warnings.
          * @enum {string}
          */
-        WarningCode: "unknown_code" | "mixed_line" | "item_text_blank" | "rule_set" | "federation_hole" | "federation_storeys" | "federation_coordinates" | "federation_overlap" | "federation_unhosted" | "double_claim" | "implausible" | "unhosted_opening" | "double_count";
+        WarningCode: "unknown_code" | "mixed_line" | "item_text_blank" | "rule_set" | "federation_hole" | "federation_storeys" | "federation_coordinates" | "federation_overlap" | "federation_unhosted" | "double_claim" | "implausible" | "unhosted_opening" | "double_count" | "code_check";
         Warning: {
             code: components["schemas"]["WarningCode"];
             message: string;

@@ -40,6 +40,7 @@ const EXAMPLES: Record<string, Record<string, unknown>> = {
   unknown_code: { system: "acme", description: "Walls", code: "Z.99" },
   mixed_line: { system: "acme", description: "Walls", fields: ["material", "thickness"], mapRuleId: "walls" },
   item_text_blank: { system: "acme", lineKey: "walls|brick", description: "Walls", blank: "fire_rating" },
+  code_check: { system: "acme", description: "Party Wall", code: "D.02", mapRuleId: "internal-walls", expect: "NOT (is_external = true)" },
   federation_storeys: { name: "Level 1", levels: ["Level 1", "Level 1 (structure)"] },
   federation_coordinates: { first: "a.ifc", second: "b.ifc" },
   federation_overlap: { first: "architecture", second: "structure", count: 4, ifcClass: "IfcColumn" },

@@ -26,7 +26,8 @@ export type WarningCode =
   | "double_claim"
   | "implausible"
   | "unhosted_opening"
-  | "double_count";
+  | "double_count"
+  | "code_check";
 
 export type LogCode =
   | "log.parse.model"

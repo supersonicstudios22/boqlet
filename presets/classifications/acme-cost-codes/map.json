@@ -156,19 +156,39 @@
             "tag": "wall"
           },
           {
-            "where": "UNDER(element_type, \"wall.external\")"
+            "where": "UNDER(element_type, \"wall.external\") OR (is_external = true AND NOT (UNDER(element_type, \"wall.partition\") OR UNDER(element_type, \"wall.lining\") OR UNDER(element_type, \"wall.party\")))"
           }
         ]
       },
       "code": "D.01",
-      "priority": 1
+      "priority": 1,
+      "expect": "NOT (is_external = false)",
+      "note": "By the wall's dictionary type; the IFC IsExternal flag decides a wall whose type says neither external nor internal."
     },
     {
       "id": "internal-walls",
       "match": {
+        "all": [
+          {
+            "tag": "wall"
+          },
+          {
+            "where": "UNDER(element_type, \"wall.partition\") OR UNDER(element_type, \"wall.lining\") OR UNDER(element_type, \"wall.party\") OR (is_external = false AND NOT UNDER(element_type, \"wall.external\"))"
+          }
+        ]
+      },
+      "code": "D.02",
+      "priority": 1,
+      "expect": "NOT (is_external = true)",
+      "note": "Partitions, linings and party walls by their dictionary type; IsExternal = false decides a wall whose type says neither."
+    },
+    {
+      "id": "walls-to-classify",
+      "match": {
         "tag": "wall"
       },
-      "code": "D.02"
+      "code": "Z.99",
+      "note": "A wall neither its type nor IsExternal places: to be classified (edit the line's code to D.01 or D.02)."
     },
     {
       "id": "windows",

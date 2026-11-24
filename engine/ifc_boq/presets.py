@@ -228,7 +228,7 @@ def load_classification(ref: str) -> tuple[dict, dict]:
     return cl, m
 
 
-EXPR_KEYS = {"if", "expr", "where", "partFilter", "when"}
+EXPR_KEYS = {"if", "expr", "where", "partFilter", "when", "expect"}
 
 
 def _schema_problems(doc, kind: str, where: str) -> list[str]:

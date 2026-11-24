@@ -96,8 +96,12 @@ calculated from other items, entered by hand). Every line an item makes gets the
 **Under each row** the app says what else decides its code, in the order the engine uses:
 
 > When element type is a kind of wall.foundation: **B.01 Foundations** (rule "foundation-walls").
-> When element type is a kind of wall.external: **D.01 External walls** (rule "external-walls").
-> Otherwise: **D.02 Internal walls and partitions** (rule "internal-walls").
+> When element type is a kind of wall.external, or the IFC marks the wall external and its type is not an internal one: **D.01 External walls** (rule "external-walls").
+> When element type is a partition, lining or party wall, or the IFC marks the wall not external: **D.02 Internal walls and partitions** (rule "internal-walls").
+> Otherwise: **Z.99 To be classified** (rule "walls-to-classify").
+
+The example classification never gives a real code to a line it cannot place: a wall that neither its
+type nor the IFC's IsExternal flag places is "to be classified", for you to code (review A-21).
 
 The rule names are links to the rule in Advanced. A row whose code comes only from the table shows
 nothing extra.
@@ -186,6 +190,7 @@ pivot tables.
 | Use your company's cost codes | **+ New classification**; Code list › **Import from Excel or CSV**; then Codes per line |
 | External and internal walls in different sections | Codes per line › Walls › Split by **inside / outside**; a code for each |
 | Party walls coded as internal, whatever the IFC says | Split by **element type**; value *wall.party* with the internal code |
+| Be told when a code contradicts the model | Advanced › the rule › **Check the code against the model**: e.g. `NOT (is_external = true)` on internal walls |
 | Concrete work in one trade, whatever the item | Advanced › **+ New rule**: Lines where `UNDER(material, "concrete")` → the code; priority 7 to win over the table |
 | Formwork coded like the element it belongs to | Codes per line › the formwork row › **same as its source line** |
 | Preliminaries in section A | Codes per line › the hand-entered rows; or a rule "Lines entered by hand, of kind preliminary" |
@@ -214,6 +219,9 @@ your data; "About this list" records the licence of each list and whether it may
 - **"Mixed line" warning**: a rule looks at a value (material, element type) that differs between
   the elements of one line, so the most common one decided. Split the line by that value in the rule
   set (BoQ item › How lines are split).
+- **"The code contradicts the model" warning**: a rule's check (Advanced › the rule › *Every line this
+  rule codes should meet*) failed for a line, for example a wall coded internal by its type (party
+  wall) that the IFC marks external. The line keeps the code; check the model, or edit the line's code.
 - **"Code not in the code list" warning**: a rule gives a code the list does not have. The code
   shows in red in the table; fix the code or add it to the list.
 - **The draft lists problems** (the engine checks it each time it is saved; a draft with problems

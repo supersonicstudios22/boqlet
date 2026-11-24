@@ -23,6 +23,7 @@
   "unknown_code": "{kind, select, rule {[{system}] Map rule “{mapRuleId}” gives the code “{code}”, which is not in the code list.} edit {[{system}] The edit moving “{description}” to the code “{code}” is not applied: the code is not in the code list.} other {[{system}] Line “{description}” got the code “{code}”, which is not in the code list.}}",
   "mixed_line": "[{system}] “{description}” mixes elements with different {fields}; map rule “{mapRuleId}” depends on it. Add the field to the rule’s line key so the line splits.",
   "item_text_blank": "[{system}] “{description}”: no value for {blankRef}.",
+  "code_check": "[{system}] “{description}” got the code {code} from map rule “{mapRuleId}”, but the line does not meet the rule’s check ({expect}): the code contradicts the model. Check the model or edit the line’s code.",
   "federation_storeys": "The storey name “{name}” is used at different levels in different models ({levels}).",
   "federation_coordinates": "{first} and {second} do not overlap in space: different coordinate systems? Duplicates and overlaps between them cannot be found.",
   "federation_overlap": "{count} {ifcClass} may be counted twice ({first} and {second}).",

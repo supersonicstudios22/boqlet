@@ -148,6 +148,14 @@ def classify(lines: list[dict], code_list: dict, cmap: dict, x: Expr, log: CalcL
                     val = fields.get(lk[5:]) if lk.startswith("keys.") else fields.get(lk)
                     code = t["table"].get(str(val), t.get("default"))
                 src, rule_id, why = "map", rule["id"], f"map rule '{rule['id']}'"
+                if rule.get("expect") and code and not x.evaluate(rule["expect"], fields):
+                    # the code contradicts the model (review A-21): kept, and said
+                    warnings.append({"code": "code_check", "ruleId": line["ruleId"],
+                                     "params": {"system": system, "description": line["description"], "code": code,
+                                                "mapRuleId": rule["id"], "expect": rule["expect"]},
+                                     "message": f"[{system}] '{line['description']}' got code '{code}' from map rule "
+                                                f"'{rule['id']}', but the line does not meet the rule's check "
+                                                f"({rule['expect']})."})
                 risky = (_where_fields(rule["match"]) | ({t["lookup"]} if isinstance(t, dict) and "lookup" in t else set())) \
                     & set(line.get("_mixed", []))
                 if risky:

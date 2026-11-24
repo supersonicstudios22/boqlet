@@ -9,7 +9,7 @@
     { "id": "prelims", "match": { "manualKind": ["preliminary", "provisional_sum", "lump_sum"] }, "code": "00" },
     { "id": "concrete", "match": { "any": [{ "where": "UNDER(material, \"concrete\")" }, { "tag": ["formwork", "concrete"] }] }, "code": "01", "priority": 2, "note": "Works for any rule set: decided by material term, not by rule id." },
     { "id": "drywall", "match": { "where": "ifc_class = \"IfcWall\" AND (UNDER(element_type, \"wall.partition\") OR UNDER(element_type, \"wall.lining\"))" }, "code": "03", "priority": 1 },
-    { "id": "masonry", "match": { "where": "ifc_class = \"IfcWall\"" }, "code": "02" },
+    { "id": "masonry", "match": { "where": "ifc_class = \"IfcWall\" AND UNDER(material, \"masonry\")" }, "code": "02", "note": "Masonry walls only: a wall of another or unknown material is Other (99), to be classified, not Masonry." },
     { "id": "steel", "match": { "where": "UNDER(material, \"metal.steel\") AND ifc_class != \"IfcWall\"" }, "code": "05", "priority": 1 },
     { "id": "railings", "match": { "where": "ifc_class = \"IfcRailing\"" }, "code": "05" },
     { "id": "joinery", "match": { "where": "ifc_class = \"IfcDoor\" OR ifc_class = \"IfcWindow\" OR UNDER(material, \"timber.lumber\") OR ifc_class = \"IfcStair\"" }, "code": "04" },
