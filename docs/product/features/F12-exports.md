@@ -48,6 +48,7 @@ next revision.
   (proposed as manual lines under the group they sit in), rows it couldn't read. The user
   ticks what to apply and gives a reason where F06 §6 requires one. Applied changes become
   line edits and manual lines like any made in the sheet.
+- A quantity typed as text is read with the firm's separators (Organisation settings, number format): "1,234" is 1234 where "," groups thousands and 1.234 where it is the decimal mark; a thousands mark that does not group three digits, or the other separator, is that row's problem rather than a guess (review A-30, D94). Number cells are taken as they are. The review list shows the value read.
 - Rate and Amount columns are ignored on import (no prices in the BoQ, P04).
 - A file exported from another BoQ, or from a run whose line keys no longer exist, is reported
   line by line ("line not in this BoQ"), never applied blindly.

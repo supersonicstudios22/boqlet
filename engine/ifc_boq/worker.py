@@ -370,7 +370,7 @@ def _import_boq_edits(job, storage, prefix, progress):
     if lines is None:
         lines = read_json_gzip(storage, job["resultKey"])["lines"]
     report = boq_import.read(workbook, {"boqId": str(job["boqId"]), "primary": job.get("groupBy"), "lines": lines,
-                                        "codes": _group_codes(job)})
+                                        "codes": _group_codes(job), "numberFormat": job.get("numberFormat")})
     key = prefix + "edits.json.gz"
     write_json_gzip(storage, key, report)
     return {"reportKey": key, "counts": {field: len(values) for field, values in report.items()}}, {}

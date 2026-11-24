@@ -5,6 +5,7 @@ from contextlib import closing
 from hashlib import sha256
 import json
 import math
+import re
 from xml.etree.ElementTree import ParseError
 from zipfile import BadZipFile
 
@@ -42,7 +43,53 @@ def annotate(wb, boq_id, primary, rows):
     snap.sheet_state = "veryHidden"
 
 
+SPACES = (" ", "\u00a0", "\u202f", "\u2009")
+GROUPED = re.compile(r"[+-]?\d{1,3}(?:[.,]\d{3})+")
+
+
+def parse_number(v, number_format: dict | None = None) -> tuple[float | None, str | None]:
+    """A quantity a person typed (review A-30, ENG-018): (value, None), or (None, why not). Number cells are taken as
+    they are. Text is read with the firm's separators (`OrgSettings.numberFormat`, sent by the API): "1,234" is
+    1234 where "," separates thousands and 1.234 where it is the decimal mark; a thousands mark that does not
+    group three digits, or the other separator, is refused rather than guessed. Without a format, text with both
+    separators, or one separator before exactly three digits ("1,234": 1234 or 1.234?), is refused."""
+    if v is None or v == "":
+        return None, None
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return (float(v), None) if math.isfinite(v) else (None, f"\"{v}\" is not a number.")
+    s = str(v).strip()
+    for space in SPACES:
+        s = s.replace(space, "")
+    if number_format and number_format.get("decimal") in (".", ","):
+        dec = number_format["decimal"]
+        thousands = number_format.get("thousands")
+        other = "," if dec == "." else "."
+        if thousands == "'":
+            s = s.replace("'", "")
+        if thousands == other:
+            whole, _, fraction = s.partition(dec)
+            groups = whole.lstrip("+-").split(other)
+            if other in fraction or (len(groups) > 1 and (not 1 <= len(groups[0]) <= 3 or any(len(g) != 3 for g in groups[1:]))):
+                return None, (f"\"{v}\" is not a number in this firm's format (\"{other}\" groups thousands, "
+                              f"\"{dec}\" is the decimal mark).")
+            s = s.replace(other, "")
+        elif other in s:
+            return None, f"\"{v}\": the decimal mark is \"{dec}\" in this firm's numbers, not \"{other}\"."
+        s = s.replace(dec, ".")
+    else:
+        if "," in s and "." in s or GROUPED.fullmatch(s):
+            return None, (f"\"{v}\" could be read two ways (thousands or decimals); type it as a number cell or "
+                          f"without a thousands mark.")
+        s = s.replace(",", ".")
+    try:
+        parsed = float(s)
+    except (ValueError, OverflowError):
+        return None, f"\"{v}\" is not a number."
+    return (parsed, None) if math.isfinite(parsed) else (None, f"\"{v}\" is not a number.")
+
+
 def number(v):
+    """A value boqlet itself wrote into the workbook's hidden snapshot (a number; text from older exports)."""
     if v is None or v == "":
         return None, True
     try:
@@ -131,9 +178,9 @@ def _read(wb, info, report):
                 else:
                     _problem(report, r, COLS["unit"], "A new row needs a unit (and a quantity, or leave that empty to confirm later).")
                 continue
-            q, ok = number(qty)
-            if not ok:
-                _problem(report, r, COLS["quantity"], f"\"{qty}\" is not a number.")
+            q, why = parse_number(qty, info.get("numberFormat"))
+            if why:
+                _problem(report, r, COLS["quantity"], why)
                 continue
             if not desc_s:
                 _problem(report, r, COLS["description"], "A new row needs a description.")
@@ -162,9 +209,9 @@ def _read(wb, info, report):
         was = exported[key]
         edit = {"lineKey": key}
         changes = []
-        q, ok = number(qty)
-        if not ok:
-            _problem(report, r, COLS["quantity"], f"\"{qty}\" is not a number.")
+        q, why = parse_number(qty, info.get("numberFormat"))
+        if why:
+            _problem(report, r, COLS["quantity"], why)
             continue
         before, _ = number(was["quantity"])
         if (q is None) != (before is None) or (q is not None and before is not None and abs(q - before) > 1e-9):

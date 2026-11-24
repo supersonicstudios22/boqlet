@@ -65,6 +65,16 @@ class ImportEdits {
             input.put("groupCodes", codes.get(systems.getFirst().getId()));
         }
         if (!codes.isEmpty()) input.put("groupCodesBySystem", codes);
+        // The firm's separators, so a quantity typed as text reads as the firm writes numbers (review A-30).
+        var separators = database.queryForList("""
+                SELECT settings->'numberFormat'->>'decimal' AS decimal, settings->'numberFormat'->>'thousands' AS thousands
+                FROM orgs WHERE id = ?""", run.org());
+        if (!separators.isEmpty() && separators.getFirst().get("decimal") != null) {
+            var format = new LinkedHashMap<String, Object>();
+            format.put("decimal", separators.getFirst().get("decimal"));
+            if (separators.getFirst().get("thousands") != null) format.put("thousands", separators.getFirst().get("thousands"));
+            input.put("numberFormat", format);
+        }
         UUID job = jobs.enqueue("import_boq_edits", run.org(), run.project(), actor, "revision", revision, prefix, input, 3);
         return jobs.get(job, actor);
     }

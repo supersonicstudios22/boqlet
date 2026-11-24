@@ -108,3 +108,44 @@ def test_a_text_edit_in_excel_is_proposed_as_a_description_edit(exported):
     assert report["overrides"] == [{"edit": {"lineKey": line["key"], "description": "Ground slab 127 mm, edited"},
                                     "change": "description", "row": report["overrides"][0]["row"]}]
     assert not report["problems"] and not report["manualItems"]
+
+
+# ------------------------------------------------------------------ numbers typed as text (review A-30, ENG-018)
+POINT = {"decimal": ".", "thousands": ","}
+COMMA = {"decimal": ",", "thousands": "."}
+SPACE = {"decimal": ",", "thousands": " "}
+
+
+@pytest.mark.parametrize("text,fmt,value", [
+    ("1,234", POINT, 1234.0), ("1,234", COMMA, 1.234), ("1.234", COMMA, 1234.0), ("1.234", POINT, 1.234),
+    ("1,234.5", POINT, 1234.5), ("1.234,5", COMMA, 1234.5), ("12 345,5", SPACE, 12345.5), ("12 345,5", SPACE, 12345.5),
+    ("1'234.5", {"decimal": ".", "thousands": "'"}, 1234.5), ("-0.5", POINT, -0.5), ("7", COMMA, 7.0),
+    (1234.5, COMMA, 1234.5), (12, POINT, 12.0), ("", POINT, None), (None, POINT, None),
+    ("2,5", None, 2.5), ("2.5", None, 2.5),
+])
+def test_text_quantities_are_read_with_the_firms_separators(text, fmt, value):
+    assert boq_import.parse_number(text, fmt) == (value, None)
+
+
+@pytest.mark.parametrize("text,fmt", [
+    ("1,5", POINT),            # "," groups thousands: one digit after it is not a group
+    ("1,2345", POINT), ("1.234,5", POINT), ("1,234.5", COMMA), ("2.5", SPACE),
+    ("1,234", None), ("1.234", None), ("1.234,5", None),     # no format: both readings possible
+    ("ten", POINT),
+])
+def test_ambiguous_or_wrong_text_is_refused_not_guessed(text, fmt):
+    value, why = boq_import.parse_number(text, fmt)
+    assert value is None and why
+
+
+def test_the_firms_format_reaches_the_review(exported):
+    """"1,234" typed into a new row: 1234 for a firm writing 1,234.5; 1.234 for one writing 1.234,5."""
+    result, codes, data = exported
+    book = edited(data, new_rows([[None, "Extra wall", "m2", "1,234"]]))
+    for fmt, want in ((POINT, 1234.0), (COMMA, 1.234)):
+        info = {"boqId": "b1", "primary": codes["id"], "lines": result["lines"], "numberFormat": fmt}
+        report = boq_import.read(book, info)
+        assert [m["item"]["item"]["quantity"] for m in report["manualItems"]] == [want]
+    report = boq_import.read(edited(data, new_rows([[None, "Extra wall", "m2", "1,5"]])),
+                             {"boqId": "b1", "primary": codes["id"], "lines": result["lines"], "numberFormat": POINT})
+    assert not report["manualItems"] and any(p["column"] == "D" and "1,5" in p["message"] for p in report["problems"])

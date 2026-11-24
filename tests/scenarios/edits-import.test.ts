@@ -24,6 +24,7 @@ afterAll(() => rmSync(tmp, { recursive: true, force: true }));
 const slug = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 let owner: TestUser;
+let orgId: string;
 let boq: Schemas["Boq"];
 let systemId: string;
 
@@ -62,6 +63,7 @@ async function importFile(file: string) {
 beforeAll(async () => {
   owner = await signUp("Import Owner", uniqueEmail("import"));
   const { data: org } = await api().POST("/orgs", { body: { name: "Import Firm", slug: slug("import") } });
+  orgId = org!.id;
   const { data: project } = await api().POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Duplex" } });
   const { data: model } = await api().POST("/projects/{projectId}/models", { params: { path: { projectId: project!.id } }, body: { name: "Architecture", discipline: "architecture" } });
   const version = await uploadVersion(owner, model!.id, await duplexBytes(), "Duplex_A.ifc");
@@ -169,5 +171,35 @@ describe("a text edit in Excel (F12-AC4, TF-008)", () => {
     const applied = await api().POST("/boqs/{boqId}/overrides/batch", { params: { path: { boqId: boq.id } }, body: { overrides: [report.overrides[0]!.edit] } });
     expect(applied.response.status).toBe(200);
     expect(applied.data!.overrides![0]).toMatchObject({ lineKey: key, description: "Edited in Excel" });
+  });
+});
+
+/**
+ * Review A-30: a quantity typed as text is read with the firm's separators. A new org writes "1 234.5"
+ * (decimal point, narrow space for thousands), so "1,234" is refused there rather than read as 1.234; for a firm
+ * that writes "1,234.5" it is 1234.
+ */
+describe("a quantity typed as text (review A-30)", () => {
+  it("is read with the firm's number format, and an ambiguous one is refused", async () => {
+    const file = path.join(tmp, "typed.xlsx");
+    await exported(file);
+    const code = [
+      "import json, sys", "from openpyxl import load_workbook",
+      "wb = load_workbook(sys.argv[1]); ws = wb['BoQ']",
+      "row = next(r for r in range(6, ws.max_row + 1) if ws.cell(r, 9).value)",
+      "key = ws.cell(row, 9).value; ws.cell(row, 4, '1,234'); wb.save(sys.argv[1])",
+      "print(json.dumps({'key': key}))",
+    ].join("\n");
+    const res = spawnSync(python, ["-c", code, file], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+    expect(res.status, res.stderr).toBe(0);
+    const { key } = JSON.parse(res.stdout) as { key: string };
+    const refused = (await importFile(file)).report;
+    expect(refused.overrides.filter((o) => o.edit?.lineKey === key)).toEqual([]);
+    expect(refused.problems.map((p) => p.message).join(" ")).toMatch(/1,234/);
+    const set = await api().PATCH("/orgs/{orgId}", { params: { path: { orgId } }, body: { settings: { numberFormat: { decimal: ".", thousands: "," } } } });
+    expect(set.response.status).toBe(200);
+    const read = (await importFile(file)).report;
+    expect(read.problems).toEqual([]);
+    expect(read.overrides.find((o) => o.edit?.lineKey === key)?.edit?.quantity).toBe(1234);
   });
 });
