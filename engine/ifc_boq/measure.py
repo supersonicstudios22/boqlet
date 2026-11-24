@@ -78,6 +78,7 @@ from .names import Resolver
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAMILIES = json.load(open(os.path.join(HERE, "data", "families.json"), encoding="utf-8"))["IFC_FAMILIES"]
 SOURCES = json.load(open(os.path.join(HERE, "data", "quantity_sources.json"), encoding="utf-8"))
+MATERIAL_SOURCES = json.load(open(os.path.join(HERE, "data", "material_sources.json"), encoding="utf-8"))["material"]
 TOLERANCE = 0.01
 CONTRADICTION = 0.10     # default contradictionWarnPct: reported vs geometry beyond this (and THICKNESS_MIN): ask
 CONTRADICTION_BLOCK = 0.50   # default contradictionBlockPct: beyond this the question blocks (unless a unit error)
@@ -163,6 +164,17 @@ def find_reported(el: dict, kind: str, skipped: list | None = None):
                             continue
                         return float(v), f"{set_name}.{prop}"
     return None, None
+
+
+def material_from_properties(el: dict) -> str | None:
+    """The material an element's properties name when the IFC associates none (data/material_sources.json)."""
+    for set_glob, prop in MATERIAL_SOURCES:
+        for sets in (el.get("psets") or {}, el.get("typePsets") or {}):
+            for name, props in sets.items():
+                v = props.get(prop) if isinstance(props, dict) and fnmatch.fnmatchcase(name, set_glob) else None
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+    return None
 
 
 def common_pset(el: dict) -> dict:
@@ -329,6 +341,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             elif ref["kind"] in ("profileSet", "constituentSet"):
                 items = ref.get("items", [])
                 main_raw = next((mats.get(i["materialId"]) for i in items if i.get("materialId")), None)
+        if main_raw is None and not ref:
+            main_raw = material_from_properties(el)       # no IfcMaterial: a property naming it (A-33)
         mat = rv.resolve("material", main_raw, ctx) if main_raw else None
         if mat:
             resolutions.append({**mat, "ctx": ctx, "guid": el["id"]})

@@ -65,6 +65,7 @@ SPATIAL_KIND = {"IfcProject": "project", "IfcSite": "site", "IfcBuilding": "buil
 LENGTH_MEASURES = {"IfcLengthMeasure", "IfcPositiveLengthMeasure", "IfcNonNegativeLengthMeasure"}
 AREA_MEASURES = {"IfcAreaMeasure"}
 VOLUME_MEASURES = {"IfcVolumeMeasure"}
+FLATTENED = re.compile(r"^\[(.+)\]([^\[\]]+)$")     # "[Pset_WallCommon]IsExternal": a set flattened into another
 MASS_MEASURES = {"IfcMassMeasure"}
 ANGLE_MEASURES = {"IfcPlaneAngleMeasure", "IfcPositivePlaneAngleMeasure"}
 
@@ -143,6 +144,7 @@ class Parser:
         self.ANGLE = self._scale("PLANEANGLEUNIT", 1.0) if "PLANEANGLEUNIT" in assigned else 1.0
         self.checks: list[dict] = []
         self.renamed_sets: list[tuple] = []      # (GlobalId, name in the file, key used), review A-31
+        self.split_sets: list[tuple] = []        # (GlobalId, flattened set's name), review A-33
         self.mat_ids: dict[int, str] = {}
         self.meshes: dict[str, trimesh.Trimesh] = {}
 
@@ -263,14 +265,29 @@ class Parser:
                     qtos[self.set_name(obj, d, qtos)] = self.qto_dict(d)
                 elif d.is_a("IfcPropertySet"):
                     psets[self.set_name(obj, d, psets)] = self.pset_dict(d)
-        return psets, qtos
+        return self.unflatten(obj, psets), qtos
+
+    def unflatten(self, obj, psets: dict) -> dict:
+        """A set whose every property is named "[Set]Property" holds other sets flattened into it (review A-33:
+        Synchro's 4D exporter puts all of an ArchiCAD model's sets into one `SynchroResourceProperty`, so
+        Pset_WallCommon, the materials and the rest were never read): split it back into those sets."""
+        out = {}
+        for name, props in psets.items():
+            keys = [FLATTENED.match(k) for k in props] if props else []
+            if not keys or not all(keys):
+                out.setdefault(name, {}).update(props)
+                continue
+            for m, (k, v) in zip(keys, props.items()):
+                out.setdefault(m[1], {})[m[2]] = v
+            self.split_sets.append((getattr(obj, "GlobalId", None), name))
+        return out
 
     def type_psets(self, t):
         out = {}
         for d in getattr(t, "HasPropertySets", None) or []:
             if d.is_a("IfcPropertySet"):
                 out[self.set_name(t, d, out)] = self.pset_dict(d)
-        return out
+        return self.unflatten(t, out)
 
     # ----- materials -----
     def material_id(self, m):
@@ -887,6 +904,12 @@ class Parser:
                        f"already had ({len(self.renamed_sets) - unnamed}); kept as '#<step id>' and '<name>#2'",
                        count=len(self.renamed_sets), unnamed=unnamed,
                        examples=", ".join(sorted({n for _, _, n in self.renamed_sets}))[:200])
+        if self.split_sets:
+            names = sorted({n for _, n in self.split_sets})
+            self.check("pset_split", "info", sorted({g for g, _ in self.split_sets if g}),
+                       f"{len(self.split_sets)} element(s) had their property sets flattened into one ({', '.join(names)[:120]}, "
+                       f"as a 4D exporter writes them); read back as the sets they name", count=len(self.split_sets),
+                       sets=", ".join(names)[:200])
         self.group_checks(elements)
         summary = {}
         for c in self.checks:

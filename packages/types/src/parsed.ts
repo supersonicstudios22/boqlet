@@ -338,7 +338,8 @@ export type CheckCode =
   | "no_quantities"             // no BaseQuantities / Qto sets in the file
   | "unassigned_storey"
   | "proxy_element"             // IfcBuildingElementProxy: unknown object
-  | "pset_renamed";             // property / quantity sets without a name or with a repeated one, renamed (A-31)
+  | "pset_renamed"              // property / quantity sets without a name or with a repeated one, renamed (A-31)
+  | "pset_split";               // sets flattened into one ("[Pset_WallCommon]IsExternal"), read back (A-33)
 
 export interface Check {
   id: string;

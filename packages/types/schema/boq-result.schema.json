@@ -2735,7 +2735,8 @@
         "no_quantities",
         "unassigned_storey",
         "proxy_element",
-        "pset_renamed"
+        "pset_renamed",
+        "pset_split"
       ]
     },
     "Scalar": {

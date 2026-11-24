@@ -173,6 +173,27 @@ IFC4.3 road: 52 of 55 elements measured (was 1); rail 72 of 75 (was 1); bridge 4
 - **Location** of infrastructure lines: no storey; facility parts (IfcBridgePart, IfcRoadPart) are not used as a location yet.
 - Values in this corpus are checked against the files' own quantity sets, cross-schema agreement and hand-written geometry, **not** a professional BoQ.
 
+## Schependomlaan (review sample S10): why it had no names (review A-33)
+
+The 65 MB Schependomlaan model (IFC2x3, 3,505 elements, Dutch names) was `complete` with "0 of 0 distinct names
+resolved". It was not that the names were easy: none reached the names stage. The file is a **Synchro 4D export
+of an ArchiCAD model** (header: SynchroSoftwareLtd Ifc 4D Exporter). That exporter:
+
+- writes no `IfcMaterial`, `IfcRelAssociatesMaterial`, type object or `ObjectType` at all;
+- flattens every property set of an element into one `IfcPropertySet` named `SynchroResourceProperty`, its
+  properties named after the set they came from: `[Pset_WallCommon]IsExternal`,
+  `[ArchiCADProperties]Building Material / Composite / Profile / Fill`,
+  `[ArchiCADQuantities[IfcElementQuantity/ArchiCAD BIM Quantities]]Net Volume`.
+
+So the engine saw no material, no type and no `Pset_*Common`. Since A-33 the parser reads such a set back into
+the sets it names (a `pset_split` parse check says so), and an element without a material association takes its
+material from a property that names one (`engine/ifc_boq/data/material_sources.json`: ArchiCAD's
+"Building Material / Composite / Profile / Fill"). S10 now lists 126 distinct names (15 resolved by the
+global seed dictionary, 111 blocking name questions: "02 Beton ongewapend", "IFC_baksteen_roodbruin_100mm_liggend"),
+so it is `needs_input`, and its walls and doors carry `IsExternal` (false). Its quantities are unchanged: the
+ArchiCAD quantity set keeps its long name and no quantity source names it (N-16), and the elements still have no
+type name (their names carry the ArchiCAD element number, N-12).
+
 ## Test corpus plan
 
 About 15-20 varied IFC files give relative confidence in a working engine; 2-3 projects with a

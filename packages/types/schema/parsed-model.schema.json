@@ -1607,6 +1607,9 @@
             },
             "pset_renamed": {
               "type": "number"
+            },
+            "pset_split": {
+              "type": "number"
             }
           },
           "additionalProperties": false
@@ -1678,7 +1681,8 @@
         "no_quantities",
         "unassigned_storey",
         "proxy_element",
-        "pset_renamed"
+        "pset_renamed",
+        "pset_split"
       ]
     },
     "GeometryStore": {

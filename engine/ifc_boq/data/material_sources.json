@@ -1,0 +1,6 @@
+{
+  "_doc": "Properties that name an element's material when the IFC associates none (review A-33), in priority order: each entry is [property-set glob, property name], searched in the element's own sets, then its type's. Synchro's 4D export of an ArchiCAD model (S10, Schependomlaan) drops every IfcMaterial and keeps the name only in ArchiCAD's properties. The name found goes through the dictionaries like any material name. Add authoring tools here, not in code.",
+  "material": [
+    ["ArchiCADProperties", "Building Material / Composite / Profile / Fill"]
+  ]
+}

@@ -4032,7 +4032,7 @@ export interface components {
             exclude?: components["schemas"]["Selector"][];
         };
         /** @enum {string} */
-        CheckCode: "volume_mismatch" | "area_mismatch" | "inconsistent_winding" | "not_watertight" | "no_geometry" | "geometry_error" | "overlap" | "no_material" | "duplicate_material_name" | "flag_conflict" | "placeholder_value" | "no_quantities" | "unassigned_storey" | "proxy_element" | "pset_renamed";
+        CheckCode: "volume_mismatch" | "area_mismatch" | "inconsistent_winding" | "not_watertight" | "no_geometry" | "geometry_error" | "overlap" | "no_material" | "duplicate_material_name" | "flag_conflict" | "placeholder_value" | "no_quantities" | "unassigned_storey" | "proxy_element" | "pset_renamed" | "pset_split";
         /**
          * @description ParsedModel — the reusable JSON produced from one IFC file (one model version).
          *

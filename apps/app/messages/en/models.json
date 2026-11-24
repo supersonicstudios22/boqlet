@@ -114,7 +114,8 @@
       "no_quantities": "No quantities in the file",
       "unassigned_storey": "Not on a storey",
       "proxy_element": "Generic proxy elements",
-      "pset_renamed": "Property sets without a name, renamed"
+      "pset_renamed": "Property sets without a name, renamed",
+      "pset_split": "Property sets flattened by the exporter, read back"
     },
     "generateBoq": "Generate a BoQ",
     "showIn3d": "Show in 3D",
