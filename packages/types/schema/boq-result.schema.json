@@ -1382,6 +1382,14 @@
           "$ref": "#/definitions/Value%3Cboolean%3E",
           "description": "Disable without deleting (useful in derived rule sets)."
         },
+        "whenDisabled": {
+          "type": "string",
+          "enum": [
+            "exclude",
+            "ask"
+          ],
+          "description": "What happens to the elements this rule matches while it is disabled. \"exclude\" (default): they are left out of the BoQ and counted as excluded (furniture, MEP switched off). \"ask\": they are left to coverage, so each kind becomes an `unmatched` question whose answer can measure them by any rule (as-modelled's unclassified objects, A-16)."
+        },
         "scope": {
           "type": "string",
           "enum": [

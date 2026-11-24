@@ -372,6 +372,13 @@ export interface ItemRule {
   /** Disable without deleting (useful in derived rule sets). */
   enabled?: Value<boolean>;
   /**
+   * What happens to the elements this rule matches while it is disabled. "exclude" (default): they are
+   * left out of the BoQ and counted as excluded (furniture, MEP switched off). "ask": they are left to
+   * coverage, so each kind becomes an `unmatched` question whose answer can measure them by any rule
+   * (as-modelled's unclassified objects, A-16).
+   */
+  whenDisabled?: "exclude" | "ask";
+  /**
    * "in" (default): takes only elements this BoQ covers. "out": takes only the elements the rule
    * set's `scope` leaves out, e.g. demolition of elements marked for demolition.
    */

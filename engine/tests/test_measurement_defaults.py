@@ -452,3 +452,33 @@ def test_a_roof_without_layers_is_measured_by_its_faces_looking_up():
 
 def test_a_parse_without_up_faces_still_flags_the_roof():
     assert roof_area(roof_doc(faces=False)) is None
+
+
+# ---------------------------------------------------------------- A-16: proxies are not billed by default
+def proxy_doc() -> dict:
+    """A wall and an unclassified object (S07's trees, plates, people are IfcBuildingElementProxy)."""
+    p = {"id": "proxy-1", "ifcClass": "IfcBuildingElementProxy", "ifcClassBase": "IfcBuildingElementProxy",
+         "name": "RPC Tree - Deciduous:Honey Locust:123", "objectType": "Honey Locust", "predefinedType": None,
+         "typeId": None, "storeyId": "storey-1", "attributes": {}, "psets": {}, "typePsets": {}, "childIds": [],
+         "classificationIds": [], "quantities": {"reported": {}, "geometry": {"hasBody": False}}}
+    return doc(wall(), p)
+
+
+def run_as_modelled(parsed: dict, **params) -> dict:
+    from ifc_boq.pipeline import get_boq
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled",
+          "params": {k: {"value": v} for k, v in params.items()}}
+    _, lib = presets.load_rule_set("as-modelled")
+    return get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+
+
+def test_proxies_become_unmatched_questions_unless_the_firm_counts_them():
+    """QS-014: "Honey Locust 8 nr" was billed. By default an unclassified object is not a line; it is an
+    unmatched question (not blocking) whose answer can measure it with any rule; nothing is dropped."""
+    r = run_as_modelled(proxy_doc())
+    assert not [l for l in r["lines"] if l["ruleId"] == "unmatched-proxies"]
+    q = [q for q in r["questions"] if q["kind"] == "unmatched" and "proxy-1" in q.get("guids", [])]
+    assert len(q) == 1 and q[0]["blocking"] is False
+    assert r["stats"]["unmatchedElements"] == 1
+    counted = run_as_modelled(proxy_doc(), include_proxies=True)
+    assert sum(l["quantity"] for l in counted["lines"] if l["ruleId"] == "unmatched-proxies") == 1

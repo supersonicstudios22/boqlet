@@ -1049,11 +1049,11 @@
     "include_proxies": {
       "setup": "skip",
       "type": "boolean",
-      "value": true,
+      "value": false,
       "label": "Count unknown objects",
       "section": "scope",
       "question": "Are unclassified model objects (proxies) counted as items?",
-      "help": "No: they are left out and listed as excluded. Either way they are reported."
+      "help": "No (default): each kind of unclassified object becomes a question (not blocking), where it can be measured by any rule or left out. Yes: each one is counted as an item."
     },
     "include_non_physical": {
       "setup": "skip",
@@ -2248,7 +2248,8 @@
       "onMissing": "ask",
       "enabled": {
         "param": "include_proxies"
-      }
+      },
+      "whenDisabled": "ask"
     },
     {
       "id": "paint-walls",

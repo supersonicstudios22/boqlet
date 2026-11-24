@@ -584,7 +584,7 @@ class RuleEngine:
                     self.add_part(i, e, part)
         decided_out = set(self.excluded)
         for i in items:
-            if not self.enabled(i):
+            if not self.enabled(i) and i.get("whenDisabled") != "ask":     # "ask": left to coverage (A-16)
                 for e in matches[i["id"]]:
                     if e["guid"] not in self.matched:
                         self.excluded.add(e["guid"])

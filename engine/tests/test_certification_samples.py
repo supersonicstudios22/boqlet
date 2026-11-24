@@ -315,7 +315,8 @@ def test_ifc2x3_distribution_elements_take_the_class_of_their_type():
     assert {e["ifc_class"] for e in m.values() if e["ifc_class_raw"] == "IfcFlowTerminal"} == {"IfcAirTerminal"}
     for rid in ("pipes", "mep-items"):
         assert total(old, rid) == pytest.approx(total(new, rid)) and total(old, rid) > 0
-    assert not [q for q in old["questions"] if q["kind"] == "unmatched"]
+    # no distribution element is left unmatched (the IFC2x3 chimney is a proxy: an unmatched question since A-16)
+    assert not [q for q in old["questions"] if q["kind"] == "unmatched" and not q["id"].startswith("unmatched:IfcBuildingElementProxy:")]
 
 
 @pytest.mark.parametrize("rel, guess", [("IFC4X3/Building-Hvac.ifc", "unknown"),

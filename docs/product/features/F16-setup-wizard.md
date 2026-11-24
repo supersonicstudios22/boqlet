@@ -127,7 +127,7 @@ calculated items and 3 by-hand items).
 | | Provisional sums (`include_provisional`) | landscaping | on |
 | What is included | Loose furniture (`include_furniture`) | furniture | off |
 
-Marked `setup: "skip"`: `include_proxies` (unknown objects counted as items) and
+Marked `setup: "skip"`: `include_proxies` (unknown objects counted as items; off by default since A-16, so they become unmatched questions) and
 `include_non_physical` (markers and display objects): technical, the defaults are right for
 almost every firm, and they stay in the full Settings tab.
 
