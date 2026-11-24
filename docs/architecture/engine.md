@@ -217,6 +217,11 @@ maps read (used to decide which unknown names matter).
 5. Elements matched by a disabled rule are counted as excluded. Two or more rules claiming the
    same claim name on elements raise one `double_claim` question per claim and set of rules
    (before any line is made); the answer names the rule that keeps them, or "both".
+6. After the lines (and a person's line edits), an element in the item lines of two or more rules
+   measuring it in the same family (count, length, area, volume, mass, from the line unit), where a
+   pair of those rules does not both declare `claims`, gives one non-blocking `double_count` warning
+   per family and set of rules (BR-13, D88): rules that both declare claims say what each measures;
+   derived and manual lines and excluded lines are not counted.
 
 A line that has a quantity but needs a look gets `toConfirm` (A-05): `{measured, elements}` when some of its
 elements had no value, `questions` when an element's quantity rests on an open `contradiction` (measure marks

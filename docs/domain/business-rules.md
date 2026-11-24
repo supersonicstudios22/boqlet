@@ -19,6 +19,7 @@ rule has an id. Tests and code comments cite it (`// BR-07`).
 | BR-10 | Only `blocking` questions keep a run in `needs_input`. Informative questions are listed but don't block submission. | D20 |
 | BR-11 | **Item texts never change a number.** An item text belongs to a code in a classification (P14). Its blanks are filled by the engine only (BR-01), from the line's values. A blank the line has no value for stays visible and raises a run warning, never an empty or guessed text. | P14 |
 | BR-12 | **The app says what it cannot see.** Quantities come only from what the models contain; work not modelled as objects is the user's to add (manual lines) unless the rule set derives it. The sheet, the save-version dialog and the exports say so (F06 §12, F09 §2, F12). The app never claims a BoQ is complete. | P15 |
+| BR-13 | **A possible double count is never silent.** An element measured by two item rules in the same family (count, length, area, volume, mass) raises a `double_count` warning unless both rules declare `claims` (what each measures: wall body and its paint); rules sharing a claim raise a `double_claim` question. Derived rules (formwork, finishes from other lines) are not item rules. | D88, review A-20 |
 
 ## Revisions and workflow
 

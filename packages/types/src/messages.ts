@@ -25,7 +25,8 @@ export type WarningCode =
   | "federation_unhosted"
   | "double_claim"
   | "implausible"
-  | "unhosted_opening";
+  | "unhosted_opening"
+  | "double_count";
 
 export type LogCode =
   | "log.parse.model"
@@ -81,6 +82,7 @@ export type LogCode =
   | "log.decision.excluded"
   | "log.decision.claim_selected"
   | "log.decision.claim_all"
+  | "log.match.double_count"
   | "log.quantity.skipped"
   | "log.quantity.element"
   | "log.quantity.line"

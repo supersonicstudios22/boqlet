@@ -226,7 +226,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 | `description` | template: `{type_name}`, `{thickness*1000}`, `{p.x}`, `{expr: ...}`; missing values render as "-" |
 | `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line; `nearest` and `ROUND()` take halves away from zero, as Excel's ROUND: 0.125 at 0.01 is 0.13) | |
 | `onMissing` | flag (line kept, value missing noted), skip (element left out, warned), ask (blocking `missing_data` question), `{ "default": n }` (logged default) |
-| `claims` | double-count guard: two rules claiming the same name ("body", "finish_side_a") on one element give a warning |
+| `claims` | double-count guard: two rules claiming the same name ("body", "finish_side_a") on one element give a `double_claim` question; two item rules measuring one element in the same family (area, volume...) of which one declares no claim give a `double_count` warning (BR-13, review A-20). Give every item rule a claim that says what it measures |
 | `tags` | free labels that classification maps can match |
 | `enabled` | boolean or slot; disabled rules exclude what they match (as-modelled's furniture rule is off via `include_furniture`) |
 | `whenDisabled` | `exclude` (default): a disabled rule's elements are left out and counted as excluded; `ask`: they are left to coverage, so each kind becomes a non-blocking `unmatched` question whose answer can measure it by any rule (as-modelled's `unmatched-proxies`, off by default via `include_proxies`, A-16) |

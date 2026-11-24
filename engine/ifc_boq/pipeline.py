@@ -262,6 +262,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             apply_quantity(line, edit)
             if edit.get("excluded"):                        # derived lines leave it out (P54, Q48)
                 line["_excluded"] = True
+    eng.double_counts(item_lines)                          # BR-13 (A-20): after edits, so excluded lines are left out
     derived_lines = eng.run_derived()
     manual_lines = eng.run_manual(manual_keys)
     for line in derived_lines + manual_lines:

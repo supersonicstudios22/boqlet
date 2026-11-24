@@ -45,6 +45,7 @@ const EXAMPLES: Record<string, Record<string, unknown>> = {
   federation_overlap: { first: "architecture", second: "structure", count: 4, ifcClass: "IfcColumn" },
   federation_unhosted: { count: 1 },
   double_claim: { count: 2, claim: "slab", rules: ["slabs", "floors"] },
+  double_count: { count: 228, family: "area", rules: ["Walls", "All walls"], ruleIds: ["all-walls", "walls"], ifcClass: "IfcWall", name: "Basic Wall" },
   implausible: { check: "slab_thickness", count: 11, ifcClass: "IfcSlab", typeName: "600mm Diameter", thickness: 6.002, width: 0.296, max: 1.5 },
   unhosted_opening: { ifcClass: "IfcWindow", name: "Window 1", wall: "Basic Wall:Exterior" },
 };

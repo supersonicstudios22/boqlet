@@ -29,6 +29,7 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format, t: Tr
     };
   },
   "question.double_claim": (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
+  double_count: (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
   // Copies of one GlobalId in several models that disagree (review A-18): what differs, and each copy's values.
   "question.duplicate_conflict": (p, format, t) => {
     const fields = Array.isArray(p.fields) ? p.fields.map(String) : [];

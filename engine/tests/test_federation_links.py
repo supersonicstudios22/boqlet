@@ -330,6 +330,35 @@ def test_double_claim_is_a_question_and_the_answer_keeps_one_rule(pair):
         sum(l["quantity"] for l in r["lines"] if l["ruleId"] == "walls"))
 
 
+# ---------------------------------------------------------------- double counts without claims (review A-20, BR-13)
+def double_counts(r):
+    return [w for w in r["warnings"] if w["code"] == "double_count"]
+
+
+def test_two_catch_all_item_rules_without_claims_warn(pair):
+    """ENG-008: a second rule over every wall, with no claim, counted the same walls again, 0 warnings."""
+    rs, _ = presets.load_rule_set("as-modelled")
+    walls = next(i for i in flatten(rs, {})["items"] if i["id"] == "walls")
+    again = {**copy.deepcopy(walls), "id": "all-walls", "label": "All walls", "claims": []}
+    r = run(models(pair), extra_items=[again])
+    (w,) = double_counts(r)
+    assert w["params"]["ruleIds"] == ["all-walls", "walls"] and w["params"]["family"] == "area"
+    assert w["params"]["count"] == 4 and len(w["guids"]) == 4
+    assert not [q for q in r["questions"] if q["kind"] == "double_claim"]
+    assert any(e["code"] == "log.match.double_count" for e in r["log"])
+
+
+def test_rules_that_declare_different_claims_or_measure_another_quantity_do_not_warn(pair):
+    rs, _ = presets.load_rule_set("as-modelled")
+    walls = next(i for i in flatten(rs, {})["items"] if i["id"] == "walls")
+    claimed = {**copy.deepcopy(walls), "id": "wall-finish", "label": "Wall finish", "claims": ["finish_side_a"]}
+    volume = {**copy.deepcopy(walls), "id": "wall-volume", "label": "Wall volume", "claims": [],
+              "quantity": {"kind": "volume", "unit": "m3"}}
+    assert double_counts(run(models(pair))) == []
+    assert double_counts(run(models(pair), extra_items=[claimed])) == []
+    assert double_counts(run(models(pair), extra_items=[volume])) == []
+
+
 # ---------------------------------------------------------------- ownership details found on the NBU sets
 def test_steel_studs_and_walls_marked_non_load_bearing_stay_with_architecture():
     """NBU Office / Medical Clinic: 1,500 steel-stud partitions (LoadBearing false) were given to structure."""

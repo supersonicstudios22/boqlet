@@ -16,6 +16,7 @@ import json
 import math
 import re
 from collections import Counter, defaultdict
+from itertools import combinations
 
 from .expr import Expr, fmt, round_half_up
 from .log import CalcLog
@@ -30,6 +31,10 @@ UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
     "m": 1, "mm": 1000, "km": 0.001, "ft": 3.280839895, "m2": 1, "ft2": 10.7639104, "yd2": 1.19599005,
     "m3": 1, "ft3": 35.3146667, "yd3": 1.30795062, "kg": 1, "t": 0.001, "lb": 2.20462262,
 }
+# What a line unit measures, for the double-count check (review A-20); a unit not listed is its own family.
+UNIT_FAMILY = {"nr": "count", "m": "length", "mm": "length", "km": "length", "ft": "length",
+               "m2": "area", "ft2": "area", "yd2": "area", "m3": "volume", "ft3": "volume", "yd3": "volume",
+               "kg": "mass", "t": "mass", "lb": "mass"}
 MIXABLE = ("material", "element_type", "storey", "storey_elevation", "predefined_type", "is_external", "ifc_class", "family")
 
 
@@ -639,6 +644,40 @@ class RuleEngine:
                                   "params": {"count": len(guids), "claim": claim, "rules": list(rids)},
                                   "message": f"{len(guids)} element(s): rules {', '.join(rids)} all claim '{claim}' (possible double count)"})
         return dropped
+
+    def double_counts(self, lines: list[dict]) -> None:
+        """BR-13 (review A-20): an element in the item lines of two or more rules that measure it in the same
+        family (count, length, area, volume, mass), where a pair of those rules does not both declare `claims`,
+        may be counted twice: one non-blocking `double_count` warning per family and set of rules, listing the
+        elements. Rules that both declare claims say what each measures (wall body and paint, slab area and
+        concrete volume); a claim they share is a `double_claim` question instead. Derived and manual lines
+        are not item lines (formwork, finishes from other lines). Lines a person excluded are left out."""
+        claims = {i["id"]: set(i.get("claims") or ()) for i in self.rules["items"]}
+        labels = {i["id"]: i.get("label") or i["id"] for i in self.rules["items"]}
+        rules_of = defaultdict(set)                  # (guid, family) -> rule ids
+        for line in lines:
+            if line["ruleKind"] != "item" or line.get("_excluded"):
+                continue
+            family = UNIT_FAMILY.get(line["unit"], line["unit"])
+            for e in line["trace"]["elements"]:
+                rules_of[(e["guid"], family)].add(line["ruleId"])
+        groups = defaultdict(list)
+        for (guid, family), rids in rules_of.items():
+            ids = sorted(rids)
+            loose = sorted({r for a, b in combinations(ids, 2) if not (claims.get(a) and claims.get(b)) for r in (a, b)})
+            if loose:
+                groups[(family, tuple(loose))].append(guid)
+        for (family, rids), guids in sorted(groups.items()):
+            guids = sorted(guids)
+            e0 = self.by_guid.get(guids[0], {})
+            name = e0.get("type_name") or e0.get("name") or ""
+            msg = (f"{len(guids)} element(s) (e.g. {e0.get('ifc_class')} '{name}') are measured as {family} by "
+                   f"{len(rids)} rules ({', '.join(labels.get(r, r) for r in rids)}) that do not declare what they "
+                   f"claim: possibly counted twice. Give each rule a claim, or narrow their matches.")
+            params = {"count": len(guids), "family": family, "rules": [labels.get(r, r) for r in rids], "ruleIds": list(rids),
+                      "ifcClass": e0.get("ifc_class"), "name": name}
+            self.warnings.append({"code": "double_count", "ruleId": rids[0], "guids": guids, "params": params, "message": msg})
+            self.log.warn("match", msg, ruleId=rids[0], code="log.match.double_count", params=params)
 
     def add_part(self, item: dict, el: dict, part: dict):
         rid = item["id"]
