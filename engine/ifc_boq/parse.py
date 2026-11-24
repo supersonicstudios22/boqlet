@@ -1107,7 +1107,11 @@ class IfcFileError(ValueError):
 
 def check_ifc_file(path: str) -> None:
     """Refuse, before parsing, a file that is not STEP, that stops before its END-ISO-10303-21; (a cut-short upload
-    or export: S13), or (after opening, in Parser) one without an IfcProject."""
+    or export: S13), or (after opening, in Parser) one without an IfcProject. An .ifczip is left to ifcopenshell,
+    which opens it by itself (the worker unpacks one first, so its .ifc is checked there)."""
+    import zipfile
+    if zipfile.is_zipfile(path):
+        return
     with open(path, "rb") as fh:
         head = fh.read(4096)
         if not head.lstrip(b"\xef\xbb\xbf \t\r\n").startswith(b"ISO-10303-21;"):
