@@ -218,7 +218,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 
 | Field | Effect |
 |---|---|
-| `breakdown` | element (default), layer (one source per material layer; layer volume = area x layer thickness, except that an element of one layer keeps its own volumes), face, material (layers grouped by material), child (aggregate parts) |
+| `breakdown` | element (default), layer (one source per material layer; layer volume = area x layer thickness, except that an element of one layer keeps its own volumes), face, material (layers grouped by material; each group its own volumes, area x its thickness, like layers: review A-24), and a volume measured by layer or material that differs from the element's by more than 2 % is logged (`log.quantity.parts_volume`), child (aggregate parts) |
 | `partFilter` | expression applied after breakdown, e.g. `NOT UNDER(material, "air_gap")`; an element is taken when one of its parts passes. Face parts carry `side`, the room, and `layer_material` / `layer_material_raw` (the face's outermost layer) |
 | `parts` | `skip` (default): when an enabled rule measures an aggregate's parent (roof, stair), its parts are not measured again. `include`: measure them anyway (as-modelled uses it for railings that belong to stairs) |
 | `lineKey` | fields or expressions whose values split lines; same values are summed. The unit is always part of the key |

@@ -85,6 +85,7 @@ export type LogCode =
   | "log.decision.claim_all"
   | "log.match.double_count"
   | "log.quantity.skipped"
+  | "log.quantity.parts_volume"
   | "log.quantity.element"
   | "log.quantity.line"
   | "log.derived.disabled"

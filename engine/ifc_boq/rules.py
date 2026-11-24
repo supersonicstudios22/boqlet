@@ -477,15 +477,46 @@ class RuleEngine:
                      "_open_share": (f.get("gross_area") or 0) / side_gross[f["side"]] if side_gross[f["side"]] else 1.0,
                      "_part": f"face {f['side']}" + (f" {f['space_name']}" if f.get("space_name") else "")} for f in el["faces"]]
         if bd == "material" and el.get("layers"):
+            # each material its own volumes, as layers (review A-24: every group used to keep the element's
+            # gross volume, so the groups summed to N x the element); one group is the element itself
             groups = defaultdict(float)
             for l in el["layers"]:
                 groups[l["material"]] += l["thickness"]
+            single = len(groups) == 1
             return [{**el, "material": m, "thickness": t,
-                     "net_volume": el["net_area"] * t if el.get("net_area") is not None else None,
+                     "net_volume": el.get("net_volume") if single else
+                     (el["net_area"] * t if el.get("net_area") is not None else None),
+                     "gross_volume": el.get("gross_volume") if single else
+                     (el["gross_area"] * t if el.get("gross_area") is not None else None),
                      "_part": f"material {m}"} for m, t in groups.items()]
         if bd == "child" and el.get("child_guids"):
             return [{**self.by_guid[c], "_part": f"child {self.by_guid[c].get('name')}"} for c in el["child_guids"] if c in self.by_guid]
         return [el]
+
+    PART_VOLUME_TOLERANCE = 0.02          # share of the element's volume (and at least 1 litre)
+
+    def check_part_volumes(self, item: dict, el: dict, parts: list[dict]) -> None:
+        """Review A-24: a volume measured by layers or materials should add up to the element's volume. Parts are
+        layer area x layer thickness (the documented rule), which is more than the solid on a notched or
+        stepped wall (DEC-87); beyond the tolerance the log warns, naming both sums, so the difference is never
+        silent. Only items that measure a volume are checked."""
+        bd = self.val(item.get("breakdown")) or self.defaults.get("breakdown") or "element"
+        spec = item.get("quantity") or {}
+        if spec.get("kind") == "choose":
+            spec = (spec.get("options") or {}).get(self.val(spec.get("pick"))) or {}
+        if bd not in ("layer", "material") or len(parts) < 2 or spec.get("kind") != "volume":
+            return
+        key = "gross_volume" if self.val(spec.get("start")) == "gross" else "net_volume"
+        whole, vals = el.get(key), [p.get(key) for p in parts]
+        if not whole or any(v is None for v in vals):
+            return
+        total = sum(vals)
+        if abs(total - whole) > max(self.PART_VOLUME_TOLERANCE * abs(whole), 1e-3):
+            self.log.warn("quantity", f"{el.get('name') or el['guid']}: its {len(parts)} {bd} parts add up to {fmt(round(total, 4))} m3, "
+                                      f"the element is {fmt(round(whole, 4))} m3 (layer area x thickness; a notched or "
+                                      f"stepped element)", ruleId=item["id"], guid=el["guid"],
+                code="log.quantity.parts_volume", params=dict(name=el.get("name") or el["guid"], breakdown=bd,
+                                                              parts=len(parts), total=total, element=whole))
 
     def part_filter_passes(self, item: dict, el: dict) -> bool:
         """`partFilter` is applied after breakdown: an element is taken when one of its parts passes
@@ -579,7 +610,9 @@ class RuleEngine:
                 code="log.match.rule_selected", params=dict(ruleId=i['id'], label=i.get('label', ''), count=len(take)))
             for e in take:
                 self.matched.add(e["guid"])
-                for part in self.parts_of(i, e):
+                parts = self.parts_of(i, e)
+                self.check_part_volumes(i, e, parts)
+                for part in parts:
                     if i.get("partFilter") and part is not e and not self.x.evaluate(i["partFilter"], self.ctx(part)):
                         continue
                     self.add_part(i, e, part)
