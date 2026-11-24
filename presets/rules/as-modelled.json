@@ -273,22 +273,22 @@
     },
     "formwork_slab_edges_formula": {
       "type": "formula",
-      "value": "src.perimeter * src.thickness",
+      "value": "(src.perimeter_outer + src.perimeter_openings) * src.thickness",
       "choices": [
         {
-          "label": "Outer edge: perimeter times thickness",
-          "value": "src.perimeter * src.thickness"
+          "label": "Outer edge only: outer perimeter times thickness",
+          "value": "src.perimeter_outer * src.thickness"
         },
         {
-          "label": "Outer edge and the edges of openings",
-          "value": "(perimeter + SUM(openings.perimeter)) * thickness"
+          "label": "Outer edge and the edges of openings, times thickness",
+          "value": "(src.perimeter_outer + src.perimeter_openings) * src.thickness"
         }
       ],
       "unit": "m2",
       "label": "Formula: slab edge formwork",
       "section": "concrete",
       "question": "How do you calculate edge formwork to concrete slabs?",
-      "variables": "The concrete slab: perimeter, thickness, net area, openings (each with width, height, perimeter)",
+      "variables": "The concrete slab: perimeter_outer (its outer edge), perimeter_openings (the edges of the openings through it), perimeter (both together), thickness, net area, openings (each with width, height, perimeter)",
       "dependsOn": {
         "param": "formwork_separate",
         "values": [

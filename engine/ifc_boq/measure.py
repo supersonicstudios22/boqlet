@@ -36,6 +36,9 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
   length      reported, else the oriented box: columns and piles along the most vertical
               axis, other linear elements the longest extent (sloped and rotated members),
               others the longest horizontal extent.
+  perimeter   reported, else for a closed slab-like prism (S - 2V/t) / t; split (A-13) into
+              perimeter_openings (2 x (width + height) of each opening through it) and
+              perimeter_outer (the rest; a reported perimeter is taken as both together).
   vertical    footings: vertical_face_area = the closed mesh's faces standing up (sides and ends)
               less the part against another solid (parse `verticalFaces`), else 2 x (length +
               width) x height (A-10: formwork to footings).
@@ -596,6 +599,26 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             if p > 0:
                 perimeter, prov["perimeter"] = p, "geometry"
                 p_note = f"perimeter = (surface {fmt(round(g['surfaceArea'], 3))} - 2 x volume / thickness) / thickness = {fmt(round(p, 3))} m"
+        # the perimeter split (A-13): the edges of the openings through the element (plan size of each;
+        # recesses do not reach the edge) and the rest, the outer edge. A reported perimeter is taken as
+        # both together (exporters differ); one shorter than its openings' edges cannot hold them: outer
+        perim_outer = perim_openings = None
+        if perimeter:
+            perim_openings = sum(o["perimeter"] for o in ops if o["kind"] != "recess" and o.get("perimeter"))
+            if perim_openings and perimeter - perim_openings > 0:
+                perim_outer = perimeter - perim_openings
+                prov["perimeter_outer"], prov["perimeter_openings"] = "derived", "derived"
+                if prov["perimeter"] == "reported":
+                    notes.append(f"reported perimeter {fmt(round(perimeter, 3))} m taken as the outer edge and the edges of openings "
+                                 f"({fmt(round(perim_openings, 3))} m): outer {fmt(round(perim_outer, 3))} m")
+            elif perim_openings:
+                perim_outer = perimeter
+                prov["perimeter_outer"], prov["perimeter_openings"] = prov["perimeter"], "derived"
+                notes.append(f"perimeter {fmt(round(perimeter, 3))} m is not longer than its openings' edges "
+                             f"({fmt(round(perim_openings, 3))} m): taken as the outer edge")
+            else:
+                perim_outer = perimeter
+                prov["perimeter_outer"] = prov["perimeter"]
 
         # faces standing up (formwork to the sides and ends of a footing, A-10): from the closed mesh, less
         # the part against another solid; else (a parse from before A-10, no mesh) the sides of the box
@@ -686,7 +709,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             "vertical_face_area": vertical_area,
             "faces": faces,
             "gross_volume": gross_volume, "net_volume": net_volume,
-            "perimeter": perimeter, "mass": rep["mass"][0],
+            "perimeter": perimeter, "perimeter_outer": perim_outer, "perimeter_openings": perim_openings,
+            "mass": rep["mass"][0],
             "nominal_mass_per_length": nmpl, "density": density,
             "openings": ops, "layers": layers,
             "host_guid": el.get("hostId"), "parent_guid": el.get("parentId"), "child_guids": el.get("childIds", []),

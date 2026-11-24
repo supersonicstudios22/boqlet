@@ -271,3 +271,60 @@ def test_surface_both_counts_each_reveal_once():
     d = lined_wall_doc([("Concrete Masonry Units", t)])
     assert wall_lines(d, "both") == pytest.approx(2 * 27.7 + REVEAL_EDGE * t)
     assert wall_lines(d, "side_a") == pytest.approx(27.7 + REVEAL_EDGE * t / 2)
+
+
+# ---------------------------------------------------------------- A-13: slab edges, outer and openings apart
+def slab_doc(*, reported: dict | None = None, opening: bool = True) -> dict:
+    """A 10 x 6 x 0.2 m concrete slab with a 2 x 1 m void: outer edge 32 m, opening edge 6 m. Its closed
+    mesh gives P = (S - 2V/t) / t = both together (38 m)."""
+    t, hole = 0.2, (2.0 * 1.0 if opening else 0.0)
+    net = 60.0 - hole
+    s = 2 * net + (32.0 + (6.0 if opening else 0.0)) * t
+    geo = {"hasBody": True, "closed": True, "watertight": True, "volume": net * t, "surfaceArea": s,
+           "bboxMin": [0.0, 0.0, 0.0], "bboxMax": [10.0, 6.0, t], "obbExtents": [10.0, 6.0, t],
+           "obbAxes": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+           "sides": {"a": net, "b": net, "axis": [0.0, 0.0, 1.0]},
+           "contacts": [], "representationTypes": ["SweptSolid"]}
+    el = {"id": "slab-1", "ifcClass": "IfcSlab", "ifcClassBase": "IfcSlab", "name": "Floor:Test",
+          "objectType": "Test slab", "predefinedType": "FLOOR", "typeId": None, "storeyId": "storey-1",
+          "attributes": {}, "psets": {}, "typePsets": {}, "childIds": [], "classificationIds": [],
+          "materialRef": {"kind": "layerSet", "layerSetId": "ls-1"},
+          "quantities": {"reported": reported or {}, "geometry": geo}}
+    ops = [{"id": "void-1", "hostId": "slab-1", "width": 2.0, "height": 1.0, "area": 2.0, "depth": t}] if opening else []
+    return doc(el, t=t, openings=ops)
+
+
+def edge_formwork(parsed: dict, formula: str | None = None) -> float:
+    from ifc_boq.pipeline import get_boq
+    params = {"formwork_slab_edges_formula": {"value": formula}} if formula else {}
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled", "params": params}
+    _, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    return sum(l["quantity"] for l in r["lines"] if l["ruleId"] == "formwork-slab-edges")
+
+
+def test_the_perimeter_is_split_into_the_outer_edge_and_the_opening_edges():
+    m, _ = measure(slab_doc())
+    s = m["slab-1"]
+    assert s["perimeter"] == pytest.approx(38.0)
+    assert s["perimeter_outer"] == pytest.approx(32.0) and s["perimeter_openings"] == pytest.approx(6.0)
+    m, _ = measure(slab_doc(opening=False))
+    assert m["slab-1"]["perimeter_outer"] == pytest.approx(32.0) and m["slab-1"]["perimeter_openings"] == 0
+
+
+def test_edge_formwork_choices_do_what_they_say():
+    rs, _ = presets.load_rule_set("as-modelled")
+    slot = rs["params"]["formwork_slab_edges_formula"]
+    outer, both = (c["value"] for c in slot["choices"])
+    assert slot["value"] == both                       # the default keeps the opening edges (unchanged numbers)
+    d = slab_doc()
+    assert edge_formwork(d, outer) == pytest.approx(32.0 * 0.2)
+    assert edge_formwork(d, both) == pytest.approx(38.0 * 0.2) == pytest.approx(edge_formwork(d))
+
+
+def test_a_reported_perimeter_is_taken_as_the_total():
+    m, _ = measure(slab_doc(reported={"Qto_SlabBaseQuantities": {"Perimeter": 38.0}}))
+    s = m["slab-1"]
+    assert s["provenance"]["perimeter"] == "reported"
+    assert s["perimeter_outer"] == pytest.approx(32.0) and s["perimeter_openings"] == pytest.approx(6.0)
+    assert any("taken as the outer edge and the edges of openings" in w for w in s["warnings"])

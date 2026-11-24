@@ -87,7 +87,16 @@
       "help": "After openings"
     },
     "perimeter": {
-      "label": "Perimeter"
+      "label": "Perimeter",
+      "help": "Outer edge and the edges of openings together"
+    },
+    "perimeter_outer": {
+      "label": "Outer perimeter",
+      "help": "The outer edge only, without the edges of openings"
+    },
+    "perimeter_openings": {
+      "label": "Opening perimeter",
+      "help": "The edges of the openings through the element"
     },
     "mass": {
       "label": "Mass",

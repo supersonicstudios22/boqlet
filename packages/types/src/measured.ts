@@ -176,6 +176,13 @@ export interface MeasuredElement {
   gross_volume?: number;
   net_volume?: number;
   perimeter?: number;
+  /**
+   * The perimeter split in two (A-13): the edges of the openings through the element (2 x (width +
+   * height) of each, plan size; recesses excluded) and the rest, the outer edge. A reported perimeter
+   * is taken as both together (exporter-dependent, noted). Both absent when the perimeter is.
+   */
+  perimeter_outer?: number;
+  perimeter_openings?: number;
   mass?: number;                  // reported mass, if any
   nominal_mass_per_length?: number;
   density?: number;
@@ -240,7 +247,7 @@ export type MeasuredField =
   | "cross_section_area" | "slope" | "elevation_base" | "elevation_top" | "profile_girth"
   | "gross_area" | "net_area" | "footprint_area" | "developed_area" | "vertical_face_area"
   | "floor_area" | "ceiling_area" | "wall_area" | "wall_area_net" | "skirting_length"
-  | "gross_volume" | "net_volume" | "perimeter"
+  | "gross_volume" | "net_volume" | "perimeter" | "perimeter_outer" | "perimeter_openings"
   | "mass" | "nominal_mass_per_length" | "density"
   | "bar_diameter" | "bar_count" | "bar_length"
   | "insulation_thickness" | "connection_count";

@@ -193,6 +193,13 @@
         "perimeter": {
           "type": "number"
         },
+        "perimeter_outer": {
+          "type": "number",
+          "description": "The perimeter split in two (A-13): the edges of the openings through the element (2 x (width + height) of each, plan size; recesses excluded) and the rest, the outer edge. A reported perimeter is taken as both together (exporter-dependent, noted). Both absent when the perimeter is."
+        },
+        "perimeter_openings": {
+          "type": "number"
+        },
         "mass": {
           "type": "number"
         },
@@ -369,6 +376,12 @@
               "type": "number"
             },
             "perimeter": {
+              "type": "number"
+            },
+            "perimeter_outer": {
+              "type": "number"
+            },
+            "perimeter_openings": {
               "type": "number"
             },
             "mass": {

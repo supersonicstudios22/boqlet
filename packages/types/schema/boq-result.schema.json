@@ -1212,6 +1212,8 @@
         "gross_volume",
         "net_volume",
         "perimeter",
+        "perimeter_outer",
+        "perimeter_openings",
         "mass",
         "nominal_mass_per_length",
         "density",
