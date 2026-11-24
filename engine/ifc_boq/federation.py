@@ -50,7 +50,7 @@ from . import geometry
 from .expr import fmt
 from .log import CalcLog
 from .measure import (PLANAR_VERTICAL, add_embedded, facing_openings, opening_record, roll_up_parts,
-                      set_room_openings, side_faces)
+                      keep_face_layers, set_room_openings, side_faces)
 from .rules import select
 
 PAD = 0.005          # m added to every box side, so flat or touching elements still compare
@@ -561,8 +561,10 @@ def _rooms_across(taken, tk, model_of, fills, log):
                 continue
             contacts = [c for c in g.get("contacts", []) if c["spaceId"] in tk] + new
             labels = ("a", "b") if e["ifc_class"] in PLANAR_VERTICAL else ("top", "bottom")
-            e["faces"] = side_faces(g["sides"], contacts, labels, sum(o["area"] or 0 for o in e.get("openings", [])),
-                                    names, e.get("is_external"))
+            faces = side_faces(g["sides"], contacts, labels, sum(o["area"] or 0 for o in e.get("openings", [])),
+                               names, e.get("is_external"))
+            keep_face_layers(e.get("faces") or [], faces)
+            e["faces"] = faces
             e["spaces"] = sorted(set(e.get("spaces") or []) | {c["spaceId"] for c in new})
             linked += 1
             log.detail("match", f"{e.get('name') or e['guid']} ({m['fileName']}): "

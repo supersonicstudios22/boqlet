@@ -87,8 +87,9 @@ def test_certification_scene_three_disciplines():
     assert t["roofs"] == pytest.approx(53.61)
     # ... and the structural roof's timber girders are still measured (Qto lengths, 24.7 m)
     assert t["linear-other"] == pytest.approx(24.7)
-    # no element is measured twice by one rule (a concrete slab is in both `slabs` and `slab-concrete` by design)
-    pairs = [(l["ruleId"], e["guid"]) for l in r["lines"] if l["ruleKind"] == "item" for e in l["trace"]["elements"]]
+    # no element is measured twice by one rule (a concrete slab is in both `slabs` and `slab-concrete` by design;
+    # a breakdown measures each part once: paint on both faces of the plumbing wall)
+    pairs = [(l["ruleId"], e["guid"], e.get("name")) for l in r["lines"] if l["ruleKind"] == "item" for e in l["trace"]["elements"]]
     assert len(pairs) == len(set(pairs))
     assert not [q for q in r["questions"] if q["kind"] in ("unmatched", "overlap")]
 

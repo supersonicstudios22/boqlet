@@ -658,10 +658,9 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             # the outermost material layer on each face (what a finish rule looks for, A-11)
             axis = sides["axis"] if sides else ([float(v) for v in thin_axis(obb_axes)] if obb_axes else None)
             on_face, lf_note = face_layers(el, layer_res, axis)
-            for f in faces:
-                side = {"top": "a", "bottom": "b"}.get(f["side"], f["side"])
-                if side in on_face:
-                    f["layer_material"], f["layer_material_raw"] = on_face[side]
+            if not layer_res and mat and mat["term"]:       # one material, no layer set: it is on both faces
+                on_face = {"a": (mat["term"], main_raw), "b": (mat["term"], main_raw)}
+            set_face_layers(faces, on_face)
             if lf_note:
                 notes.append(lf_note)
 
@@ -896,6 +895,25 @@ def face_layers(el: dict, layer_res: list[dict], axis) -> tuple[dict, str | None
         return ({"a": pair(last), "b": pair(first)} if dot > 0 else {"a": pair(first), "b": pair(last)}), None
     return {"a": pair(last), "b": pair(first)}, (f"layer order on the faces not known: {last['raw']} taken as side a, "
                                                  f"{first['raw']} as side b")
+
+
+def set_face_layers(faces: list[dict], on_face: dict) -> None:
+    """Name each face's outermost layer from {side a / b: (term, raw)} (top = a, bottom = b)."""
+    for f in faces:
+        side = {"top": "a", "bottom": "b"}.get(f["side"], f["side"])
+        if side in on_face:
+            f["layer_material"], f["layer_material_raw"] = on_face[side]
+
+
+def keep_face_layers(old: list[dict], new: list[dict]) -> None:
+    """Faces rebuilt from the sides (federation: rooms of another model on them) keep the layer
+    each side had (A-11)."""
+    on_face = {}
+    for f in old:
+        side = {"top": "a", "bottom": "b"}.get(f["side"], f["side"])
+        if f.get("layer_material") is not None and side not in on_face:
+            on_face[side] = (f["layer_material"], f.get("layer_material_raw"))
+    set_face_layers(new, on_face)
 
 
 def side_faces(sides: dict, contacts: list, labels: tuple, open_area: float, rooms: dict, is_external) -> list[dict]:

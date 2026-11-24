@@ -328,3 +328,27 @@ def test_a_reported_perimeter_is_taken_as_the_total():
     assert s["provenance"]["perimeter"] == "reported"
     assert s["perimeter_outer"] == pytest.approx(32.0) and s["perimeter_openings"] == pytest.approx(6.0)
     assert any("taken as the outer edge and the edges of openings" in w for w in s["warnings"])
+
+
+# ---------------------------------------------------------------- A-11 follow-ups (WP-A3 exit check)
+def test_a_wall_of_one_material_carries_it_on_both_faces():
+    """S03's plumbing wall is a 24 mm board with a single material (no layer set): both faces are
+    plasterboard, so both are painted (it had no paint at all after A-11)."""
+    d = lined_wall_doc([("Plasterboard", 0.024)])
+    d["elements"][0]["materialRef"] = {"kind": "single", "materialId": "m-0"}
+    d["catalogues"]["layerSets"] = []
+    m, _ = measure(d)
+    assert m["wall-1"]["layers"] == []
+    assert {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]} == {"a": "board.plasterboard", "b": "board.plasterboard"}
+    assert paint(d) == pytest.approx(2 * 27.7)
+
+
+def test_faces_rebuilt_for_rooms_keep_their_layers():
+    """Federation rebuilds a wall's faces when rooms of another model lie on it (F02): each new face
+    keeps the outermost layer of its side."""
+    from ifc_boq.measure import keep_face_layers
+    old = [{"side": "a", "layer_material": "board.plasterboard", "layer_material_raw": "Gypsum"},
+           {"side": "b", "layer_material": "concrete", "layer_material_raw": "Concrete"}]
+    new = [{"side": "a", "space": "r1"}, {"side": "a"}, {"side": "b", "space": "r2"}]
+    keep_face_layers(old, new)
+    assert [f.get("layer_material") for f in new] == ["board.plasterboard", "board.plasterboard", "concrete"]

@@ -2238,7 +2238,7 @@
             "ifcClass": "IfcWall"
           },
           {
-            "expr": "COUNT(layers WHERE UNDER(material, \"board.plasterboard\")) > 0"
+            "expr": "COUNT(layers WHERE UNDER(material, \"board.plasterboard\")) > 0 OR (COUNT(layers) = 0 AND UNDER(material, \"board.plasterboard\"))"
           }
         ]
       },
