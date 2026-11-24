@@ -29,8 +29,11 @@ HAND_BOQ = [
     ("walls", "Foundation - Concrete (435mm)", 5.430 / 0.435, "m2"),
     ("slab-concrete", "127mm", 16.470, "m3"),
     ("slabs", "127mm Slab on Grade", 129.686, "m2"),
-    ("steel-sections", "W310X60", 0.903, "t"),
-    ("steel-sections", "W410X60", 1.728, "t"),
+    # Steel by cut length x the designation's kg/m (A-17, QS-012): two W310X60 beams, IfcExtrudedAreaSolid depth
+    # 7.4213 m each (= PSet_Revit_Structural Cut Length; Revit's analytical Length is 7.523 m, which gave 0.903 t):
+    # 2 x 7.4213 x 60 = 890.556 kg. Six W410X60 beams, cut = analytical length: 2 x (6.1819 + 4.1213 + 4.1) x 60 kg.
+    ("steel-sections", "W310X60", 2 * 7.4213 * 60 / 1000, "t"),
+    ("steel-sections", "W410X60", 2 * (6.1819 + 4.1213 + 4.1) * 60 / 1000, "t"),
     ("slabs", "Wood Joist", 118.563, "m2"),
     ("roofs", "Live Roof", 132.926, "m2"),
     ("walls", "Exterior - Brick on Block", 235.779 + 31.383, "m2"),   # walls + parapet

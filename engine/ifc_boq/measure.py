@@ -577,9 +577,10 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             geo_len = max(e for e, ax in zip(obb, obb_axes) if abs(ax[2]) < 0.5)
         elif ext:
             geo_len = max(ext[0], ext[1])
-        length = rep["length"][0]
+        length, l_note = rep["length"][0], None
         if length:
             prov["length"] = "reported"
+            l_note = f"length {fmt(round(length, 4))} m from {rep['length'][1]}"
             qid = contradiction_id("length", cls, type_name or el.get("name"))
             scale = unit_scale(length, geo_len) if g.get("hasBody") and closed is not False else None
             if scale and answers.get(qid) in ("geometry", "reported"):
@@ -748,6 +749,8 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             bits.append(f"volume {v_note}")
         if a_note:
             bits.append(a_note)
+        if l_note and prov.get("length") == "reported":
+            bits.append(l_note)
         if p_note:
             bits.append(p_note)
         if vf_note:

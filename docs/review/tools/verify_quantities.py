@@ -145,11 +145,10 @@ CHECKS = [
          what="IfcSlab concrete m3", script=("volume", ["2O2Fr$t4X7Zf8NOew3FK4F"]), hand=8.227051),
     # S05 beam W310X60 207325: IfcExtrudedAreaSolid #36678 depth 7.4213 m (= PSet_Revit_Structural Cut
     # Length); W310X60 states 60 kg/m -> 7.4213 x 60 = 445.278 kg = 0.445278 t.
-    # The app multiplies PSet_Revit_Dimensions.Length = 7.523 m (Revit's analytical length) -> 0.45138 t.
+    # Before WP-A4 A-17 the app multiplied PSet_Revit_Dimensions.Length = 7.523 m (Revit's analytical length,
+    # 0.45138 t); FIXED: the cut length comes first
     dict(id="S05-beam-mass", sample="S05", rule="steel-sections", line="W310X60", guids=["2OrWItJ6zAwBNp0OUxK_l8"],
-         what="IfcBeam mass t", script=("length_x60", ["2OrWItJ6zAwBNp0OUxK_l8"]), hand=0.445278, tol=(0.0005, 0.005),
-         known={"app": 0.45138, "note": "QS-012: length is PSet_Revit_Dimensions.Length (analytical, +0.10 m), "
-                                        "not the member's cut length; +1.4 % mass"}),
+         what="IfcBeam mass t", script=("length_x60", ["2OrWItJ6zAwBNp0OUxK_l8"]), hand=0.445278, tol=(0.0005, 0.005)),
     # S05 party wall 143239 (surface model): axis 16.966 m x unconnected height 2.900 m = 49.2014 m2 of face.
     # Before WP-A3 A-09 the app took Revit volume 25.8301 / layer-set 0.550 = 46.964 m2 (the body is not a
     # full 0.55 m prism); FIXED: walls are measured by their faces
