@@ -29,6 +29,13 @@ starts. PostgreSQL 16 everywhere (`postgres:16-alpine`).
 | `V16__limit_event_actions` | *`admin_org_rows`* replaced (limit-event actions) |
 | `V23__plan_admin_and_public_sign_up` | `platform_settings` (one row: plan price `currency`, `public_sign_up`); columns `plans.description`, `position`, `price_amount`, `price_period`, `updated_at` (Free: 1 seat, `ownedOrgsPerUser` 1); `native_setup_links.nonce` (emailed links); `email_outbox.org_id` nullable (sign-up and reset mail; P57) |
 
+`R__Sync_system_presets` (Java, repeatable, D81) runs after them whenever a file under `presets/` changes (its checksum
+covers every shipped preset file): a system preset whose file differs from its latest published version, or whose
+parent (`extends`) has a newer version than the one it extends, gets the next published version, parents first; a
+preset new in the files is created. Published versions are never changed, so BoQs and org presets that pinned one
+keep their numbers; BoQs on the system default and new projects take the new version. On a fresh database V5 has
+just seeded the same files and nothing is published.
+
 No pricing tables exist (the module is deferred, P48).
 
 ## Logical columns
