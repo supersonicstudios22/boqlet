@@ -12,6 +12,8 @@
  *   - Ids are IFC GlobalIds wherever the IFC has one (stable across versions,
  *     used to match elements between revisions). Catalogue entries without a
  *     GlobalId (materials, layer sets) get a deterministic id "mat:<step id>".
+ *   - Property and quantity sets are keyed by their Name; an unnamed set is "#<step id>" and a
+ *     name the element already has gets "#2", "#3"... (review A-31, check `pset_renamed`).
  *   - All lengths, areas, volumes and masses are converted to SI (m, m2, m3, kg), plane
  *     angles to degrees; a property or quantity with its own `Unit` is converted by that unit
  *     (review A-29). The original project units are recorded in `header.units`.
@@ -335,7 +337,8 @@ export type CheckCode =
   | "placeholder_value"         // e.g. InstallationDate = "InstallationDate"
   | "no_quantities"             // no BaseQuantities / Qto sets in the file
   | "unassigned_storey"
-  | "proxy_element";            // IfcBuildingElementProxy: unknown object
+  | "proxy_element"             // IfcBuildingElementProxy: unknown object
+  | "pset_renamed";             // property / quantity sets without a name or with a repeated one, renamed (A-31)
 
 export interface Check {
   id: string;

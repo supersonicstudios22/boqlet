@@ -15,7 +15,8 @@ Layout:
 
 Every file is validated against packages/types/schema/*.schema.json when those
 schemas exist (they are generated from the TypeScript types: npm run codegen).
-Override the folders with IFC_BOQ_PRESETS and IFC_BOQ_USER_PRESETS.
+Override the folders with IFC_BOQ_PRESETS and IFC_BOQ_USER_PRESETS; the user folder is read only when
+IFC_BOQ_USER_PRESETS is set (review A-31: presets/user/ no longer changes what the CLI measures).
 """
 from __future__ import annotations
 
@@ -76,7 +77,7 @@ KINDS = ("rules", "dictionaries", "classifications")
 
 def _roots():
     """(folder, origin), user first so that a shipped preset with the same id replaces it."""
-    return [(paths.USER_PRESETS, "user"), (PRESETS, "shipped")]
+    return ([(paths.USER_PRESETS, "user")] if paths.USER_PRESETS is not None else []) + [(PRESETS, "shipped")]
 
 
 def _json_docs(kind: str) -> dict[str, tuple[dict, str]]:
@@ -142,6 +143,8 @@ def save(kind: str, doc: dict) -> list[str]:
     """
     if kind not in KINDS:
         raise ValueError(f"unknown preset kind '{kind}'")
+    if paths.USER_PRESETS is None:
+        return ["no folder for local presets: set IFC_BOQ_USER_PRESETS"]
     pid = _doc_id(kind, doc)
     if not isinstance(pid, str) or not SAFE_ID.match(pid):
         return [f"id '{pid}' cannot be a file name: use lower-case letters, digits, '.', '-' or '_'"]

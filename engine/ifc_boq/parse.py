@@ -142,6 +142,7 @@ class Parser:
         self.M = self._scale("MASSUNIT", 1000.0) / 1000 if "MASSUNIT" in assigned else 1.0
         self.ANGLE = self._scale("PLANEANGLEUNIT", 1.0) if "PLANEANGLEUNIT" in assigned else 1.0
         self.checks: list[dict] = []
+        self.renamed_sets: list[tuple] = []      # (GlobalId, name in the file, key used), review A-31
         self.mat_ids: dict[int, str] = {}
         self.meshes: dict[str, trimesh.Trimesh] = {}
 
@@ -238,6 +239,20 @@ class Parser:
                 out[q.Name] = q.TimeValue
         return {k: r6(v) for k, v in out.items() if isinstance(v, (int, float))}
 
+    def set_name(self, obj, d, taken: dict) -> str:
+        """The key a property or quantity set is stored under (review A-31): its Name; an unnamed set is
+        `#<step id>`, and a name the element already has gets `#2`, `#3`..., so no set is lost or overwritten
+        (and the in-memory parse equals its JSON). Renames are listed in one `pset_renamed` check."""
+        name = d.Name if isinstance(d.Name, str) and d.Name.strip() else f"#{d.id()}"
+        if name in taken:
+            n = 2
+            while f"{name}#{n}" in taken:
+                n += 1
+            name = f"{name}#{n}"
+        if name != d.Name:
+            self.renamed_sets.append((getattr(obj, "GlobalId", None), d.Name, name))
+        return name
+
     def definitions(self, obj):
         """Instance-level psets and qtos (not inherited from type)."""
         psets, qtos = {}, {}
@@ -245,16 +260,16 @@ class Parser:
             if rel.is_a("IfcRelDefinesByProperties"):
                 d = rel.RelatingPropertyDefinition
                 if d.is_a("IfcElementQuantity"):
-                    qtos[d.Name] = self.qto_dict(d)
+                    qtos[self.set_name(obj, d, qtos)] = self.qto_dict(d)
                 elif d.is_a("IfcPropertySet"):
-                    psets[d.Name] = self.pset_dict(d)
+                    psets[self.set_name(obj, d, psets)] = self.pset_dict(d)
         return psets, qtos
 
     def type_psets(self, t):
         out = {}
         for d in getattr(t, "HasPropertySets", None) or []:
             if d.is_a("IfcPropertySet"):
-                out[d.Name] = self.pset_dict(d)
+                out[self.set_name(t, d, out)] = self.pset_dict(d)
         return out
 
     # ----- materials -----
@@ -864,6 +879,14 @@ class Parser:
             guess = "unknown"
         header["disciplineGuess"] = guess
 
+        if self.renamed_sets:
+            ids = sorted({g for g, _, _ in self.renamed_sets if g})
+            unnamed = sum(1 for _, before, _ in self.renamed_sets if not (isinstance(before, str) and before.strip()))
+            self.check("pset_renamed", "info", ids,
+                       f"{len(self.renamed_sets)} property or quantity set(s) had no name ({unnamed}) or a name their element "
+                       f"already had ({len(self.renamed_sets) - unnamed}); kept as '#<step id>' and '<name>#2'",
+                       count=len(self.renamed_sets), unnamed=unnamed,
+                       examples=", ".join(sorted({n for _, _, n in self.renamed_sets}))[:200])
         self.group_checks(elements)
         summary = {}
         for c in self.checks:
@@ -1074,11 +1097,15 @@ class Parser:
 
 
 def parse_file(path: str, overlaps: bool = True, progress=None):
-    """Parse one IFC file. Returns (ParsedModel dict, Parser) - keep the parser to export geometry."""
+    """Parse one IFC file. Returns (ParsedModel dict, Parser) - keep the parser to export geometry.
+
+    The ParsedModel is returned as its JSON reads back (review A-31, DEC-06): the worker stores parsed.json and runs
+    read it, so the CLI and every in-process caller measure exactly what the product measures (a value JSON would
+    turn into something else can no longer make the two paths differ)."""
     if progress:
         progress("read", 15, "Reading IFC")
     p = Parser(path, overlaps=overlaps)
-    return p.parse(progress), p
+    return json.loads(json.dumps(p.parse(progress))), p
 
 
 def main(argv=None):

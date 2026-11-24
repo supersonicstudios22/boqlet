@@ -42,7 +42,7 @@ Full reference with what each does: [services/api/README.md](../../services/api/
 | `ENGINE_HTTP_CONCURRENCY`, `ENGINE_MAX_MODEL_MB` | HTTP worker concurrency and model size cap |
 | `ENGINE_QUEUE_DSN`, `ENGINE_QUEUE_POOL`, `ENGINE_QUEUE_TYPES`, `ENGINE_QUEUE_CONCURRENCY`, `ENGINE_QUEUE_JOB_TIMEOUT_SECONDS`, `ENGINE_QUEUE_POLL_SECONDS` | The Postgres queue worker (`boqlet-worker`, used on the pilot) |
 | `ENGINE_LOG_FORMAT` | `json` for structured logs |
-| `IFC_BOQ_CACHE`, `IFC_BOQ_PRESETS`, `IFC_BOQ_SCHEMAS`, `IFC_BOQ_USER_PRESETS` | Cache folder, presets, schemas, the user preset folder (default `presets/user`) |
+| `IFC_BOQ_CACHE`, `IFC_BOQ_PRESETS`, `IFC_BOQ_SCHEMAS`, `IFC_BOQ_USER_PRESETS` | Cache folder, presets, schemas, the user preset folder (read only when set: `presets/user/` is no longer read by default, review A-31) |
 
 ## Setup and local stack
 

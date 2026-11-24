@@ -111,7 +111,8 @@
       "placeholder_value": "Placeholder values",
       "no_quantities": "No quantities in the file",
       "unassigned_storey": "Not on a storey",
-      "proxy_element": "Generic proxy elements"
+      "proxy_element": "Generic proxy elements",
+      "pset_renamed": "Property sets without a name, renamed"
     },
     "generateBoq": "Generate a BoQ",
     "showIn3d": "Show in 3D",
