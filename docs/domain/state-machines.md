@@ -25,7 +25,8 @@ stateDiagram-v2
 - **Same content hash:** if a `ready` version with the same sha256 exists anywhere in the
   same org, the parse artifacts are reused and the version goes straight to `ready` (event
   still recorded).
-- `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `too_large`,
+- `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `truncated_file` (the file stops before
+  `END-ISO-10303-21;`, its line and byte in the message), `no_project` (no `IfcProject`), `too_large`,
   `parse_timeout`, `parse_error`, `cancelled`, `upload_expired`. A job failure with another code (the worker's or the
   backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`, `result_invalid` (a result the database
   refuses for its content, not retried, review A-25)…) is stored as

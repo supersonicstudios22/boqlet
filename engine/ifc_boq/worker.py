@@ -20,7 +20,7 @@ from . import __version__, presets, service
 from .diff import compare
 from .export_xlsx import export
 from .geometry import load_meshes, save_meshes
-from .parse import PARSE_FORMAT, parse_file, sha256
+from .parse import PARSE_FORMAT, IfcFileError, parse_file, sha256
 from .pipeline import get_boq
 from .preview import compare_lines, sample
 from .sheets import boq_import, diff_export
@@ -131,6 +131,8 @@ def _parse(job, storage, prefix, progress):
                                         progress=progress)
         except JobCancelled:
             raise
+        except IfcFileError as exc:                   # not_ifc / truncated_file / no_project (review A-32)
+            raise JobError(exc.code, str(exc)) from exc
         except Exception as exc:
             import ifcopenshell
 

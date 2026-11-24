@@ -190,3 +190,19 @@ def test_the_edits_import_checks_refs_against_the_workbooks_own_grouping():
     assert _group_codes(job) == ["01", "02"]
     assert _group_codes({**job, "groupBy": "other"}) == ["A.01"]
     assert _group_codes({"groupCodes": ["A.01"]}) == ["A.01"]
+
+
+def test_a_cut_short_file_and_one_without_a_project_get_their_own_codes(tmp_path):
+    """Review A-32 (ENG-012): S13, the Duplex cut at 1 MB, failed with IndexError as "Could not parse IFC model"."""
+    storage = LocalStorage(tmp_path)
+    text = DUPLEX.read_bytes()
+    storage.put_bytes("uploads/cut.ifc", text[:1_000_000])
+    cut = execute(envelope("parse", {"modelVersionId": "c", "sourceKey": "uploads/cut.ifc", "fileName": "cut.ifc"}, "c/"), storage)
+    assert cut["status"] == "failed" and cut["error"]["code"] == "truncated_file", cut
+    assert "line" in cut["error"]["message"] and "1,000,000" in cut["error"]["message"]
+    no_project = (b"ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION((''),'2;1');\nFILE_NAME('x','',(''),(''),'','','');\n"
+                  b"FILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\n#1=IFCWALL('0DyViLJJ175RvWQi1rE7a6',$,'Wall',$,$,$,$,$,$);\n"
+                  b"ENDSEC;\nEND-ISO-10303-21;\n")
+    storage.put_bytes("uploads/fragment.ifc", no_project)
+    frag = execute(envelope("parse", {"modelVersionId": "f", "sourceKey": "uploads/fragment.ifc", "fileName": "f.ifc"}, "f/"), storage)
+    assert frag["status"] == "failed" and frag["error"]["code"] == "no_project", frag

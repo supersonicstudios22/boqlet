@@ -1096,6 +1096,32 @@ class Parser:
             output.write(export_glb(scene))
 
 
+class IfcFileError(ValueError):
+    """A file that is not a whole IFC model (review A-32): `code` is not_ifc, truncated_file or no_project, and the
+    message says where (the worker reports the code; the app explains it)."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
+def check_ifc_file(path: str) -> None:
+    """Refuse, before parsing, a file that is not STEP, that stops before its END-ISO-10303-21; (a cut-short upload
+    or export: S13), or (after opening, in Parser) one without an IfcProject."""
+    with open(path, "rb") as fh:
+        head = fh.read(4096)
+        if not head.lstrip(b"\xef\xbb\xbf \t\r\n").startswith(b"ISO-10303-21;"):
+            raise IfcFileError("not_ifc", "The file is not an IFC (STEP) file: it does not start with ISO-10303-21;")
+        size = os.path.getsize(path)
+        fh.seek(max(0, size - 4096))
+        if b"END-ISO-10303-21;" in fh.read():
+            return
+        fh.seek(0)
+        lines = 1 + sum(chunk.count(b"\n") for chunk in iter(lambda: fh.read(1 << 20), b""))
+    raise IfcFileError("truncated_file", f"The file stops at line {lines:,} (byte {size:,}) without its closing "
+                                         f"END-ISO-10303-21;: it was cut short. Export or upload it again.")
+
+
 def parse_file(path: str, overlaps: bool = True, progress=None):
     """Parse one IFC file. Returns (ParsedModel dict, Parser) - keep the parser to export geometry.
 
@@ -1104,7 +1130,10 @@ def parse_file(path: str, overlaps: bool = True, progress=None):
     turn into something else can no longer make the two paths differ)."""
     if progress:
         progress("read", 15, "Reading IFC")
+    check_ifc_file(path)
     p = Parser(path, overlaps=overlaps)
+    if not p.f.by_type("IfcProject"):
+        raise IfcFileError("no_project", "The file has no IfcProject: it is not a whole model (a fragment or a library).")
     return json.loads(json.dumps(p.parse(progress))), p
 
 

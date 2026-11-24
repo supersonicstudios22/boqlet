@@ -71,7 +71,7 @@ class ParseJob implements JobHandler {
 
     /** The codes a failed version answers (state-machines.md ModelVersion, TF-037); the app translates each. */
     static final java.util.Set<String> VERSION_ERRORS = java.util.Set.of("not_ifc", "unsupported_schema", "corrupt_file",
-            "too_large", "parse_timeout", "parse_error", "cancelled", "upload_expired");
+            "truncated_file", "no_project", "too_large", "parse_timeout", "parse_error", "cancelled", "upload_expired");
 
     /**
      * A job's error as a version's: a code of the list, the job's own code kept as `cause` (for support).

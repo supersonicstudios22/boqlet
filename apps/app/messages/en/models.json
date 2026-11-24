@@ -41,6 +41,8 @@
       "not_ifc": "This file is not an IFC file.",
       "unsupported_schema": "This IFC version is not supported yet.",
       "corrupt_file": "The file could not be read. It may be damaged or incomplete.",
+      "truncated_file": "The file is cut short: it stops before its end. Export or upload it again.",
+      "no_project": "The file has no project in it, so it is not a whole model (a fragment or a library). Export the whole model.",
       "parse_timeout": "Processing took too long and was stopped.",
       "parse_error": "The model could not be processed.",
       "engine_unavailable": "The processing service was not available. Try again.",
