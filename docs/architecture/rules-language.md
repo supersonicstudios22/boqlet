@@ -224,7 +224,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 | `lineKey` | fields or expressions whose values split lines; same values are summed. The unit is always part of the key |
 | `bands` | split by numeric ranges of a field, e.g. height above 3.5 m; labels appended to the description |
 | `description` | template: `{type_name}`, `{thickness*1000}`, `{p.x}`, `{expr: ...}`; missing values render as "-" |
-| `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line; `nearest` and `ROUND()` take halves away from zero, as Excel's ROUND: 0.125 at 0.01 is 0.13) | |
+| `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line; `nearest` and `ROUND()` take halves away from zero, as Excel's ROUND: 0.125 at 0.01 is 0.13; `rounding` and `FLOOR` / `CEIL` / `ROUND` with a step are one helper, exact on decimal steps: `FLOOR(0.3, 0.1)` is 0.3, review A-23) | |
 | `onMissing` | flag (line kept, value missing noted), skip (element left out, warned), ask (blocking `missing_data` question), `{ "default": n }` (logged default) |
 | `claims` | double-count guard: two rules claiming the same name ("body", "finish_side_a") on one element give a `double_claim` question; two item rules measuring one element in the same family (area, volume...) of which one declares no claim give a `double_count` warning (BR-13, review A-20). Give every item rule a claim that says what it measures |
 | `tags` | free labels that classification maps can match |

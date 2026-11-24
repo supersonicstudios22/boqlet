@@ -256,13 +256,25 @@ def round_half_up(q: float) -> float:
     return math.copysign(math.floor(abs(q) + 0.5 + 1e-9), q)
 
 
-def _step_round(fn):
+STEP_TOLERANCE = 1e-9     # in steps: absorbs float noise from dividing by a step (0.3 / 0.1 = 2.9999999999999996)
+
+
+def step_round(x: float, step: float, mode: str = "nearest") -> float:
+    """x to a multiple of `step`: "down" (FLOOR), "up" (CEIL) or "nearest" (ROUND, halves away from zero). The one
+    step-rounding of the engine (review A-23): FLOOR / CEIL / ROUND with a step and a rule's `rounding` use it, so
+    FLOOR(0.3, 0.1) is 0.3 (not 0.2) and no result carries a float tail (rounded to 10 decimals)."""
+    q = x / step
+    q = math.ceil(q - STEP_TOLERANCE) if mode == "up" else math.floor(q + STEP_TOLERANCE) if mode == "down"         else round_half_up(q)
+    return round(q * step, 10)
+
+
+def _step_round(mode: str, fn):
     def f(x, step=None):
         if not _num(x):
             return None
-        if step in (None, 0):
+        if step in (None, 0) or not _num(step):
             return float(fn(x))
-        return fn(x / step) * step
+        return step_round(x, step, mode)
     return f
 
 
@@ -290,9 +302,9 @@ def default_functions(broader: dict[str, str | None] | None = None) -> dict[str,
         "IF": lambda c, a, b=None: a if c else b,
         "MIN": mn,
         "MAX": mx,
-        "ROUND": _step_round(round_half_up),
-        "CEIL": _step_round(math.ceil),
-        "FLOOR": _step_round(math.floor),
+        "ROUND": _step_round("nearest", round_half_up),
+        "CEIL": _step_round("up", math.ceil),
+        "FLOOR": _step_round("down", math.floor),
         "ABS": lambda x: abs(x) if _num(x) else None,
         "SQRT": lambda x: math.sqrt(x) if _num(x) and x >= 0 else None,
         "PI": lambda: math.pi,

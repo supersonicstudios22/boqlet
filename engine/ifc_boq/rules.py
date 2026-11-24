@@ -13,12 +13,11 @@ each line's trace, so a user can see exactly how it was produced.
 from __future__ import annotations
 
 import json
-import math
 import re
 from collections import Counter, defaultdict
 from itertools import combinations
 
-from .expr import Expr, fmt, round_half_up
+from .expr import Expr, fmt, step_round
 from .log import CalcLog
 from .measure import scale_label
 from .templates import render as render_template
@@ -447,10 +446,7 @@ class RuleEngine:
         step = self.val(rounding["step"]) or 0
         if not step:
             return v
-        mode = self.val(rounding.get("mode")) or "nearest"
-        q = v / step
-        q = math.ceil(q - 1e-9) if mode == "up" else math.floor(q + 1e-9) if mode == "down" else round_half_up(q)
-        return round(q * step, 10)
+        return step_round(v, step, self.val(rounding.get("mode")) or "nearest")     # one helper with FLOOR / CEIL (A-23)
 
     # ---------------------------------------------------------------- breakdown
     def parts_of(self, item: dict, el: dict) -> list[dict]:

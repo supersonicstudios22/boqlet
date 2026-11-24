@@ -101,3 +101,35 @@ def test_arbitrary_unicode_literals_round_trip():
         text = "".join(rnd.choice(alphabet) for _ in range(rnd.randint(0, 24)))
         literal = '"' + text.replace("\\", "\\\\").replace('"', '\\"').replace("\t", "\\t") + '"'
         assert E.evaluate(literal, {}) == text, literal
+
+
+# ------------------------------------------------------------------ step rounding (review A-23, ENG-005)
+@pytest.mark.parametrize("src,expected", [
+    ("FLOOR(0.3, 0.1)", 0.3), ("FLOOR(4.35, 0.05)", 4.35), ("CEIL(0.3, 0.1)", 0.3), ("ROUND(0.3, 0.1)", 0.3),
+    ("FLOOR(0.29, 0.1)", 0.2), ("CEIL(0.31, 0.1)", 0.4), ("FLOOR(2.675, 0.01)", 2.67), ("CEIL(1.11, 0.5)", 1.5),
+    ("FLOOR(7.3, 0.5)", 7.0), ("ROUND(4.35, 0.05)", 4.35), ("FLOOR(-0.3, 0.1)", -0.3), ("CEIL(-0.31, 0.1)", -0.3),
+    ("FLOOR(2.7)", 2), ("CEIL(2.1)", 3),
+])
+def test_step_functions_are_exact_on_decimal_steps(src, expected):
+    assert E.evaluate(src, {}) == expected     # exact: no float tail
+
+
+def test_a_multiple_of_the_step_stays_itself():
+    """Property: FLOOR, CEIL and ROUND of k x step at that step give k x step, for the usual steps."""
+    for step in (0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5):
+        for k in range(-200, 201):
+            x = k * step
+            want = round(x, 10)
+            for fn in ("FLOOR", "CEIL", "ROUND"):
+                assert E.evaluate(f"{fn}(x, {step})", {"x": x}) == want, (fn, x, step)
+
+
+def test_rule_rounding_and_the_functions_agree():
+    from ifc_boq.rules import RuleEngine
+    engine = RuleEngine.__new__(RuleEngine)
+    engine.val = lambda v: v
+    for x in (0.3, 4.35, 2.675, 0.125, 1.005, 7.3, 12.4999):
+        for step in (0.01, 0.05, 0.1, 0.5):
+            assert engine.round_(x, {"step": step, "mode": "down"}) == E.evaluate(f"FLOOR(x, {step})", {"x": x})
+            assert engine.round_(x, {"step": step, "mode": "up"}) == E.evaluate(f"CEIL(x, {step})", {"x": x})
+            assert engine.round_(x, {"step": step, "mode": "nearest"}) == E.evaluate(f"ROUND(x, {step})", {"x": x})
