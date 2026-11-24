@@ -200,6 +200,10 @@ CHECKS = [
          what="IfcSlab top area m2", script=("top", ["3cUkl32yn9qRSPvBJVyWgQ"]), hand=146.19906),
     # S09 first floor 295048: polygon -> 5.735 x 13.9675 + 0.0325 x 4.900 = 80.26286 m2; x 0.165 m
     # = 13.24337 m3. The file's BaseQuantities.GrossVolume = 13243.37 (1000x) is a unit error (WP-A1 A-02)
+    # S09 main roof (closed Brep, one material, no layer set): no area before WP-A4 A-15; now the true area of
+    # its faces looking up, checked against the same faces read independently from the IFC mesh
+    dict(id="S09-roof-area", sample="S09", rule="roofs", line="Roof_Flat", guids=["3cUkl32yn9qRSPvBJVyWh4"],
+         what="IfcRoof developed area m2", script=("up_true", ["3cUkl32yn9qRSPvBJVyWh4"]), hand=None, tol=(0.02, 0.02)),
     # S09 "Simple floor" (13.243 m3 by its mesh; the file's GrossVolume is x1000, A-02) is 65 mm screed on a
     # 100 mm "Concrete Masonry, Floor Block": no in-situ concrete at all (WP-A4 A-14: concrete layers only;
     # the block is masonry). The x1000 volume itself is checked in engine/tests/test_reported_quantities.py

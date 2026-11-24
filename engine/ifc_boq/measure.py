@@ -30,8 +30,10 @@ Adoption policy (v0, constants below; documented in docs/architecture/engine.md)
               thickness contradiction), else net_volume / thickness (curved walls, open meshes, no
               sides), else reported area. Authoring-tool "Area" is often inconsistent: not used.
   other area  reported area, else net_volume / thickness (never from a reported volume the
-              geometry contradicts: then a clear plate's mean side area), else (open surface
-              models such as road markings) the one-sided mesh area.
+              geometry contradicts: then a clear plate's mean side area), else for a roof with its
+              own closed body and no layer set the faces looking up (A-15; plan = their projection,
+              thickness = volume / area), else (open surface models such as road markings) the
+              one-sided mesh area.
   gross       net + area of the openings hosted by the element.
   length      reported, else the oriented box: columns and piles along the most vertical
               axis, other linear elements the longest extent (sloped and rotated members),
@@ -477,7 +479,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
 
         # areas
         net_area = gross_area = None
-        a_note = None
+        a_note, roof_plan = None, None
         # a wall's measured faces (A-09): a clear plate standing up whose box is no more than 1.5x its
         # thickness thick (a curved or bent wall's faces are not all found by their normal)
         wall_faces = bool(cls in PLANAR_VERTICAL and side_mean and thickness and abs(sides["axis"][2]) < 0.5
@@ -544,6 +546,17 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             elif net_volume and thickness:
                 net_area, prov["net_area"] = (net_volume + recess_vol) / thickness, "derived"
                 a_note = f"net area = volume / thickness = {fmt(round(net_area, 3))} m2"
+            elif cls == "IfcRoof" and closed and (g.get("upFaces") or {}).get("area"):
+                # a roof with its own closed body and no layer set (A-15): its faces looking up are the
+                # developed area, their projection the plan area, volume / area the thickness
+                up = g["upFaces"]
+                net_area, prov["net_area"] = up["area"], "geometry"
+                roof_plan = up["plan"]
+                a_note = (f"net area {fmt(round(net_area, 3))} m2 = the faces looking up (plan {fmt(round(roof_plan, 3))} m2; "
+                          f"no layer set)")
+                if thickness is None and net_volume:
+                    thickness, prov["thickness"] = net_volume / net_area, "geometry"
+                    t_note = "volume / area of the faces looking up"
             elif closed is False and "SurfaceModel" in g.get("representationTypes", []) and g.get("surfaceArea"):
                 net_area, prov["net_area"] = g["surfaceArea"], "geometry"
                 a_note = f"net area {fmt(round(net_area, 3))} m2 = one-sided area of the open surface model"
@@ -703,7 +716,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             "count": 1,
             "length": length, "width": width, "height": height, "thickness": thickness,
             "gross_area": gross_area, "net_area": net_area,
-            "footprint_area": net_area if cls not in PLANAR_VERTICAL else None,
+            "footprint_area": roof_plan if roof_plan is not None else (net_area if cls not in PLANAR_VERTICAL else None),
             "developed_area": net_area if cls not in PLANAR_VERTICAL else None,
             "vertical_face_area": vertical_area,
             "faces": faces,

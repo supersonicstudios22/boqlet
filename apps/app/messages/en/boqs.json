@@ -330,6 +330,7 @@
     "tags": "Tags",
     "log": "Log entries for this line",
     "noLog": "No log entries for this line.",
+    "emptyHint": "No element gave a value for this line: enter its quantity in the sheet to complete it.",
     "missing": "missing",
     "yes": "yes",
     "no": "no",

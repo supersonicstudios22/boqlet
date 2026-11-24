@@ -407,3 +407,48 @@ def test_a_slab_without_layers_counts_by_its_material():
     d["elements"][0]["materialRef"] = {"kind": "single", "materialId": "m-1"}
     d["catalogues"]["layerSets"] = []
     assert concrete(d) == pytest.approx(60.0 * 0.2)
+
+
+# ---------------------------------------------------------------- A-15: a roof's own closed body without a layer set
+def roof_doc(*, up: float = 65.0, plan: float = 60.0, volume: float = 13.0, faces: bool = True) -> dict:
+    """An IfcRoof with its own closed Brep (S09's main roof) and one material: no thickness, no area before A-15."""
+    geo = {"hasBody": True, "closed": True, "watertight": True, "volume": volume, "surfaceArea": 2 * up + 6.4,
+           "bboxMin": [0.0, 0.0, 0.0], "bboxMax": [10.0, 6.0, 1.4], "obbExtents": [10.4, 6.0, 1.4],
+           "obbAxes": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+           "contacts": [], "representationTypes": ["Brep"]}
+    if faces:
+        geo["upFaces"] = {"area": up, "plan": plan}
+    el = {"id": "roof-1", "ifcClass": "IfcRoof", "ifcClassBase": "IfcRoof", "name": "Basic Roof:Test",
+          "objectType": "Test roof", "predefinedType": None, "typeId": None, "storeyId": "storey-1",
+          "attributes": {}, "psets": {}, "typePsets": {}, "childIds": [], "classificationIds": [],
+          "materialRef": {"kind": "single", "materialId": "m-1"},
+          "quantities": {"reported": {}, "geometry": geo}}
+    d = doc(el)
+    d["catalogues"]["layerSets"] = []
+    return d
+
+
+def roof_area(parsed: dict, **params) -> float | None:
+    from ifc_boq.pipeline import get_boq
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled",
+          "params": {k: {"value": v} for k, v in params.items()}}
+    _, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    (line,) = [l for l in r["lines"] if l["ruleId"] == "roofs"]
+    return line["quantity"]
+
+
+def test_a_roof_without_layers_is_measured_by_its_faces_looking_up():
+    """CAS-018: S09's main roof (closed Brep, plain material) had no area. Its faces looking up give the
+    developed area, their projection the plan area, and volume / area the thickness."""
+    m, _ = measure(roof_doc())
+    r = m["roof-1"]
+    assert r["net_area"] == pytest.approx(65.0) and r["provenance"]["net_area"] == "geometry"
+    assert r["developed_area"] == pytest.approx(65.0) and r["footprint_area"] == pytest.approx(60.0)
+    assert r["thickness"] == pytest.approx(13.0 / 65.0) and r["provenance"]["thickness"] == "geometry"
+    assert roof_area(roof_doc()) == pytest.approx(65.0)
+    assert roof_area(roof_doc(), roof_surface="footprint") == pytest.approx(60.0)
+
+
+def test_a_parse_without_up_faces_still_flags_the_roof():
+    assert roof_area(roof_doc(faces=False)) is None

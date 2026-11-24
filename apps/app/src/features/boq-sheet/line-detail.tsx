@@ -255,13 +255,18 @@ export function LineDetailBody({
                   <p>{line.location?.storey ?? line.location?.storeys?.join(", ")}</p>
                 </Section>
               )}
-              {line.notes.length > 0 && (
+              {(line.notes.length > 0 || (line.quantity === null && line.source === "flagged")) && (
                 <Section title={t("notes")}>
-                  <ul className="list-disc pl-4">
-                    {line.notes.map((n, i) => (
-                      <li key={i}>{n}</li>
-                    ))}
-                  </ul>
+                  {line.quantity === null && line.source === "flagged" && (
+                    <p className="mb-1" data-testid="detail-empty-hint">{t("emptyHint")}</p>
+                  )}
+                  {line.notes.length > 0 && (
+                    <ul className="list-disc pl-4">
+                      {line.notes.map((n, i) => (
+                        <li key={i}>{n}</li>
+                      ))}
+                    </ul>
+                  )}
                 </Section>
               )}
               {line.tags.length > 0 && (

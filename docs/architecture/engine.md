@@ -100,7 +100,8 @@ for each room solid whose surface lies on a side within 0.1 m and faces it, the 
 room's triangles clipped to the element's extent (`contacts`). Room solids get floor, ceiling and wall
 areas, floor outline perimeter and height (`room`). Footings get the area of their faces standing up and the part of it
 against or inside another closed footing, wall, slab, column, pile or beam (`verticalFaces`: points on a fixed
-lattice 0.2 m apart, 2 cm outside the face, tested by winding number). Geometry only; decisions are in measure.
+lattice 0.2 m apart, 2 cm outside the face, tested by winding number). Roofs with a closed body get the true and plan
+area of their faces looking up (`upFaces`, normal z > 0.05). Geometry only; decisions are in measure.
 
 The mesh measurements live in `geometry.py` (room surfaces, element sides, side contacts, shared
 volume), so federation can run the same code across files. Every mesh is also saved, in world
@@ -139,6 +140,7 @@ still need checking against a real ArchiCAD export).
 | gross area / volume | net + the openings hosted by the element | Gives rules both starting points |
 | length | reported, else the oriented box: columns and piles along the most vertical axis, other linear elements the longest extent, others the longest horizontal extent | World axes measured rotated girders 12% short and gave columns a plan width |
 | vertical face area | footings: the faces standing up less the part against another solid (parse `verticalFaces`), else 2 x (length + width) x height | Formwork to footings was 2 x length x height: S04 ring footing 3.72 vs 15.15 m2, strip ends omitted (A-10) |
+| roof without layers | an IfcRoof with its own closed body and no layer set: area = the true area of the faces looking up (parse `upFaces`), footprint = their plan projection, thickness = volume / area | S09's main roof (closed Brep, plain material) had no area at all (CAS-018, A-15) |
 | perimeter | reported, else for a closed slab-like prism P = (S - 2V/t) / t (includes opening edges) | Slab edge formwork had no perimeter outside Revit |
 | perimeter outer / openings | `perimeter_openings` = 2 x (width + height) of each opening through the element (plan size; recesses left out), `perimeter_outer` = perimeter less that; a reported `Perimeter` (exporter-dependent) is taken as the total, noted; a perimeter not longer than its openings' edges is taken as the outer edge | The edge formwork choices "outer edge" and "outer edge and the edges of openings" both used the total, so the second counted the openings twice (A-13) |
 | aggregates | an element without its own body (IfcRoof made of slabs, IfcElementAssembly) takes the sum of its parts' adopted volumes (only if every part with a body has one) and of its planar parts' areas, nested assemblies bottom up | The certification roof had no geometry of its own |

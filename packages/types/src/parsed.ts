@@ -221,6 +221,12 @@ export interface GeometryInfo {
    * face). Formwork goes on `area - contact` (A-10). Absent in parses made before it: measure falls back.
    */
   verticalFaces?: { area: number; contact: number };
+  /**
+   * Roofs with a closed body of their own: the true area of the faces looking up (normal z > 0.05, also
+   * pitched) and its plan projection, m2. The roof's area when it has no layer set (A-15). Absent in
+   * parses made before it.
+   */
+  upFaces?: { area: number; plan: number };
   /** Where a room's surface lies on a side of this element: contact area per space (m2). */
   contacts?: { spaceId: string; side: "a" | "b"; area: number }[];
   /** Solids this element shares volume with (m3), from the overlap check (columns through slabs,

@@ -56,6 +56,7 @@ ARCH_CLASSES = ("IfcDoor", "IfcWindow", "IfcCovering", "IfcFurnishingElement", "
 INFRA_FACILITIES = ("IfcBridge", "IfcRoad", "IfcRailway", "IfcMarineFacility")
 FACE_CLASSES = ("IfcWall", "IfcSlab", "IfcCovering", "IfcPlate")   # elements whose two sides are measured
 VERTICAL_FACE_CLASSES = ("IfcFooting",)                             # elements whose faces standing up are measured
+UP_FACE_CLASSES = ("IfcRoof",)                                      # elements whose faces looking up are measured
 # solids a footing's side can lie against (any material: the parser does not resolve materials)
 CONTACT_CLASSES = ("IfcFooting", "IfcWall", "IfcSlab", "IfcColumn", "IfcPile", "IfcBeam")
 SPATIAL_KIND = {"IfcProject": "project", "IfcSite": "site", "IfcBuilding": "building",
@@ -905,6 +906,13 @@ class Parser:
             near = [o for i, o in solids if i != e["id"] and np.all(o.bounds[1] >= lo) and np.all(o.bounds[0] <= hi)]
             vf = geometry.vertical_faces(m, near)
             g["verticalFaces"] = {"area": r6(vf["area"]), "contact": r6(vf["contact"])}
+        # roofs with a body of their own: the faces looking up (their area when there is no layer set, A-15)
+        for e in elements:
+            g = e["quantities"]["geometry"]
+            if e["ifcClassBase"] not in UP_FACE_CLASSES or e["id"] not in self.meshes or not g.get("closed"):
+                continue
+            up = geometry.up_faces(self.meshes[e["id"]])
+            g["upFaces"] = {"area": r6(up["area"]), "plan": r6(up["plan"])}
 
     # ----- verification -----
     def verify(self, elements, materials, openings):

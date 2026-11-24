@@ -515,6 +515,23 @@
           "additionalProperties": false,
           "description": "Footings: area of the mesh faces standing up (|normal z| < 0.1: sides and ends) and the part of it against or inside another closed footing, wall, slab, column, pile or beam (sampled 2 cm outside the face). Formwork goes on `area - contact` (A-10). Absent in parses made before it: measure falls back."
         },
+        "upFaces": {
+          "type": "object",
+          "properties": {
+            "area": {
+              "type": "number"
+            },
+            "plan": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "area",
+            "plan"
+          ],
+          "additionalProperties": false,
+          "description": "Roofs with a closed body of their own: the true area of the faces looking up (normal z > 0.05, also pitched) and its plan projection, m2. The roof's area when it has no layer set (A-15). Absent in parses made before it."
+        },
         "contacts": {
           "type": "array",
           "items": {

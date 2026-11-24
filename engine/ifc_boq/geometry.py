@@ -25,6 +25,7 @@ import trimesh
 CONTACT_TOL = 0.1    # m: a room surface this close to an element face, and facing it, lies on it
 SHARED_MIN = 1e-3    # m3: solids sharing less than this only touch
 VERTICAL_NZ = 0.1    # a face whose normal has |z| below this stands up (footing sides and ends)
+UP_NZ = 0.05         # a face whose normal has z above this looks up (a roof's top, also when pitched)
 CONTACT_OUT = 0.02   # m: a vertical face is in contact where a point this far outside it is in another solid
 VERTICAL_CELL = 0.2  # m: spacing of the sample points on a vertical face (contact test)
 VERTICAL_K = 40      # at most 40 x 40 sample triangles per mesh triangle
@@ -134,6 +135,15 @@ def vertical_faces(m: trimesh.Trimesh, others: list[trimesh.Trimesh]) -> dict:
         if near.any():
             inside[near] = points_inside(o, probe[near])
     return {"area": area, "contact": float(min(area, part[inside].sum()))}
+
+
+def up_faces(m: trimesh.Trimesh) -> dict:
+    """{area, plan}: the true area of the faces looking up (normal z > UP_NZ, a roof's weathering
+    surface, pitched or flat) and their plan projection (A-15: a roof with its own body and no layer set)."""
+    sel = m.face_normals[:, 2] > UP_NZ
+    area = float(m.area_faces[sel].sum())
+    plan = float((m.area_faces[sel] * m.face_normals[sel, 2]).sum())
+    return {"area": area, "plan": plan}
 
 
 def points_inside(m: trimesh.Trimesh, pts: np.ndarray, chunk: int = 2_000_000) -> np.ndarray:
