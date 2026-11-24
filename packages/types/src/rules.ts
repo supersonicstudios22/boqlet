@@ -454,6 +454,11 @@ export interface RuleSetMeta {
   description?: string;
   /** Set by the engine on flattened snapshots: "as-modelled -> demo-tweaked". */
   chain?: string;
+  /**
+   * Set by the engine on flattened snapshots, for people: each level's name and version, the rule set first:
+   * "Petra rules v3 → As modelled v1" (review A-34; `chain` holds ids, which can be `version-<uuid>`).
+   */
+  chainLabel?: string;
 }
 
 /**

@@ -401,8 +401,11 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             lines=len(out_lines), flagged=flagged, questions=len(questions), blocking=len(blocking),
             status=status,
         ))
-    ruleset_snapshot = {k: v for k, v in flat.items() if k != "chain"}
-    ruleset_snapshot["meta"] = {**ruleset_snapshot.get("meta", {}), "chain": " -> ".join(flat["chain"])}
+    ruleset_snapshot = {k: v for k, v in flat.items() if k not in ("chain", "chain_labels")}
+    labels = flat.get("chain_labels") or flat["chain"]
+    ruleset_snapshot["meta"] = {**ruleset_snapshot.get("meta", {}), "chain": " -> ".join(flat["chain"]),
+                                # for people: names and versions, the rule set first (review A-34)
+                                "chainLabel": " \u2192 ".join(reversed(labels))}
     return {
         "status": status,
         "log": log.entries,

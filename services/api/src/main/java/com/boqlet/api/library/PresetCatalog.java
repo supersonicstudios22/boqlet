@@ -113,7 +113,9 @@ public class PresetCatalog {
     }
 
     public Rules rules(Version version) {
-        return rules(version.doc(), version.parent());
+        ObjectNode doc = version.doc().deepCopy();
+        if (version.number() != null) doc.put("version", Integer.toString(version.number()));   // "v3" in labels (A-34)
+        return rules(doc, version.parent());
     }
 
     public Rules rules(ObjectNode source, UUID parentId) {
@@ -127,6 +129,8 @@ public class PresetCatalog {
             ObjectNode doc = parent.doc().deepCopy();
             String id = "version-" + parent.id();
             doc.put("id", id);
+            // the published number, so a chain reads "Petra rules v3 → As modelled v1", never the id (review A-34)
+            if (parent.number() != null) doc.put("version", Integer.toString(parent.number()));
             child.put("extends", id);
             library.add(doc);
             child = doc;

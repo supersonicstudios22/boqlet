@@ -168,7 +168,8 @@ def export(result: dict, meta: dict) -> bytes:
     title = meta.get("boq") or meta.get("modelName", "")
     ws["A1"] = f"Bill of Quantities - {title}" + (f" ({label})" if label else "") + (" (WORKING)" if working else "")
     ws["A1"].font = TITLE
-    ws["A2"] = (f"Rules: {result['ruleSet']['name']} ({result['ruleSet']['meta'].get('chain', result['ruleSet']['id'])})  |  "
+    rule_meta = result["ruleSet"].get("meta") or {}
+    ws["A2"] = (f"Rules: {rule_meta.get('chainLabel') or result['ruleSet']['name']}  |  "
                 f"Grouping: {systems[0]['name'] if systems else 'none'}  |  Status: {result['status']}  |  "
                 f"Generated {meta.get('generatedAt', datetime.now().isoformat(timespec='seconds'))}")
     ws["A2"].font = SMALL
@@ -375,7 +376,7 @@ def export(result: dict, meta: dict) -> bytes:
     wi["A1"].font = TITLE
     rs = result["ruleSet"]
     info = [("Model", meta.get("modelName")), ("Model id (sha256)", meta.get("modelId")),
-            ("Rule set", f"{rs['name']} ({rs['id']} v{rs['version']})"), ("Rule set chain", rs["meta"].get("chain")),
+            ("Rule set", f"{rs['name']} ({rs['id']} v{rs['version']})"), ("Rule set chain", rs["meta"].get("chainLabel") or rs["meta"].get("chain")),
             ("Dictionaries", ", ".join(meta.get("dictionaries", []))),
             ("Classifications", ", ".join(s["name"] for s in systems)),
             ("Decisions applied", result["stats"]["decisionsApplied"]),

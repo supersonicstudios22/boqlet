@@ -35,6 +35,13 @@ MIXABLE = ("material", "element_type", "storey", "storey_elevation", "predefined
 
 
 # ============================================================================ rule sets
+def chain_label(doc: dict) -> str:
+    """How a rule set is named in a chain (review A-34): its name and version, never an id (the API gives a parent
+    version the id `version-<uuid>`)."""
+    name = doc.get("name") or doc.get("id")
+    return f"{name} v{doc['version']}" if doc.get("version") else str(name)
+
+
 def flatten(target: dict, library: dict[str, dict]) -> dict:
     """params merge by name; sections merge by id; items / derived / manual override by id; `remove` drops ids."""
     if "extends" not in target:
@@ -42,6 +49,7 @@ def flatten(target: dict, library: dict[str, dict]) -> dict:
         out.setdefault("derived", [])
         out.setdefault("manual", [])
         out["chain"] = [target["id"]]
+        out["chain_labels"] = [chain_label(target)]
         return out
     if target["extends"] not in library:
         raise ValueError(f"Rule set '{target['id']}' extends unknown rule set '{target['extends']}'")
@@ -69,6 +77,7 @@ def flatten(target: dict, library: dict[str, dict]) -> dict:
     if target.get("defaults"):
         base["defaults"] = {**base.get("defaults", {}), **target["defaults"]}
     base["chain"] = base["chain"] + [target["id"]]
+    base["chain_labels"] = base.get("chain_labels", []) + [chain_label(target)]
     base.pop("extends", None)
     base.pop("remove", None)
     return base

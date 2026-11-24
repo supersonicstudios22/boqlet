@@ -145,3 +145,25 @@ def test_user_text_that_starts_with_an_equals_sign_is_never_a_formula(duplex_par
     assert formulas and all(v.startswith(("=IF(OR(D", "=SUBTOTAL(9,")) for _, _, v in formulas), [f for f in formulas if not f[2].startswith(("=IF(OR(D", "=SUBTOTAL(9,"))]
     texts = {cell.value for sheet in book for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str)}
     assert evil in texts and "=8+8" in texts
+
+
+def test_the_rule_chain_reads_names_and_versions_never_a_version_id(duplex_parsed):
+    """Review A-34 (VER-007): BoQ!A2 read "Rules: Petra Design Studio rules (version-9d493c18-... -> petra-...)": the API
+    gives each parent version the id `version-<uuid>`, and the chain was built from ids."""
+    import copy
+
+    from ifc_boq import presets
+    from ifc_boq.pipeline import get_boq
+    base, _ = presets.load_rule_set("as-modelled")
+    parent = {**copy.deepcopy(base), "id": "version-9d493c18-0000-4000-8000-000000000000", "version": "1"}
+    mine = {"schemaVersion": "1.0", "id": "petra-rules", "name": "Petra rules", "version": "3", "extends": parent["id"],
+            "meta": {}, "params": {}}
+    result = get_boq(copy.deepcopy(duplex_parsed), mine, [], [presets.load_dictionary("global-seed")], presets.resolution(),
+                     [], {parent["id"]: parent})
+    want = f"Petra rules v3 → {base['name']} v1"
+    assert result["ruleSet"]["meta"]["chainLabel"] == want
+    book = load_workbook(BytesIO(export(result, {"boq": "Duplex"})))
+    a2 = book["BoQ"]["A2"].value
+    assert a2.startswith(f"Rules: {want}  |") and "version-" not in a2
+    inputs = {row[0].value: row[1].value for row in book["Inputs"].iter_rows(min_row=2) if row[0].value}
+    assert inputs["Rule set chain"] == want
