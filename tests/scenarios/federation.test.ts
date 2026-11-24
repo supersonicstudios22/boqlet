@@ -81,6 +81,7 @@ describe("v1 criterion 2: federation through the API", () => {
 describe("copies of one GlobalId that disagree (review A-18)", () => {
   const WALL = "37GxndZsXCwBzM0QrdRDLo";
   let api: ReturnType<typeof client>;
+  let user: TestUser;
   let projectId: string;
   let revisionId: string;
   const wallModel = async (runId: string) => {
@@ -90,9 +91,12 @@ describe("copies of one GlobalId that disagree (review A-18)", () => {
   };
 
   beforeAll(async () => {
-    api = client(owner.token);
-    const { data: orgs } = await api.GET("/orgs");
-    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: orgs![0]!.id } }, body: { name: "Two copies" } });
+    // its own account and org: a plan's project limit applies per org
+    user = await signUp("Federation copies", uniqueEmail("federation-copies"));
+    api = client(user.token);
+    const { data: org } = await api.POST("/orgs", { body: { name: "Federation copies", slug: slug("fed-copies") } });
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Two copies" } });
+    expect(project, "project created").toBeDefined();
     projectId = project!.id;
     const text = await readFile(path.join(SAMPLES, "Building-Structural.ifc"), "utf8");
     // the inner wall's own type (IfcWallType 3sv$5PJEr5hP_mSgN$A$GJ, used by no other wall) gets another name
@@ -100,8 +104,8 @@ describe("copies of one GlobalId that disagree (review A-18)", () => {
     expect(renamed).not.toBe(text);
     for (const [name, discipline, body] of [["Structure", "structure", text], ["Architecture", "architecture", renamed]] as const) {
       const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId } }, body: { name, discipline } });
-      const version = await uploadVersion(owner, model!.id, new TextEncoder().encode(body), `${name}.ifc`);
-      expect((await waitForVersion(owner, version.id)).status).toBe("ready");
+      const version = await uploadVersion(user, model!.id, new TextEncoder().encode(body), `${name}.ifc`);
+      expect((await waitForVersion(user, version.id)).status).toBe("ready");
     }
     const { data: boq } = await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "Copies", inputs: {} } });
     revisionId = boq!.currentRevision.id;
@@ -138,13 +142,17 @@ describe("copies of one GlobalId that disagree (review A-18)", () => {
 describe("an overlap between models blocks (review A-19)", () => {
   const QUESTION = "overlap:architecture|structure:IfcBeam";
   let api: ReturnType<typeof client>;
+  let user: TestUser;
   let projectId: string;
   let revisionId: string;
 
   beforeAll(async () => {
-    api = client(owner.token);
-    const { data: orgs } = await api.GET("/orgs");
-    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: orgs![0]!.id } }, body: { name: "Overlap" } });
+    // its own account and org: a plan's project limit applies per org
+    user = await signUp("Federation overlap", uniqueEmail("federation-overlap"));
+    api = client(user.token);
+    const { data: org } = await api.POST("/orgs", { body: { name: "Federation overlap", slug: slug("fed-overlap") } });
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org!.id } }, body: { name: "Overlap" } });
+    expect(project, "project created").toBeDefined();
     projectId = project!.id;
     const text = await readFile(path.join(SAMPLES, "Building-Structural.ifc"), "utf8");
     // every rooted entity under a new GlobalId (as if another discipline modelled the same objects)
@@ -156,8 +164,8 @@ describe("an overlap between models blocks (review A-19)", () => {
     ];
     for (const { name, discipline, body, scope } of models) {
       const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId } }, body: { name, discipline, ...(scope ? { scope } : {}) } });
-      const version = await uploadVersion(owner, model!.id, new TextEncoder().encode(body), `${name}.ifc`);
-      expect((await waitForVersion(owner, version.id)).status).toBe("ready");
+      const version = await uploadVersion(user, model!.id, new TextEncoder().encode(body), `${name}.ifc`);
+      expect((await waitForVersion(user, version.id)).status).toBe("ready");
     }
     const { data: boq } = await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "Overlap", inputs: {} } });
     revisionId = boq!.currentRevision.id;
