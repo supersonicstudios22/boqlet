@@ -1,5 +1,903 @@
 [
  {
+  "id": "duplicate_conflict:0NWseyvsH7_gBW225aGtZP",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtZP"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "Insitu Concrete",
+   "ifcClass": "IfcSlab",
+   "guid": "0NWseyvsH7_gBW225aGtZP",
+   "fields": [
+    "type",
+    "material",
+    "thickness",
+    "volume"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "Concrete-Domestic 425mm",
+     "material": "Concrete, Cast In Situ",
+     "thickness": 0.425,
+     "volume": 16.3455,
+     "area": 38.46,
+     "length": 6.41
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "Insitu Concrete",
+     "material": "Concrete - Rough",
+     "thickness": 0.55,
+     "volume": 21.153,
+     "area": 38.46,
+     "length": 6.41
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab 'Insitu Concrete' (0NWseyvsH7_gBW225aGtZP) is in 2 models under one GlobalId, and the copies differ in type, material, thickness, volume: architecture 'Concrete-Domestic 425mm', 'Concrete, Cast In Situ', 0.425 m, 16.346 m3; structure 'Insitu Concrete', 'Concrete - Rough', 0.55 m, 21.153 m3. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4iq$",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4iq$"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4iq$",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4iq$) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4ito",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4ito"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4ito",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4ito) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4it1",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4it1"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4it1",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4it1) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4isz",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4isz"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4isz",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4isz) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4isf",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4isf"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4isf",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4isf) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4isb",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4isb"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4isb",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4isb) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4ivo",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4ivo"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4ivo",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4ivo) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1bOeIks4fCNAuMrZZw4ivk",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1bOeIks4fCNAuMrZZw4ivk"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "600mm Diameter",
+   "ifcClass": "IfcSlab",
+   "guid": "1bOeIks4fCNAuMrZZw4ivk",
+   "fields": [
+    "material"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Metal - Steel - 345 MPa",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "600mm Diameter",
+     "material": "Concrete - Cast-in-Place Concrete",
+     "thickness": 6.002,
+     "volume": 0.424234,
+     "area": 0.070676,
+     "length": 0.296307
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab '600mm Diameter' (1bOeIks4fCNAuMrZZw4ivk) is in 2 models under one GlobalId, and the copies differ in material: architecture 'Metal - Steel - 345 MPa'; structure 'Concrete - Cast-in-Place Concrete'. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1cCK8nA61FduUezO75i8dB",
+  "kind": "duplicate_conflict",
+  "blocking": true,
+  "guids": [
+   "1cCK8nA61FduUezO75i8dB"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "Insitu Concrete 250mm",
+   "ifcClass": "IfcSlab",
+   "guid": "1cCK8nA61FduUezO75i8dB",
+   "fields": [
+    "type",
+    "material",
+    "thickness",
+    "volume"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcSlab",
+     "typeName": "Insitu Concrete 225mm",
+     "material": "Concrete, Cast In Situ",
+     "thickness": 0.225,
+     "volume": 15.767905,
+     "area": 70.079577,
+     "length": 24.41
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcSlab",
+     "typeName": "Insitu Concrete 250mm",
+     "material": "Concrete - Rough",
+     "thickness": 0.45,
+     "volume": 31.53327,
+     "area": 70.073933,
+     "length": 24.41
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcSlab 'Insitu Concrete 250mm' (1cCK8nA61FduUezO75i8dB) is in 2 models under one GlobalId, and the copies differ in type, material, thickness, volume: architecture 'Insitu Concrete 225mm', 'Concrete, Cast In Situ', 0.225 m, 15.768 m3; structure 'Insitu Concrete 250mm', 'Concrete - Rough', 0.45 m, 31.533 m3. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:0NWseyvsH7_gBW225aGtuD",
+  "kind": "duplicate_conflict",
+  "blocking": true,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtuD"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "CL_W1",
+   "ifcClass": "IfcWall",
+   "guid": "0NWseyvsH7_gBW225aGtuD",
+   "fields": [
+    "volume",
+    "area"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 6.801273,
+     "area": 24.291615,
+     "length": 9.908063
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 12.67058,
+     "area": 45.25207,
+     "length": 9.6281
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcWall 'CL_W1' (0NWseyvsH7_gBW225aGtuD) is in 2 models under one GlobalId, and the copies differ in volume, area: architecture 6.801 m3, 24.292 m2; structure 12.671 m3, 45.252 m2. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:0NWseyvsH7_gBW225aGtyM",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtyM"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "CL_W1",
+   "ifcClass": "IfcWall",
+   "guid": "0NWseyvsH7_gBW225aGtyM",
+   "fields": [
+    "type",
+    "material",
+    "volume",
+    "area",
+    "length"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcWall",
+     "typeName": "Foundation - 300mm Concrete",
+     "material": "Concrete, Cast In Situ",
+     "thickness": 0.3,
+     "volume": 9.061988,
+     "area": 30.853025000000002,
+     "length": 9.013898
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 10.045914,
+     "area": 37.949669,
+     "length": 8.05157
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcWall 'CL_W1' (0NWseyvsH7_gBW225aGtyM) is in 2 models under one GlobalId, and the copies differ in type, material, volume, area, length: architecture 'Foundation - 300mm Concrete', 'Concrete, Cast In Situ', 9.062 m3, 30.853 m2, 9.014 m; structure 'CL_W1', 'CL Concrete_ panels', 10.046 m3, 37.95 m2, 8.052 m. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1RUi90wQT3ihQ$96bMNGiu",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGiu"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "CL_W1",
+   "ifcClass": "IfcWall",
+   "guid": "1RUi90wQT3ihQ$96bMNGiu",
+   "fields": [
+    "volume",
+    "area"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 10.2522,
+     "area": 36.615,
+     "length": 24.41
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 8.20176,
+     "area": 29.292,
+     "length": 24.41
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcWall 'CL_W1' (1RUi90wQT3ihQ$96bMNGiu) is in 2 models under one GlobalId, and the copies differ in volume, area: architecture 10.252 m3, 36.615 m2; structure 8.202 m3, 29.292 m2. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1RUi90wQT3ihQ$96bMNGvH",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGvH"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "CL_W1",
+   "ifcClass": "IfcWall",
+   "guid": "1RUi90wQT3ihQ$96bMNGvH",
+   "fields": [
+    "volume",
+    "area"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 2.686892,
+     "area": 9.5960415,
+     "length": 6.503023
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 2.221753,
+     "area": 7.9348335,
+     "length": 6.718023
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcWall 'CL_W1' (1RUi90wQT3ihQ$96bMNGvH) is in 2 models under one GlobalId, and the copies differ in volume, area: architecture 2.687 m3, 9.596 m2; structure 2.222 m3, 7.935 m2. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "duplicate_conflict:1RUi90wQT3ihQ$96bMNGrh",
+  "kind": "duplicate_conflict",
+  "blocking": false,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGrh"
+  ],
+  "occurrences": 1,
+  "code": "question.duplicate_conflict",
+  "params": {
+   "name": "CL_W1",
+   "ifcClass": "IfcWall",
+   "guid": "1RUi90wQT3ihQ$96bMNGrh",
+   "fields": [
+    "length"
+   ],
+   "copies": [
+    {
+     "model": "architecture",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 7.7322,
+     "area": 27.615,
+     "length": 18.41
+    },
+    {
+     "model": "structure",
+     "ifcClass": "IfcWall",
+     "typeName": "CL_W1",
+     "material": "CL Concrete_ panels",
+     "thickness": 0.28,
+     "volume": 7.386288,
+     "area": 26.3796,
+     "length": 21.983
+    }
+   ],
+   "kept": "structure",
+   "count": 2
+  },
+  "message": "IfcWall 'CL_W1' (1RUi90wQT3ihQ$96bMNGrh) is in 2 models under one GlobalId, and the copies differ in length: architecture 18.41 m; structure 21.983 m. Which copy should be measured? Unanswered, the structure copy is used.",
+  "suggestion": "structure",
+  "answer": {
+   "kind": "choice",
+   "options": [
+    {
+     "value": "architecture",
+     "label": "Use the architecture copy",
+     "recommended": false
+    },
+    {
+     "value": "structure",
+     "label": "Use the structure copy",
+     "recommended": true
+    }
+   ]
+  }
+ },
+ {
   "id": "contradiction:area:IfcSlab:Pad 2",
   "kind": "contradiction",
   "blocking": true,

@@ -24,9 +24,9 @@
   "message": "expected string or bytes-like object"
  },
  "timing": {
-  "totalSeconds": 5.76
+  "totalSeconds": 6.01
  },
- "peakMemoryMB": 143.3,
+ "peakMemoryMB": 141.9,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

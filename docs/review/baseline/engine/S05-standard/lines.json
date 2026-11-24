@@ -204,42 +204,6 @@
   "elements": 1
  },
  {
-  "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
-  "unit": "m2",
-  "quantity": 157.67,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 8
- },
- {
-  "key": "wall-layers | wall.external | board.plasterboard | 0.016 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
-  "unit": "m2",
-  "quantity": 267.17,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | wall.external | insulation.rigid | 0.05 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "insulation.rigid, 50 mm (normal height)",
-  "unit": "m2",
-  "quantity": 267.17,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
   "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "masonry.block, 193 mm (normal height)",
@@ -267,30 +231,6 @@
   "key": "wall-layers | wall.external | masonry.brick | 0.092 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "masonry.brick, 92 mm (normal height)",
-  "unit": "m2",
-  "quantity": 267.17,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "metal.steel.stud, 41 mm (normal height)",
-  "unit": "m2",
-  "quantity": 157.67,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 8
- },
- {
-  "key": "wall-layers | wall.external | metal.steel.stud | 0.041 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "metal.steel.stud, 41 mm (normal height)",
   "unit": "m2",
   "quantity": 267.17,
   "source": "measured",
@@ -622,5 +562,65 @@
    "demo-trades": "06"
   },
   "elements": 8
+ },
+ {
+  "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 16 mm (normal height)",
+  "unit": "m2",
+  "quantity": 157.67,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 8
+ },
+ {
+  "key": "wall-layers | wall.external | board.plasterboard | 0.016 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 16 mm (normal height)",
+  "unit": "m2",
+  "quantity": 267.17,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | wall.external | insulation.rigid | 0.05 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "insulation.rigid, 50 mm (normal height)",
+  "unit": "m2",
+  "quantity": 267.17,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "metal.steel.stud, 41 mm (normal height)",
+  "unit": "m2",
+  "quantity": 157.67,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 8
+ },
+ {
+  "key": "wall-layers | wall.external | metal.steel.stud | 0.041 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "metal.steel.stud, 41 mm (normal height)",
+  "unit": "m2",
+  "quantity": 267.17,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 12
  }
 ]

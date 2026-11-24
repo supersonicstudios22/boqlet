@@ -60,54 +60,6 @@
   "elements": 6
  },
  {
-  "key": "walls | house - inner wall | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - inner wall, 200 mm",
-  "unit": "m2",
-  "quantity": 15.23,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | house - outer wall - house back | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house back, 200 mm",
-  "unit": "m2",
-  "quantity": 21.48,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | house - outer wall - house front right | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house front right, 200 mm",
-  "unit": "m2",
-  "quantity": 3.74,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | house - outer wall - house front | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house front, 200 mm",
-  "unit": "m2",
-  "quantity": 14.69,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
   "key": "other-components | IfcChimney | house - chimney |  | nr",
   "ruleId": "other-components",
   "description": "IfcChimney, house - chimney",
@@ -142,5 +94,53 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
+ },
+ {
+  "key": "walls | house - inner wall | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - inner wall, 200 mm",
+  "unit": "m2",
+  "quantity": 15.23,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house back | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house back, 200 mm",
+  "unit": "m2",
+  "quantity": 21.48,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house front right | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house front right, 200 mm",
+  "unit": "m2",
+  "quantity": 3.74,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house front | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house front, 200 mm",
+  "unit": "m2",
+  "quantity": 14.69,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
  }
 ]

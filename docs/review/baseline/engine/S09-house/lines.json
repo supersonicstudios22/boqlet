@@ -52,6 +52,19 @@
   "elements": 1
  },
  {
+  "key": "wall-layers | None | masonry.brick | 0.29 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "masonry.brick, 290 mm (normal height)",
+  "unit": "m2",
+  "quantity": 44.52,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "02"
+  },
+  "elements": 3
+ },
+ {
   "key": "wall-layers | None | finish.plaster | 0.0125 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "finish.plaster, 12.5 mm (normal height)",
@@ -65,19 +78,6 @@
   "elements": 4
  },
  {
-  "key": "wall-layers | None | masonry.brick | 0.29 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "masonry.brick, 290 mm (normal height)",
-  "unit": "m2",
-  "quantity": 44.52,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 3
- },
- {
   "key": "wall-layers | None | metal | 0.07 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "metal, 70 mm (normal height)",
@@ -86,7 +86,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 2
  },

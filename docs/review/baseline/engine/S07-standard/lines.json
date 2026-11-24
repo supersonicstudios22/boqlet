@@ -384,162 +384,6 @@
   "elements": 1
  },
  {
-  "key": "wall-layers | None | None | 0.22 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "-, 220 mm (normal height)",
-  "unit": "m2",
-  "quantity": 9.37,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 1
- },
- {
-  "key": "wall-layers | None | board.plasterboard | 0.013 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 13 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | board.plasterboard | 0.013 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 13 mm (normal height)",
-  "unit": "m2",
-  "quantity": 82.57,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | insulation | 0.112 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "insulation, 112 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | insulation | 0.112 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "insulation, 112 mm (normal height)",
-  "unit": "m2",
-  "quantity": 82.57,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | metal | 0.02 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "metal, 20 mm (normal height)",
-  "unit": "m2",
-  "quantity": 18.74,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 2
- },
- {
-  "key": "wall-layers | None | timber | 0.01 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 10 mm (normal height)",
-  "unit": "m2",
-  "quantity": 18.74,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 2
- },
- {
-  "key": "wall-layers | None | timber | 0.015 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 15 mm (above limit)",
-  "unit": "m2",
-  "quantity": 397.17,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | None | timber | 0.015 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 15 mm (normal height)",
-  "unit": "m2",
-  "quantity": 165.14,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | None | timber | 0.022 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 22 mm (above limit)",
-  "unit": "m2",
-  "quantity": 125.34,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 3
- },
- {
-  "key": "wall-layers | None | timber | 0.022 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 22 mm (normal height)",
-  "unit": "m2",
-  "quantity": 37.55,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 5
- },
- {
-  "key": "wall-layers | None | timber | 0.025 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 25 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | timber | 0.025 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 25 mm (normal height)",
-  "unit": "m2",
-  "quantity": 82.57,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
   "key": "paint-walls | m2",
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
@@ -850,5 +694,161 @@
    "demo-trades": "99"
   },
   "elements": 10
+ },
+ {
+  "key": "wall-layers | None | None | 0.22 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "-, 220 mm (normal height)",
+  "unit": "m2",
+  "quantity": 9.37,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "wall-layers | None | board.plasterboard | 0.013 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 13 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | board.plasterboard | 0.013 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 13 mm (normal height)",
+  "unit": "m2",
+  "quantity": 82.57,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | insulation | 0.112 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "insulation, 112 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | insulation | 0.112 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "insulation, 112 mm (normal height)",
+  "unit": "m2",
+  "quantity": 82.57,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | metal | 0.02 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "metal, 20 mm (normal height)",
+  "unit": "m2",
+  "quantity": 18.74,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 2
+ },
+ {
+  "key": "wall-layers | None | timber | 0.01 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 10 mm (normal height)",
+  "unit": "m2",
+  "quantity": 18.74,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 2
+ },
+ {
+  "key": "wall-layers | None | timber | 0.015 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 15 mm (above limit)",
+  "unit": "m2",
+  "quantity": 397.17,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | None | timber | 0.015 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 15 mm (normal height)",
+  "unit": "m2",
+  "quantity": 165.14,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | None | timber | 0.022 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 22 mm (above limit)",
+  "unit": "m2",
+  "quantity": 125.34,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 3
+ },
+ {
+  "key": "wall-layers | None | timber | 0.022 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 22 mm (normal height)",
+  "unit": "m2",
+  "quantity": 37.55,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 5
+ },
+ {
+  "key": "wall-layers | None | timber | 0.025 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 25 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | timber | 0.025 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 25 mm (normal height)",
+  "unit": "m2",
+  "quantity": 82.57,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 6
  }
 ]

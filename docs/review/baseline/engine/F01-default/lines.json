@@ -24,18 +24,6 @@
   "elements": 0
  },
  {
-  "key": "walls | Foundation - 300mm Concrete | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Foundation - 300mm Concrete, 300 mm",
-  "unit": "m2",
-  "quantity": 30.85,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.01"
-  },
-  "elements": 1
- },
- {
   "key": "footings | Bearing Footing - 900 x 300 |  | m3",
   "ruleId": "footings",
   "description": "Concrete foundation, Bearing Footing - 900 x 300",
@@ -60,18 +48,6 @@
   "elements": 2
  },
  {
-  "key": "slabs | Insitu Concrete 225mm |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Insitu Concrete 225mm",
-  "unit": "m2",
-  "quantity": 96.25,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02"
-  },
-  "elements": 2
- },
- {
   "key": "slabs | Timber Suspended Floor |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Timber Suspended Floor",
@@ -82,30 +58,6 @@
    "acme-cost-codes": "B.02"
   },
   "elements": 1
- },
- {
-  "key": "slab-concrete | Insitu Concrete 225mm |  | m3",
-  "ruleId": "slab-concrete",
-  "description": "In-situ concrete, Insitu Concrete 225mm",
-  "unit": "m3",
-  "quantity": 16.84,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02"
-  },
-  "elements": 2
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 14.31,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "B.03"
-  },
-  "elements": 2
  },
  {
   "key": "formwork-footings | footings | Bearing Footing - 900 x 300 |  | m3 | m2",
@@ -252,6 +204,30 @@
   "elements": 4
  },
  {
+  "key": "slab-concrete | Insitu Concrete 225mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 225mm",
+  "unit": "m3",
+  "quantity": 4.58,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | Insitu Concrete 250mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 250mm",
+  "unit": "m3",
+  "quantity": 17.52,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02"
+  },
+  "elements": 2
+ },
+ {
   "key": "rebar | None |  | t",
   "ruleId": "rebar",
   "description": "Reinforcement, dia - mm",
@@ -268,7 +244,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 1244.36,
+  "quantity": 1297.16,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04"
@@ -286,6 +262,18 @@
    "acme-cost-codes": "C.04"
   },
   "elements": 11
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 5.0,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 1
  },
  {
   "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
@@ -322,6 +310,18 @@
    "acme-cost-codes": "C.04"
   },
   "elements": 17
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 13.29,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 2
  },
  {
   "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
@@ -460,12 +460,48 @@
   "ruleId": "walls",
   "description": "Wall, CL_W1, 280 mm",
   "unit": "m2",
-  "quantity": 398.24,
+  "quantity": 455.49,
   "source": "measured",
   "codes": {
-   "acme-cost-codes": "D.02"
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 11
+ },
+ {
+  "key": "walls | Retaining - 300mm Concrete | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Retaining - 300mm Concrete, 300 mm",
+  "unit": "m2",
+  "quantity": 193.08,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
   },
   "elements": 10
+ },
+ {
+  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+  "unit": "m2",
+  "quantity": 118.28,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "walls | Wall - Timber Clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 120.12,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 7
  },
  {
   "key": "walls | Cavity wall_sliders | False |  | m2",
@@ -502,54 +538,6 @@
    "acme-cost-codes": "D.02"
   },
   "elements": 14
- },
- {
-  "key": "walls | Retaining - 300mm Concrete | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Retaining - 300mm Concrete, 300 mm",
-  "unit": "m2",
-  "quantity": 193.08,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 10
- },
- {
-  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
-  "unit": "m2",
-  "quantity": 118.28,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 4
- },
- {
-  "key": "walls | Wall - Timber Clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 120.12,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 7
- },
- {
-  "key": "walls | Wall - Timber Clad | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 42.75,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
  },
  {
   "key": "curtain-walls | SH_Curtain wall |  | m2",
@@ -732,6 +720,30 @@
   "elements": 2
  },
  {
+  "key": "slabs | Insitu Concrete 225mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 225mm",
+  "unit": "m2",
+  "quantity": 26.17,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Insitu Concrete 250mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 250mm",
+  "unit": "m2",
+  "quantity": 70.07,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01"
+  },
+  "elements": 1
+ },
+ {
   "key": "slabs | Pad 2 |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Pad 2",
@@ -862,5 +874,17 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
+ },
+ {
+  "key": "walls | Wall - Timber Clad | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 42.75,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
  }
 ]

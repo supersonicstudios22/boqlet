@@ -20,10 +20,10 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S03": 0.17
+   "S03": 0.16
   },
   "runSeconds": 0.03,
-  "totalSeconds": 0.75
+  "totalSeconds": 0.67
  },
  "outcome": "result",
  "status": "needs_input",

@@ -104,32 +104,6 @@
   "elements": 1
  },
  {
-  "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "masonry.calcium_silicate, 200 mm (above limit)",
-  "unit": "m2",
-  "quantity": 27.51,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 2
- },
- {
-  "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "masonry.calcium_silicate, 200 mm (normal height)",
-  "unit": "m2",
-  "quantity": 8.93,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 1
- },
- {
   "key": "roofs | gable_roof |  |  | m2",
   "ruleId": "roofs",
   "description": "Roof, gable_roof",
@@ -180,5 +154,31 @@
    "demo-trades": "00"
   },
   "elements": 0
+ },
+ {
+  "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "masonry.calcium_silicate, 200 mm (above limit)",
+  "unit": "m2",
+  "quantity": 27.51,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99",
+   "demo-trades": "02"
+  },
+  "elements": 2
+ },
+ {
+  "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "masonry.calcium_silicate, 200 mm (normal height)",
+  "unit": "m2",
+  "quantity": 8.93,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99",
+   "demo-trades": "02"
+  },
+  "elements": 1
  }
 ]

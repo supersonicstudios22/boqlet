@@ -20,10 +20,10 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S07": 32.61
+   "S07": 35.46
   },
   "runSeconds": 0.15,
-  "totalSeconds": 33.9
+  "totalSeconds": 36.75
  },
  "outcome": "result",
  "status": "needs_input",
@@ -43,7 +43,7 @@
   "blockingQuestions": 65,
   "warnings": 16
  },
- "peakMemoryMB": 1605.1,
+ "peakMemoryMB": 1594.4,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

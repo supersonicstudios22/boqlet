@@ -60,18 +60,6 @@
   "elements": 3
  },
  {
-  "key": "walls | Wall-Partn_12P-70MStd-12P | False |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall-Partn_12P-70MStd-12P, 95 mm",
-  "unit": "m2",
-  "quantity": 19.84,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 2
- },
- {
   "key": "windows | Windows_Sgl_Plain | 1810x1210mm |  | m2",
   "ruleId": "windows",
   "description": "Window Windows_Sgl_Plain, 1810x1210mm",
@@ -118,6 +106,18 @@
    "demo-trades": "06"
   },
   "elements": 3
+ },
+ {
+  "key": "walls | Wall-Partn_12P-70MStd-12P | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall-Partn_12P-70MStd-12P, 95 mm",
+  "unit": "m2",
+  "quantity": 19.84,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 2
  },
  {
   "key": "curtain-walls | Curtain_Wall-Exterior_Glazing |  | m2",

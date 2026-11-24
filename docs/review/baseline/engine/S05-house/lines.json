@@ -255,7 +255,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.01",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 12
  },
@@ -268,7 +268,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.01",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 12
  },
@@ -307,7 +307,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.01",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 12
  },
@@ -320,7 +320,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 8
  },
@@ -411,7 +411,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 8
  },

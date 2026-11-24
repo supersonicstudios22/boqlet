@@ -60,18 +60,6 @@
   "elements": 3
  },
  {
-  "key": "wall-layers | None | metal | 0.07 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "metal, 70 mm (normal height)",
-  "unit": "m2",
-  "quantity": 19.85,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 2
- },
- {
   "key": "windows | Windows_Sgl_Plain | 1810x1210mm |  | m2",
   "ruleId": "windows",
   "description": "Window Windows_Sgl_Plain, 1810x1210mm",
@@ -166,5 +154,17 @@
    "demo-trades": "99"
   },
   "elements": 1
+ },
+ {
+  "key": "wall-layers | None | metal | 0.07 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "metal, 70 mm (normal height)",
+  "unit": "m2",
+  "quantity": 19.85,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 2
  }
 ]

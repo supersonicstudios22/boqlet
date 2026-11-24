@@ -240,54 +240,6 @@
   "elements": 1
  },
  {
-  "key": "walls | Cavity wall_sliders | False |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Cavity wall_sliders, 280 mm",
-  "unit": "m2",
-  "quantity": 10.12,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
-  "unit": "m2",
-  "quantity": 118.28,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 4
- },
- {
-  "key": "walls | Wall - Timber Clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 120.71,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 7
- },
- {
-  "key": "walls | Wall - Timber Clad | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 42.75,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "02"
-  },
-  "elements": 1
- },
- {
   "key": "walls | Interior - 165 Partition (1-hr) | False |  | m2",
   "ruleId": "walls",
   "description": "Wall, Interior - 165 Partition (1-hr), 165.1 mm",
@@ -464,6 +416,54 @@
   "source": "measured",
   "codes": {
    "demo-trades": "07"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | Cavity wall_sliders | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Cavity wall_sliders, 280 mm",
+  "unit": "m2",
+  "quantity": 10.12,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+  "unit": "m2",
+  "quantity": 118.28,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 4
+ },
+ {
+  "key": "walls | Wall - Timber Clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 120.71,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 7
+ },
+ {
+  "key": "walls | Wall - Timber Clad | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 42.75,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
   },
   "elements": 1
  },

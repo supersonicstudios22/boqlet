@@ -60,42 +60,6 @@
   "elements": 1
  },
  {
-  "key": "walls | house - outer wall - house left | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house left, 200 mm",
-  "unit": "m2",
-  "quantity": 21.15,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | house - outer wall - house right back | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house right back, 200 mm",
-  "unit": "m2",
-  "quantity": 8.93,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
-  "key": "walls | house - outer wall - house right front | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, house - outer wall - house right front, 200 mm",
-  "unit": "m2",
-  "quantity": 6.35,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
- },
- {
   "key": "walls | plumbing wall | None |  | m2",
   "ruleId": "walls",
   "description": "Wall, plumbing wall, 24 mm",
@@ -142,5 +106,41 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
+ },
+ {
+  "key": "walls | house - outer wall - house left | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house left, 200 mm",
+  "unit": "m2",
+  "quantity": 21.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house right back | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house right back, 200 mm",
+  "unit": "m2",
+  "quantity": 8.93,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "walls | house - outer wall - house right front | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, house - outer wall - house right front, 200 mm",
+  "unit": "m2",
+  "quantity": 6.35,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
  }
 ]

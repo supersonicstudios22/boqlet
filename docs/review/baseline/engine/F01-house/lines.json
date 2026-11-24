@@ -52,19 +52,6 @@
   "elements": 4
  },
  {
-  "key": "wall-layers | wall.foundation | concrete.in_situ | 0.3 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete.in_situ, 300 mm (normal height)",
-  "unit": "m2",
-  "quantity": 30.86,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.01",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "slabs | Generic 150mm |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Generic 150mm",
@@ -74,19 +61,6 @@
   "codes": {
    "acme-cost-codes": "B.02",
    "demo-trades": "99"
-  },
-  "elements": 2
- },
- {
-  "key": "slabs | Insitu Concrete 225mm |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Insitu Concrete 225mm",
-  "unit": "m2",
-  "quantity": 96.25,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02",
-   "demo-trades": "01"
   },
   "elements": 2
  },
@@ -102,45 +76,6 @@
    "demo-trades": "99"
   },
   "elements": 1
- },
- {
-  "key": "slab-concrete | Insitu Concrete 225mm |  | m3",
-  "ruleId": "slab-concrete",
-  "description": "In-situ concrete, Insitu Concrete 225mm",
-  "unit": "m3",
-  "quantity": 16.84,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02",
-   "demo-trades": "01"
-  },
-  "elements": 2
- },
- {
-  "key": "formwork-walls | wall-layers | wall.foundation | concrete.in_situ | 0.3 | normal height | m2 | m2",
-  "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
-  "unit": "m2",
-  "quantity": 64.81,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "B.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 15.02,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "B.03",
-   "demo-trades": "01"
-  },
-  "elements": 2
  },
  {
   "key": "formwork-footings | footings | Bearing Footing - 900 x 300 |  | m3 | m2",
@@ -299,6 +234,32 @@
   "elements": 4
  },
  {
+  "key": "slab-concrete | Insitu Concrete 225mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 225mm",
+  "unit": "m3",
+  "quantity": 4.58,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slab-concrete | Insitu Concrete 250mm |  | m3",
+  "ruleId": "slab-concrete",
+  "description": "In-situ concrete, Insitu Concrete 250mm",
+  "unit": "m3",
+  "quantity": 17.52,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "C.02",
+   "demo-trades": "01"
+  },
+  "elements": 2
+ },
+ {
   "key": "rebar | None |  | t",
   "ruleId": "rebar",
   "description": "Reinforcement, dia - mm",
@@ -329,7 +290,7 @@
   "ruleId": "rebar-estimate-slabs",
   "description": "Reinforcement to slabs (estimated)",
   "unit": "t",
-  "quantity": 1.68,
+  "quantity": 0.46,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.03",
@@ -369,6 +330,19 @@
   "description": "Reinforcement to slabs (estimated)",
   "unit": "t",
   "quantity": 0.72,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.03",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "rebar-estimate-slabs | slab-concrete | Insitu Concrete 250mm |  | m3 | t",
+  "ruleId": "rebar-estimate-slabs",
+  "description": "Reinforcement to slabs (estimated)",
+  "unit": "t",
+  "quantity": 1.75,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.03",
@@ -429,24 +403,11 @@
   "elements": 1
  },
  {
-  "key": "formwork-walls | wall-layers | None | concrete | 0.28 | above limit | m2 | m2",
-  "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
-  "unit": "m2",
-  "quantity": 418.05,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "formwork-walls | wall-layers | None | concrete | 0.28 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 418.3,
+  "quantity": 414.81,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04",
@@ -468,6 +429,19 @@
   "elements": 1
  },
  {
+  "key": "formwork-walls | wall-layers | None | concrete | 0.28 | above limit | m2 | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces",
+  "unit": "m2",
+  "quantity": 541.76,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
   "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
@@ -479,6 +453,19 @@
    "demo-trades": "01"
   },
   "elements": 11
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 5.25,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04",
+   "demo-trades": "01"
+  },
+  "elements": 1
  },
  {
   "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
@@ -518,6 +505,19 @@
    "demo-trades": "01"
   },
   "elements": 17
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs",
+  "unit": "m2",
+  "quantity": 13.96,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04",
+   "demo-trades": "01"
+  },
+  "elements": 2
  },
  {
   "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
@@ -663,6 +663,201 @@
   "elements": 2
  },
  {
+  "key": "wall-layers | None | board.plasterboard | 0.013 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 13 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | board.plasterboard | 0.013 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 13 mm (normal height)",
+  "unit": "m2",
+  "quantity": 83.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | concrete | 0.28 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "concrete, 280 mm (above limit)",
+  "unit": "m2",
+  "quantity": 257.98,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "wall-layers | None | concrete | 0.28 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "concrete, 280 mm (normal height)",
+  "unit": "m2",
+  "quantity": 197.53,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "01"
+  },
+  "elements": 7
+ },
+ {
+  "key": "wall-layers | None | concrete.in_situ | 0.3 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "concrete.in_situ, 300 mm (normal height)",
+  "unit": "m2",
+  "quantity": 193.09,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "01"
+  },
+  "elements": 10
+ },
+ {
+  "key": "wall-layers | None | concrete.screed | 0.022 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "concrete.screed, 22 mm (above limit)",
+  "unit": "m2",
+  "quantity": 73.26,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "01"
+  },
+  "elements": 3
+ },
+ {
+  "key": "wall-layers | None | concrete.screed | 0.022 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "concrete.screed, 22 mm (normal height)",
+  "unit": "m2",
+  "quantity": 45.03,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "wall-layers | None | insulation | 0.112 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "insulation, 112 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | insulation | 0.112 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "insulation, 112 mm (normal height)",
+  "unit": "m2",
+  "quantity": 83.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | timber | 0.015 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 15 mm (above limit)",
+  "unit": "m2",
+  "quantity": 397.17,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | None | timber | 0.015 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 15 mm (normal height)",
+  "unit": "m2",
+  "quantity": 166.3,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 12
+ },
+ {
+  "key": "wall-layers | None | timber | 0.022 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 22 mm (above limit)",
+  "unit": "m2",
+  "quantity": 125.34,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 3
+ },
+ {
+  "key": "wall-layers | None | timber | 0.022 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 22 mm (normal height)",
+  "unit": "m2",
+  "quantity": 38.13,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 5
+ },
+ {
+  "key": "wall-layers | None | timber | 0.025 | above limit | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 25 mm (above limit)",
+  "unit": "m2",
+  "quantity": 198.59,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
+  "key": "wall-layers | None | timber | 0.025 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "timber, 25 mm (normal height)",
+  "unit": "m2",
+  "quantity": 83.15,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01",
+   "demo-trades": "99"
+  },
+  "elements": 6
+ },
+ {
   "key": "wall-layers | None | None | 0.22 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "-, 220 mm (normal height)",
@@ -671,7 +866,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 1
  },
@@ -715,123 +910,6 @@
   "elements": 6
  },
  {
-  "key": "wall-layers | None | board.plasterboard | 0.013 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 13 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | board.plasterboard | 0.013 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 13 mm (normal height)",
-  "unit": "m2",
-  "quantity": 83.15,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | concrete | 0.28 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete, 280 mm (above limit)",
-  "unit": "m2",
-  "quantity": 199.07,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "01"
-  },
-  "elements": 3
- },
- {
-  "key": "wall-layers | None | concrete | 0.28 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete, 280 mm (normal height)",
-  "unit": "m2",
-  "quantity": 199.19,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "01"
-  },
-  "elements": 7
- },
- {
-  "key": "wall-layers | None | concrete.in_situ | 0.3 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete.in_situ, 300 mm (normal height)",
-  "unit": "m2",
-  "quantity": 193.09,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "01"
-  },
-  "elements": 10
- },
- {
-  "key": "wall-layers | None | concrete.screed | 0.022 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete.screed, 22 mm (above limit)",
-  "unit": "m2",
-  "quantity": 73.26,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "01"
-  },
-  "elements": 3
- },
- {
-  "key": "wall-layers | None | concrete.screed | 0.022 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "concrete.screed, 22 mm (normal height)",
-  "unit": "m2",
-  "quantity": 45.03,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "wall-layers | None | insulation | 0.112 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "insulation, 112 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | insulation | 0.112 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "insulation, 112 mm (normal height)",
-  "unit": "m2",
-  "quantity": 83.15,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
   "key": "wall-layers | None | metal | 0.02 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "metal, 20 mm (normal height)",
@@ -840,7 +918,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 2
  },
@@ -853,7 +931,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
-   "demo-trades": "02"
+   "demo-trades": "99"
   },
   "elements": 2
  },
@@ -895,84 +973,6 @@
    "demo-trades": "03"
   },
   "elements": 3
- },
- {
-  "key": "wall-layers | None | timber | 0.015 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 15 mm (above limit)",
-  "unit": "m2",
-  "quantity": 397.17,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | None | timber | 0.015 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 15 mm (normal height)",
-  "unit": "m2",
-  "quantity": 166.3,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 12
- },
- {
-  "key": "wall-layers | None | timber | 0.022 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 22 mm (above limit)",
-  "unit": "m2",
-  "quantity": 125.34,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 3
- },
- {
-  "key": "wall-layers | None | timber | 0.022 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 22 mm (normal height)",
-  "unit": "m2",
-  "quantity": 38.13,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 5
- },
- {
-  "key": "wall-layers | None | timber | 0.025 | above limit | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 25 mm (above limit)",
-  "unit": "m2",
-  "quantity": 198.59,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
- },
- {
-  "key": "wall-layers | None | timber | 0.025 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "timber, 25 mm (normal height)",
-  "unit": "m2",
-  "quantity": 83.15,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "02"
-  },
-  "elements": 6
  },
  {
   "key": "curtain-walls | SH_Curtain wall |  | m2",
@@ -1168,6 +1168,32 @@
    "demo-trades": "01"
   },
   "elements": 2
+ },
+ {
+  "key": "slabs | Insitu Concrete 225mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 225mm",
+  "unit": "m2",
+  "quantity": 26.17,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Insitu Concrete 250mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Insitu Concrete 250mm",
+  "unit": "m2",
+  "quantity": 70.07,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "G.01",
+   "demo-trades": "01"
+  },
+  "elements": 1
  },
  {
   "key": "slabs | Pad 2 |  | m2",

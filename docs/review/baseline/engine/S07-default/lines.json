@@ -247,9 +247,45 @@
   "quantity": 227.71,
   "source": "measured",
   "codes": {
-   "acme-cost-codes": "D.02"
+   "acme-cost-codes": "D.01"
   },
   "elements": 6
+ },
+ {
+  "key": "walls | Retaining - 300mm Concrete | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Retaining - 300mm Concrete, 300 mm",
+  "unit": "m2",
+  "quantity": 193.08,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 10
+ },
+ {
+  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+  "unit": "m2",
+  "quantity": 118.28,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 4
+ },
+ {
+  "key": "walls | Wall - Timber Clad | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 120.12,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 7
  },
  {
   "key": "walls | Cavity wall_sliders | False |  | m2",
@@ -286,54 +322,6 @@
    "acme-cost-codes": "D.02"
   },
   "elements": 14
- },
- {
-  "key": "walls | Retaining - 300mm Concrete | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Retaining - 300mm Concrete, 300 mm",
-  "unit": "m2",
-  "quantity": 193.08,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 10
- },
- {
-  "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
-  "unit": "m2",
-  "quantity": 118.28,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 4
- },
- {
-  "key": "walls | Wall - Timber Clad | True |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 120.12,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 7
- },
- {
-  "key": "walls | Wall - Timber Clad | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
-  "unit": "m2",
-  "quantity": 42.75,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 1
  },
  {
   "key": "curtain-walls | SH_Curtain wall |  | m2",
@@ -550,5 +538,17 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
+ },
+ {
+  "key": "walls | Wall - Timber Clad | None |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "unit": "m2",
+  "quantity": 42.75,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "Z.99"
+  },
+  "elements": 1
  }
 ]
