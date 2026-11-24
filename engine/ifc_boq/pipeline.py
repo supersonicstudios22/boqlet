@@ -218,7 +218,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
                 measure_questions[q["id"]] = q
     if progress:
         progress("federate", 55, "Combining models")
-    elements, model_reports, fed_questions, fed_warnings = combine(models, federation or {}, rv.expr, log, answers)
+    elements, model_reports, fed_questions, fed_warnings = combine(models, federation or {}, rv.expr, log, answers,
+                                                                   resolution=resolution)
     distinct = {}
     for r in resolutions:
         distinct.setdefault((r["field"], r["raw"]), {**r, "count": 0})["count"] += 1

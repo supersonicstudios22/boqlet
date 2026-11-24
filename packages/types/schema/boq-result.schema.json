@@ -208,6 +208,8 @@
         "log.classify.summary",
         "log.federation.models",
         "log.federation.duplicate",
+        "log.federation.duplicate_conflict",
+        "log.decision.duplicate_copy",
         "log.federation.scope",
         "log.federation.owner",
         "log.federation.aggregate_part",
@@ -2490,7 +2492,8 @@
         "classification_conflict",
         "orphan_override",
         "contradiction",
-        "overlap"
+        "overlap",
+        "duplicate_conflict"
       ]
     },
     "QuestionCode": {
@@ -2504,7 +2507,8 @@
         "question.missing_data",
         "question.orphan_override",
         "question.overlap",
-        "question.double_claim"
+        "question.double_claim",
+        "question.duplicate_conflict"
       ],
       "description": "Stable IDs for engine messages. The English fallback remains in each result."
     },

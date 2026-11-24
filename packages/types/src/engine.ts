@@ -227,7 +227,8 @@ export type QuestionKind =
   | "classification_conflict"
   | "orphan_override"        // a previously edited line no longer exists
   | "contradiction"           // file contradicts itself (reported vs geometry etc.)
-  | "overlap";
+  | "overlap"                 // federation: the same IFC class from two models in one place
+  | "duplicate_conflict";     // federation: copies of one GlobalId in several models disagree (review A-18)
 
 /** What kind of answer a question expects; drives the UI control. */
 export type AnswerType =

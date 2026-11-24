@@ -14,9 +14,13 @@ mesh sidecar, geometry.py)}, plus FederationSettings (engine.ts) and the answers
   2. coordinates  models whose elements do not overlap in space at all: a warning (shared
                   coordinates are assumed; there is no alignment step yet)
   3. same GUID    one object in several models is kept once: the copy with a measurable body,
-                  then the copy its model owns, then the first model. Parts of a dropped copy
-                  are measured on their own (a structural roof's timber girders under the
-                  architectural roof GUID)
+                  then the copy of the discipline that owns the object (judged on every copy),
+                  then the copy its model owns, then the first model. Copies that disagree in
+                  class, type, material, thickness or a quantity beyond the contradiction warn
+                  threshold raise a `duplicate_conflict` question per GlobalId (blocking beyond the
+                  block threshold); unanswered, that copy is used (review A-18). Parts of a
+                  dropped copy are measured on their own (a structural roof's timber girders
+                  under the architectural roof GUID)
   4. ownership    an element is taken from its model when the model's discipline owns it or
                   scope.include selects it; scope.exclude always drops it. An element its model
                   does not own is left to the owning model only if that model has an element of
@@ -49,8 +53,8 @@ from collections import Counter, defaultdict
 from . import geometry
 from .expr import fmt
 from .log import CalcLog
-from .measure import (PLANAR_VERTICAL, add_embedded, facing_openings, opening_record, roll_up_parts,
-                      keep_face_layers, set_room_openings, side_faces)
+from .measure import (PLANAR_VERTICAL, add_embedded, contradiction_thresholds, facing_openings, opening_record,
+                      roll_up_parts, keep_face_layers, set_room_openings, side_faces)
 from .rules import select
 
 PAD = 0.005          # m added to every box side, so flat or touching elements still compare
@@ -136,8 +140,88 @@ class _Index:
                 yield g, b
 
 
-def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict | None = None):
-    """Returns (elements, reports, questions, warnings)."""
+def owning_disciplines(settings: dict, copies: list[dict], x) -> set[str]:
+    """The listed (non-`rest`) disciplines that own an object, judged on every copy of it: a wall the
+    architectural copy calls load-bearing concrete is structure's, whatever the structural copy says."""
+    return {name for name, d in settings.get("disciplines", {}).items() if not d.get("rest")
+            and any(select(s, e, x) for s in d.get("owns", []) for e in copies)}
+
+
+def owner_rank(settings: dict, discipline: str, owners: set[str]) -> int:
+    """2: the model's discipline owns the object (judged on all copies); 1: `rest` or a discipline the
+    settings do not list (owns everything); 0: a listed discipline that does not own it."""
+    d = settings.get("disciplines", {}).get(discipline)
+    if discipline in owners:
+        return 2
+    return 1 if d is None or d.get("rest") else 0
+
+
+DUP_NAMES = (("ifc_class", "class"), ("type_name", "type"), ("material", "material"))
+DUP_QUANTITIES = (("thickness", "thickness"), ("net_volume", "volume"), ("net_area", "area"), ("length", "length"))
+
+
+def copy_differences(copies: list[dict], warn: float) -> tuple[list[str], float]:
+    """What copies of one GlobalId disagree on (review A-18): class, type, material when every copy that has
+    one differs, thickness and quantities by more than `warn` (larger / smaller - 1). Returns the fields and the
+    largest quantity spread. A value only one copy has (no body, no material) is not a disagreement. An
+    aggregate's quantities are the sum of its parts, which differ by discipline (the architectural roof's slabs,
+    the structural roof's girders) and are compared under their own GlobalIds, so aggregates compare names only."""
+    fields, spread = [], 0.0
+    for key, label in DUP_NAMES:
+        if len({e.get(key) for e in copies if e.get(key) is not None}) > 1:
+            fields.append(label)
+    if any(e.get("child_guids") for e in copies):
+        return fields, spread
+    for key, label in DUP_QUANTITIES:
+        vals = [abs(e[key]) for e in copies if isinstance(e.get(key), (int, float))]
+        if len(vals) < 2 or max(vals) <= 1e-9:
+            continue
+        s = max(vals) / min(vals) - 1 if min(vals) > 1e-9 else float("inf")
+        if s > warn:
+            fields.append(label)
+            spread = max(spread, s)
+    return fields, spread
+
+
+def duplicate_question(g: str, cs: list[tuple[dict, dict]], best: tuple[dict, dict], fields: list[str], blocking: bool,
+                       keys: dict[str, str]) -> dict:
+    """`duplicate_conflict:{guid}`: one object in several models whose copies disagree; the answer names the
+    model whose copy is measured. Suggestion: the copy kept unanswered (the owning discipline's)."""
+    e0 = best[1]
+    name = e0.get("type_name") or e0.get("name") or g
+    copies = [{"model": keys[m["id"]], "ifcClass": e["ifc_class"], "typeName": e.get("type_name"),
+               "material": e.get("material_raw") or e.get("material"), "thickness": e.get("thickness"),
+               "volume": e.get("net_volume"), "area": e.get("net_area"), "length": e.get("length")}
+              for m, e in sorted(cs, key=lambda me: keys[me[0]["id"]])]
+    shown = {"class": "ifcClass", "type": "typeName", "material": "material", "thickness": "thickness",
+             "volume": "volume", "area": "area", "length": "length"}
+    units = {"thickness": " m", "volume": " m3", "area": " m2", "length": " m"}
+
+    def text(c):
+        out = []
+        for f in fields:
+            v = c[shown[f]]
+            number = isinstance(v, (int, float)) and not isinstance(v, bool)
+            out.append("-" if v is None else f"{fmt(round(v, 3))}{units[f]}" if number else f"'{v}'")
+        return f"{c['model']} {', '.join(out)}"
+    kept = keys[best[0]["id"]]
+    msg = (f"{e0['ifc_class']} '{name}' ({g}) is in {len(cs)} models under one GlobalId, and the copies differ in "
+           f"{', '.join(fields)}: {'; '.join(text(c) for c in copies)}. Which copy should be measured? "
+           f"Unanswered, the {kept} copy is used.")
+    return {"id": f"duplicate_conflict:{g}", "kind": "duplicate_conflict", "blocking": blocking, "guids": [g],
+            "occurrences": 1, "code": "question.duplicate_conflict",
+            "params": {"name": name, "ifcClass": e0["ifc_class"], "guid": g, "fields": fields, "copies": copies,
+                       "kept": kept, "count": len(cs)},
+            "message": msg, "suggestion": kept,
+            "answer": {"kind": "choice", "options": [
+                {"value": c["model"], "label": f"Use the {c['model']} copy", "recommended": c["model"] == kept}
+                for c in copies]}}
+
+
+def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict | None = None,
+            resolution: dict | None = None):
+    """Returns (elements, reports, questions, warnings). `resolution`: the resolution settings, whose
+    contradiction thresholds also judge copies of one GlobalId that disagree."""
     answers = answers or {}
     questions: list[dict] = []
     warnings: list[dict] = []
@@ -163,14 +247,34 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
         for e in m["elements"]:
             copies[e["guid"]].append((m, e))
     keep_copy: dict[str, str] = {}             # guid -> model id kept
+    warn, block = contradiction_thresholds(resolution)
     for g, cs in copies.items():
         if len(cs) == 1:
             continue
+        owners = owning_disciplines(settings, [e for _, e in cs], x)
+
         def score(me):
             m, e = me
             body = any(e.get(k) is not None for k in ("net_volume", "net_area", "length")) or bool(e.get("child_guids"))
-            return (body, owned_by_discipline(settings, m["discipline"], e, x), -models.index(m))
+            return (body, owner_rank(settings, m["discipline"], owners), owned_by_discipline(settings, m["discipline"], e, x),
+                    -models.index(m))
         best = max(cs, key=score)
+        fields, spread = copy_differences([e for _, e in cs], warn)
+        if fields:
+            qid = f"duplicate_conflict:{g}"
+            ans = answers.get(qid)
+            chosen = next((me for me in cs if keys[me[0]["id"]] == ans), None)
+            if chosen is not None:
+                best = chosen
+                best[1]["decisions"] = [*(best[1].get("decisions") or ()), qid]    # named on the trace (A-06)
+                log.info("decision", f"{best[1].get('name') or g}: the copies differ ({', '.join(fields)}); the "
+                                     f"{ans} copy is used (answer)", guid=g,
+                    code="log.decision.duplicate_copy", params=dict(name=best[1].get('name') or g, model=ans, fields=fields))
+            else:
+                questions.append(duplicate_question(g, cs, best, fields, spread > block, keys))
+                log.warn("match", questions[-1]["message"], guid=g,
+                    code="log.federation.duplicate_conflict", params=dict(
+                        name=best[1].get('name') or g, fields=fields, kept=keys[best[0]["id"]], blocking=spread > block))
         keep_copy[g] = best[0]["id"]
         dropped = [m for m, _ in cs if m is not best[0]]
         for m in dropped:

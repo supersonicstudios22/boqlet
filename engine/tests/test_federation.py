@@ -202,3 +202,102 @@ def test_embedded_pairs_whose_boolean_fails_are_logged(monkeypatch):
     federation._embedded_across(taken, {"S", "C"}, {"S": arch, "C": struc}, log)
     entry = next(e for e in log.entries if e["code"] == "log.federation.embedded_failed")
     assert entry["level"] == "warning" and entry["params"]["count"] == 1 and entry["params"]["pairs"] == [["S", "C"]]
+
+
+# ------------------------------------------------------------------ same GlobalId copies that disagree (review A-18)
+
+def same_ids_copy(doc: dict, change) -> dict:
+    """The same model under the same GlobalIds, as another discipline exported it; `change(element)` edits it."""
+    out = json.loads(json.dumps(doc))
+    out["header"]["source"]["fileName"] = "arch-" + out["header"]["source"]["fileName"]
+    for e in out["elements"]:
+        change(e)
+    return out
+
+
+def test_identical_copies_raise_no_question():
+    struc = parsed("Structural")
+    r = run([{"id": "str", "parsed": struc, "discipline": "structure"},
+             {"id": "arch", "parsed": same_ids_copy(struc, lambda e: None), "discipline": "architecture"}])
+    assert not [q for q in r["questions"] if q["kind"] == "duplicate_conflict"]
+    assert totals(r) == totals(run(struc))
+
+
+def test_copies_that_disagree_raise_a_duplicate_conflict_question():
+    """The inner wall's architectural copy names another type: one non-blocking question per GlobalId, showing
+    both copies; unanswered the owning discipline's copy is used, answered the named copy is."""
+    struc = parsed("Structural")
+    wall = next(e for e in struc["elements"] if e["name"] == "house - inner wall")
+
+    def retype(e):
+        if e["id"] == wall["id"]:
+            e["typeId"], e["objectType"] = None, "Partition 100"
+    models = [{"id": "str", "parsed": struc, "discipline": "structure"},
+              {"id": "arch", "parsed": same_ids_copy(struc, retype), "discipline": "architecture"}]
+    r = run(models)
+    jsonschema.validate(json.loads(json.dumps(r)), json.loads((SCHEMAS / "boq-result.schema.json").read_text(encoding="utf-8")))
+    qs = [q for q in r["questions"] if q["kind"] == "duplicate_conflict"]
+    assert [q["id"] for q in qs] == [f"duplicate_conflict:{wall['id']}"]
+    q = qs[0]
+    assert q["blocking"] is False and q["params"]["fields"] == ["type"]
+    names = {c["model"]: c["typeName"] for c in q["params"]["copies"]}
+    assert names["architecture"] == "Partition 100" and names["structure"] not in (None, "Partition 100")
+    assert [o["value"] for o in q["answer"]["options"]] == ["architecture", "structure"]
+    used = q["suggestion"]
+    assert next(o for o in q["answer"]["options"] if o["recommended"])["value"] == used
+
+    def model_of_wall(result):
+        return {e["model"] for l in result["lines"] if l["ruleId"] == "walls" for e in l["trace"]["elements"]
+                if e["guid"] == wall["id"]}
+    assert model_of_wall(r) == {"str" if used == "structure" else "arch"}
+    other = "architecture" if used == "structure" else "structure"
+    r2 = run(models, [{"questionId": q["id"], "scope": "project", "answer": other}])
+    assert not [x for x in r2["questions"] if x["kind"] == "duplicate_conflict"]
+    assert model_of_wall(r2) == {"str" if other == "structure" else "arch"}
+    assert any(e["code"] == "log.decision.duplicate_copy" for e in r2["log"])
+    assert r2["stats"]["decisionsApplied"] == 1
+
+
+def _el(guid, **kw):
+    return {"guid": guid, "ifc_class": "IfcSlab", "ifc_class_raw": "IfcSlab", "family": "planar", "name": "Slab",
+            "type_name": "Slab 200", "material": "concrete", "material_raw": "Concrete", "thickness": 0.2,
+            "net_volume": 2.0, "net_area": 10.0, "length": 5.0, "child_guids": [], "parent_guid": None,
+            "load_bearing": None, "provenance": {}, "openings": [], **kw}
+
+
+def _combine(copies, answers=None):
+    from ifc_boq import federation
+    from ifc_boq.expr import Expr
+    from ifc_boq.log import CalcLog
+    box = ([0, 0, 0], [5, 2, 0.2])
+    models = [{"id": mid, "fileName": f"{mid}.ifc", "discipline": disc, "elements": [e], "boxes": {e["guid"]: box},
+               "parsed": {"elements": [{"id": e["guid"], "quantities": {"geometry": {}}}], "openings": [], "spatial": []},
+               "meshes": None} for mid, disc, e in copies]
+    return federation.combine(models, presets.federation(), Expr(), CalcLog(), answers or {}, resolution=presets.resolution())
+
+
+def test_a_copy_more_than_the_block_threshold_apart_blocks_and_the_owner_wins():
+    """CL_W1 in F01: the architectural copy says load-bearing concrete (structure's by the default ownership),
+    the structural copy says not load-bearing, so neither model owned its own copy and model order kept the
+    architectural 24 m2. Ownership is now judged on every copy: structure's copy is used, and 24 vs 45 m2
+    (+86 %, beyond the 50 % block threshold) blocks."""
+    elements, _, questions, _ = _combine([
+        ("arc", "architecture", _el("W", ifc_class="IfcWall", ifc_class_raw="IfcWall", load_bearing=True, net_area=24.29)),
+        ("str", "structure", _el("W", ifc_class="IfcWall", ifc_class_raw="IfcWall", load_bearing=False, net_area=45.25))])
+    assert [e["model_id"] if "model_id" in e else e["net_area"] for e in elements] == [45.25]
+    q = questions[0]
+    assert q["id"] == "duplicate_conflict:W" and q["blocking"] is True and q["suggestion"] == "structure"
+    assert q["params"]["fields"] == ["area"]
+
+
+def test_small_differences_and_missing_values_are_not_a_conflict():
+    elements, _, questions, _ = _combine([
+        ("arc", "architecture", _el("S", net_area=10.5, material=None, material_raw=None)),   # +5 %: below the 10 % warn threshold
+        ("str", "structure", _el("S"))])
+    assert questions == [] and len(elements) == 1
+
+
+def test_a_material_difference_asks_without_blocking():
+    _, _, questions, _ = _combine([("arc", "architecture", _el("P", material="metal.steel", material_raw="Steel")),
+                                   ("str", "structure", _el("P"))])
+    assert [(q["params"]["fields"], q["blocking"], q["suggestion"]) for q in questions] == [(["material"], False, "structure")]

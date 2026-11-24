@@ -30,6 +30,13 @@ const EXAMPLES: Record<string, Record<string, unknown>> = {
   "question.orphan_override": { lineKey: "walls|brick" },
   "question.overlap": { first: "architecture", second: "structure", count: 4, ifcClass: "IfcColumn", percent: 80 },
   "question.double_claim": { count: 2, ifcClass: "IfcSlab", name: "Floor", claim: "slab", rules: ["Slabs", "Floors"] },
+  "question.duplicate_conflict": {
+    name: "CL_W1", ifcClass: "IfcWall", guid: "0NWseyvsH7_gBW225aGtuD", fields: ["type", "area"], kept: "structure", count: 2,
+    copies: [
+      { model: "architecture", ifcClass: "IfcWall", typeName: "Foundation", material: "Concrete", thickness: 0.28, volume: 6.8, area: 24.2916, length: 9.9 },
+      { model: "structure", ifcClass: "IfcWall", typeName: "CL_W1", material: "Concrete", thickness: 0.28, volume: 12.67, area: 45.25207, length: 9.6 },
+    ],
+  },
   unknown_code: { system: "acme", description: "Walls", code: "Z.99" },
   mixed_line: { system: "acme", description: "Walls", fields: ["material", "thickness"], mapRuleId: "walls" },
   item_text_blank: { system: "acme", lineKey: "walls|brick", description: "Walls", blank: "fire_rating" },
@@ -76,6 +83,10 @@ describe("engine messages (F15 §4, contract change C01)", () => {
     );
     expect(render({ code: "question.unknown_name", params: { field: "material", raw: "Beton", count: 3, blocking: true }, message: "" }).text).toBe(
       "What is “Beton” (material)? Used 3 times.",
+    );
+    // WP-A5 A-18: both copies' values, in the order the engine sends them
+    expect(render({ code: "question.duplicate_conflict", params: EXAMPLES["question.duplicate_conflict"], message: "" }).text).toBe(
+      "IfcWall “CL_W1” is in 2 models under one GlobalId, and the copies differ in type and area: architecture “Foundation”, 24.292 m²; structure “CL_W1”, 45.252 m². Which copy should be measured? Unanswered, the structure copy is used.",
     );
     expect(render({ code: "question.double_claim", params: EXAMPLES["question.double_claim"], message: "" }).text).toBe(
       "2 elements (e.g. IfcSlab “Floor”) are claimed for “slab” by 2 rules (Slabs and Floors): they are counted 2 times. Which rule should measure them?",

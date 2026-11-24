@@ -40,7 +40,7 @@ rule has an id. Tests and code comments cite it (`// BR-07`).
 | ID | Rule |
 |---|---|
 | BR-30 | One model is a federation of one. All BoQ code handles 1..n models the same way. |
-| BR-31 | Discipline ownership and scope rules come from the revision inputs (copied from the models, editable per revision). Overlaps between models become `overlap` / `double_claim` questions. |
+| BR-31 | Discipline ownership and scope rules come from the revision inputs (copied from the models, editable per revision). Overlaps between models become `overlap` / `double_claim` questions; copies of one GlobalId that disagree become `duplicate_conflict` questions, never a silent pick (D86). |
 | BR-32 | Shared coordinates are assumed in v1. When models don't overlap in space, the run carries a warning and the UI shows it at the top of the sheet. |
 
 ## Pricing module (P32–P36)

@@ -8,7 +8,17 @@
     "missing_data": "Rule “{rule}” needs a quantity for {name}: {reason}. Enter it in {unit}.",
     "orphan_override": "The edit for “{lineKey}” has no matching line in this run.",
     "overlap": "{count} {ifcClass} appear in both the {first} and the {second} model (overlapping by {percent}% or more). Which model should provide them?",
-    "double_claim": "{count, plural, one {# element} other {# elements}} (e.g. {ifcClass} “{name}”) {count, plural, one {is} other {are}} claimed for “{claim}” by {ruleCount} rules ({rules}): {count, plural, one {it is} other {they are}} counted {ruleCount} times. Which rule should measure {count, plural, one {it} other {them}}?"
+    "double_claim": "{count, plural, one {# element} other {# elements}} (e.g. {ifcClass} “{name}”) {count, plural, one {is} other {are}} claimed for “{claim}” by {ruleCount} rules ({rules}): {count, plural, one {it is} other {they are}} counted {ruleCount} times. Which rule should measure {count, plural, one {it} other {them}}?",
+    "duplicate_conflict": "{ifcClass} “{name}” is in {count} models under one GlobalId, and the copies differ in {fieldList}: {copyList}. Which copy should be measured? Unanswered, the {kept} copy is used."
+  },
+  "field": {
+    "class": "class",
+    "type": "type",
+    "material": "material",
+    "thickness": "thickness",
+    "volume": "volume",
+    "area": "area",
+    "length": "length"
   },
   "unknown_code": "{kind, select, rule {[{system}] Map rule “{mapRuleId}” gives the code “{code}”, which is not in the code list.} edit {[{system}] The edit moving “{description}” to the code “{code}” is not applied: the code is not in the code list.} other {[{system}] Line “{description}” got the code “{code}”, which is not in the code list.}}",
   "mixed_line": "[{system}] “{description}” mixes elements with different {fields}; map rule “{mapRuleId}” depends on it. Add the field to the rule’s line key so the line splits.",

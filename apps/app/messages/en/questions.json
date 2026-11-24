@@ -37,7 +37,8 @@
     "classification_conflict": "Code conflict",
     "orphan_override": "Edit without a line",
     "contradiction": "Contradiction",
-    "overlap": "Overlap"
+    "overlap": "Overlap",
+    "duplicate_conflict": "Copies differ"
   },
   "special": {
     "dismissed": "left as it is",

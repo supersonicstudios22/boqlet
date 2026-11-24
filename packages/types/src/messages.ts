@@ -9,7 +9,8 @@ export type QuestionCode =
   | "question.missing_data"
   | "question.orphan_override"
   | "question.overlap"
-  | "question.double_claim";
+  | "question.double_claim"
+  | "question.duplicate_conflict";
 
 /** Existing warning codes are also used by consumers to filter warnings. */
 export type WarningCode =
@@ -46,6 +47,8 @@ export type LogCode =
   | "log.classify.summary"
   | "log.federation.models"
   | "log.federation.duplicate"
+  | "log.federation.duplicate_conflict"
+  | "log.decision.duplicate_copy"
   | "log.federation.scope"
   | "log.federation.owner"
   | "log.federation.aggregate_part"

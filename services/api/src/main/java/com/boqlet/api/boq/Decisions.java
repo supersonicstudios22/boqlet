@@ -27,7 +27,7 @@ public class Decisions {
     /** The contract's `maxLength` of a text answer (`DecisionInput.answer` is a scalar of any type, TF-174). */
     private static final int MAX_ANSWER = 4000;
     private static final Set<String> KINDS = Set.of("unknown_name", "missing_data", "unmatched", "double_claim", "unclassified",
-            "classification_conflict", "contradiction", "overlap", "orphan_override");
+            "classification_conflict", "contradiction", "overlap", "duplicate_conflict", "orphan_override");
     private final JdbcTemplate database;
     private final StoredJson json;
     private final ProjectAccess projects;
