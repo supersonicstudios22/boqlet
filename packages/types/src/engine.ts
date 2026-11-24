@@ -72,6 +72,12 @@ export interface FederationSettings {
    * this share of the smaller box are taken to be the same object (0-1).
    */
   duplicateOverlap: number;
+  /**
+   * Whether `overlap` questions (one IFC class from two models in one place: a possible double count) keep the
+   * run in `needs_input` until answered. Default true (review A-19): an unanswered overlap counts both copies, so
+   * "complete" could hide a double count. False: they are informative, and the BoQ header lists them to check.
+   */
+  overlapBlocking?: boolean;
 }
 
 /** What federation did with one model of a run. */

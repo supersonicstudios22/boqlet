@@ -1,6 +1,6 @@
 # F04 BoQs and runs
 
-> **Status (2026-11-22):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built. A second Generate with changed inputs runs beside the active run, and the newest finished run becomes current (TF-094).
+> **Status (2026-11-22):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built. A second Generate with changed inputs runs beside the active run, and the newest finished run becomes current (TF-094). An unanswered federation overlap keeps the run in needs input (federation settings `overlapBlocking`, default on; review A-19, D87).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - "Generate a BoQ" is offered on the model version page, not in the ready notification (not re-verified).
 > - An earlier run can't be opened read-only (FE-048, deferred): see [known limitations](../known-limitations.md).
@@ -70,7 +70,7 @@ run. The result is either complete or needs input.
 |---|---|
 | none | "Not generated yet" + Generate |
 | queued / running | progress bar with stage; Cancel |
-| complete | line count, flagged count, last run time, status badge of the revision |
+| complete | line count, flagged count, last run time, status badge of the revision; open non-blocking questions about the models (overlaps with `overlapBlocking` off, copies that disagree) as "N questions about the models to check" → Questions tab (review A-19) |
 | needs_input | "N questions need an answer before this BoQ is complete" → Questions tab |
 | failed | error + Retry; the last good run stays visible underneath |
 

@@ -290,6 +290,8 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
 function CurrentRunSummary({ run, base, relative }: { run: Run; base: string; relative: (iso: string) => string }) {
   const t = useTranslations("boqs.run");
   const stats = run.stats;
+  const questions = useQuestions(run.id);
+  const modelsToCheck = questions.data ? counts(questions.data).modelsToCheck : 0;
   return (
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1" data-testid="current-run" data-status={run.status} data-run={run.id}>
       <span className="tabular-nums">
@@ -304,6 +306,11 @@ function CurrentRunSummary({ run, base, relative }: { run: Run; base: string; re
           <Check aria-hidden className="mr-1 inline size-3" />
           {t("status.complete")}
         </span>
+      )}
+      {modelsToCheck > 0 && (
+        <Link href={`${base}?tab=questions`} className="text-link hover:underline" data-testid="models-to-check">
+          {t("modelsToCheck", { count: modelsToCheck })}
+        </Link>
       )}
     </div>
   );

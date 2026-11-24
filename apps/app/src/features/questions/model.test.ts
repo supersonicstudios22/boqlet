@@ -50,7 +50,13 @@ describe("filters and counts", () => {
     expect(filterQuestions(list, { state: "all", kind: "unmatched" }).map((x) => x.id)).toEqual(["c"]);
   });
   it("counts open, blocking and answers not applied yet (a cleared answer counts too)", () => {
-    expect(counts(list)).toEqual({ unanswered: 3, blocking: 1, notApplied: 2 });
+    expect(counts(list)).toEqual({ unanswered: 3, blocking: 1, modelsToCheck: 0, notApplied: 2 });
+  });
+  it("counts open federation questions that don't block, to check (review A-19)", () => {
+    const choice = { kind: "choice" as const, options: [{ value: "both", label: "Both" }] };
+    const fed = [q("o1", { kind: "overlap", answer: choice }), q("o2", { kind: "overlap", blocking: true, answer: choice }),
+      q("d1", { kind: "duplicate_conflict", answer: choice }), q("d2", { kind: "duplicate_conflict", answer: choice, decision: decision("structure") }), q("u", { kind: "unmatched", answer: { kind: "rule" } })];
+    expect(counts(fed).modelsToCheck).toBe(2);
   });
 });
 

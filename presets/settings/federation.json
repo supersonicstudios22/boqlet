@@ -37,5 +37,6 @@
     }
   },
   "storeyTolerance": 0.25,
-  "duplicateOverlap": 0.5
+  "duplicateOverlap": 0.5,
+  "overlapBlocking": true
 }

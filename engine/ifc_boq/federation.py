@@ -28,8 +28,9 @@ mesh sidecar, geometry.py)}, plus FederationSettings (engine.ts) and the answers
                   (a hole avoided). A discipline the settings do not list owns everything.
   5. overlaps     taken elements of one IFC class from different models that overlap by
                   duplicateOverlap of the smaller one: one `overlap` question per pair of models
-                  and IFC class. The answer names the model to keep, or "both". Unanswered,
-                  both are kept and a warning flags a possible double count.
+                  and IFC class, blocking unless the settings' overlapBlocking is false (review
+                  A-19). The answer names the model to keep, or "both". Unanswered, both are kept
+                  and a warning flags a possible double count.
   6. aggregates   an aggregate (a roof made of slabs) some of whose parts were left to another
                   model or excluded loses those parts, and its rolled-up quantities are summed
                   again from the parts kept; one with no part left is left to the other models
@@ -500,7 +501,8 @@ def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, s
             continue
         msg = (f"{len(ps)} {cls} appear in both the {ka} and the {kb} model (overlapping by {int(thr * 100)}% or more). "
                f"Which model should provide them?")
-        questions.append({"id": qid, "kind": "overlap", "blocking": False, "guids": guids, "occurrences": len(ps),
+        questions.append({"id": qid, "kind": "overlap", "blocking": settings.get("overlapBlocking", True) is not False,
+                          "guids": guids, "occurrences": len(ps),
                           "code": "question.overlap", "params": {"first": ka, "second": kb, "count": len(ps), "ifcClass": cls,
                                                                "percent": int(thr * 100)},
                           "message": msg, "suggestion": "both",

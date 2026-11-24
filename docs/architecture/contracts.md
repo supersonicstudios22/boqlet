@@ -141,7 +141,7 @@ Trace elements carry `model` (the model id) so a line can be followed back to it
 
 `FederationSettings` (`engine.ts`, schema `federation-settings`, preset `presets/settings/federation.json`):
 `disciplines` (each with `owns` selectors or `rest: true`), `storeyTolerance` (m), `duplicateOverlap`
-(0-1). `ModelScope` = `{ include?, exclude? }` selectors per model (D44), stored per model version and BoQ by the backend.
+(0-1), `overlapBlocking` (default true: `overlap` questions block, D87). `ModelScope` = `{ include?, exclude? }` selectors per model (D44), stored per model version and BoQ by the backend.
 
 `Decision` = `{ questionId, scope: "project" | "company", answer, note?, decidedBy?, decidedAt? }`.
 `answer: null` means "leave it" (dismiss without answering).

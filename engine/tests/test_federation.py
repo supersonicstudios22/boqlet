@@ -121,9 +121,16 @@ def test_a_retagged_copy_adds_nothing():
     assert not [q for q in r["questions"] if q["kind"] == "overlap"]
 
 
+def run_with(models, federation_settings: dict, decisions=None) -> dict:
+    rs, lib = presets.load_rule_set("as-modelled")
+    return get_boq(models, rs, [presets.load_classification("acme-cost-codes")], [presets.load_dictionary("global-seed")],
+                   presets.resolution(), decisions or [], lib, federation=federation_settings)
+
+
 def test_overlap_question_and_answer():
     """If both models take the beams (scope include), the engine asks which model provides them;
-    unanswered, both are kept and flagged; answered, one is dropped."""
+    unanswered, both are kept and flagged, and the question blocks (review A-19: "complete" can't hide
+    a double count); answered, one is dropped."""
     struc = parsed("Structural")
     models = [{"id": "str", "parsed": struc, "discipline": "structure"},
               {"id": "copy", "parsed": copy_of(struc, "ZZ"), "discipline": "architecture",
@@ -131,11 +138,24 @@ def test_overlap_question_and_answer():
     r = run(models)
     q = next(q for q in r["questions"] if q["kind"] == "overlap")
     assert q["id"] == "overlap:architecture|structure:IfcBeam" and q["occurrences"] == 6
+    assert q["blocking"] is True and r["status"] == "needs_input"
     assert totals(r)["linear-other"] == pytest.approx(2 * 24.7)
     assert any(w["code"] == "federation_overlap" for w in r["warnings"])
     r2 = run(models, [{"questionId": q["id"], "scope": "project", "answer": "structure"}])
     assert totals(r2)["linear-other"] == pytest.approx(24.7)
     assert not [q for q in r2["questions"] if q["kind"] == "overlap"]
+
+
+def test_overlap_questions_inform_when_the_setting_is_off():
+    """`overlapBlocking: false`: the same question, informative, as before A-19."""
+    struc = parsed("Structural")
+    models = [{"id": "str", "parsed": struc, "discipline": "structure"},
+              {"id": "copy", "parsed": copy_of(struc, "ZZ"), "discipline": "architecture",
+               "scope": {"include": [{"ifcClass": "IfcBeam"}]}}]
+    r = run_with(models, {**presets.federation(), "overlapBlocking": False})
+    q = next(q for q in r["questions"] if q["kind"] == "overlap")
+    assert q["blocking"] is False
+    assert not any(x["blocking"] for x in r["questions"] if x["kind"] == "overlap")
 
 
 def test_scope_exclude():

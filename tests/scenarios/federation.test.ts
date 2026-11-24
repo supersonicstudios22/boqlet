@@ -129,3 +129,48 @@ describe("copies of one GlobalId that disagree (review A-18)", () => {
     expect(again?.decision?.answer).toBe(other);
   }, 600_000);
 });
+
+/**
+ * Review A-19: an overlap between models blocks by default, so "complete" can't hide a double count. The
+ * structural model is federated with a copy of itself under new GlobalIds whose scope takes the beams: both
+ * models provide the beams, and the overlap question blocks until it is answered.
+ */
+describe("an overlap between models blocks (review A-19)", () => {
+  const QUESTION = "overlap:architecture|structure:IfcBeam";
+  let api: ReturnType<typeof client>;
+  let projectId: string;
+  let revisionId: string;
+
+  beforeAll(async () => {
+    api = client(owner.token);
+    const { data: orgs } = await api.GET("/orgs");
+    const { data: project } = await api.POST("/orgs/{orgId}/projects", { params: { path: { orgId: orgs![0]!.id } }, body: { name: "Overlap" } });
+    projectId = project!.id;
+    const text = await readFile(path.join(SAMPLES, "Building-Structural.ifc"), "utf8");
+    // every rooted entity under a new GlobalId (as if another discipline modelled the same objects)
+    const retagged = text.replace(/(=IFC[A-Z0-9]+\(')[0-9A-Za-z_$]{2}([0-9A-Za-z_$]{20}')/g, "$1ZZ$2");
+    expect(retagged).not.toBe(text);
+    const models: { name: string; discipline: string; body: string; scope?: Schemas["ModelCreate"]["scope"] }[] = [
+      { name: "Frame", discipline: "structure", body: text },
+      { name: "Frame copy", discipline: "architecture", body: retagged, scope: { include: [{ ifcClass: "IfcBeam" }] } },
+    ];
+    for (const { name, discipline, body, scope } of models) {
+      const { data: model } = await api.POST("/projects/{projectId}/models", { params: { path: { projectId } }, body: { name, discipline, ...(scope ? { scope } : {}) } });
+      const version = await uploadVersion(owner, model!.id, new TextEncoder().encode(body), `${name}.ifc`);
+      expect((await waitForVersion(owner, version.id)).status).toBe("ready");
+    }
+    const { data: boq } = await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "Overlap", inputs: {} } });
+    revisionId = boq!.currentRevision.id;
+  }, 600_000);
+
+  it("keeps the run needing input until the overlap is answered", async () => {
+    const first = await generate(api, revisionId);
+    expect(first.status).toBe("needs_input");
+    const overlap = (await api.GET("/runs/{runId}/questions", { params: { path: { runId: first.id } } })).data!.find((q) => q.id === QUESTION);
+    expect(overlap?.blocking).toBe(true);
+    const res = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: { decisions: [{ questionId: QUESTION, kind: "overlap", answer: "structure" }] } });
+    expect(res.response.status).toBe(200);
+    const second = await generate(api, revisionId);
+    expect(second.stats?.blockingQuestions).toBe((first.stats?.blockingQuestions ?? 0) - 1);
+  }, 600_000);
+});

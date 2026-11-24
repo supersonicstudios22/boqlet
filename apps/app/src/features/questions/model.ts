@@ -32,11 +32,16 @@ export function kindsOf(list: readonly Question[]): string[] {
   return [...new Set(list.map((q) => q.kind))];
 }
 
+/** Federation questions whose answer can move a number: an overlap or copies that disagree (review A-19). */
+const MODEL_KINDS: readonly string[] = ["overlap", "duplicate_conflict"];
+
 export function counts(list: readonly Question[]) {
   const open = list.filter((q) => !q.decision);
   return {
     unanswered: open.length,
     blocking: open.filter((q) => q.blocking).length,
+    /** Open federation questions that don't block: the BoQ can be "complete" with them, so the header lists them. */
+    modelsToCheck: open.filter((q) => !q.blocking && MODEL_KINDS.includes(q.kind)).length,
     /** Answers given, changed or cleared since the run (F05 §3: "N answers not applied yet"). */
     notApplied: list.filter((q) => q.answeredAfterRun).length,
   };

@@ -63,6 +63,7 @@
     "notGenerated": "Not generated yet",
     "summary": "{lines, plural, one {# line} other {# lines}} · {flagged, plural, =0 {nothing to confirm} other {# to confirm}} · generated {when}",
     "needsInput": "{count, plural, one {# question needs} other {# questions need}} an answer before this BoQ is complete",
+    "modelsToCheck": "{count, plural, one {# question about the models} other {# questions about the models}} to check",
     "openQuestions": "Open questions",
     "failed": "Generating failed: {message}",
     "lastGood": "The last complete run is still shown.",
