@@ -3,8 +3,8 @@ Traceback (most recent call last):
     parsed, meshes = cached_parse(f)
   File "C:\Projects\ifc-boq\docs\review\tools\compare_baseline.py", line 290, in cached_parse
     parsed, parser = parse_file(str(f))
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1056, in parse_file
-    return p.parse(progress), p
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 480, in parse
-    project = f.by_type("IfcProject")[0]
-IndexError: tuple index out of range
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1160, in parse_file
+    check_ifc_file(path)
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1148, in check_ifc_file
+    raise IfcFileError("truncated_file", f"The file stops at line {lines:,} (byte {size:,}) without its closing "
+ifc_boq.parse.IfcFileError: The file stops at line 16,216 (byte 1,000,000) without its closing END-ISO-10303-21;: it was cut short. Export or upload it again.

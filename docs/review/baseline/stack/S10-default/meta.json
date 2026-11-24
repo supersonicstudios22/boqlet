@@ -27,13 +27,13 @@
  },
  "timing": {
   "parseSeconds": {
-   "S10": 32.5
+   "S10": 40.2
   },
-  "runSeconds": 4.7,
-  "totalSeconds": 50.3
+  "runSeconds": 6.2,
+  "totalSeconds": 61.7
  },
  "runJob": "succeeded",
- "status": "complete",
+ "status": "needs_input",
  "outcome": "result",
  "counts": {
   "lines": 14

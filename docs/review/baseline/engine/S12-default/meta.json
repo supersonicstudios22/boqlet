@@ -18,15 +18,32 @@
    "discipline": null
   }
  ],
- "outcome": "error",
- "error": {
-  "type": "TypeError",
-  "message": "expected string or bytes-like object"
- },
  "timing": {
-  "totalSeconds": 6.01
+  "parseSeconds": {
+   "S12": 6.78
+  },
+  "runSeconds": 0.02,
+  "totalSeconds": 7.26
  },
- "peakMemoryMB": 141.9,
+ "outcome": "result",
+ "status": "needs_input",
+ "ruleSet": {
+  "id": "as-modelled",
+  "version": "1.0.0"
+ },
+ "counts": {
+  "elements": 7,
+  "measuredElements": 7,
+  "excludedElements": 0,
+  "unmatchedElements": 0,
+  "lines": 5,
+  "flaggedLines": 5,
+  "decisionsApplied": 0,
+  "questions": 1,
+  "blockingQuestions": 1,
+  "warnings": 0
+ },
+ "peakMemoryMB": 144.5,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

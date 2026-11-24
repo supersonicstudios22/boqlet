@@ -1,0 +1,22 @@
+[
+ {
+  "id": "name:type_name:Basic Wall:231 YV Betong 200",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "type_name",
+  "raw": "Basic Wall:231 YV Betong 200",
+  "occurrences": 7,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "type_name",
+   "raw": "Basic Wall:231 YV Betong 200",
+   "count": 7,
+   "blocking": true
+  },
+  "message": "What is 'Basic Wall:231 YV Betong 200' (type name)? Used 7 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "element_type"
+  }
+ }
+]

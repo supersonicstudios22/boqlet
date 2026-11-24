@@ -20,13 +20,13 @@
  ],
  "outcome": "error",
  "error": {
-  "type": "IndexError",
-  "message": "tuple index out of range"
+  "type": "IfcFileError",
+  "message": "The file stops at line 16,216 (byte 1,000,000) without its closing END-ISO-10303-21;: it was cut short. Export or upload it again."
  },
  "timing": {
-  "totalSeconds": 0.28
+  "totalSeconds": 0.0
  },
- "peakMemoryMB": 95.5,
+ "peakMemoryMB": 72.8,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

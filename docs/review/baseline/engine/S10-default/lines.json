@@ -72,6 +72,18 @@
   "elements": 9
  },
  {
+  "key": "walls | None | False |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, -, 100 mm",
+  "unit": "m2",
+  "quantity": 2074.8,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 880
+ },
+ {
   "key": "plates | IfcBuildingElementPart | None | None |  | m2",
   "ruleId": "plates",
   "description": "IfcBuildingElementPart, -",
@@ -96,7 +108,7 @@
   "elements": 259
  },
  {
-  "key": "doors | None | None | None |  | nr",
+  "key": "doors | None | None | False |  | nr",
   "ruleId": "doors",
   "description": "Door -, -",
   "unit": "nr",
@@ -154,17 +166,5 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
- },
- {
-  "key": "walls | None | None |  | m2",
-  "ruleId": "walls",
-  "description": "Wall, -, 100 mm",
-  "unit": "m2",
-  "quantity": 2074.8,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99"
-  },
-  "elements": 880
  }
 ]

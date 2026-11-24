@@ -1632,5 +1632,2225 @@
   "answer": {
    "kind": "rule"
   }
+ },
+ {
+  "id": "name:material:01 Hout - dak",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 Hout - dak",
+  "occurrences": 6,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 Hout - dak",
+   "count": 6,
+   "blocking": true
+  },
+  "message": "What is '01 Hout - dak' (material)? Used 6 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:01 Hout - stelkozijn",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 Hout - stelkozijn",
+  "occurrences": 141,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 Hout - stelkozijn",
+   "count": 141,
+   "blocking": true
+  },
+  "message": "What is '01 Hout - stelkozijn' (material)? Used 141 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:01 Hout C",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 Hout C",
+  "occurrences": 8,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 Hout C",
+   "count": 8,
+   "blocking": true
+  },
+  "message": "What is '01 Hout C' (material)? Used 8 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:01 plaatmateriaal - multiplex",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 plaatmateriaal - multiplex",
+  "occurrences": 146,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 plaatmateriaal - multiplex",
+   "count": 146,
+   "blocking": true
+  },
+  "message": "What is '01 plaatmateriaal - multiplex' (material)? Used 146 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:01 plaatmateriaal - platsica 10mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 plaatmateriaal - platsica 10mm",
+  "occurrences": 30,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 plaatmateriaal - platsica 10mm",
+   "count": 30,
+   "blocking": true
+  },
+  "message": "What is '01 plaatmateriaal - platsica 10mm' (material)? Used 30 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:01 plaatmateriaal - promatect brandwerend",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "01 plaatmateriaal - promatect brandwerend",
+  "occurrences": 5,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "01 plaatmateriaal - promatect brandwerend",
+   "count": 5,
+   "blocking": true
+  },
+  "message": "What is '01 plaatmateriaal - promatect brandwerend' (material)? Used 5 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:033 - constructief staal",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "033 - constructief staal",
+  "occurrences": 56,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "033 - constructief staal",
+   "count": 56,
+   "blocking": true
+  },
+  "message": "What is '033 - constructief staal' (material)? Used 56 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:04 vloertegels 200x200",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "04 vloertegels 200x200",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "04 vloertegels 200x200",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is '04 vloertegels 200x200' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:05 Staal - RAL 7016",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "05 Staal - RAL 7016",
+  "occurrences": 76,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "05 Staal - RAL 7016",
+   "count": 76,
+   "blocking": true
+  },
+  "message": "What is '05 Staal - RAL 7016' (material)? Used 76 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:05 Staal C",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "05 Staal C",
+  "occurrences": 13,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "05 Staal C",
+   "count": 13,
+   "blocking": true
+  },
+  "message": "What is '05 Staal C' (material)? Used 13 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:05 Staal_bordes_hoeklijnen",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "05 Staal_bordes_hoeklijnen",
+  "occurrences": 10,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "05 Staal_bordes_hoeklijnen",
+   "count": 10,
+   "blocking": true
+  },
+  "message": "What is '05 Staal_bordes_hoeklijnen' (material)? Used 10 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:60 RVS",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "60 RVS",
+  "occurrences": 36,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "60 RVS",
+   "count": 36,
+   "blocking": true
+  },
+  "message": "What is '60 RVS' (material)? Used 36 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:99 Brandwering",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "99 Brandwering",
+  "occurrences": 101,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "99 Brandwering",
+   "count": 101,
+   "blocking": true
+  },
+  "message": "What is '99 Brandwering' (material)? Used 101 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:99 Isolatie - Glaswol 190mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "99 Isolatie - Glaswol 190mm",
+  "occurrences": 10,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "99 Isolatie - Glaswol 190mm",
+   "count": 10,
+   "blocking": true
+  },
+  "message": "What is '99 Isolatie - Glaswol 190mm' (material)? Used 10 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Hout C",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Hout C",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Hout C",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'Hout C' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC schoonloopmat",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC schoonloopmat",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC schoonloopmat",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC schoonloopmat' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_HSB_155_wandelement_Rc=3,67",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_HSB_155_wandelement_Rc=3,67",
+  "occurrences": 36,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_HSB_155_wandelement_Rc=3,67",
+   "count": 36,
+   "blocking": true
+  },
+  "message": "What is 'IFC_HSB_155_wandelement_Rc=3,67' (material)? Used 36 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_HSB_155_wandelement_ongeisoleerd_multiplex",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_HSB_155_wandelement_ongeisoleerd_multiplex",
+  "occurrences": 22,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_HSB_155_wandelement_ongeisoleerd_multiplex",
+   "count": 22,
+   "blocking": true
+  },
+  "message": "What is 'IFC_HSB_155_wandelement_ongeisoleerd_multiplex' (material)? Used 22 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_HSB_184_wandelement_Rc=3,67",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_HSB_184_wandelement_Rc=3,67",
+  "occurrences": 8,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_HSB_184_wandelement_Rc=3,67",
+   "count": 8,
+   "blocking": true
+  },
+  "message": "What is 'IFC_HSB_184_wandelement_Rc=3,67' (material)? Used 8 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_HSB_70mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_HSB_70mm",
+  "occurrences": 7,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_HSB_70mm",
+   "count": 7,
+   "blocking": true
+  },
+  "message": "What is 'IFC_HSB_70mm' (material)? Used 7 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_125x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_125x20",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_125x20",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_125x20' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_220x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_220x20",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_220x20",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_220x20' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_240x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_240x20",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_240x20",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_240x20' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_260x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_260x20",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_260x20",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_260x20' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_300x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_300x20",
+  "occurrences": 41,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_300x20",
+   "count": 41,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_300x20' (material)? Used 41 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Holonite_vensterbank_320x20",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Holonite_vensterbank_320x20",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Holonite_vensterbank_320x20",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Holonite_vensterbank_320x20' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Roval_waterslag_ type_Elegance_15gr/168",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Roval_waterslag_ type_Elegance_15gr/168",
+  "occurrences": 20,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Roval_waterslag_ type_Elegance_15gr/168",
+   "count": 20,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Roval_waterslag_ type_Elegance_15gr/168' (material)? Used 20 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Roval_waterslag_type_Elegance_15gr/138",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Roval_waterslag_type_Elegance_15gr/138",
+  "occurrences": 14,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Roval_waterslag_type_Elegance_15gr/138",
+   "count": 14,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Roval_waterslag_type_Elegance_15gr/138' (material)? Used 14 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo afdekker AB 80/106x300",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo afdekker AB 80/106x300",
+  "occurrences": 10,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo afdekker AB 80/106x300",
+   "count": 10,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo afdekker AB 80/106x300' (material)? Used 10 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo_kantplank_KP250x50",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo_kantplank_KP250x50",
+  "occurrences": 14,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo_kantplank_KP250x50",
+   "count": 14,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo_kantplank_KP250x50' (material)? Used 14 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo_raamdorpel_RD 60/100x160",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo_raamdorpel_RD 60/100x160",
+  "occurrences": 25,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo_raamdorpel_RD 60/100x160",
+   "count": 25,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo_raamdorpel_RD 60/100x160' (material)? Used 25 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo_spekband_SB 60/70x150",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo_spekband_SB 60/70x150",
+  "occurrences": 59,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo_spekband_SB 60/70x150",
+   "count": 59,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo_spekband_SB 60/70x150' (material)? Used 59 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo_staallatei_L150B",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo_staallatei_L150B",
+  "occurrences": 31,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo_staallatei_L150B",
+   "count": 31,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo_staallatei_L150B' (material)? Used 31 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_Vebo_staallatei_L200B",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_Vebo_staallatei_L200B",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_Vebo_staallatei_L200B",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_Vebo_staallatei_L200B' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_baksteen_kopergeel_100mm_liggend",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_baksteen_kopergeel_100mm_liggend",
+  "occurrences": 30,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_baksteen_kopergeel_100mm_liggend",
+   "count": 30,
+   "blocking": true
+  },
+  "message": "What is 'IFC_baksteen_kopergeel_100mm_liggend' (material)? Used 30 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_baksteen_kopergeel_100mm_staand",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_baksteen_kopergeel_100mm_staand",
+  "occurrences": 39,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_baksteen_kopergeel_100mm_staand",
+   "count": 39,
+   "blocking": true
+  },
+  "message": "What is 'IFC_baksteen_kopergeel_100mm_staand' (material)? Used 39 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_baksteen_roodbruin_100mm_liggend",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_baksteen_roodbruin_100mm_liggend",
+  "occurrences": 200,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_baksteen_roodbruin_100mm_liggend",
+   "count": 200,
+   "blocking": true
+  },
+  "message": "What is 'IFC_baksteen_roodbruin_100mm_liggend' (material)? Used 200 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_baksteen_roodbruin_100mm_staand",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_baksteen_roodbruin_100mm_staand",
+  "occurrences": 98,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_baksteen_roodbruin_100mm_staand",
+   "count": 98,
+   "blocking": true
+  },
+  "message": "What is 'IFC_baksteen_roodbruin_100mm_staand' (material)? Used 98 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonlatei_200x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonlatei_200x250",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonlatei_200x250",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonlatei_200x250' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_150x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_150x315",
+  "occurrences": 12,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_150x315",
+   "count": 12,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_150x315' (material)? Used 12 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_220x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_220x315",
+  "occurrences": 8,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_220x315",
+   "count": 8,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_220x315' (material)? Used 8 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_220x345",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_220x345",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_220x345",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_220x345' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_220x965",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_220x965",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_220x965",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_220x965' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_300x650",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_300x650",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_300x650",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_300x650' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_330x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_330x315",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_330x315",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_330x315' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_350x660",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_350x660",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_350x660",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_350x660' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_370x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_370x315",
+  "occurrences": 6,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_370x315",
+   "count": 6,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_370x315' (material)? Used 6 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_370x965",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_370x965",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_370x965",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_370x965' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_450x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_450x315",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_450x315",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_450x315' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_520x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_520x315",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_520x315",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_520x315' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_600x315",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_600x315",
+  "occurrences": 5,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_600x315",
+   "count": 5,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_600x315' (material)? Used 5 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonopstort_620x965",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonopstort_620x965",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonopstort_620x965",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonopstort_620x965' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonpoer_1600x300",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonpoer_1600x300",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonpoer_1600x300",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonpoer_1600x300' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonvloer_ihw",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonvloer_ihw",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonvloer_ihw",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonvloer_ihw' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonvloer_ihw_300mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonvloer_ihw_300mm",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonvloer_ihw_300mm",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonvloer_ihw_300mm' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_betonvloer_prefab_200mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_betonvloer_prefab_200mm",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_betonvloer_prefab_200mm",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_betonvloer_prefab_200mm' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_breedplaat_betonvloer_ihw_200mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_breedplaat_betonvloer_ihw_200mm",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_breedplaat_betonvloer_ihw_200mm",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_200mm' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_breedplaat_betonvloer_ihw_220mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_breedplaat_betonvloer_ihw_220mm",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_breedplaat_betonvloer_ihw_220mm",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_220mm' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_breedplaat_betonvloer_ihw_290mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_breedplaat_betonvloer_ihw_290mm",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_breedplaat_betonvloer_ihw_290mm",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_290mm' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_breedplaat_schil_60mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_breedplaat_schil_60mm",
+  "occurrences": 52,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_breedplaat_schil_60mm",
+   "count": 52,
+   "blocking": true
+  },
+  "message": "What is 'IFC_breedplaat_schil_60mm' (material)? Used 52 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_cellenbeton_100mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_cellenbeton_100mm",
+  "occurrences": 6,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_cellenbeton_100mm",
+   "count": 6,
+   "blocking": true
+  },
+  "message": "What is 'IFC_cellenbeton_100mm' (material)? Used 6 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakkapel_dakelement",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakkapel_dakelement",
+  "occurrences": 7,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakkapel_dakelement",
+   "count": 7,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakkapel_dakelement' (material)? Used 7 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakkapel_dakelement_lift",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakkapel_dakelement_lift",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakkapel_dakelement_lift",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakkapel_dakelement_lift' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakkapel_zijwang",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakkapel_zijwang",
+  "occurrences": 24,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakkapel_zijwang",
+   "count": 24,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakkapel_zijwang' (material)? Used 24 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakopstand_laagbouw_hout_38x120",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakopstand_laagbouw_hout_38x120",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakopstand_laagbouw_hout_38x120",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x120' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakopstand_laagbouw_hout_38x95",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakopstand_laagbouw_hout_38x95",
+  "occurrences": 5,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakopstand_laagbouw_hout_38x95",
+   "count": 5,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x95' (material)? Used 5 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakopstand_laagbouw_rekwerk_met_boeideel",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakopstand_laagbouw_rekwerk_met_boeideel",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakopstand_laagbouw_rekwerk_met_boeideel",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakopstand_laagbouw_rekwerk_met_boeideel' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakpan_Coramic_301_leipan_vlak",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakpan_Coramic_301_leipan_vlak",
+  "occurrences": 14,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakpan_Coramic_301_leipan_vlak",
+   "count": 14,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakpan_Coramic_301_leipan_vlak' (material)? Used 14 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakplaat_100_overstek_geisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakplaat_100_overstek_geisoleerd",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakplaat_100_overstek_geisoleerd",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakplaat_100_overstek_geisoleerd' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakplaat_131_overstek_geisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakplaat_131_overstek_geisoleerd",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakplaat_131_overstek_geisoleerd",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakplaat_131_overstek_geisoleerd' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakplaat_195_overstek_ongeisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakplaat_195_overstek_ongeisoleerd",
+  "occurrences": 17,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakplaat_195_overstek_ongeisoleerd",
+   "count": 17,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakplaat_195_overstek_ongeisoleerd' (material)? Used 17 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dakplaat_geisoleerd_Rc=4,00",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dakplaat_geisoleerd_Rc=4,00",
+  "occurrences": 20,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dakplaat_geisoleerd_Rc=4,00",
+   "count": 20,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dakplaat_geisoleerd_Rc=4,00' (material)? Used 20 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dekvloer",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dekvloer",
+  "occurrences": 26,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dekvloer",
+   "count": 26,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dekvloer' (material)? Used 26 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_dekvloer_zwevend",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_dekvloer_zwevend",
+  "occurrences": 52,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_dekvloer_zwevend",
+   "count": 52,
+   "blocking": true
+  },
+  "message": "What is 'IFC_dekvloer_zwevend' (material)? Used 52 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_gipsblokken_70mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_gipsblokken_70mm",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_gipsblokken_70mm",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_gipsblokken_70mm' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_gipsplafond_2*12,5",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_gipsplafond_2*12,5",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_gipsplafond_2*12,5",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_gipsplafond_2*12,5' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_gootconstructie_rekwerk_ongeisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_gootconstructie_rekwerk_ongeisoleerd",
+  "occurrences": 12,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_gootconstructie_rekwerk_ongeisoleerd",
+   "count": 12,
+   "blocking": true
+  },
+  "message": "What is 'IFC_gootconstructie_rekwerk_ongeisoleerd' (material)? Used 12 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_isolatie_110mm_glaswol",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_isolatie_110mm_glaswol",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_isolatie_110mm_glaswol",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_isolatie_110mm_glaswol' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_isolatie_115mm_glaswol",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_isolatie_115mm_glaswol",
+  "occurrences": 181,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_isolatie_115mm_glaswol",
+   "count": 181,
+   "blocking": true
+  },
+  "message": "What is 'IFC_isolatie_115mm_glaswol' (material)? Used 181 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kalkzandsteen_100mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kalkzandsteen_100mm",
+  "occurrences": 53,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kalkzandsteen_100mm",
+   "count": 53,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kalkzandsteen_100mm' (material)? Used 53 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kalkzandsteen_120mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kalkzandsteen_120mm",
+  "occurrences": 9,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kalkzandsteen_120mm",
+   "count": 9,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kalkzandsteen_120mm' (material)? Used 9 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kalkzandsteen_175mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kalkzandsteen_175mm",
+  "occurrences": 12,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kalkzandsteen_175mm",
+   "count": 12,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kalkzandsteen_175mm' (material)? Used 12 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kalkzandsteen_214mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kalkzandsteen_214mm",
+  "occurrences": 86,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kalkzandsteen_214mm",
+   "count": 86,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kalkzandsteen_214mm' (material)? Used 86 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kalkzandsteen_300mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kalkzandsteen_300mm",
+  "occurrences": 22,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kalkzandsteen_300mm",
+   "count": 22,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kalkzandsteen_300mm' (material)? Used 22 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_knieschot_geisoleerd_Rc=4,00",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_knieschot_geisoleerd_Rc=4,00",
+  "occurrences": 11,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_knieschot_geisoleerd_Rc=4,00",
+   "count": 11,
+   "blocking": true
+  },
+  "message": "What is 'IFC_knieschot_geisoleerd_Rc=4,00' (material)? Used 11 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_knieschot_ongeisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_knieschot_ongeisoleerd",
+  "occurrences": 32,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_knieschot_ongeisoleerd",
+   "count": 32,
+   "blocking": true
+  },
+  "message": "What is 'IFC_knieschot_ongeisoleerd' (material)? Used 32 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_kozijn_90x114",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_kozijn_90x114",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_kozijn_90x114",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_kozijn_90x114' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_plastica_gevelbekleding_10mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_plastica_gevelbekleding_10mm",
+  "occurrences": 12,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_plastica_gevelbekleding_10mm",
+   "count": 12,
+   "blocking": true
+  },
+  "message": "What is 'IFC_plastica_gevelbekleding_10mm' (material)? Used 12 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_plat_dak_geisoleerd",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_plat_dak_geisoleerd",
+  "occurrences": 6,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_plat_dak_geisoleerd",
+   "count": 6,
+   "blocking": true
+  },
+  "message": "What is 'IFC_plat_dak_geisoleerd' (material)? Used 6 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_stalen_ligger_L100x10",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_stalen_ligger_L100x10",
+  "occurrences": 6,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_stalen_ligger_L100x10",
+   "count": 6,
+   "blocking": true
+  },
+  "message": "What is 'IFC_stalen_ligger_L100x10' (material)? Used 6 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_1000x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_1000x250",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_1000x250",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_1000x250' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_1200x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_1200x250",
+  "occurrences": 3,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_1200x250",
+   "count": 3,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_1200x250' (material)? Used 3 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_1400x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_1400x250",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_1400x250",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_1400x250' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_2600x550",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_2600x550",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_2600x550",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_2600x550' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_500x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_500x250",
+  "occurrences": 10,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_500x250",
+   "count": 10,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_500x250' (material)? Used 10 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_600x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_600x250",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_600x250",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_600x250' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_800x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_800x250",
+  "occurrences": 7,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_800x250",
+   "count": 7,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_800x250' (material)? Used 7 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_strookfundering_900x250",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_strookfundering_900x250",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_strookfundering_900x250",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_strookfundering_900x250' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_underlayment_dakbeschot_22mm",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_underlayment_dakbeschot_22mm",
+  "occurrences": 10,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_underlayment_dakbeschot_22mm",
+   "count": 10,
+   "blocking": true
+  },
+  "message": "What is 'IFC_underlayment_dakbeschot_22mm' (material)? Used 10 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_ventilatierooster_DucoFIT_50_ZR",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_ventilatierooster_DucoFIT_50_ZR",
+  "occurrences": 9,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_ventilatierooster_DucoFIT_50_ZR",
+   "count": 9,
+   "blocking": true
+  },
+  "message": "What is 'IFC_ventilatierooster_DucoFIT_50_ZR' (material)? Used 9 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_ventilatierooster_Ducomax_Corto_20_ZR",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_ventilatierooster_Ducomax_Corto_20_ZR",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_ventilatierooster_Ducomax_Corto_20_ZR",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_ventilatierooster_Ducomax_Corto_20_ZR' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_verlaagd_plafond",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_verlaagd_plafond",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_verlaagd_plafond",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_verlaagd_plafond' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00",
+  "occurrences": 46,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00",
+   "count": 46,
+   "blocking": true
+  },
+  "message": "What is 'IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00' (material)? Used 46 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_vloertegels_200x200",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_vloertegels_200x200",
+  "occurrences": 20,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_vloertegels_200x200",
+   "count": 20,
+   "blocking": true
+  },
+  "message": "What is 'IFC_vloertegels_200x200' (material)? Used 20 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_wandtegels_250x200",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_wandtegels_250x200",
+  "occurrences": 121,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_wandtegels_250x200",
+   "count": 121,
+   "blocking": true
+  },
+  "message": "What is 'IFC_wandtegels_250x200' (material)? Used 121 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_zinken_afdekker_hoogbouw_achter",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_zinken_afdekker_hoogbouw_achter",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_zinken_afdekker_hoogbouw_achter",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_zinken_afdekker_hoogbouw_achter_lift",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_zinken_afdekker_hoogbouw_achter_lift",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_zinken_afdekker_hoogbouw_achter_lift",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter_lift' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_zinken_afdekker_hoogbouw_voor",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_zinken_afdekker_hoogbouw_voor",
+  "occurrences": 5,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_zinken_afdekker_hoogbouw_voor",
+   "count": 5,
+   "blocking": true
+  },
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_voor' (material)? Used 5 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_zinken_afdekker_laagbouw",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_zinken_afdekker_laagbouw",
+  "occurrences": 2,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_zinken_afdekker_laagbouw",
+   "count": 2,
+   "blocking": true
+  },
+  "message": "What is 'IFC_zinken_afdekker_laagbouw' (material)? Used 2 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:IFC_zinken_afdekker_lifttop",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "IFC_zinken_afdekker_lifttop",
+  "occurrences": 4,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "IFC_zinken_afdekker_lifttop",
+   "count": 4,
+   "blocking": true
+  },
+  "message": "What is 'IFC_zinken_afdekker_lifttop' (material)? Used 4 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
+ },
+ {
+  "id": "name:material:Lege arcering (2)",
+  "kind": "unknown_name",
+  "blocking": true,
+  "field": "material",
+  "raw": "Lege arcering (2)",
+  "occurrences": 1,
+  "code": "question.unknown_name",
+  "params": {
+   "field": "material",
+   "raw": "Lege arcering (2)",
+   "count": 1,
+   "blocking": true
+  },
+  "message": "What is 'Lege arcering (2)' (material)? Used 1 time(s).",
+  "answer": {
+   "kind": "term",
+   "category": "material"
+  }
  }
 ]

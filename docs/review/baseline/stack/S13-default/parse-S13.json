@@ -1,8 +1,8 @@
 {
  "job": {
   "error": {
-   "code": "parse_error",
-   "message": "Could not parse IFC model",
+   "code": "truncated_file",
+   "message": "The file stops at line 16,216 (byte 1,000,000) without its closing END-ISO-10303-21;: it was cut short. Export or upload it again.",
    "retryable": false
   },
   "id": "<uuid>",
@@ -16,11 +16,11 @@
  },
  "version": {
   "error": {
-   "code": "parse_error",
+   "code": "truncated_file",
    "details": {
     "retryable": false
    },
-   "message": "Could not parse IFC model"
+   "message": "The file stops at line 16,216 (byte 1,000,000) without its closing END-ISO-10303-21;: it was cut short. Export or upload it again."
   },
   "fileName": "S13-truncated-duplex.ifc",
   "id": "<uuid>",

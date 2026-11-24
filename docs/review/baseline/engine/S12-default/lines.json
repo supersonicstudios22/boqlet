@@ -1,0 +1,62 @@
+[
+ {
+  "key": "prelims-site-setup",
+  "ruleId": "prelims-site-setup",
+  "description": "Site setup and welfare",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.01"
+  },
+  "elements": 0
+ },
+ {
+  "key": "prelims-scaffolding",
+  "ruleId": "prelims-scaffolding",
+  "description": "Scaffolding",
+  "unit": "item",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "A.02"
+  },
+  "elements": 0
+ },
+ {
+  "key": "formwork-walls | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces",
+  "unit": "m2",
+  "quantity": 362.71,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 7
+ },
+ {
+  "key": "walls | Basic Wall:231 YV Betong 200 | True |  | m2",
+  "ruleId": "walls",
+  "description": "Wall, Basic Wall:231 YV Betong 200, 200 mm",
+  "unit": "m2",
+  "quantity": 155.49,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.01"
+  },
+  "elements": 7
+ },
+ {
+  "key": "ps-landscaping",
+  "ruleId": "ps-landscaping",
+  "description": "Landscaping (provisional)",
+  "unit": "sum",
+  "quantity": null,
+  "source": "flagged",
+  "codes": {
+   "acme-cost-codes": "X.01"
+  },
+  "elements": 0
+ }
+]

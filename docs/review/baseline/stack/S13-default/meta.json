@@ -15,8 +15,8 @@
    "job": "failed",
    "versionStatus": "failed",
    "error": {
-    "code": "parse_error",
-    "message": "Could not parse IFC model",
+    "code": "truncated_file",
+    "message": "The file stops at line 16,216 (byte 1,000,000) without its closing END-ISO-10303-21;: it was cut short. Export or upload it again.",
     "retryable": false
    }
   }

@@ -3,10 +3,8 @@ Traceback (most recent call last):
     parsed, meshes = cached_parse(f)
   File "C:\Projects\ifc-boq\docs\review\tools\compare_baseline.py", line 290, in cached_parse
     parsed, parser = parse_file(str(f))
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1055, in parse_file
-    p = Parser(path, overlaps=overlaps)
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 132, in __init__
-    self.f = ifcopenshell.open(path)
-  File "C:\Projects\ifc-boq\engine\.venv\lib\site-packages\ifcopenshell\__init__.py", line 295, in open
-    raise exc(msg)
-ifcopenshell.Error: Unable to parse IFC SPF header
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1160, in parse_file
+    check_ifc_file(path)
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1141, in check_ifc_file
+    raise IfcFileError("not_ifc", "The file is not an IFC (STEP) file: it does not start with ISO-10303-21;")
+ifc_boq.parse.IfcFileError: The file is not an IFC (STEP) file: it does not start with ISO-10303-21;
