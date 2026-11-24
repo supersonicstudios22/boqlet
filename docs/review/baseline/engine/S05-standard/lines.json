@@ -172,7 +172,7 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 37.02,
+  "quantity": 36.19,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -208,7 +208,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 16 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -244,7 +244,7 @@
   "ruleId": "wall-layers",
   "description": "masonry.block, 193 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -280,7 +280,7 @@
   "ruleId": "wall-layers",
   "description": "metal.steel.stud, 41 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -298,6 +298,18 @@
    "demo-trades": "02"
   },
   "elements": 12
+ },
+ {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 743.82,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 167
  },
  {
   "key": "wall-layers | wall.partition | board.plasterboard | 0.016 | normal height | m2",
@@ -370,30 +382,6 @@
    "demo-trades": "03"
   },
   "elements": 18
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 231.58,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.lining | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 61.12,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
  },
  {
   "key": "slabs | Residential - Wood Joist with Subflooring |  | m2",
@@ -634,29 +622,5 @@
    "demo-trades": "06"
   },
   "elements": 8
- },
- {
-  "key": "paint-walls | wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 143.34,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.external | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 267.17,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 1
  }
 ]

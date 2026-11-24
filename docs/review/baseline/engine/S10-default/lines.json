@@ -76,7 +76,7 @@
   "ruleId": "walls",
   "description": "Wall, -, 100 mm",
   "unit": "m2",
-  "quantity": 2094.35,
+  "quantity": 2074.8,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"

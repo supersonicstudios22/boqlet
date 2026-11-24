@@ -3,10 +3,10 @@ Traceback (most recent call last):
     result = get_boq(models, rule_set, systems, dicts, presets.resolution(), [], lib,
   File "C:\Projects\ifc-boq\engine\ifc_boq\pipeline.py", line 210, in get_boq
     m["elements"], res = measure(m["parsed"], rv, log, model_id=m["id"], discipline=m["discipline"],
-  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 346, in build
+  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 357, in build
     rep = {k: find_reported(el, k, skipped_areas if k == "area" else None)
-  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 346, in <dictcomp>
+  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 357, in <dictcomp>
     rep = {k: find_reported(el, k, skipped_areas if k == "area" else None)
-  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 143, in find_reported
+  File "C:\Projects\ifc-boq\engine\ifc_boq\measure.py", line 154, in find_reported
     if matches(set_name):
 TypeError: expected string or bytes-like object

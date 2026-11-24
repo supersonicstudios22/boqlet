@@ -3,9 +3,9 @@ Traceback (most recent call last):
     parsed, meshes = cached_parse(f)
   File "C:\Projects\ifc-boq\docs\review\tools\compare_baseline.py", line 290, in cached_parse
     parsed, parser = parse_file(str(f))
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1028, in parse_file
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1047, in parse_file
     p = Parser(path, overlaps=overlaps)
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 126, in __init__
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 131, in __init__
     self.f = ifcopenshell.open(path)
   File "C:\Projects\ifc-boq\engine\.venv\lib\site-packages\ifcopenshell\__init__.py", line 295, in open
     raise exc(msg)

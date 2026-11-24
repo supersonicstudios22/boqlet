@@ -160,7 +160,7 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 37.02,
+  "quantity": 36.19,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -184,7 +184,7 @@
   "ruleId": "walls",
   "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
   "unit": "m2",
-  "quantity": 71.67,
+  "quantity": 78.83,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -238,6 +238,18 @@
    "demo-trades": "03"
   },
   "elements": 2
+ },
+ {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 720.14,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 167
  },
  {
   "key": "slabs | Residential - Wood Joist with Subflooring |  | m2",
@@ -478,17 +490,5 @@
    "demo-trades": "06"
   },
   "elements": 8
- },
- {
-  "key": "paint-walls | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 703.19,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 50
  }
 ]

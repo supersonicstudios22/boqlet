@@ -40,7 +40,7 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 33.72,
+  "quantity": 32.76,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03"
@@ -352,7 +352,7 @@
   "ruleId": "walls",
   "description": "Wall, CL_W1, 280 mm",
   "unit": "m2",
-  "quantity": 321.76,
+  "quantity": 325.91,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"

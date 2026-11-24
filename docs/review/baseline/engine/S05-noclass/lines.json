@@ -74,7 +74,7 @@
   "ruleId": "walls",
   "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
   "unit": "m2",
-  "quantity": 71.67,
+  "quantity": 78.83,
   "source": "measured",
   "codes": {},
   "elements": 4
@@ -330,6 +330,16 @@
   "elements": 2
  },
  {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 712.68,
+  "source": "measured",
+  "codes": {},
+  "elements": 167
+ },
+ {
   "key": "formwork-walls | m2",
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
@@ -364,20 +374,10 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 37.02,
+  "quantity": 36.19,
   "source": "derived",
   "codes": {},
   "elements": 7
- },
- {
-  "key": "paint-walls | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 703.19,
-  "source": "derived",
-  "codes": {},
-  "elements": 50
  },
  {
   "key": "prelims-site-setup",

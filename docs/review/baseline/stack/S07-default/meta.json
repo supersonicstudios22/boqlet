@@ -27,10 +27,10 @@
  },
  "timing": {
   "parseSeconds": {
-   "S07": 17.1
+   "S07": 17.0
   },
-  "runSeconds": 1.6,
-  "totalSeconds": 28.2
+  "runSeconds": 1.7,
+  "totalSeconds": 28.0
  },
  "runJob": "succeeded",
  "status": "needs_input",

@@ -40,7 +40,7 @@
   "ruleId": "walls",
   "description": "Wall, CL_W1, 280 mm",
   "unit": "m2",
-  "quantity": 227.7,
+  "quantity": 227.71,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -52,7 +52,7 @@
   "ruleId": "walls",
   "description": "Wall, Foundation - 300mm Concrete, 300 mm",
   "unit": "m2",
-  "quantity": 30.21,
+  "quantity": 30.85,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -256,7 +256,7 @@
   "ruleId": "walls",
   "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
   "unit": "m2",
-  "quantity": 108.69,
+  "quantity": 118.28,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -268,7 +268,7 @@
   "ruleId": "walls",
   "description": "Wall, Wall - Timber Clad, 202 mm",
   "unit": "m2",
-  "quantity": 120.74,
+  "quantity": 120.71,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -304,12 +304,24 @@
   "ruleId": "walls",
   "description": "Wall, Interior - Partition, 120 mm",
   "unit": "m2",
-  "quantity": 182.1,
+  "quantity": 190.98,
   "source": "measured",
   "codes": {
    "demo-trades": "03"
   },
   "elements": 14
+ },
+ {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 698.33,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 46
  },
  {
   "key": "windows | M_Skylight | 1180 x 1170mm |  | m2",
@@ -454,18 +466,6 @@
    "demo-trades": "06"
   },
   "elements": 8
- },
- {
-  "key": "paint-walls | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 670.3,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 29
  },
  {
   "key": "roofs | SG Metal Panels roof |  |  | m2",

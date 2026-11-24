@@ -100,7 +100,7 @@
   "ruleId": "wall-layers",
   "description": "masonry.brick, 290 mm (normal height)",
   "unit": "m2",
-  "quantity": 44.13,
+  "quantity": 44.52,
   "source": "measured",
   "codes": {
    "demo-trades": "02"

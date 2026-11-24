@@ -143,17 +143,17 @@
   "elements": 1
  },
  {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.024 | normal height | m2 | m2",
+  "key": "paint-walls | m2",
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
   "unit": "m2",
-  "quantity": 6.87,
-  "source": "derived",
+  "quantity": 13.73,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "H.03",
    "demo-trades": "03"
   },
-  "elements": 1
+  "elements": 2
  },
  {
   "key": "furniture | house - kitchen |  | nr",

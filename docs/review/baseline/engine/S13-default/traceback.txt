@@ -3,8 +3,8 @@ Traceback (most recent call last):
     parsed, meshes = cached_parse(f)
   File "C:\Projects\ifc-boq\docs\review\tools\compare_baseline.py", line 290, in cached_parse
     parsed, parser = parse_file(str(f))
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1029, in parse_file
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 1048, in parse_file
     return p.parse(progress), p
-  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 474, in parse
+  File "C:\Projects\ifc-boq\engine\ifc_boq\parse.py", line 479, in parse
     project = f.by_type("IfcProject")[0]
 IndexError: tuple index out of range

@@ -28,7 +28,7 @@
   "ruleId": "walls",
   "description": "Wall, Foundation - 300mm Concrete, 300 mm",
   "unit": "m2",
-  "quantity": 30.21,
+  "quantity": 30.85,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.01"
@@ -244,7 +244,7 @@
   "ruleId": "walls",
   "description": "Wall, CL_W1, 280 mm",
   "unit": "m2",
-  "quantity": 227.7,
+  "quantity": 227.71,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"
@@ -280,7 +280,7 @@
   "ruleId": "walls",
   "description": "Wall, Interior - Partition, 120 mm",
   "unit": "m2",
-  "quantity": 182.1,
+  "quantity": 190.98,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"
@@ -304,7 +304,7 @@
   "ruleId": "walls",
   "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
   "unit": "m2",
-  "quantity": 108.69,
+  "quantity": 118.28,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"
@@ -316,7 +316,7 @@
   "ruleId": "walls",
   "description": "Wall, Wall - Timber Clad, 202 mm",
   "unit": "m2",
-  "quantity": 120.15,
+  "quantity": 120.12,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"
@@ -508,12 +508,12 @@
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
   "unit": "m2",
-  "quantity": 670.3,
-  "source": "derived",
+  "quantity": 697.75,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "H.03"
   },
-  "elements": 29
+  "elements": 46
  },
  {
   "key": "mep-items | IfcDistributionElement | None | None |  | nr",

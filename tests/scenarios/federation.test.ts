@@ -54,7 +54,8 @@ describe("v1 criterion 2: federation through the API", () => {
   it("gives one BoQ from both models with no element measured twice by one rule", () => {
     expect(["complete", "needs_input"]).toContain(run.status);
     expect(lines.length).toBeGreaterThan(0);
-    const pairs = lines.filter((l) => l.ruleKind === "item").flatMap((l) => l.trace.elements.map((e) => `${l.ruleId}|${e.guid}`));
+    // a breakdown measures each part once (paint on each face of a wall, A-11): keyed by the part's name
+    const pairs = lines.filter((l) => l.ruleKind === "item").flatMap((l) => l.trace.elements.map((e) => `${l.ruleId}|${e.guid}|${e.name}`));
     expect(new Set(pairs).size).toBe(pairs.length);
   });
 

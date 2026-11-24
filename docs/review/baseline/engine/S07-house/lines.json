@@ -43,7 +43,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.in_situ, 300 mm (normal height)",
   "unit": "m2",
-  "quantity": 30.21,
+  "quantity": 30.86,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.01",
@@ -199,7 +199,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 63.44,
+  "quantity": 64.81,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03",
@@ -329,7 +329,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 144.1,
+  "quantity": 153.85,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04",
@@ -342,7 +342,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 84.17,
+  "quantity": 94.56,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.04",
@@ -407,7 +407,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 10 mm (above limit)",
   "unit": "m2",
-  "quantity": 359.47,
+  "quantity": 377.22,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -446,7 +446,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 13 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -459,7 +459,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 13 mm (normal height)",
   "unit": "m2",
-  "quantity": 78.24,
+  "quantity": 83.15,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -511,7 +511,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.screed, 22 mm (above limit)",
   "unit": "m2",
-  "quantity": 68.62,
+  "quantity": 73.26,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -524,7 +524,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.screed, 22 mm (normal height)",
   "unit": "m2",
-  "quantity": 40.08,
+  "quantity": 45.03,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -537,7 +537,7 @@
   "ruleId": "wall-layers",
   "description": "insulation, 112 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -550,7 +550,7 @@
   "ruleId": "wall-layers",
   "description": "insulation, 112 mm (normal height)",
   "unit": "m2",
-  "quantity": 78.24,
+  "quantity": 83.15,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -589,7 +589,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 100 mm (above limit)",
   "unit": "m2",
-  "quantity": 179.74,
+  "quantity": 188.61,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -628,7 +628,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 15 mm (above limit)",
   "unit": "m2",
-  "quantity": 387.9,
+  "quantity": 397.17,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -641,7 +641,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 15 mm (normal height)",
   "unit": "m2",
-  "quantity": 156.47,
+  "quantity": 166.3,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -667,7 +667,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 22 mm (normal height)",
   "unit": "m2",
-  "quantity": 38.16,
+  "quantity": 38.13,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -680,7 +680,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 25 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -693,7 +693,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 25 mm (normal height)",
   "unit": "m2",
-  "quantity": 78.24,
+  "quantity": 83.15,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -884,69 +884,17 @@
   "elements": 2
  },
  {
-  "key": "paint-walls | wall-layers | None | board.plasterboard | 0.013 | above limit | m2 | m2",
+  "key": "paint-walls | m2",
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
   "unit": "m2",
-  "quantity": 193.95,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | None | board.plasterboard | 0.013 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 78.24,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.0127 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 34.51,
-  "source": "derived",
+  "quantity": 730.07,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "H.03",
    "demo-trades": "03"
   },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.01 | above limit | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 359.47,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "03"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.01 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 4.74,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "03"
-  },
-  "elements": 1
+  "elements": 46
  },
  {
   "key": "furniture | 0810mm |  | nr",

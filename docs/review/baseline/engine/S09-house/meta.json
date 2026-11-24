@@ -22,10 +22,10 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S09": 2.57
+   "S09": 1.98
   },
-  "runSeconds": 0.07,
-  "totalSeconds": 3.26
+  "runSeconds": 0.08,
+  "totalSeconds": 2.67
  },
  "outcome": "result",
  "status": "needs_input",

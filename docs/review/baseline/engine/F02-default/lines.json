@@ -148,7 +148,7 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 37.02,
+  "quantity": 36.19,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03"
@@ -244,7 +244,7 @@
   "ruleId": "walls",
   "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
   "unit": "m2",
-  "quantity": 71.67,
+  "quantity": 78.83,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02"
@@ -472,12 +472,12 @@
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
   "unit": "m2",
-  "quantity": 703.19,
-  "source": "derived",
+  "quantity": 712.68,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "H.03"
   },
-  "elements": 50
+  "elements": 308
  },
  {
   "key": "pipes | IfcCableSegment | None | None |  | m",

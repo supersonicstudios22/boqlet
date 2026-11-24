@@ -172,7 +172,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.in_situ, 300 mm (normal height)",
   "unit": "m2",
-  "quantity": 30.21,
+  "quantity": 30.86,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -196,7 +196,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.screed, 22 mm (above limit)",
   "unit": "m2",
-  "quantity": 68.62,
+  "quantity": 73.26,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -208,7 +208,7 @@
   "ruleId": "wall-layers",
   "description": "concrete.screed, 22 mm (normal height)",
   "unit": "m2",
-  "quantity": 40.08,
+  "quantity": 45.03,
   "source": "measured",
   "codes": {
    "demo-trades": "01"
@@ -220,7 +220,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 137.24,
+  "quantity": 146.52,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -232,7 +232,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 80.16,
+  "quantity": 90.06,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -268,7 +268,7 @@
   "ruleId": "formwork-walls",
   "description": "Formwork to walls, both faces",
   "unit": "m2",
-  "quantity": 60.42,
+  "quantity": 61.72,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -400,7 +400,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 13 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -412,7 +412,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 13 mm (normal height)",
   "unit": "m2",
-  "quantity": 77.65,
+  "quantity": 82.57,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -424,7 +424,7 @@
   "ruleId": "wall-layers",
   "description": "insulation, 112 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -436,7 +436,7 @@
   "ruleId": "wall-layers",
   "description": "insulation, 112 mm (normal height)",
   "unit": "m2",
-  "quantity": 77.65,
+  "quantity": 82.57,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -472,7 +472,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 15 mm (above limit)",
   "unit": "m2",
-  "quantity": 387.9,
+  "quantity": 397.17,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -484,7 +484,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 15 mm (normal height)",
   "unit": "m2",
-  "quantity": 155.3,
+  "quantity": 165.14,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -508,7 +508,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 22 mm (normal height)",
   "unit": "m2",
-  "quantity": 37.58,
+  "quantity": 37.55,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -520,7 +520,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 25 mm (above limit)",
   "unit": "m2",
-  "quantity": 193.95,
+  "quantity": 198.59,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -532,7 +532,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 25 mm (normal height)",
   "unit": "m2",
-  "quantity": 77.65,
+  "quantity": 82.57,
   "source": "measured",
   "codes": {
    "demo-trades": "02"
@@ -540,11 +540,23 @@
   "elements": 6
  },
  {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 729.76,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 46
+ },
+ {
   "key": "wall-layers | wall.partition | board.plasterboard | 0.01 | above limit | m2",
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 10 mm (above limit)",
   "unit": "m2",
-  "quantity": 359.47,
+  "quantity": 377.22,
   "source": "measured",
   "codes": {
    "demo-trades": "03"
@@ -580,7 +592,7 @@
   "ruleId": "wall-layers",
   "description": "timber, 100 mm (above limit)",
   "unit": "m2",
-  "quantity": 179.74,
+  "quantity": 188.61,
   "source": "measured",
   "codes": {
    "demo-trades": "03"
@@ -610,42 +622,6 @@
    "demo-trades": "03"
   },
   "elements": 3
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.0127 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 34.51,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.01 | above limit | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 359.47,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.01 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 4.74,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
  },
  {
   "key": "windows | M_Skylight | 1180 x 1170mm |  | m2",
@@ -790,30 +766,6 @@
    "demo-trades": "06"
   },
   "elements": 8
- },
- {
-  "key": "paint-walls | wall-layers | None | board.plasterboard | 0.013 | above limit | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 193.95,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | None | board.plasterboard | 0.013 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 77.65,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "06"
-  },
-  "elements": 1
  },
  {
   "key": "roofs | SG Metal Panels roof |  |  | m2",

@@ -120,6 +120,18 @@
   "elements": 1
  },
  {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 13.73,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 2
+ },
+ {
   "key": "roofs | gable_roof |  |  | m2",
   "ruleId": "roofs",
   "description": "Roof, gable_roof",

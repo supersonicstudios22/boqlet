@@ -186,7 +186,7 @@
   "ruleId": "formwork-footings",
   "description": "Formwork to sides of foundations",
   "unit": "m2",
-  "quantity": 38.87,
+  "quantity": 38.0,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03",
@@ -316,7 +316,7 @@
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 16 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -355,7 +355,7 @@
   "ruleId": "wall-layers",
   "description": "masonry.block, 193 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -407,7 +407,7 @@
   "ruleId": "wall-layers",
   "description": "metal.steel.stud, 41 mm (normal height)",
   "unit": "m2",
-  "quantity": 143.34,
+  "quantity": 157.67,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "D.02",
@@ -663,56 +663,17 @@
   "elements": 13
  },
  {
-  "key": "paint-walls | wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2 | m2",
+  "key": "paint-walls | m2",
   "ruleId": "paint-walls",
   "description": "Paint to plasterboard wall surfaces",
   "unit": "m2",
-  "quantity": 143.34,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.external | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 274.63,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "06"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 231.58,
-  "source": "derived",
+  "quantity": 745.44,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "H.03",
    "demo-trades": "03"
   },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.lining | board.plasterboard | 0.016 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 61.12,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "H.03",
-   "demo-trades": "03"
-  },
-  "elements": 1
+  "elements": 167
  },
  {
   "key": "furniture | 0610 x 0610 x 0610mm |  | nr",

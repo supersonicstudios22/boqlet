@@ -108,24 +108,24 @@
   "elements": 1
  },
  {
+  "key": "paint-walls | m2",
+  "ruleId": "paint-walls",
+  "description": "Paint to plasterboard wall surfaces",
+  "unit": "m2",
+  "quantity": 13.73,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "03"
+  },
+  "elements": 2
+ },
+ {
   "key": "wall-layers | wall.partition | board.plasterboard | 0.024 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 24 mm (normal height)",
   "unit": "m2",
   "quantity": 6.87,
   "source": "measured",
-  "codes": {
-   "demo-trades": "03"
-  },
-  "elements": 1
- },
- {
-  "key": "paint-walls | wall-layers | wall.partition | board.plasterboard | 0.024 | normal height | m2 | m2",
-  "ruleId": "paint-walls",
-  "description": "Paint to plasterboard wall surfaces",
-  "unit": "m2",
-  "quantity": 6.87,
-  "source": "derived",
   "codes": {
    "demo-trades": "03"
   },
