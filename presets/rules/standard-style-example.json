@@ -15,7 +15,7 @@
     "wall_opening_threshold": {
       "value": 0.5
     },
-    "wall_add_reveals": {
+    "finish_add_reveals": {
       "value": true
     },
     "slab_opening_mode": {

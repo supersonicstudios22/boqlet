@@ -499,22 +499,6 @@
         ]
       }
     },
-    "wall_add_reveals": {
-      "type": "boolean",
-      "value": false,
-      "label": "Add reveals back",
-      "section": "openings",
-      "question": "When an opening is deducted, are its reveals (the sides of the opening) added back?",
-      "dependsOn": {
-        "param": "wall_opening_mode",
-        "values": [
-          "all",
-          "over_threshold",
-          "excess_only",
-          "per_element_sum"
-        ]
-      }
-    },
     "slab_opening_mode": {
       "setup": "slab-openings",
       "type": "choice",
@@ -854,6 +838,20 @@
         ]
       }
     },
+    "finish_add_reveals": {
+      "type": "boolean",
+      "value": false,
+      "label": "Add reveals to finishes",
+      "section": "finishes",
+      "question": "When an opening is deducted from a wall finish, are its reveals (the sides of the opening) finished too?",
+      "help": "Each finished face adds the reveals at half the opening's depth (the frame taken as central), so a wall finished on both faces adds each reveal once.",
+      "dependsOn": {
+        "param": "paint_walls",
+        "values": [
+          true
+        ]
+      }
+    },
     "paint_ceilings": {
       "type": "boolean",
       "value": false,
@@ -1152,9 +1150,6 @@
                 },
                 "compareBy": {
                   "param": "opening_compare_by"
-                },
-                "addReveals": {
-                  "param": "wall_add_reveals"
                 }
               }
             ]
@@ -1235,9 +1230,6 @@
                   },
                   "compareBy": {
                     "param": "opening_compare_by"
-                  },
-                  "addReveals": {
-                    "param": "wall_add_reveals"
                   }
                 }
               ]
@@ -2273,6 +2265,9 @@
                 },
                 "compareBy": {
                   "param": "opening_compare_by"
+                },
+                "addReveals": {
+                  "param": "finish_add_reveals"
                 }
               }
             ]
@@ -2292,6 +2287,9 @@
                 },
                 "compareBy": {
                   "param": "finish_opening_compare_by"
+                },
+                "addReveals": {
+                  "param": "finish_add_reveals"
                 }
               }
             ]

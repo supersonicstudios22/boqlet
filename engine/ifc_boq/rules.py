@@ -293,7 +293,11 @@ class RuleEngine:
                 code = {"all": "all", "excess_only": "excess"}.get(mode, "over_threshold")
                 trace.append(step("deduct", f"deduct.{code}", -ded * faces, data, slot(d.get("threshold"))))
             if self.val(d.get("addReveals")) and per == "area" and chosen and what != "embedded":
-                rev = sum((2 * (o["height"] or 0) + (o["width"] or 0)) * (o.get("depth") or thickness) for o in chosen)
+                # one face's reveals (A-12): a wall has two faces and the frame is taken as central, so
+                # each face gets half the opening's depth; `both` calls this once per face, a face
+                # part shared between rooms takes its share
+                share = part.get("_open_share", 1.0)
+                rev = sum((2 * (o["height"] or 0) + (o["width"] or 0)) * (o.get("depth") or thickness) / 2 for o in chosen) * share
                 total -= rev
                 notes.append(f"+ {fmt(round(rev, 4))} reveals")
                 if trace is not None:

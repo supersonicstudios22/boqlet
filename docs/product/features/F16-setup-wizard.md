@@ -136,7 +136,7 @@ almost every firm, and they stay in the full Settings tab.
 | Step | Questions | Why it is essential |
 |---|---|---|
 | `walls` "Walls" | `wall_unit` (+ `masonry_volume_from`), `wall_surface` | walls are in every model; m² vs m³ and which face are the commonest differences between practices |
-| `wall-openings` "Openings in walls" | `wall_opening_mode` (+ `wall_opening_threshold`, `opening_compare_by`, `wall_add_reveals`) | deduction rules for windows and doors change every wall line |
+| `wall-openings` "Openings in walls" | `wall_opening_mode` (+ `wall_opening_threshold`, `opening_compare_by`; reveals are a finish slot, `finish_add_reveals`, A-12) | deduction rules for windows and doors change every wall line |
 | `slab-openings` "Openings in floors and roofs" | `slab_opening_mode` (+ `slab_opening_threshold`) | the same for every slab line |
 | `roofs` "Roofs" | `roof_surface` | slope vs plan changes every roof line |
 | `windows-doors` "Windows and doors" | `window_measure`, `door_measure` | count vs area changes units of every window and door line |

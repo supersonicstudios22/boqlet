@@ -121,7 +121,7 @@ their defaults automatically. The questions still need review by someone who kno
 ```json
 "wall_opening_mode":      { "type": "choice",  "value": "all", "options": ["none","all","over_threshold","excess_only","per_element_sum"], "label": "Wall opening deduction" },
 "wall_opening_threshold": { "type": "number",  "value": 0, "unit": "m2", "label": "Wall opening threshold" },
-"wall_add_reveals":       { "type": "boolean", "value": false, "label": "Add reveals of deducted openings" },
+"finish_add_reveals":     { "type": "boolean", "value": false, "label": "Add reveals to finishes" },
 "include_furniture":      { "type": "boolean", "value": false, "label": "Include loose furniture" }
 ```
 
@@ -167,7 +167,7 @@ Units are converted from SI at output (mm, km, ft, ft2, yd2, ft3, yd3, t, lb sup
 
 ```json
 { "what": "openings", "mode": { "param": "wall_opening_mode" }, "threshold": { "param": "wall_opening_threshold" },
-  "compareBy": "area", "addReveals": { "param": "wall_add_reveals" }, "where": "kind = \"window\"" }
+  "compareBy": "area", "addReveals": { "param": "finish_add_reveals" }, "where": "kind = \"window\"" }
 ```
 
 | Mode | Meaning |
@@ -188,6 +188,10 @@ can lose them. `recesses`: openings the model marks as recesses (IFC4 `IfcOpenin
 ObjectType "Recess" in IFC2x3); deducted as their face area, or area x recess depth for volumes. They
 are never part of `openings` / `voids`, of an element's gross and net area, or of a room's openings.
 `compareBy`: area, width, height, length, volume. On `surface: "both"`, openings are deducted from each face.
+`addReveals` (area only) adds back the reveals of the openings it deducted, **once per face** (A-12): each
+face gets `(2 x height + width) x depth / 2` per opening (depth = the opening's, else the element's thickness;
+the frame is taken as central), so `both` faces add each reveal once and a face part shared by rooms adds its
+share. Reveals are finish work: as-modelled offers them on the wall finish (`finish_add_reveals`), not on the walls.
 
 ### Scope: what the BoQ leaves out
 
@@ -241,7 +245,8 @@ A finish measured on a face is an **item**, not a derived rule, so it can take t
 `UNDER(layer_material, "board.plasterboard")` (each face's outermost layer, from the layer set's order and
 direction), and a `choose` on `finish_openings`: `as_walls` (default) deducts openings by `wall_opening_mode`,
 `wall_opening_threshold` and `opening_compare_by`; `own` by `finish_opening_mode`, `finish_opening_threshold` and
-`finish_opening_compare_by`. A face shared by several rooms deducts its share of the openings.
+`finish_opening_compare_by`. A face shared by several rooms deducts its share of the openings. `finish_add_reveals`
+(off by default) adds the reveals of the openings deducted from each painted face (A-12).
 
 - `scope: "element"`: evaluated per source element; `src.*` are its measured fields.
 - `scope: "line"`: evaluated per source line; `src.qty` is the line quantity, `keys.*` its line keys.
@@ -288,7 +293,7 @@ item that derived rules still read from; it found exactly that bug in an early v
 | Preset | Extends | What it demonstrates |
 |---|---|---|
 | `as-modelled` | | The master template (see above): 13 sections, 65 questions, 5 formula slots (each with ready-made choices), a scope for renovation work. Defaults give net quantities as modelled, all openings deducted, walls in m2 (m3 switch off by default), windows and doors counted, steel in t by nominal kg/m, roofs by developed area, 31 item rules covering every measurement family (including demolition, off by default; paint to plasterboard is an item on the faces that carry it, A-11), 11 derived (formwork walls / slab edges / footings (footings by their measured vertical faces, `vertical_face_area`); rebar estimates for slabs / walls / footings; paint to ceilings; skirting; excavation, blinding, hardcore), 3 manual. Every standard-sensitive value is a slot. Reproduces the hand-made Duplex BoQ. |
-| `standard-style-example` | as-modelled | What encoding a detailed standard looks like: openings over 0.5 m2 deducted with reveals added back, walls of 120 mm and more in m3, windows by area, rebar estimates on, walls replaced by `wall-layers` (one line per element type, material and thickness, air gaps skipped), derived formwork and paint re-pointed at `wall-layers`, a height band slot. Values are placeholders. |
+| `standard-style-example` | as-modelled | What encoding a detailed standard looks like: openings over 0.5 m2 deducted with their reveals added to the wall finishes, walls of 120 mm and more in m3, windows by area, rebar estimates on, walls replaced by `wall-layers` (one line per element type, material and thickness, air gaps skipped), derived formwork and paint re-pointed at `wall-layers`, a height band slot. Values are placeholders. |
 | `acme-house-rules` | standard-style-example | A firm's tweaks on top of a standard: three slot values, a skirting derived rule, a lump sum. |
 | `demo-tweaked` | as-modelled | The smallest possible custom rules: only three slot values changed (openings up to 1.0 m2 kept, windows by area). Compare it with as-modelled in the app. |
 | `demo-custom` | | A complete small rule set from scratch: thick walls (25 cm and more) in m3 and thin ones in m2 by element type; openings up to 1 m2 kept; all concrete in one line per class and material; floors by material; windows by area; doors counted; formwork to footings with an allowance factor; one manual item. Leaves the rest of the model unmeasured on purpose, which shows up as non-blocking `unmatched` questions. |

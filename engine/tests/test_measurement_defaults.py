@@ -223,3 +223,51 @@ def test_paint_follows_the_wall_opening_rule_unless_it_has_its_own():
     kept = dict(wall_opening_mode="over_threshold", wall_opening_threshold=1.0)
     assert paint(d, **kept) == pytest.approx(28.5)
     assert paint(d, **kept, finish_openings="own", finish_opening_mode="all") == pytest.approx(27.7)
+
+
+# ---------------------------------------------------------------- A-12: reveals belong to finishes, once per face
+# the two openings of lined_wall_doc: (2h + w) = 2.8 m and 4.0 m of reveal edge, 6.8 m in all
+REVEAL_EDGE = 2 * 1.0 + 0.8 + 2 * 1.5 + 1.0
+
+
+def test_finish_reveals_are_added_once_per_face_with_half_the_depth():
+    """(Lines are rounded to 0.01 m2.) A finish face adds the reveals of the openings it deducts at half the opening's depth (the
+    frame is taken as central); paint on both faces of a wall adds each reveal's full depth once."""
+    both = lined_wall_doc([("Plasterboard", 0.0125), ("Metal Stud Layer", 0.1), ("Plasterboard", 0.0125)])
+    assert paint(both, finish_add_reveals=True) == pytest.approx(2 * 27.7 + REVEAL_EDGE * 0.125)
+    one = lined_wall_doc([("Concrete Masonry Units", 0.19), ("Plasterboard", 0.0125)])
+    assert paint(one, finish_add_reveals=True) == pytest.approx(27.7 + REVEAL_EDGE * 0.2025 / 2, abs=0.005)
+    # only the deducted openings get reveals: the walls keep the 0.8 m2 one, so does the paint
+    kept = dict(wall_opening_mode="over_threshold", wall_opening_threshold=1.0)
+    assert paint(one, finish_add_reveals=True, **kept) == pytest.approx(28.5 + 4.0 * 0.2025 / 2, abs=0.005)
+
+
+def test_walls_no_longer_add_reveals_and_the_old_slot_is_gone():
+    rs, _ = presets.load_rule_set("as-modelled")
+    assert "wall_add_reveals" not in rs["params"] and rs["params"]["finish_add_reveals"]["value"] is False
+    text = str(next(i for i in rs["items"] if i["id"] == "walls"))
+    assert "addReveals" not in text
+    std, _ = presets.load_rule_set("standard-style-example")
+    assert std["params"]["finish_add_reveals"]["value"] is True and "wall_add_reveals" not in std["params"]
+
+
+def wall_lines(parsed: dict, surface: str) -> float:
+    """A firm's own wall item with reveals on: `both` faces vs one face."""
+    from ifc_boq.pipeline import get_boq
+    item = {"id": "walls-rev", "label": "Walls", "family": "planar", "match": {"ifcClass": "IfcWall"},
+            "quantity": {"kind": "area", "surface": surface, "start": "gross",
+                         "deductions": [{"what": "openings", "mode": "all", "addReveals": True}]},
+            "description": "Wall", "lineKey": [], "claims": ["body"], "tags": ["wall"]}
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled",
+          "remove": ["walls"], "items": [item]}
+    _, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    return sum(l["quantity"] for l in r["lines"] if l["ruleId"] == "walls-rev")
+
+
+def test_surface_both_counts_each_reveal_once():
+    """ENG-023: `both` used to add the full (2h + w) x depth on each face, then double it."""
+    t = 0.2
+    d = lined_wall_doc([("Concrete Masonry Units", t)])
+    assert wall_lines(d, "both") == pytest.approx(2 * 27.7 + REVEAL_EDGE * t)
+    assert wall_lines(d, "side_a") == pytest.approx(27.7 + REVEAL_EDGE * t / 2)
