@@ -556,7 +556,7 @@
   "ruleId": "steel-sections",
   "description": "Structural steel W310X60",
   "unit": "t",
-  "quantity": 0.9,
+  "quantity": 0.89,
   "source": "measured",
   "codes": {
    "demo-trades": "05"

@@ -147,7 +147,7 @@
   "ruleId": "slab-concrete",
   "description": "In-situ concrete, Concrete-Domestic 425mm",
   "unit": "m3",
-  "quantity": 16.35,
+  "quantity": 6.73,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.02",
@@ -160,7 +160,7 @@
   "ruleId": "slab-concrete",
   "description": "In-situ concrete, Insitu Concrete 225mm",
   "unit": "m3",
-  "quantity": 21.66,
+  "quantity": 16.84,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "B.02",
@@ -212,7 +212,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 11.08,
+  "quantity": 4.56,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03",
@@ -238,7 +238,7 @@
   "ruleId": "formwork-slab-edges",
   "description": "Edge formwork to slabs",
   "unit": "m2",
-  "quantity": 19.31,
+  "quantity": 15.02,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "B.03",
@@ -277,7 +277,7 @@
   "ruleId": "rebar-estimate-slabs",
   "description": "Reinforcement to slabs (estimated)",
   "unit": "t",
-  "quantity": 1.64,
+  "quantity": 0.67,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.03",
@@ -303,7 +303,7 @@
   "ruleId": "rebar-estimate-slabs",
   "description": "Reinforcement to slabs (estimated)",
   "unit": "t",
-  "quantity": 2.17,
+  "quantity": 1.68,
   "source": "derived",
   "codes": {
    "acme-cost-codes": "C.03",
@@ -1090,356 +1090,5 @@
    "demo-trades": "00"
   },
   "elements": 0
- },
- {
-  "key": "unmatched-proxies | Alex |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Alex",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Fine China - Plate |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Fine China - Plate",
-  "unit": "nr",
-  "quantity": 8.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "06"
-  },
-  "elements": 8
- },
- {
-  "key": "unmatched-proxies | Hawthorn - 25' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Hawthorn - 25'",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Honey Locust - 25' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Honey Locust - 25'",
-  "unit": "nr",
-  "quantity": 8.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 8
- },
- {
-  "key": "unmatched-proxies | Largetooth Aspen - 25' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Largetooth Aspen - 25'",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Lombardy Poplar - 40' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Lombardy Poplar - 40'",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | M_RPC Beetle |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object M_RPC Beetle",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Built-under Dishwasher G 4101 U CS |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Built-under Dishwasher G 4101 U CS",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Fridge/Freezer KF 1911 Vi |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Fridge/Freezer KF 1911 Vi",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Induction Cooktop 6350 LPT |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Induction Cooktop 6350 LPT",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "05"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Microwave M 8260-2 |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Microwave M 8260-2",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Oven H 5681 BP |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Oven H 5681 BP",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Tumble Dryer T 7944 C |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Tumble Dryer T 7944 C",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Miele Washing Machine W 5820 WPS |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Miele Washing Machine W 5820 WPS",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Rangehood DA-2210 |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Rangehood DA-2210",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Red Ash - 25' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Red Ash - 25'",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Red Maple - 30' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Red Maple - 30'",
-  "unit": "nr",
-  "quantity": 2.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 2
- },
- {
-  "key": "unmatched-proxies | Scarlet Oak - 42' |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Scarlet Oak - 42'",
-  "unit": "nr",
-  "quantity": 2.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 2
- },
- {
-  "key": "unmatched-proxies | Solarworld Sunmodule Plus |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Solarworld Sunmodule Plus",
-  "unit": "nr",
-  "quantity": 12.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 12
- },
- {
-  "key": "unmatched-proxies | Vase (3)-with Flower |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Vase (3)-with Flower",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Walvit |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Walvit",
-  "unit": "nr",
-  "quantity": 4.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 4
- },
- {
-  "key": "unmatched-proxies | Water Glass |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Water Glass",
-  "unit": "nr",
-  "quantity": 8.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 8
- },
- {
-  "key": "unmatched-proxies | White |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object White",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | Wine Bottles |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object Wine Bottles",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | YinYin |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object YinYin",
-  "unit": "nr",
-  "quantity": 3.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 3
- },
- {
-  "key": "unmatched-proxies | fire place hang |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object fire place hang",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | water |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object water",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99",
-   "demo-trades": "99"
-  },
-  "elements": 1
  }
 ]

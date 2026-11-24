@@ -184,7 +184,7 @@
   "ruleId": "steel-sections",
   "description": "Structural steel W310X60",
   "unit": "t",
-  "quantity": 0.9,
+  "quantity": 0.89,
   "source": "measured",
   "codes": {
    "acme-cost-codes": "C.01"

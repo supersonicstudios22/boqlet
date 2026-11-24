@@ -36,30 +36,6 @@
   "elements": 1
  },
  {
-  "key": "slab-concrete | Simple floor |  | m3",
-  "ruleId": "slab-concrete",
-  "description": "In-situ concrete, Simple floor",
-  "unit": "m3",
-  "quantity": 13.24,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "C.02"
-  },
-  "elements": 1
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Simple floor |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 6.51,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04"
-  },
-  "elements": 1
- },
- {
   "key": "walls | Wall-Ext_102Bwk-75Ins-100LBlk-12P | True |  | m2",
   "ruleId": "walls",
   "description": "Wall, Wall-Ext_102Bwk-75Ins-100LBlk-12P, 290 mm",
@@ -136,8 +112,8 @@
   "ruleId": "roofs",
   "description": "Roof, Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr",
   "unit": "m2",
-  "quantity": null,
-  "source": "flagged",
+  "quantity": 116.92,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "F.01"
   },

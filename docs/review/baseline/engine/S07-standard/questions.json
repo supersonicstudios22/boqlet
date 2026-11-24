@@ -307,6 +307,558 @@
   "message": "2 x IfcWall 'Interior - Partition': the thickness stated in the file and the geometry disagree by -14% (e.g. 0.12 m from material layer set vs 0.104 m measured). The stated value is used. Which should be used?"
  },
  {
+  "id": "unmatched:IfcBuildingElementProxy:Alex",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1Rg2y5brbBReiPZuQVS4Uv"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Alex"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Alex' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Fine China - Plate",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0NrahGrur9Xw8sux415P0D",
+   "0NrahGrur9Xw8sux415Ojx",
+   "0NrahGrur9Xw8sux415Ojf",
+   "0NrahGrur9Xw8sux415OiV",
+   "0NrahGrur9Xw8sux415Oif",
+   "0NrahGrur9Xw8sux415Oil",
+   "0NrahGrur9Xw8sux415Oij",
+   "0NrahGrur9Xw8sux415OhJ"
+  ],
+  "occurrences": 8,
+  "code": "question.unmatched",
+  "params": {
+   "count": 8,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Fine China - Plate"
+  },
+  "message": "8 x IfcBuildingElementProxy 'Fine China - Plate' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Hawthorn - 25'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcim"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Hawthorn - 25'"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Hawthorn - 25'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Honey Locust - 25'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVc_e",
+   "2kYqvrv7r7Ee9Lf6DEVcrj",
+   "2kYqvrv7r7Ee9Lf6DEVctv",
+   "2kYqvrv7r7Ee9Lf6DEVcsP",
+   "2kYqvrv7r7Ee9Lf6DEVcny",
+   "2kYqvrv7r7Ee9Lf6DEVcm8",
+   "2kYqvrv7r7Ee9Lf6DEVclx",
+   "2kYqvrv7r7Ee9Lf6DEVclA"
+  ],
+  "occurrences": 8,
+  "code": "question.unmatched",
+  "params": {
+   "count": 8,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Honey Locust - 25'"
+  },
+  "message": "8 x IfcBuildingElementProxy 'Honey Locust - 25'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Largetooth Aspen - 25'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcpT"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Largetooth Aspen - 25'"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Largetooth Aspen - 25'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Lombardy Poplar - 40'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcq_"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Lombardy Poplar - 40'"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Lombardy Poplar - 40'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:M_RPC Beetle",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVfyc"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "M_RPC Beetle"
+  },
+  "message": "1 x IfcBuildingElementProxy 'M_RPC Beetle' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Built-under Dishwasher G 4101 U CS",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3vi8Xy_cHA1R$gUoZ0tZjz"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Built-under Dishwasher G 4101 U CS"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Built-under Dishwasher G 4101 U CS' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Fridge/Freezer KF 1911 Vi",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx2y0"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Fridge/Freezer KF 1911 Vi"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Fridge/Freezer KF 1911 Vi' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Induction Cooktop 6350 LPT",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx3_i"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Induction Cooktop 6350 LPT"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Induction Cooktop 6350 LPT' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Microwave M 8260-2",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3vi8Xy_cHA1R$gUoZ0tWFN"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Microwave M 8260-2"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Microwave M 8260-2' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Oven H 5681 BP",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx2MV"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Oven H 5681 BP"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Oven H 5681 BP' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Tumble Dryer T 7944 C",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx0h8"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Tumble Dryer T 7944 C"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Tumble Dryer T 7944 C' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Miele Washing Machine W 5820 WPS",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx1Ur"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Miele Washing Machine W 5820 WPS"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Miele Washing Machine W 5820 WPS' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Rangehood DA-2210",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx06M"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Rangehood DA-2210"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Rangehood DA-2210' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Red Ash - 25'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcw_"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Red Ash - 25'"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Red Ash - 25'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Red Maple - 30'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcvD",
+   "2kYqvrv7r7Ee9Lf6DEVcn3"
+  ],
+  "occurrences": 2,
+  "code": "question.unmatched",
+  "params": {
+   "count": 2,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Red Maple - 30'"
+  },
+  "message": "2 x IfcBuildingElementProxy 'Red Maple - 30'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Scarlet Oak - 42'",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVd2D",
+   "2kYqvrv7r7Ee9Lf6DEVctg"
+  ],
+  "occurrences": 2,
+  "code": "question.unmatched",
+  "params": {
+   "count": 2,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Scarlet Oak - 42'"
+  },
+  "message": "2 x IfcBuildingElementProxy 'Scarlet Oak - 42'' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Solarworld Sunmodule Plus",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "05C5jBkCzCQwjdBruI5$mZ",
+   "3LY1kdnlj6bgwyZNgs$1bx",
+   "3LY1kdnlj6bgwyZNgs$1ac",
+   "3LY1kdnlj6bgwyZNgs$1ag",
+   "3LY1kdnlj6bgwyZNgs$1at",
+   "3LY1kdnlj6bgwyZNgs$1ar",
+   "3LY1kdnlj6bgwyZNgs$1a$",
+   "3LY1kdnlj6bgwyZNgs$1az",
+   "3LY1kdnlj6bgwyZNgs$1aU",
+   "3LY1kdnlj6bgwyZNgs$1aS",
+   "3LY1kdnlj6bgwyZNgs$1dc",
+   "3LY1kdnlj6bgwyZNgs$1da"
+  ],
+  "occurrences": 12,
+  "code": "question.unmatched",
+  "params": {
+   "count": 12,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Solarworld Sunmodule Plus"
+  },
+  "message": "12 x IfcBuildingElementProxy 'Solarworld Sunmodule Plus' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Vase (3)-with Flower",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$tpF"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Vase (3)-with Flower"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Vase (3)-with Flower' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Walvit",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0Qn0xDcrP0Ie69cIIE3wtB",
+   "0H7vgQcNjEo8efFHzwVpwh",
+   "2wm6PO6TX9IxXwLP21Hz7i",
+   "2wm6PO6TX9IxXwLP21Hyo6"
+  ],
+  "occurrences": 4,
+  "code": "question.unmatched",
+  "params": {
+   "count": 4,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Walvit"
+  },
+  "message": "4 x IfcBuildingElementProxy 'Walvit' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Water Glass",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0NrahGrur9Xw8sux415Ol2",
+   "0NrahGrur9Xw8sux415Ojw",
+   "0NrahGrur9Xw8sux415Oje",
+   "0NrahGrur9Xw8sux415OiU",
+   "0NrahGrur9Xw8sux415Oie",
+   "0NrahGrur9Xw8sux415Oik",
+   "0NrahGrur9Xw8sux415Oii",
+   "0NrahGrur9Xw8sux415OhI"
+  ],
+  "occurrences": 8,
+  "code": "question.unmatched",
+  "params": {
+   "count": 8,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Water Glass"
+  },
+  "message": "8 x IfcBuildingElementProxy 'Water Glass' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:White",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0NrahGrur9Xw8sux415PTl"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "White"
+  },
+  "message": "1 x IfcBuildingElementProxy 'White' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:Wine Bottles",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0NrahGrur9Xw8sux415PgG"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "Wine Bottles"
+  },
+  "message": "1 x IfcBuildingElementProxy 'Wine Bottles' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:YinYin",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1Rg2y5brbBReiPZuQVS4Sp",
+   "1Rg2y5brbBReiPZuQVS4HI",
+   "1Rg2y5brbBReiPZuQVS4JN"
+  ],
+  "occurrences": 3,
+  "code": "question.unmatched",
+  "params": {
+   "count": 3,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "YinYin"
+  },
+  "message": "3 x IfcBuildingElementProxy 'YinYin' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:fire place hang",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1DaGnOS6v2iOJfBoPtVOcK"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "fire place hang"
+  },
+  "message": "1 x IfcBuildingElementProxy 'fire place hang' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:water",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGp7"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "water"
+  },
+  "message": "1 x IfcBuildingElementProxy 'water' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
   "id": "unmatched:IfcSystemFurnitureElement:hood enclosure",
   "kind": "unmatched",
   "blocking": false,

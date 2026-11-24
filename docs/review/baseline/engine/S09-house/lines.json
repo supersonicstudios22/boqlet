@@ -52,45 +52,6 @@
   "elements": 1
  },
  {
-  "key": "slab-concrete | Simple floor |  | m3",
-  "ruleId": "slab-concrete",
-  "description": "In-situ concrete, Simple floor",
-  "unit": "m3",
-  "quantity": 13.24,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "C.02",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "rebar-estimate-slabs | slab-concrete | Simple floor |  | m3 | t",
-  "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
-  "unit": "t",
-  "quantity": 1.32,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Simple floor |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 6.84,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "wall-layers | None | finish.plaster | 0.0125 | normal height | m2",
   "ruleId": "wall-layers",
   "description": "finish.plaster, 12.5 mm (normal height)",
@@ -186,8 +147,8 @@
   "ruleId": "roofs",
   "description": "Roof, Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr",
   "unit": "m2",
-  "quantity": null,
-  "source": "flagged",
+  "quantity": 116.92,
+  "source": "measured",
   "codes": {
    "acme-cost-codes": "F.01",
    "demo-trades": "01"
@@ -203,7 +164,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "G.01",
-   "demo-trades": "01"
+   "demo-trades": "99"
   },
   "elements": 1
  },

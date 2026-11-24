@@ -36,60 +36,12 @@
   "elements": 0
  },
  {
-  "key": "slabs | Simple floor |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Simple floor",
-  "unit": "m2",
-  "quantity": 80.26,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "slab-concrete | Simple floor |  | m3",
-  "ruleId": "slab-concrete",
-  "description": "In-situ concrete, Simple floor",
-  "unit": "m3",
-  "quantity": 13.24,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "roofs | Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr |  |  | m2",
   "ruleId": "roofs",
   "description": "Roof, Roof_Flat-4Felt-150Ins-50Scr-150Conc-12Plr",
   "unit": "m2",
-  "quantity": null,
-  "source": "flagged",
-  "codes": {
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Simple floor |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 6.51,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "rebar-estimate-slabs | slab-concrete | Simple floor |  | m3 | t",
-  "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
-  "unit": "t",
-  "quantity": 1.32,
-  "source": "derived",
+  "quantity": 116.92,
+  "source": "measured",
   "codes": {
    "demo-trades": "01"
   },
@@ -197,6 +149,18 @@
   "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
   "unit": "m2",
   "quantity": 146.2,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 1
+ },
+ {
+  "key": "slabs | Simple floor |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Simple floor",
+  "unit": "m2",
+  "quantity": 80.26,
   "source": "measured",
   "codes": {
    "demo-trades": "99"

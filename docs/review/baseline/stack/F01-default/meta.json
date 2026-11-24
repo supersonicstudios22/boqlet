@@ -45,12 +45,12 @@
    "S08": 0.1
   },
   "runSeconds": 4.7,
-  "totalSeconds": 26.3
+  "totalSeconds": 22.0
  },
  "runJob": "succeeded",
  "status": "needs_input",
  "outcome": "result",
  "counts": {
-  "lines": 99
+  "lines": 72
  }
 }

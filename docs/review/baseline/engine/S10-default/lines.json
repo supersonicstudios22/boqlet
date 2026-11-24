@@ -166,17 +166,5 @@
    "acme-cost-codes": "X.01"
   },
   "elements": 0
- },
- {
-  "key": "unmatched-proxies | None |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object -",
-  "unit": "nr",
-  "quantity": 86.0,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "Z.99"
-  },
-  "elements": 86
  }
 ]

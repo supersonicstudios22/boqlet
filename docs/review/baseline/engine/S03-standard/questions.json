@@ -1,5 +1,43 @@
 [
  {
+  "id": "unmatched:IfcBuildingElementProxy:house - chimney",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3Fbgsvr8nAYfGs9y5keub0"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "house - chimney"
+  },
+  "message": "1 x IfcBuildingElementProxy 'house - chimney' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:sand bedding",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3_4VN63S96DfWiJjgG8j1C"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "sand bedding"
+  },
+  "message": "1 x IfcBuildingElementProxy 'sand bedding' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
   "id": "name:material:composite_element_roof",
   "kind": "unknown_name",
   "blocking": true,

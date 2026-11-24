@@ -1,1 +1,1636 @@
-[]
+[
+ {
+  "id": "unmatched:IfcBuildingElementProxy:ROOT nulpunt_(#23680)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2zFL9Er6D3Tx6ycPBo58gY"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "ROOT nulpunt_(#23680)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'ROOT nulpunt_(#23680)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:bellentableau_(#195505)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "36IY1PH2P3CQTC5Xu1bhx6"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "bellentableau_(#195505)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'bellentableau_(#195505)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193376)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "23xCjN2P5C5Asi41elAtsh"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#193376)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193376)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193475)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3wqs0DtObEThkbbchGLgi9"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#193475)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193475)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193630)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3HeSZYbl547hwko6Su5RkZ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#193630)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193630)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195596)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2IoG3xwyH2DwvbCMK$s4nq"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#195596)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195596)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195687)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0mj58X3M5AGQd$B4ckOU2U"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#195687)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195687)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195778)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1VvbWnlGXCMObef9uYCq7k"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#195778)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195778)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195869)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3B5ltH7$z9FvQ2yasX5xcm"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#195869)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195869)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195960)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0JUPEVYMPFkxt8JSOXrsbn"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#195960)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195960)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#196051)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3YZXBdIqf2X8R2q35xDGjS"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#196051)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#196051)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#269096)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1pkaLNlpH9NAFgu$xlMYeJ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "brievenbussen_(#269096)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#269096)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#178751)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3E_ggczv50Ffk62oRsIcSO"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#178751)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#178751)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182116)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0WuWnwrCP1Ixa3Ad9AkJjG"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#182116)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182116)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182207)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2TlMV12w1DsvxMmNpZfhtH"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#182207)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182207)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182470)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1n7ss796v9uPyvzjeEfj8F"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#182470)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182470)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182561)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0bDCp4DUHB7hLZ4Qb0ISCi"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#182561)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182561)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#183352)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3ms4HBRPb2effaRZQOSadK"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#183352)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#183352)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#183443)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2qht2ekpP7JgBb1I$n2K6g"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#183443)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#183443)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#299018)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0AFlgCDf92lgPErZ5PPHRZ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#299018)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#299018)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#321803)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2PVT_boPL9Q9StvNLcCVSx"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#321803)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#321803)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#324409)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3tsVE10uv9yf88aQvhR29P"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#324409)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#324409)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#325393)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2LNZLracX9ZRoQL0kgQR2L"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#325393)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#325393)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#330495)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "37FJt3ytr9RPDxrYXfW65s"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#330495)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#330495)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#330948)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3uhzPBH0X1zxEH0TvMIA49"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#330948)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#330948)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#332254)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2wcbSVRgH15vrkwsczPIbf"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#332254)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#332254)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#333562)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0n1loNVan089TdVzCWhv$n"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#333562)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#333562)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#334868)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3mirlG6PH6HfUBWKGlEIrJ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#334868)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#334868)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#39881)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2JDq$rfU1FdfinQSfVehki"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#39881)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#39881)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#40694)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1zEu6WPyvA19GLjd4Yr0pF"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#40694)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#40694)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#40785)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2nmmbX$SzDpPkDMvR_2ypD"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#40785)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#40785)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#42091)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1A1TC0U6f5wRyeoB8TlcqL"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#42091)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#42091)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#42994)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0C0fRhZsf9cu$DpuMbR86T"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#42994)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#42994)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#432025)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3wc64qGZ54YxsHs9acVg$x"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#432025)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#432025)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#44513)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0iLNVBAj50FxWtuczk60Ot"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#44513)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#44513)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446428)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1ntqkY9qv2eglyQVNqk9kC"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#446428)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446428)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446690)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3xFe8flXj3xvuKY84uDcJO"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#446690)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446690)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446775)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3c5kB_oKX52e5sIPOEXlqC"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#446775)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446775)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446859)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3j2X_OIGHFKgdauBuday20"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#446859)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446859)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#447121)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2YSTKaHE5EvPgbSV56z46M"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#447121)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#447121)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#447550)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2ZIM53jLf2MxlvFfkIM4SK"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#447550)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#447550)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#448855)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3Pf_f6gDX7FBdEvr3XKvtX"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#448855)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#448855)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449117)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0PtrAj7DHF$fx4kezP4EN2"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#449117)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449117)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449202)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3H73p0zrP5tBHJWW62oU6S"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#449202)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449202)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449292)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "20PxMH0eDCBg$qBtV$vBP5"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#449292)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449292)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449555)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3y8duOLdfDFx8jpamrKlLU"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#449555)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449555)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449646)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0sWZXOlz1B0x0P0Kur0pCb"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#449646)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449646)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#454708)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1HqFmLyK9C4PQ7FJiyCLdF"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#454708)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#454708)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#454971)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3H59kdzNvCKQNhX6KMCs15"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#454971)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#454971)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#46029)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2A8UjXfuTDpu0WQUfopJXL"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#46029)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#46029)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#589390)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3sYD4Jiqv3Ux6cKDWOCw9L"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#589390)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#589390)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600098)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "10CzyBevHEV9_u2Sp$o5b1"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600098)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600098)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600189)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2C1ABXcKHCNfz3$mYZnCVW"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600189)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600189)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600274)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "25p3WhRLD0_w$xNOSm6nFF"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600274)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600274)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600536)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2iPBo0Eej6qOwXOgvS7SwW"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600536)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600536)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600799)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2jhwLdX$TFPvXcR1s4RD_V"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600799)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600799)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600884)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1rmRocx450O8YTBo$ntP$e"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#600884)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600884)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601146)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1ZceQ2vz53Hgod7kmKEEo1"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#601146)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601146)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601409)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1o4UA4brTFdQ8jpZzeSYkf"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#601409)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601409)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601672)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3AxWclgZH5COPbQoCWS_$4"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#601672)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601672)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601757)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "17OZ3tMsz3lA0reqd2UKpv"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#601757)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601757)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602623)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0ypQzt3KjC8gadb3e_ZQbk"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#602623)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602623)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602714)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0A3pJed399UgN1sPQmXOBG"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#602714)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602714)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602799)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0oBzJgs8HAxxFe1jMo_GHm"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#602799)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602799)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#621600)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0kd6D5Jdz2B9x0TvLpXVIJ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#621600)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#621600)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707142)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2numwt4uD6P9jFOP0bG7iO"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#707142)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707142)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707232)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1A4WSrDN97l8JjjfU_89K2"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#707232)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707232)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707843)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "16q$PXFN1CUAbPs8UE7jQx"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#707843)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707843)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707928)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "11kma3FaD93RD64pQdQfWb"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#707928)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707928)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771480)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1OC3EFAfDD581YM8GdBVPG"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#771480)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771480)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771571)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0xaz6ArkH6DBsxbTdqLIs4"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#771571)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771571)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771661)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "05$TyfrYz2Q8HNgsEgYU54"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "hwa afvoer_(#771661)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771661)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:kozijn_(#780325)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3jzp0$2Rr0DB1IRH6cx$lR"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "kozijn_(#780325)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'kozijn_(#780325)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#274530)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1vfh9Px09BSxpXZRKc744y"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#274530)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#274530)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#274659)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0C2_YzlMD418fDXrk79$Fl"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#274659)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#274659)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#275478)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "1XKgtme1X4fP2K4OJnNfqe"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#275478)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#275478)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#756704)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0K9EicRfbCixHbvBpi6dVW"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#756704)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#756704)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#756925)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2kuyCrcqr9fRvnAcO2UEXq"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#756925)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#756925)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757142)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3hBKRY1W52L8sPliSZ3g3L"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#757142)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757142)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757359)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2jIs0UFez78OFa7lfe8vj9"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#757359)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757359)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757613)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2JCDyo9X9799WRv73riZQB"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#757613)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757613)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757742)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3BQjcHoSHBiOZNfps25yDJ"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#757742)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757742)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757959)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "2jT7ByFNrFcAUythG4AQhq"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#757959)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757959)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#758176)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "0sEWuC$e5F4BMb9D6srV$y"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#758176)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#758176)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#758393)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "14W2ODD9D2ugsAl1GpdsKE"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#758393)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#758393)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ },
+ {
+  "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#87620)",
+  "kind": "unmatched",
+  "blocking": false,
+  "guids": [
+   "3CIoeQG715PeDqJQrPUad5"
+  ],
+  "occurrences": 1,
+  "code": "question.unmatched",
+  "params": {
+   "count": 1,
+   "ifcClass": "IfcBuildingElementProxy",
+   "name": "vent. rooster_(#87620)"
+  },
+  "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#87620)' not measured by any rule. Assign a rule or exclude.",
+  "answer": {
+   "kind": "rule"
+  }
+ }
+]

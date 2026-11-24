@@ -142,29 +142,5 @@
    "demo-trades": "07"
   },
   "elements": 1
- },
- {
-  "key": "unmatched-proxies | house - chimney |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object house - chimney",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
-  "key": "unmatched-proxies | sand bedding |  | nr",
-  "ruleId": "unmatched-proxies",
-  "description": "Unclassified object sand bedding",
-  "unit": "nr",
-  "quantity": 1.0,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "99"
-  },
-  "elements": 1
  }
 ]

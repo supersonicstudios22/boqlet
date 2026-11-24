@@ -24,7 +24,7 @@
   "message": "tuple index out of range"
  },
  "timing": {
-  "totalSeconds": 0.26
+  "totalSeconds": 0.33
  },
  "peakMemoryMB": 95.2,
  "versions": {
