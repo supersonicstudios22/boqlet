@@ -37,3 +37,46 @@ def test_extractors():
     assert out["type_name"]["value"] == "W310X60"
     assert out["family"]["value"] == "M_W-Wide Flange"
     assert rv.extract("material", "Armirani beton C30/37", {})["strength_class"]["value"] == "C30/37"
+
+
+# ------------------------------------------------------------------ which name fields block (review A-26, ENG-009)
+def _fields(items=None, maps=None):
+    from ifc_boq.rules import referenced_fields
+    return referenced_fields({"items": items or [], "derived": [], "manual": []}, maps or [])
+
+
+def test_words_in_labels_ids_and_literals_do_not_make_a_field_referenced():
+    """ENG-009: a regex over the JSON made every unknown material block because a label said "material"."""
+    assert _fields([{"id": "w", "label": "Walls (any material)", "match": {"ifcClass": "IfcWall"}, "claims": ["layers"],
+                     "description": "Walls, any type_name", "note": "element_type is ignored"}]) == set()
+    assert _fields([{"id": "w", "match": {"expr": 'name = "material layers"'}}]) == set()
+
+
+def test_fields_read_by_expressions_selectors_breakdowns_and_templates_count():
+    assert _fields([{"id": "a", "match": {"expr": 'UNDER(material, "concrete")'}}]) == {"material"}
+    assert _fields([{"id": "a", "match": {"field": "element_type", "op": "under", "value": "wall"}}]) == {"element_type"}
+    assert _fields([{"id": "a", "match": {"ifcClass": "IfcWall"}, "breakdown": "layer"}]) == {"layers"}
+    assert _fields([{"id": "a", "match": {"ifcClass": "IfcWall"}, "breakdown": "material"}]) == {"layers", "material"}
+    assert _fields([{"id": "a", "match": {"ifcClass": "IfcWall"}, "description": "Wall {type_name}"}]) == {"type_name"}
+    assert _fields([{"id": "a", "match": {"ifcClass": "IfcWall"}, "lineKey": ["src.family_name"]}]) == {"family_name"}
+    assert _fields([{"id": "a", "match": {"ifcClass": "IfcSpace"},
+                     "quantity": {"kind": "formula", "unit": "m2", "expr": 'SUM(src.layers.area WHERE UNDER(material, "x"))'}}]) \
+        == {"layers", "material"}
+    assert _fields(maps=[{"rules": [{"id": "m", "match": {"where": 'UNDER(element_type, "wall.external")'}, "code": "D.01"}]}]) \
+        == {"element_type"}
+    assert _fields(maps=[{"rules": [{"id": "m", "match": {"tag": "x"}, "code": {"lookup": "space_type", "table": {}}}]}]) \
+        == {"space_type"}
+
+
+def test_shipped_presets_reference_what_they_did_before():
+    """The system presets give the same sets as the regex did (checked for every rule set x classification)."""
+    from ifc_boq.rules import enabled_view, flatten, referenced_fields
+    acme = presets.load_classification("acme-cost-codes")[1]
+    want = {"as-modelled": {"family_name", "layers", "material", "type_name"},
+            "standard-style-example": {"element_type", "family_name", "layers", "material", "type_name"},
+            "demo-custom": {"element_type", "material"}}
+    for rid, fields in want.items():
+        rs, lib = presets.load_rule_set(rid)
+        view = enabled_view(flatten(rs, lib))
+        assert referenced_fields(view, []) == fields, rid
+        assert referenced_fields(view, [acme]) == fields | {"element_type"}, rid

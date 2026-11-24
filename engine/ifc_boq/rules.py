@@ -108,14 +108,84 @@ def enabled_view(flat: dict) -> dict:
     return {k: [fill(r) for r in flat.get(k, []) if on(r)] for k in ("items", "derived", "manual")}
 
 
+NAME_FIELDS = ("material", "element_type", "space_type", "layers", "family_name", "type_name")
+EXPRESSION_KEYS = {"if", "expr", "where", "partFilter", "when", "expect", "quantity"}
+SCOPES = {"src", "keys"}                 # src.material, keys.material: the field after the scope
+
+
+def expression_fields(src: str) -> set[str]:
+    """The element fields an expression reads, from its syntax tree (review A-26): `material` in
+    UNDER(material, "x"), `layers` in SUM(src.layers.area WHERE ...) and the fields its WHERE reads. Parameters
+    (`p.`), building values and literals are not fields; text inside a string literal is not either."""
+    from .expr import compile_expr
+    out: set[str] = set()
+
+    def field(path) -> None:
+        path = [x for x in path if isinstance(x, str)]
+        if path and path[0] in SCOPES:
+            path = path[1:]
+        if path and path[0] not in ("p", "building"):
+            out.add(path[0])
+
+    def walk(node) -> None:
+        if not isinstance(node, tuple) or not node:
+            return
+        if not isinstance(node[0], str):     # a tuple of nodes (a call's arguments)
+            for item in node:
+                walk(item)
+            return
+        if node[0] == "var":
+            field(node[1])
+            return
+        if node[0] == "agg":
+            field(node[2])
+            walk(node[3])
+            return
+        for item in node[1:]:
+            walk(item)
+    try:
+        walk(compile_expr(src))
+    except ValueError:                   # a syntax error: the preset check reports it
+        pass
+    return out
+
+
 def referenced_fields(rules: dict, maps: list[dict]) -> set[str]:
-    """Which element fields rules and maps actually use (drives which questions block)."""
-    blob = json.dumps({"rules": rules, "maps": maps})
-    fields = set()
-    for f in ("material", "element_type", "space_type", "layers", "family_name", "type_name"):
-        if re.search(rf'\b{f}\b', blob):
-            fields.add(f)
-    return fields
+    """Which name fields (NAME_FIELDS) the rules and maps actually read, and so which unknown names block
+    (review A-26). Read from the parsed expressions (where, if, expr, partFilter, quantity formulas, line keys,
+    description templates), selector and band `field`s, lookup tables and breakdowns (`layer` reads the layers,
+    `material` the layers and their materials); labels, ids, notes and string literals never count."""
+    from .templates import BLANK, _source
+    fields: set[str] = set()
+
+    def walk(node) -> None:
+        if isinstance(node, list):
+            for x in node:
+                walk(x)
+            return
+        if not isinstance(node, dict):
+            return
+        for k, v in node.items():
+            if isinstance(v, str):
+                if k in EXPRESSION_KEYS:
+                    fields.update(expression_fields(v))
+                elif k == "field":
+                    fields.add(v.split(".")[0])
+                elif k == "lookup":
+                    fields.add(v.removeprefix("keys.").split(".")[0])
+                elif k == "description":
+                    for m in BLANK.finditer(v):
+                        fields.update(expression_fields(_source(m)))
+                elif k == "breakdown":
+                    fields.update({"layer": {"layers"}, "material": {"layers", "material"}}.get(v, set()))
+            elif k == "lineKey" and isinstance(v, list):
+                for x in v:
+                    if isinstance(x, str):
+                        fields.update(expression_fields(x))
+            else:
+                walk(v)
+    walk({"rules": rules, "maps": maps})
+    return fields & set(NAME_FIELDS)
 
 
 # ============================================================================ engine
