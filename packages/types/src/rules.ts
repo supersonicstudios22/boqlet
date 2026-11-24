@@ -112,7 +112,8 @@ export type Value<T> = T | ParamRef;
  * A formula in the small, safe expression language.
  *
  * Grammar (evaluated only by the engine, never by `eval`):
- *   literals      12  0.5  "text"  true  false
+ *   literals      12  0.5  "text"  true  false   ("text": any characters as written, "béton" included;
+ *                 the only escapes are \"  \\  \n  \t  \uXXXX)
  *   operators     + - * /  ( )  = != > >= < <=  AND OR NOT
  *   functions     IF(c,a,b)  MIN(a,b,..)  MAX(a,b,..)  ROUND(x,step)  CEIL(x,step)
  *                 FLOOR(x,step)  ABS(x)  SQRT(x)  PI()  COALESCE(a,b,..)

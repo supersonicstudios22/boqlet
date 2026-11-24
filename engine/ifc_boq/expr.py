@@ -1,8 +1,8 @@
-"""
+r"""
 expr.py - the small, safe expression language used across rules, dictionaries and maps.
 
 Spec (also in packages/types/src/rules.ts, `Expr`):
-  literals     12  0.5  "text"  true  false  null
+  literals     12  0.5  "text"  true  false  null   (text as written, any language; escapes only \" \\ \n \t \uXXXX)
   operators    + - * /  ( )  = != > >= < <=  AND OR NOT
   functions    IF(c,a,b) MIN(a,b,..) MAX(a,b,..) ROUND(x,step) CEIL(x,step) FLOOR(x,step)
                ABS(x) SQRT(x) PI() COALESCE(a,b,..) UNDER(term,"root") CONTAINS(text,"x") LOWER(x)
@@ -42,6 +42,16 @@ AGGREGATES = {"SUM", "COUNT", "AVG", "MIN", "MAX"}
 
 class ExprError(ValueError):
     pass
+
+
+ESCAPE = re.compile(r'\\(u[0-9a-fA-F]{4}|["\\nt])')
+ESCAPED = {'"': '"', "\\": "\\", "n": "\n", "t": "\t"}
+
+
+def unescape(body: str) -> str:
+    """A string literal's text (review A-22, ENG-001): only \\" \\\\ \\n \\t and \\uXXXX are escapes; every other
+    character, non-ASCII ones included, stays as written (a backslash before anything else is kept)."""
+    return ESCAPE.sub(lambda m: chr(int(m[1][1:], 16)) if m[1][0] == "u" else ESCAPED[m[1]], body)
 
 
 def tokenize(src: str):
@@ -142,7 +152,7 @@ class _P:
             return ("lit", float(v))
         if k == "str":
             self.take()
-            return ("lit", bytes(v[1:-1], "utf-8").decode("unicode_escape"))
+            return ("lit", unescape(v[1:-1]))
         if k == "kw" and v in ("TRUE", "FALSE", "NULL"):
             self.take()
             return ("lit", {"TRUE": True, "FALSE": False, "NULL": None}[v])
@@ -160,7 +170,7 @@ class _P:
             while self.peek()[:2] == ("op", "["):          # props["Pset.Prop"]
                 self.take()
                 key, _, _ = self.take("str")
-                path.append(key[1:-1])
+                path.append(unescape(key[1:-1]))
                 _, _, end = self.take("op", "]")
             return ("var", tuple(path), s, end)
         raise ExprError(f"Unexpected {v!r} at {s} in {self.src!r}")
