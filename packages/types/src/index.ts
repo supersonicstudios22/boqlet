@@ -8,3 +8,4 @@ export * from "./engine";
 export * from "./messages";
 export * from "./diff";
 export * from "./api";
+export * from "./units";

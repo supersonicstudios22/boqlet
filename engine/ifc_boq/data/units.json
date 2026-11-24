@@ -1,0 +1,108 @@
+{
+  "UNITS": {
+    "nr": {
+      "dimension": "count",
+      "perSi": 1
+    },
+    "item": {
+      "dimension": "lump",
+      "perSi": 1
+    },
+    "sum": {
+      "dimension": "lump",
+      "perSi": 1
+    },
+    "h": {
+      "dimension": "time",
+      "perSi": 1
+    },
+    "mm": {
+      "dimension": "length",
+      "perSi": 1000
+    },
+    "cm": {
+      "dimension": "length",
+      "perSi": 100
+    },
+    "m": {
+      "dimension": "length",
+      "perSi": 1
+    },
+    "km": {
+      "dimension": "length",
+      "perSi": 0.001
+    },
+    "in": {
+      "dimension": "length",
+      "perSi": 39.37007874
+    },
+    "ft": {
+      "dimension": "length",
+      "perSi": 3.280839895
+    },
+    "yd": {
+      "dimension": "length",
+      "perSi": 1.093613298
+    },
+    "mm2": {
+      "dimension": "area",
+      "perSi": 1000000
+    },
+    "cm2": {
+      "dimension": "area",
+      "perSi": 10000
+    },
+    "m2": {
+      "dimension": "area",
+      "perSi": 1
+    },
+    "ft2": {
+      "dimension": "area",
+      "perSi": 10.7639104
+    },
+    "yd2": {
+      "dimension": "area",
+      "perSi": 1.19599005
+    },
+    "l": {
+      "dimension": "volume",
+      "perSi": 1000
+    },
+    "m3": {
+      "dimension": "volume",
+      "perSi": 1
+    },
+    "ft3": {
+      "dimension": "volume",
+      "perSi": 35.3146667
+    },
+    "yd3": {
+      "dimension": "volume",
+      "perSi": 1.30795062
+    },
+    "g": {
+      "dimension": "mass",
+      "perSi": 1000
+    },
+    "kg": {
+      "dimension": "mass",
+      "perSi": 1
+    },
+    "t": {
+      "dimension": "mass",
+      "perSi": 0.001
+    },
+    "lb": {
+      "dimension": "mass",
+      "perSi": 2.20462262
+    }
+  },
+  "KIND_DIMENSION": {
+    "count": "count",
+    "length": "length",
+    "perimeter": "length",
+    "area": "area",
+    "volume": "volume",
+    "mass": "mass"
+  }
+}

@@ -4108,7 +4108,10 @@ export interface components {
             note?: string;
         };
         ExtractTarget: string;
-        Unit: string | ("nr" | "item" | "sum" | "mm" | "m" | "km" | "m2" | "m3" | "kg" | "t" | "ft" | "ft2" | "ft3" | "yd2" | "yd3" | "lb" | "h");
+        /** @enum {string} */
+        RegisteredUnit: "nr" | "item" | "sum" | "h" | "mm" | "cm" | "m" | "km" | "in" | "ft" | "yd" | "mm2" | "cm2" | "m2" | "ft2" | "yd2" | "l" | "m3" | "ft3" | "yd3" | "g" | "kg" | "t" | "lb";
+        /** @description A unit from the registry (units.ts: nr, item, sum, h, mm, cm, m, km, in, ft, yd, mm2, cm2, m2, ft2, yd2, l, m3, ft3, yd3, g, kg, t, lb). The schema accepts any text so that a run of an older preset still reads; the preset check refuses a unit not in the registry or of the wrong dimension (review A-28). */
+        Unit: components["schemas"]["RegisteredUnit"] | string;
         Extractor: {
             id: string;
             field: components["schemas"]["DictField"] | components["schemas"]["DictField"][];

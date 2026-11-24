@@ -22,18 +22,15 @@ from .log import CalcLog
 from .measure import scale_label
 from .templates import render as render_template
 from .trace_steps import collect, quantity_delta, slot, step
+from .units import DIMENSION, PER_SI, unit_problem
 
 UNIT_SCALE_FIELDS = {"net_volume": "volume", "net_area": "area", "length": "length"}   # MeasuredElement.unit_scale
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
-UNIT_FACTOR = {  # from SI base (m, m2, m3, kg, nr)
-    "m": 1, "mm": 1000, "km": 0.001, "ft": 3.280839895, "m2": 1, "ft2": 10.7639104, "yd2": 1.19599005,
-    "m3": 1, "ft3": 35.3146667, "yd3": 1.30795062, "kg": 1, "t": 0.001, "lb": 2.20462262,
-}
-# What a line unit measures, for the double-count check (review A-20); a unit not listed is its own family.
-UNIT_FAMILY = {"nr": "count", "m": "length", "mm": "length", "km": "length", "ft": "length",
-               "m2": "area", "ft2": "area", "yd2": "area", "m3": "volume", "ft3": "volume", "yd3": "volume",
-               "kg": "mass", "t": "mass", "lb": "mass"}
+UNIT_FACTOR = PER_SI    # from SI (m, m2, m3, kg, nr): the unit registry (units.ts, review A-28)
+# What a line unit measures, for the double-count check (review A-20): the registry's dimension; a unit not
+# in it is its own family.
+UNIT_FAMILY = DIMENSION
 MIXABLE = ("material", "element_type", "storey", "storey_elevation", "predefined_type", "is_external", "ifc_class", "family")
 
 
@@ -88,7 +85,35 @@ def integrity(rules: dict) -> list[str]:
         for ref in re.findall(r'"param":\s*"([^"]+)"', blob) + re.findall(r"\bp\.([A-Za-z_][A-Za-z0-9_]*)", blob):
             if ref not in params:
                 out.append(f"'{x['id']}' uses parameter '{ref}', which is not defined")
+    out += unit_problems(rules)
     return sorted(set(out))
+
+
+def unit_problems(rules: dict) -> list[str]:
+    """Units the registry does not know, or of the wrong dimension for their quantity (review A-28): `cm` on an
+    area, `l` on a length, `furlong`. A slot holding the unit is resolved first."""
+    params = {k: p.get("value") for k, p in rules.get("params", {}).items()}
+    val = lambda v: params.get(v["param"]) if isinstance(v, dict) and set(v) == {"param"} else v
+    out = []
+
+    def spec(s, where: str):
+        if not isinstance(s, dict):
+            return
+        kind = s.get("kind")
+        if kind == "choose":
+            for name, option in (s.get("options") or {}).items():
+                spec(option, f"{where}, option '{name}'")
+        elif kind == "when":
+            spec(s.get("then"), f"{where}, then")
+            spec(s.get("else"), f"{where}, else")
+        elif (p := unit_problem(val(s.get("unit")), kind)):
+            out.append(f"{where}: {p}")
+    for item in rules.get("items", []):
+        spec(item.get("quantity"), f"item '{item['id']}'")
+    for entry in rules.get("derived", []) + rules.get("manual", []):
+        if (p := unit_problem(val(entry.get("unit")))):
+            out.append(f"'{entry['id']}': {p}")
+    return out
 
 
 def enabled_view(flat: dict) -> dict:
@@ -827,16 +852,16 @@ class RuleEngine:
             expl += f"; x factor {fmt(factor)}"
             part_steps.extend(quantity_delta(v, v * factor, "factor", "factor", {"factor": factor}, slot(item.get("factor"))))
             v *= factor
-        mn = item.get("minimum")
-        if v is not None and mn and self.val(mn.get("per")) == "element":
-            m = self.val(mn["value"])
-            if v < m:
-                expl += f"; raised to minimum {fmt(m)}"
-                part_steps.extend(quantity_delta(v, m, "add", "add.minimum", {"minimum": self.convert(m, unit)}, slot(mn["value"])))
-                v = m
         for item_step in part_steps:
             item_step["value"] = self.convert(item_step["value"], unit)
         v = self.convert(v, unit)
+        mn = item.get("minimum")
+        if v is not None and mn and self.val(mn.get("per")) == "element":
+            m = self.val(mn["value"])                     # in the line's unit (review A-28), like the result
+            if v < m:
+                expl += f"; raised to minimum {fmt(m)} {unit}"
+                part_steps.extend(quantity_delta(v, m, "add", "add.minimum", {"minimum": m}, slot(mn["value"])))
+                v = m
         rnd = item.get("rounding") or self.defaults.get("rounding")
         if rnd and self.val(rnd.get("at")) == "element":
             rounded = self.round_(v, rnd)
@@ -927,7 +952,7 @@ class RuleEngine:
                 line["toConfirm"] = {"measured": n - missing, "elements": n, **({"questions": questions} if questions else {})}
             mn = item.get("minimum")
             if line["quantity"] is not None and mn and self.val(mn.get("per")) == "line":
-                m = self.convert(self.val(mn["value"]), line["unit"])
+                m = self.val(mn["value"])                     # in the line's unit (review A-28)
                 if line["quantity"] < m:
                     line["notes"].append(f"raised to line minimum {fmt(m)}")
                     collect(line, quantity_delta(line["quantity"], m, "add", "add.minimum", {"minimum": m}, slot(mn["value"])))

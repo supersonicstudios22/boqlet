@@ -17,10 +17,11 @@ import unicodedata
 from collections import defaultdict
 
 from .expr import Expr
+from .units import TO_METRES
 
 LAYERS = ("decision", "project", "company", "global")
 METHODS = ("exact", "startsWith", "regex", "contains")
-UNIT_TO_M = {"mm": 0.001, "cm": 0.01, "m": 1.0, "in": 0.0254, "ft": 0.3048}
+UNIT_TO_M = TO_METRES        # name-hint lengths in mm, cm, m, in, ft... (the unit registry, review A-28)
 
 
 def fold(s: str | None, accents: bool = True, lower: bool = True) -> str:

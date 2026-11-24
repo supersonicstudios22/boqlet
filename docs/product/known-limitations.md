@@ -47,7 +47,7 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
 | Item library / client templates | Item texts on classification codes (P14) and Excel edits import are built; no GAEB, no "import a BoQ as template" | | New input or rule-set extension |
 | Export | Excel only | | GAEB, ÖNORM A 2063, CSV, IfcCostSchedule |
 | Renovation and design options | Renovation: as-modelled's `renovation_scope` / `measure_demolition` (rule-set `scope`, `scope: "out"` items); status read from Revit phasing or IFC `Status` only, other tools' own phase properties not mapped. Design options: field measured, unused | | Map more phase properties as they are met; design options: presets + selectors |
-| Units | Imperial output supported by conversion; no imperial presets or descriptions | | Presets |
+| Units | Imperial output supported by conversion; no imperial presets or descriptions. Line units come from one registry (D93); a unit outside it (a firm's own label such as "pcs") is refused by the preset check, and the app's own unit tables are not yet read from it (B-15) | | Presets; B-15 |
 | Rounding of derived lines | Uses the rule's rounding or the defaults | Fine; noted for QS review | |
 
 ## Product (app, Java backend, worker)

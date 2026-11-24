@@ -161,7 +161,7 @@ status, is_external, load_bearing, system, profile, nominal_size, tag, `props.<P
 | `when` | `if` (expression), `then`, `else` | from the branch |
 | `formula` | `expr`, `unit` (required) | as given |
 
-Units are converted from SI at output (mm, km, ft, ft2, yd2, ft3, yd3, t, lb supported).
+Units are converted from SI at output, by the unit registry (`packages/types/src/units.ts`, D93): count `nr`; lump `item`, `sum`; time `h`; length `mm`, `cm`, `m`, `km`, `in`, `ft`, `yd`; area `mm2`, `cm2`, `m2`, `ft2`, `yd2`; volume `l`, `m3`, `ft3`, `yd3`; mass `g`, `kg`, `t`, `lb`. The preset check refuses a unit not in the registry and one of the wrong dimension for its quantity (`cm` on an area); a run of an older preset with one warns. `minimum` is stated in the line's unit. A slot's `unit` (e.g. `kg/m3` on a rate) is a label, not checked.
 
 ### Deductions
 

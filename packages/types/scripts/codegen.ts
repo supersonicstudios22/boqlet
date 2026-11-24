@@ -2,6 +2,7 @@
  * Regenerates everything the Python engine derives from these types:
  *   packages/types/schema/*.schema.json   JSON Schemas (engine validates presets and requests with them)
  *   engine/ifc_boq/data/families.json     IFC class -> measurement family table
+ *   engine/ifc_boq/data/units.json        the unit registry (units.ts)
  * Run after changing any type:  npm run codegen
  */
 import { createGenerator } from "ts-json-schema-generator";
@@ -9,6 +10,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FAMILY_INFO, IFC_FAMILIES } from "../src/families";
+import { KIND_DIMENSION, UNITS } from "../src/units";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = resolve(here, "..");
@@ -53,3 +55,7 @@ for (const [file, type, out] of targets) {
 const famOut = resolve(root, "engine/ifc_boq/data/families.json");
 writeIfChanged(famOut, { IFC_FAMILIES, FAMILY_INFO });
 console.log("data    engine/ifc_boq/data/families.json");
+
+const unitsOut = resolve(root, "engine/ifc_boq/data/units.json");
+writeIfChanged(unitsOut, { UNITS, KIND_DIMENSION });
+console.log("data    engine/ifc_boq/data/units.json");

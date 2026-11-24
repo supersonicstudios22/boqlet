@@ -9,15 +9,14 @@
  */
 
 import type { ElementFamily } from "./families";
+import type { RegisteredUnit } from "./units";
 
-export type Unit =
-  | "nr" | "item" | "sum"
-  | "mm" | "m" | "km"
-  | "m2" | "m3"
-  | "kg" | "t"
-  | "ft" | "ft2" | "ft3" | "yd2" | "yd3" | "lb"
-  | "h"  // hours (daywork)
-  | (string & {}); // custom units allowed
+/**
+ * A unit from the registry (units.ts: nr, item, sum, h, mm, cm, m, km, in, ft, yd, mm2, cm2, m2, ft2, yd2, l, m3,
+ * ft3, yd3, g, kg, t, lb). The schema accepts any text so that a run of an older preset still reads; the preset
+ * check refuses a unit not in the registry or of the wrong dimension (review A-28).
+ */
+export type Unit = RegisteredUnit | (string & {});
 
 export type Provenance = "reported" | "geometry" | "derived" | "user";
 

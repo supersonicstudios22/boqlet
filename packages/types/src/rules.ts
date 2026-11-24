@@ -349,7 +349,7 @@ export interface ItemRule {
   quantity: QuantitySpec;
   /** Multiplier, e.g. allowance or overlap factor. Default 1. */
   factor?: Value<number>;
-  /** Minimum chargeable quantity per element or per line. */
+  /** Minimum chargeable quantity per element or per line, stated in the line's unit (review A-28). */
   minimum?: { value: Value<number>; per: Value<"element" | "line"> };
   rounding?: Rounding;
 
