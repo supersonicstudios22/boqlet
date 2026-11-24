@@ -338,6 +338,10 @@ The engine runs whatever it is given and does not judge it: a wrong rule gives a
 faithfully calculated. It does catch mechanical problems: schema errors, integrity, references
 to missing data (questions), unmatched or double-claimed elements.
 
+One expression is at most 10,000 characters, nests brackets, calls, `NOT` and minus signs at most 64 deep and
+chains at most 200 operators (`expr.py`, D92); beyond that the preset check names the problem and where it is,
+as for a syntax error (a run with such a preset fails as bad input, never as an outage).
+
 Faces and rooms: wall `side_a` / `side_b` / `larger` / `smaller` / `mean` / `both` are real sides; the
 `face` breakdown gives one part per face with `space`, `space_name`, `space_type`, `is_external`
 (e.g. paint per room type: breakdown face, lineKey `space_type`). Rooms (IfcSpace, family `space`) carry

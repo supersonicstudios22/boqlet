@@ -89,5 +89,6 @@ def invoke(op: str, request: dict):
         raise HTTPException(404, "RPC input was not found") from exc
     except rpc.Busy as exc:
         raise HTTPException(503, str(exc), headers={"Retry-After": "5"}) from exc
-    except (KeyError, TypeError, ValueError) as exc:
-        raise HTTPException(422, str(exc)) from exc
+    except (KeyError, TypeError, ValueError, RecursionError) as exc:
+        # bad input is the caller's (422 -> the API's 400 engine_input), never an outage (review A-27)
+        raise HTTPException(422, str(exc) if not isinstance(exc, RecursionError) else "The input is nested too deeply") from exc

@@ -54,7 +54,14 @@ def unescape(body: str) -> str:
     return ESCAPE.sub(lambda m: chr(int(m[1][1:], 16)) if m[1][0] == "u" else ESCAPED[m[1]], body)
 
 
+MAX_LENGTH = 10_000      # characters in one expression (review A-27)
+MAX_NESTING = 64         # brackets, calls, NOT and minus signs inside each other
+MAX_TREE_DEPTH = 200     # operators chained in one expression (a + b + c ...): evaluation recurses this deep
+
+
 def tokenize(src: str):
+    if len(src) > MAX_LENGTH:
+        raise ExprError(f"The expression is {len(src):,} characters long; at most {MAX_LENGTH:,} are allowed")
     pos, out = 0, []
     n = len(src)
     while pos < n:
@@ -79,6 +86,14 @@ class _P:
         self.src = src
         self.t = tokenize(src)
         self.i = 0
+        self.depth = 0
+
+    def nest(self):
+        """One level deeper (a bracket, a call, NOT, a minus sign); refuses more than MAX_NESTING (review A-27)."""
+        self.depth += 1
+        if self.depth > MAX_NESTING:
+            raise ExprError(f"The expression is nested too deeply at {self.peek()[2]} (at most {MAX_NESTING} levels) in "
+                            f"{self.src[:60]!r}{'...' if len(self.src) > 60 else ''}")
 
     def peek(self, k=0):
         j = self.i + k
@@ -95,6 +110,8 @@ class _P:
         node = self.or_()
         if self.i != len(self.t):
             raise ExprError(f"Unexpected {self.peek()[1]!r} in {self.src!r}")
+        if tree_depth(node) > MAX_TREE_DEPTH:
+            raise ExprError(f"The expression chains more than {MAX_TREE_DEPTH} operators; split it with a formula slot")
         return node
 
     def or_(self):
@@ -114,7 +131,10 @@ class _P:
     def not_(self):
         if self.peek()[:2] == ("kw", "NOT"):
             self.take()
-            return ("not", self.not_())
+            self.nest()
+            node = ("not", self.not_())
+            self.depth -= 1
+            return node
         return self.cmp()
 
     def cmp(self):
@@ -142,7 +162,10 @@ class _P:
     def unary(self):
         if self.peek()[:2] == ("op", "-"):
             self.take()
-            return ("neg", self.unary())
+            self.nest()
+            node = ("neg", self.unary())
+            self.depth -= 1
+            return node
         return self.atom()
 
     def atom(self):
@@ -158,8 +181,10 @@ class _P:
             return ("lit", {"TRUE": True, "FALSE": False, "NULL": None}[v])
         if (k, v) == ("op", "("):
             self.take()
+            self.nest()
             node = self.or_()
             self.take("op", ")")
+            self.depth -= 1
             return node
         if k == "id":
             self.take()
@@ -178,6 +203,13 @@ class _P:
     def call(self, name, start):
         uname = name.upper()
         self.take("op", "(")
+        self.nest()
+        try:
+            return self._call(uname, start)
+        finally:
+            self.depth -= 1
+
+    def _call(self, uname, start):
         # aggregate form: NAME(path [WHERE expr])
         if uname in AGGREGATES and self.peek()[0] == "id" and self.peek(1)[:2] in (("kw", "WHERE"), ("op", ")")):
             path, _, _ = self.take("id")
@@ -197,9 +229,22 @@ class _P:
         return ("call", uname, tuple(args), start, end)
 
 
+def tree_depth(node) -> int:
+    """How deep a syntax tree is, without recursion (a tree may be deeper than Python's stack)."""
+    deepest, stack = 0, [(node, 1)]
+    while stack:
+        n, d = stack.pop()
+        deepest = max(deepest, d)
+        stack.extend((x, d + 1) for x in n if isinstance(x, tuple)) if isinstance(n, tuple) else None
+    return deepest
+
+
 @lru_cache(maxsize=4096)
 def compile_expr(src: str):
-    return _P(src).parse()
+    try:
+        return _P(src).parse()
+    except RecursionError:           # belt and braces: never a crash (an outage to the API), always a user error
+        raise ExprError(f"The expression is nested too deeply to read: {src[:60]!r}") from None
 
 
 def syntax_problem(src: str) -> str | None:

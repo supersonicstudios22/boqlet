@@ -133,3 +133,34 @@ def test_rule_rounding_and_the_functions_agree():
             assert engine.round_(x, {"step": step, "mode": "down"}) == E.evaluate(f"FLOOR(x, {step})", {"x": x})
             assert engine.round_(x, {"step": step, "mode": "up"}) == E.evaluate(f"CEIL(x, {step})", {"x": x})
             assert engine.round_(x, {"step": step, "mode": "nearest"}) == E.evaluate(f"ROUND(x, {step})", {"x": x})
+
+
+# ------------------------------------------------------------------ caps (review A-27, ENG-013)
+@pytest.mark.parametrize("src,words", [
+    ("(" * 2000 + "TRUE" + ")" * 2000, "nested too deeply"),
+    ("NOT " * 100 + "TRUE", "nested too deeply"),
+    ("-" * 100 + "1", "nested too deeply"),
+    ("MAX(" * 70 + "1" + ")" * 70, "nested too deeply"),
+    ("1" + " + 1" * 300, "chains more than"),
+    ("1 + " * 3000 + "1", "characters long"),
+])
+def test_oversized_expressions_are_a_user_error_not_a_crash(src, words):
+    """ENG-013: 2,000 brackets raised RecursionError, which the API reported as 503 engine_unavailable."""
+    from ifc_boq.expr import syntax_problem
+    with pytest.raises(ExprError, match=words):
+        E.evaluate(src, {})
+    assert words in syntax_problem(src)
+
+
+def test_expressions_within_the_caps_still_work():
+    assert E.evaluate("(" * 60 + "1" + ")" * 60, {}) == 1
+    assert E.evaluate("1" + " + 1" * 150, {}) == 151
+    assert E.evaluate("NOT " * 10 + "TRUE", {}) is True
+
+
+def test_a_preset_with_a_deep_expression_reports_a_problem():
+    from ifc_boq import presets
+    rs, _ = presets.load_rule_set("as-modelled")
+    doc = {**rs, "items": [{**rs["items"][0], "partFilter": "(" * 2000 + "TRUE" + ")" * 2000}] + rs["items"][1:]}
+    problems = presets.check("rules", doc)
+    assert any("nested too deeply" in p for p in problems)

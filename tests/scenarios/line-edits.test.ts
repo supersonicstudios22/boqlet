@@ -208,6 +208,11 @@ describe("checking a manual line's formula (F06 §7)", () => {
     const bad = await api.POST("/presets/check", { body: { kind: "rule_set", doc: doc("building.gross_volume / / 100"), parentVersionIds: [parent] } });
     expect(bad.data!.ok).toBe(false);
     expect(bad.data!.problems.length).toBeGreaterThan(0);
+    // review A-27: 2,000 brackets were a RecursionError, reported as 503 engine_unavailable; now a problem with its place
+    const deep = await api.POST("/presets/check", { body: { kind: "rule_set", doc: doc("(".repeat(2000) + "1" + ")".repeat(2000)), parentVersionIds: [parent] } });
+    expect(deep.response.status).toBe(200);
+    expect(deep.data!.ok).toBe(false);
+    expect(deep.data!.problems.join(" ")).toMatch(/nested too deeply at \d+/);
   });
 });
 
