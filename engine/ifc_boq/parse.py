@@ -65,6 +65,8 @@ SPATIAL_KIND = {"IfcProject": "project", "IfcSite": "site", "IfcBuilding": "buil
 LENGTH_MEASURES = {"IfcLengthMeasure", "IfcPositiveLengthMeasure", "IfcNonNegativeLengthMeasure"}
 AREA_MEASURES = {"IfcAreaMeasure"}
 VOLUME_MEASURES = {"IfcVolumeMeasure"}
+MASS_MEASURES = {"IfcMassMeasure"}
+ANGLE_MEASURES = {"IfcPlaneAngleMeasure", "IfcPositivePlaneAngleMeasure"}
 
 
 # --------------------------------------------------------------------------- helpers
@@ -135,6 +137,10 @@ class Parser:
         self.L = uu.calculate_unit_scale(self.f)                                   # length -> m
         self.A = self._scale("AREAUNIT", self.L ** 2)
         self.V = self._scale("VOLUMEUNIT", self.L ** 3)
+        # mass -> kg and plane angle -> radians (review A-29); ifcopenshell scales mass to grams (its SI base)
+        assigned = self.unit_names()
+        self.M = self._scale("MASSUNIT", 1000.0) / 1000 if "MASSUNIT" in assigned else 1.0
+        self.ANGLE = self._scale("PLANEANGLEUNIT", 1.0) if "PLANEANGLEUNIT" in assigned else 1.0
         self.checks: list[dict] = []
         self.mat_ids: dict[int, str] = {}
         self.meshes: dict[str, trimesh.Trimesh] = {}
@@ -156,15 +162,33 @@ class Parser:
                     out[u.UnitType] = f"{prefix}{name}"
         return out
 
-    def convert(self, value, measure_type):
+    def convert(self, value, measure_type, unit=None):
+        """A measure in SI: m, m2, m3, kg; plane angles in degrees (the documented unit, review A-29). `unit`:
+        the value's own IfcNamedUnit (a property's or quantity's `Unit`), which wins over the project's."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return value
+        if unit is not None and unit.is_a("IfcNamedUnit"):
+            try:
+                scale = uu.get_unit_scale(unit)
+            except Exception:
+                scale = None
+            if scale:
+                kind = getattr(unit, "UnitType", None)
+                if kind == "MASSUNIT":
+                    return value * scale / 1000
+                if kind == "PLANEANGLEUNIT":
+                    return math.degrees(value * scale)
+                return value * scale
         if measure_type in LENGTH_MEASURES:
             return value * self.L
         if measure_type in AREA_MEASURES:
             return value * self.A
         if measure_type in VOLUME_MEASURES:
             return value * self.V
+        if measure_type in MASS_MEASURES:
+            return value * self.M
+        if measure_type in ANGLE_MEASURES:
+            return math.degrees(value * self.ANGLE)
         return value
 
     def check(self, code, severity, ids, message, **data):
@@ -178,11 +202,11 @@ class Parser:
             nv = p.NominalValue
             if nv is None:
                 return None
-            return scalar(self.convert(nv.wrappedValue, nv.is_a()))
+            return scalar(self.convert(nv.wrappedValue, nv.is_a(), getattr(p, "Unit", None)))
         if p.is_a("IfcPropertyEnumeratedValue"):
             return [scalar(v.wrappedValue) for v in (p.EnumerationValues or [])]
         if p.is_a("IfcPropertyListValue"):
-            return [scalar(self.convert(v.wrappedValue, v.is_a())) for v in (p.ListValues or [])]
+            return [scalar(self.convert(v.wrappedValue, v.is_a(), getattr(p, "Unit", None))) for v in (p.ListValues or [])]
         if p.is_a("IfcPropertyBoundedValue"):
             lo = p.LowerBoundValue.wrappedValue if p.LowerBoundValue else None
             hi = p.UpperBoundValue.wrappedValue if p.UpperBoundValue else None
@@ -199,16 +223,17 @@ class Parser:
     def qto_dict(self, qto):
         out = {}
         for q in qto.Quantities or []:
+            own = getattr(q, "Unit", None)                  # a quantity's own unit wins (review A-29)
             if q.is_a("IfcQuantityLength"):
-                out[q.Name] = q.LengthValue * self.L
+                out[q.Name] = self.convert(q.LengthValue, "IfcLengthMeasure", own)
             elif q.is_a("IfcQuantityArea"):
-                out[q.Name] = q.AreaValue * self.A
+                out[q.Name] = self.convert(q.AreaValue, "IfcAreaMeasure", own)
             elif q.is_a("IfcQuantityVolume"):
-                out[q.Name] = q.VolumeValue * self.V
+                out[q.Name] = self.convert(q.VolumeValue, "IfcVolumeMeasure", own)
             elif q.is_a("IfcQuantityCount"):
                 out[q.Name] = q.CountValue
             elif q.is_a("IfcQuantityWeight"):
-                out[q.Name] = q.WeightValue
+                out[q.Name] = self.convert(q.WeightValue, "IfcMassMeasure", own)
             elif q.is_a("IfcQuantityTime"):
                 out[q.Name] = q.TimeValue
         return {k: r6(v) for k, v in out.items() if isinstance(v, (int, float))}

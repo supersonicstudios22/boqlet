@@ -1092,7 +1092,7 @@
             "per"
           ],
           "additionalProperties": false,
-          "description": "Raises a quantity below this to it, per element or per line; stated in the line's unit (review A-28)."
+          "description": "Minimum chargeable quantity per element or per line, stated in the line's unit (review A-28)."
         },
         "rounding": {
           "$ref": "#/definitions/Rounding"

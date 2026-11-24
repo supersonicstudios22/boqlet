@@ -12,8 +12,9 @@
  *   - Ids are IFC GlobalIds wherever the IFC has one (stable across versions,
  *     used to match elements between revisions). Catalogue entries without a
  *     GlobalId (materials, layer sets) get a deterministic id "mat:<step id>".
- *   - All lengths, areas, volumes are converted to SI (m, m2, m3). The original
- *     unit is recorded in `header.units`.
+ *   - All lengths, areas, volumes and masses are converted to SI (m, m2, m3, kg), plane
+ *     angles to degrees; a property or quantity with its own `Unit` is converted by that unit
+ *     (review A-29). The original project units are recorded in `header.units`.
  *   - Coordinates are world coordinates of the file (before any federation
  *     alignment, which is a separate step).
  *   - Heavy geometry (meshes) is NOT in this JSON. Elements point into a

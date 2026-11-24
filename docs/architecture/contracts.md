@@ -83,7 +83,8 @@ BoqResult             lines with codes, questions, warnings, checks, log, stats,
 One JSON per IFC version. Conventions: ids are IFC GlobalIds wherever the file has them
 (stable across versions, used to match elements between revisions); catalogue entries without
 one get deterministic ids (`mat:<step id>`, `mls:...`, `prf:...`, `cls:...`); all lengths,
-areas and volumes converted to SI with the original unit kept in `header.units`; world
+areas, volumes and masses converted to SI (kg for masses: grams and pounds too) and plane angles to degrees, a
+property's or quantity's own `Unit` winning over the project's (A-29), with the original units kept in `header.units`; world
 coordinates as in the file (federation alignment is a separate, later step); meshes are not in
 the JSON but in `geometry.glb` (one node per GlobalId, for viewers) and the mesh sidecar `meshes.npz`
 (float64, for the engine's work across models; `engine/ifc_boq/geometry.py`). The sidecar is an
