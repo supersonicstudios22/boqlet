@@ -601,6 +601,19 @@
       "note": "Concrete strength classes (EN 206 'C30/37', ex-YU 'MB30')"
     },
     {
+      "id": "rx-concrete-masonry",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\b(concrete|beton)\\s*(masonry|blocks?|blo[ck]\\w*)\\b|\\bcmu\\b"
+      },
+      "term": "masonry.block",
+      "source": "seed",
+      "note": "Concrete masonry units and concrete blocks are masonry, not concrete (checked before rx-concrete)."
+    },
+    {
       "id": "rx-concrete-precast",
       "field": [
         "material",

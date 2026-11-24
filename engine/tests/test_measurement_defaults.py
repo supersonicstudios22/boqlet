@@ -210,9 +210,9 @@ def test_paint_measures_the_faces_that_carry_plasterboard():
     assert paint(one) == pytest.approx(27.7) and paint(both) == pytest.approx(2 * 27.7)
     m, _ = measure(one)
     faces = {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]}
-    assert faces == {"a": "board.plasterboard", "b": "concrete"}        # the last layer faces +y: side a
+    assert faces == {"a": "board.plasterboard", "b": "masonry.block"}   # the last layer faces +y: side a
     m, _ = measure(lined_wall_doc([("Concrete Masonry Units", 0.19), ("Plasterboard", 0.0125)], sense="NEGATIVE"))
-    assert {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]} == {"a": "concrete", "b": "board.plasterboard"}
+    assert {f["side"]: f.get("layer_material") for f in m["wall-1"]["faces"]} == {"a": "masonry.block", "b": "board.plasterboard"}
 
 
 def test_paint_follows_the_wall_opening_rule_unless_it_has_its_own():
@@ -352,3 +352,58 @@ def test_faces_rebuilt_for_rooms_keep_their_layers():
     new = [{"side": "a", "space": "r1"}, {"side": "a"}, {"side": "b", "space": "r2"}]
     keep_face_layers(old, new)
     assert [f.get("layer_material") for f in new] == ["board.plasterboard", "board.plasterboard", "concrete"]
+
+
+# ---------------------------------------------------------------- A-14: in-situ concrete from a slab's concrete layers
+def layered_slab(layers: list[tuple[str, float]], *, volume: float | None = None) -> dict:
+    """slab_doc's 10 x 6 m slab (no opening) with the given layer set, total thickness = the sum."""
+    d = slab_doc(opening=False)
+    t = sum(th for _, th in layers)
+    el = d["elements"][0]
+    g = el["quantities"]["geometry"]
+    g["volume"] = volume if volume is not None else 60.0 * t
+    g["surfaceArea"] = 2 * 60.0 + 32.0 * t
+    g["obbExtents"], g["bboxMax"] = [10.0, 6.0, t], [10.0, 6.0, t]
+    d["catalogues"]["materials"] = [{"id": f"m-{i}", "name": n} for i, (n, _) in enumerate(layers)]
+    d["catalogues"]["layerSets"] = [{"id": "ls-1", "totalThickness": t,
+                                     "layers": [{"materialId": f"m-{i}", "thickness": th} for i, (_, th) in enumerate(layers)]}]
+    return d
+
+
+def concrete(parsed: dict, **params) -> float:
+    from ifc_boq.pipeline import get_boq
+    rs = {"schemaVersion": "1.0", "id": "t", "name": "t", "version": "1", "extends": "as-modelled",
+          "params": {k: {"value": v} for k, v in params.items()}}
+    _, lib = presets.load_rule_set("as-modelled")
+    r = get_boq(parsed, rs, [], [presets.load_dictionary("global-seed")], presets.resolution(), [], lib)
+    return sum(l["quantity"] for l in r["lines"] if l["ruleId"] == "slab-concrete")
+
+
+S09_BUILD_UP = [("Concrete, Sand/Cement Screed", 0.065), ("Rigid insulation", 0.08), ("Air", 0.15),
+                ("Concrete Masonry, Floor Block", 0.1), ("Concrete, Precast", 0.075)]
+
+
+def test_in_situ_concrete_is_the_concrete_layers_only():
+    """CAS-017: S09's 470 mm floor build-up was all in-situ concrete. Now only its in-situ concrete
+    layers count: screed, precast and blocks do not (a block is masonry, even "Concrete Masonry")."""
+    assert concrete(layered_slab(S09_BUILD_UP)) == 0
+    d = layered_slab([("Concrete, Sand/Cement Screed", 0.05), ("Rigid insulation", 0.1), ("Reinforced Concrete", 0.2)])
+    assert concrete(d) == pytest.approx(60.0 * 0.2)
+    # the firm may count every concrete layer (screed and precast too)
+    assert concrete(d, slab_concrete_layers="all_concrete") == pytest.approx(60.0 * 0.25)
+    m, _ = measure(layered_slab(S09_BUILD_UP))
+    assert [l["material"] for l in m["slab-1"]["layers"]][3] == "masonry.block"
+
+
+def test_a_single_layer_slab_keeps_its_own_volume():
+    """A slab of one layer is that layer: its concrete is the element's volume, not area x layer thickness
+    (S05's 127 mm slabs unchanged)."""
+    d = layered_slab([("Concrete", 0.2)], volume=12.6)        # a thickened edge: 0.6 m3 more than 60 x 0.2
+    assert concrete(d) == pytest.approx(12.6)
+
+
+def test_a_slab_without_layers_counts_by_its_material():
+    d = slab_doc(opening=False)
+    d["elements"][0]["materialRef"] = {"kind": "single", "materialId": "m-1"}
+    d["catalogues"]["layerSets"] = []
+    assert concrete(d) == pytest.approx(60.0 * 0.2)

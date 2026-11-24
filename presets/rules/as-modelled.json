@@ -660,6 +660,28 @@
       "question": "Is the concrete in floor slabs measured as its own item (m3), besides the slab area (m2)?",
       "help": "Reinforcement estimates for slabs are taken from this item."
     },
+    "slab_concrete_layers": {
+      "type": "choice",
+      "value": "in_situ",
+      "options": [
+        "in_situ",
+        "all_concrete"
+      ],
+      "optionLabels": {
+        "in_situ": "Concrete layers, without screed and precast",
+        "all_concrete": "Every concrete layer, screed and precast included"
+      },
+      "label": "Layers counted as slab concrete",
+      "section": "floors",
+      "question": "Which layers of a floor build-up are the slab's in-situ concrete?",
+      "help": "Each layer is its area times its thickness; a slab of one layer counts its whole volume. Insulation, air gaps and blocks never count.",
+      "dependsOn": {
+        "param": "slab_concrete_separate",
+        "values": [
+          true
+        ]
+      }
+    },
     "roof_surface": {
       "setup": "roofs",
       "type": "choice",
@@ -1379,12 +1401,12 @@
             "ifcClass": "IfcSlab"
           },
           {
-            "field": "material",
-            "op": "under",
-            "value": "concrete"
+            "expr": "COUNT(layers WHERE UNDER(material, \"concrete\") AND (p.slab_concrete_layers = \"all_concrete\" OR (NOT UNDER(material, \"concrete.screed\") AND NOT UNDER(material, \"concrete.precast\")))) > 0 OR (COUNT(layers) = 0 AND UNDER(material, \"concrete\") AND (p.slab_concrete_layers = \"all_concrete\" OR (NOT UNDER(material, \"concrete.screed\") AND NOT UNDER(material, \"concrete.precast\"))))"
           }
         ]
       },
+      "breakdown": "layer",
+      "partFilter": "UNDER(material, \"concrete\") AND (p.slab_concrete_layers = \"all_concrete\" OR (NOT UNDER(material, \"concrete.screed\") AND NOT UNDER(material, \"concrete.precast\")))",
       "quantity": {
         "kind": "volume",
         "start": "net"

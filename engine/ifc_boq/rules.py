@@ -452,12 +452,15 @@ class RuleEngine:
         bd = self.val(item.get("breakdown")) or self.defaults.get("breakdown") or "element"
         if bd == "layer" and el.get("layers"):
             out = []
+            single = len(el["layers"]) == 1          # one layer is the element: its own volumes (A-14)
             for l in el["layers"]:
                 t = l["thickness"]
                 out.append({**el, "material": l["material"], "material_raw": l["material_raw"], "thickness": t,
                             "layer_index": l["index"],
-                            "net_volume": el["net_area"] * t if el.get("net_area") is not None else None,
-                            "gross_volume": el["gross_area"] * t if el.get("gross_area") is not None else None,
+                            "net_volume": el.get("net_volume") if single else
+                            (el["net_area"] * t if el.get("net_area") is not None else None),
+                            "gross_volume": el.get("gross_volume") if single else
+                            (el["gross_area"] * t if el.get("gross_area") is not None else None),
                             "_part": f"layer {l['index'] + 1} {l['material_raw']}"})
             return out
         if bd == "face" and el.get("faces"):

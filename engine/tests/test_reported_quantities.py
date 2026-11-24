@@ -216,13 +216,14 @@ def test_the_unit_error_note_reaches_the_line_and_the_question_ids_are_stable():
 
 @pytest.mark.slow
 def test_s09_floor_volume_is_the_geometry():
-    """A-02 (QS-001): S09's x1000 GrossVolume is a unit error; "In-situ concrete, Simple floor" is 13.24 m3."""
+    """A-02 (QS-001): S09's x1000 GrossVolume is a unit error: "Simple floor" is 13.24 m3 by its mesh, which is used.
+    (A-14: its layers are screed and a floor block, so it has no in-situ concrete line.)"""
     r = sample_lines(review_sample("S09-samplehouse-ifc4.ifc"))
-    (concrete,) = [l for l in r["lines"] if l["ruleId"] == "slab-concrete"]
-    assert concrete["quantity"] == pytest.approx(13.24, abs=0.01)
+    assert not [l for l in r["lines"] if l["ruleId"] == "slab-concrete"]
     assert r["building"]["gross_volume"] < 1000
-    cq = [q for q in r["questions"] if q["kind"] == "contradiction" and q["id"].startswith("contradiction:volume:IfcSlab")]
-    assert len(cq) == 2 and all(q["suggestion"] == "geometry" for q in cq)
+    cq = {q["id"]: q for q in r["questions"] if q["kind"] == "contradiction" and q["id"].startswith("contradiction:volume:IfcSlab")}
+    assert len(cq) == 2 and all(q["suggestion"] == "geometry" for q in cq.values())
+    assert cq["contradiction:volume:IfcSlab:Simple floor"]["params"]["geometry"] == pytest.approx(13.24, abs=0.01)
 
 
 # ---------------------------------------------------------------- A-03: slab areas and thickness

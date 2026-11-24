@@ -200,8 +200,11 @@ CHECKS = [
          what="IfcSlab top area m2", script=("top", ["3cUkl32yn9qRSPvBJVyWgQ"]), hand=146.19906),
     # S09 first floor 295048: polygon -> 5.735 x 13.9675 + 0.0325 x 4.900 = 80.26286 m2; x 0.165 m
     # = 13.24337 m3. The file's BaseQuantities.GrossVolume = 13243.37 (1000x) is a unit error (WP-A1 A-02)
+    # S09 "Simple floor" (13.243 m3 by its mesh; the file's GrossVolume is x1000, A-02) is 65 mm screed on a
+    # 100 mm "Concrete Masonry, Floor Block": no in-situ concrete at all (WP-A4 A-14: concrete layers only;
+    # the block is masonry). The x1000 volume itself is checked in engine/tests/test_reported_quantities.py
     dict(id="S09-floor-volume", sample="S09", rule="slab-concrete", line="Simple floor", guids=["3ntFzSulnDNeQ4nJrMgcOt"],
-         what="IfcSlab concrete m3", script=("volume", ["3ntFzSulnDNeQ4nJrMgcOt"]), hand=13.243372),
+         what="IfcSlab in-situ concrete line", script=None, hand=None, absent=True),
 ]
 
 ABS_TOL, REL_TOL = 0.011, 0.005
@@ -433,6 +436,12 @@ def main(argv=None) -> int:
         tol = chk.get("tol", (ABS_TOL, REL_TOL))
         row = {"id": chk["id"], "sample": chk["sample"], "what": chk["what"], "rule": chk["rule"],
                "line": chk["line"], "hand": chk["hand"], "known": (chk.get("known") or {}).get("app")}
+        if chk.get("absent"):        # the rule must make no such line (nothing of that kind is in the element)
+            present = [l for l in results[chk["sample"]]["lines"] if l["ruleId"] == chk["rule"] and chk["line"] in l["description"]]
+            row.update(app=present[0]["quantity"] if present else None, script=None,
+                       status="FAIL" if present else "OK", note="a line exists" if present else "no line, as expected")
+            rows.append(row)
+            continue
         try:
             app, line, guids = app_value(results[chk["sample"]], chk)
             row["app"] = app
