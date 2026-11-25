@@ -14,7 +14,7 @@
     "@ifc-boq/api": "*"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
+    "@types/node": "^26.6.6",
     "typescript": "^5.6.3",
     "vitest": "5.1.0"
   }
