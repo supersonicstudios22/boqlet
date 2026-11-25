@@ -22,11 +22,18 @@ def q(result, rule_id, contains=""):
     return sum(l["quantity"] for l in lines if l["quantity"] is not None)
 
 
-# (rule id, description contains, expected, unit) - expected values from the hand-made BoQ
+# (rule id, description contains, expected, unit) - expected values from the hand-made BoQ.
+# Walls (review B-03, QS-021): each wall row is derived from the file by hand, not from the engine's method: the
+# wall's axis length (its "Axis" polyline) x the height of its body (the extrusion's world z range) less each
+# opening's width along the wall x the part of its height inside the wall. tests/independent/duplex_walls.py reads
+# those numbers with ifcopenshell alone; test_independent_walls.py checks they still give these rows.
+AXIS_PERIMETER = 8.8 + 17.383 + 8.383 + 16.966          # the four exterior wall axes, butt-joined on Level 1
 HAND_BOQ = [
     ("footings", "Bearing Footing", 16.528, "m3"),
-    ("walls", "Foundation - Concrete (417mm)", 26.861 / 0.417, "m2"),
-    ("walls", "Foundation - Concrete (435mm)", 5.430 / 0.435, "m2"),
+    # four foundation walls on the exterior axes, 1.25 m deep: 1.25 x 51.532 (was volume / 0.417 m, the same 64.415)
+    ("walls", "Foundation - Concrete (417mm)", 1.25 * AXIS_PERIMETER, "m2"),                       # 64.415
+    # two 4.2005 m walls 1.25 m deep and one 1.765 m wall 1.123 m deep (was volume / 0.435 m)
+    ("walls", "Foundation - Concrete (435mm)", 1.25 * 2 * 4.2005 + 1.123 * 1.765, "m2"),            # 12.483
     ("slab-concrete", "127mm", 16.470, "m3"),
     ("slabs", "127mm Slab on Grade", 129.686, "m2"),
     # Steel by cut length x the designation's kg/m (A-17, QS-012): two W310X60 beams, IfcExtrudedAreaSolid depth
@@ -36,16 +43,30 @@ HAND_BOQ = [
     ("steel-sections", "W410X60", 2 * (6.1819 + 4.1213 + 4.1) * 60 / 1000, "t"),
     ("slabs", "Wood Joist", 118.563, "m2"),
     ("roofs", "Live Roof", 132.926, "m2"),
-    ("walls", "Exterior - Brick on Block", 235.779 + 31.383, "m2"),   # walls + parapet
+    # Level 1: 3.1 m on the axes less two 4.835 x 2.42 windows and two 0.813 x 2.42 doors (the windows run past the
+    # wall's top: only their 2.42 m inside it), two 1.25 x 2.01 doors and two 0.75 x 2.2 windows. Level 2: 2.9 m;
+    # its four walls are mitred and their axes overlap by the wall's 0.417 m at each corner, so the axis perimeter
+    # is 2 x 8.8 + 2 x 17.8 - 4 x 0.417 = 51.532 m again; less four 2.8 x 2.41 windows, twelve 0.819 x 0.759 and
+    # two 0.75 x 2.2. Parapet 0.609 m on the axes. = 124.088 + 111.691 + 31.383 (was 235.779 + 31.383 from Revit)
+    ("walls", "Exterior - Brick on Block",
+     3.1 * AXIS_PERIMETER - 2 * (4.835 + 0.813) * 2.42 - 2 * (1.25 * 2.01 + 0.75 * 2.2)
+     + 2.9 * (2 * 8.8 + 2 * 17.8 - 4 * 0.417) - 4 * (2.8 * 2.41 + 3 * 0.819 * 0.759) - 2 * 0.75 * 2.2
+     + 0.609 * AXIS_PERIMETER, "m2"),                                                               # 267.162
     # Party walls by their faces (A-09, DEC-34): main wall 143239 axis 16.966 m x unconnected height
     # 2.900 m; stubs 139234 / 139347 IfcRectangleProfileDef 4.201 x 0.55 m, extruded 2.795 m (clipped at
     # the top, faces unchanged; Revit Area 11.742 each); stub 139374 2.200 x 0.55 m x 2.795 m.
     # Before A-09: volume / 0.55 m layer set = 71.670 (the bodies are not full 0.55 m prisms)
     ("walls", "Party Wall", 16.966 * 2.900 + 2 * 4.201 * 2.795 + 2.200 * 2.795, "m2"),   # 78.834
-    ("walls", "Partition (92mm", 106.396, "m2"),
-    ("walls", "Plumbing (152mm", 9.390, "m2"),
-    ("walls", "Furring (152 mm", 58.557, "m2"),
-    ("walls", "Furring (38 mm", 2.555, "m2"),
+    # 18 partitions, in pairs (the two units mirror): 2.795 m high on Level 1 (3.583, 2.92, 1.456), 3.388 m where a
+    # wall rises from the stair landing (2.089), 2.9 m on Level 2 (5.424, 1.965, 1.619, 1.524), 0.488 m above the
+    # landing (3.475); less four 0.762 and six 0.864 doors, 2.032 m high
+    ("walls", "Partition (92mm", 2.795 * 2 * (3.583 + 2.92 + 1.456) + 3.388 * 2 * 2.089
+     + 2.9 * 2 * (5.424 + 1.965 + 1.619 + 1.524) + 0.488 * 2 * 3.475 - (4 * 0.762 + 6 * 0.864) * 2.032, "m2"),  # 106.396
+    ("walls", "Plumbing (152mm", 2 * 1.619 * 2.9, "m2"),                                            # 9.390
+    # 2.795 m (4.353, clipped at the top like the party wall stubs; 2.295; 4.201), 3.1 m (2.143), 2.595 m (2 x 4.16)
+    ("walls", "Furring (152 mm", 2.795 * (4.353 + 2.295 + 4.201) + 3.1 * 2.143 + 2 * 2.595 * 4.16, "m2"),  # 58.557
+    # eight short furrings under the roof, 0.288 m high: four 1.0831 m and four 1.1351 m
+    ("walls", "Furring (38 mm", 0.288 * 4 * (1.0831 + 1.1351), "m2"),                                # 2.555
     ("slabs", "Finish Floor - Wood", 196.921, "m2"),
     ("slabs", "Finish Floor - Ceramic Tile", 44.910, "m2"),
     ("coverings", "Gypsum Board", 243.459, "m2"),
@@ -53,7 +74,7 @@ HAND_BOQ = [
     ("railings", "1100mm Guard Rail", 16.669, "m"),
     ("slab-concrete", "150mm", 7.626, "m3"),
     ("slabs", "150mm Exterior Slab", 50.840, "m2"),
-    ("formwork-walls", "", 153.797, "m2"),
+    ("formwork-walls", "", 2 * (1.25 * AXIS_PERIMETER + 1.25 * 2 * 4.2005 + 1.123 * 1.765), "m2"),  # both faces of the foundations: 153.797
     # Formwork to the sides of the footings (A-10): the seven 900 x 300 strips' faces standing up, less where
     # they meet = the outline of their union x 0.3 m. Outer rectangle x -0.2415..9.0415, y -18.0415..0.2415:
     # 2 x (9.283 + 18.283) = 55.132 m. Inner edge of the ring 2 x (7.483 + 16.483) = 47.932 m, less the two
@@ -91,9 +112,25 @@ def test_complete_and_covered(result):
         assert isinstance(entry["params"], dict)
 
 
+def hand_approx(expected):
+    """Lines are rounded to 0.01 of their unit; the absolute allowance is at most 0.5 % of the row, so a 1 % error
+    on a small row (0.89 t of steel) fails too (review B-03)."""
+    return pytest.approx(expected, rel=2e-3, abs=min(0.011, 0.005 * abs(expected)))
+
+
 @pytest.mark.parametrize("rule_id,contains,expected,unit", HAND_BOQ)
 def test_matches_hand_boq(result, rule_id, contains, expected, unit):
-    assert q(result, rule_id, contains) == pytest.approx(expected, rel=2e-3, abs=0.011)
+    assert q(result, rule_id, contains) == hand_approx(expected)
+    # the number is in the hand BoQ's unit (review B-03: a value in the wrong unit passed before)
+    units = {l["unit"] for l in result["lines"] if l["ruleId"] == rule_id and contains in l["description"]}
+    assert units == {unit}, units
+
+
+def test_the_hand_rows_catch_a_one_percent_error(result):
+    """Review B-03 mutation check: every HAND_BOQ row fails when the engine's number is 1 % off."""
+    for rule_id, contains, expected, _ in HAND_BOQ:
+        assert 1.01 * q(result, rule_id, contains) != hand_approx(expected), (rule_id, contains)
+        assert 0.99 * q(result, rule_id, contains) != hand_approx(expected), (rule_id, contains)
 
 
 @pytest.mark.parametrize("rule_id,contains,expected", COUNTS)

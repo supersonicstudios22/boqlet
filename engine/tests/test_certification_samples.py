@@ -80,10 +80,14 @@ def test_same_scene_measures_the_same_in_every_schema(model):
     """IFC2x3 (faceted Brep) and IFC4 / IFC4.3 (triangulated face sets) of one SketchUp scene
     must give the same numbers for every class that exists in all three schemas."""
     rules = ("walls", "slabs", "slab-concrete", "roofs", "footings", "linear-other", "formwork-footings", "formwork-slab-edges")
+    # what each scene has (review B-03: the comparison alone passed when every total was 0)
+    present = {"Building-Architecture": {"walls", "slabs", "slab-concrete", "roofs", "formwork-slab-edges"},
+               "Building-Structural": {"walls", "footings", "linear-other", "formwork-footings"}}[model]
     results = {s: boq(parsed(f"{s}/{model}.ifc")) for s in SCHEMAS}
     for rid in rules:
         values = {s: round(total(r, rid), 2) for s, r in results.items()}
         assert len(set(values.values())) == 1, (rid, values)
+        assert (next(iter(values.values())) > 0) == (rid in present), (rid, values)
 
 
 def test_walls_match_the_ifc_quantity_sets():

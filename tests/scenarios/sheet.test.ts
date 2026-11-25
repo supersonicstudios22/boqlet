@@ -218,9 +218,11 @@ describe("viewer data (F07 §1–5)", () => {
     const { data: questions } = await api().GET("/runs/{runId}/questions", { params: { path: { runId: run.id } } });
     const unmatched = questions!.filter((q) => q.kind === "unmatched");
     expect(coverage!.unmatched.length).toBe(unmatched.reduce((s, q) => s + (q.occurrences ?? q.guids?.length ?? 0), 0));
+    // review B-03: every measured element is in a line (the old check filtered to those in lines first, so it could not fail)
     const inLines = new Set(lines.flatMap((l) => l.trace.elements.map((e) => e.guid)));
-    for (const g of coverage!.measured.filter((g) => inLines.has(g)).slice(0, 5)) expect(inLines.has(g)).toBe(true);
     expect(coverage!.measured.length).toBeGreaterThan(0);
+    expect(coverage!.measured.filter((g) => !inLines.has(g))).toEqual([]);
+    expect(coverage!.unmatched.filter((g) => inLines.has(g))).toEqual([]);
   });
 
   it("F07-AC2 an element lists every line it feeds, with its share; a roof part lists its roof's line", async () => {

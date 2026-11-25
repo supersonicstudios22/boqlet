@@ -84,3 +84,39 @@ def test_an_edited_line_is_listed_when_the_model_under_it_changes(duplex_parsed)
     sheet = load_workbook(BytesIO(render(result, {})), read_only=True)["Lines"]
     row = next(row for row in sheet.iter_rows(min_row=2, values_only=True) if row[1] == key)
     assert row[5] == row[6] == 117.04 and row[10:12] == (edited["before"]["engineQuantity"], edited["after"]["engineQuantity"])
+
+
+# ------------------------------------------------------------------ hand-built expectations (review B-03)
+def _line(key, quantity, shares, unit="m2", **extra):
+    return {"key": key, "ruleId": key.split(" | ")[0], "ruleKind": "item", "description": key, "quantity": quantity,
+            "unit": unit, "codes": {}, "trace": {"elements": [{"guid": g, "quantity": v} for g, v in shares]}, **extra}
+
+
+BEFORE = {"lines": [_line("walls | A", 10.0, [("w1", 4.0), ("w2", 6.0)]), _line("doors | D", 2, [("d1", 1), ("d2", 1)], "nr"),
+                    _line("slabs | S", 5.0, [("s1", 5.0)]), _line("stairs | T", 1, [("t1", 1)], "nr", excluded=True)]}
+AFTER = {"lines": [_line("walls | A", 6.0, [("w2", 6.0)]), _line("doors | D", 2, [("d1", 1), ("d2", 1)], "nr"),
+                   _line("roofs | R", 3.0, [("r1", 3.0)])]}
+
+
+def test_hand_built_runs_give_the_diff_worked_out_by_hand():
+    """Not captured output: wall w1 (4 m2) goes, the slab line goes, a roof line comes, the doors stay, and an
+    excluded line is not compared. Deltas after - before; one line of each kind."""
+    result = compare(BEFORE, AFTER)
+    assert {k: result["summary"][k] for k in ("linesAdded", "linesRemoved", "linesChanged", "linesUnchanged")} == \
+        {"linesAdded": 1, "linesRemoved": 1, "linesChanged": 1, "linesUnchanged": 1}
+    lines = {item["lineKey"]: (item["change"], item["delta"]) for item in result["lines"]}
+    assert lines == {"walls | A": ("changed", -4.0), "slabs | S": ("removed", -5.0), "roofs | R": ("added", 3.0)}
+    assert compare(BEFORE, BEFORE)["summary"]["linesChanged"] == 0
+
+
+def test_an_edit_changed_on_one_side_is_the_cause():
+    edited = {"lines": [{**AFTER["lines"][0], "quantity": 7.0, "overridden": {"fields": ["quantity"], "quantity": 7.0,
+                                                                           "engineQuantity": 6.0, "reason": "survey"}}, *AFTER["lines"][1:]]}
+    walls = next(item for item in compare(AFTER, edited)["lines"] if item["lineKey"] == "walls | A")
+    assert (walls["change"], walls["delta"], walls["causes"]) == ("changed", 1.0, ["override_changed"])
+
+
+@pytest.mark.xfail(strict=True, reason="N-25: diff._override_keys reads a missing line as a changed edit")
+def test_an_added_or_removed_line_is_not_blamed_on_an_edit():
+    causes = {item["lineKey"]: item["causes"] for item in compare(BEFORE, AFTER)["lines"]}
+    assert "override_changed" not in causes["roofs | R"] + causes["slabs | S"]
