@@ -1,0 +1,17 @@
+{
+  "_comment": "What each adversarial file must give (review B-02): a parse error code, or a run whose lines and checks are listed. Files: make.py.",
+  "not-step.ifc": { "error": "not_ifc" },
+  "empty.ifc": { "error": "not_ifc" },
+  "binary.ifc": { "error": "not_ifc" },
+  "truncated.ifc": { "error": "truncated_file" },
+  "no-project.ifc": { "error": "no_project" },
+  "odd-psets.ifc": {
+    "checks": ["no_geometry", "no_material", "pset_renamed"],
+    "psets": ["#10", "Pset_WallCommon", "Pset_WallCommon#2"],
+    "lines": { "walls": 12.0 }
+  },
+  "no-geometry.ifc": {
+    "checks": ["no_geometry", "no_material", "no_quantities"],
+    "lines": { "walls": null, "slabs": null, "doors": 1.0 }
+  }
+}

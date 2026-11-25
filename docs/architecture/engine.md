@@ -381,6 +381,9 @@ keeps parsed.json, result.json and summary.json per file to compare runs after a
 | `test_codelist_import.py` | Code lists from spreadsheets |
 | `test_mesh_repair.py`, `test_model_summary.py` | numpy mesh repair; the model summary the worker writes |
 | `test_worker.py`, `test_worker_logging.py` | The HTTP worker on the Duplex; unsafe storage keys refused; worker JSON logs |
+| `test_invariants.py` | Review B-01: the result invariants on broken results fed by hand, and on the Duplex |
+| `test_properties.py` | Review B-02: Hypothesis properties (a few seconds): any text as a literal reads back, FLOOR / CEIL / ROUND bracket the value on the step, null arithmetic and ordering, printed numbers read back, layer / material / face / child parts add up to the element |
+| `test_adversarial.py` | Review B-02: the malformed-file corpus `fixtures/adversarial/` (made by `make.py`): not STEP, empty, binary, cut short and fragment files give their parse error code; odd property sets and elements without geometry give the lines in `expected.json` |
 
 `conftest.py` parses the Duplex once per session (about 5 s) and turns the result invariants strict
 (`IFC_BOQ_STRICT_INVARIANTS=1`, review B-01): every `get_boq` in a test raises on a violation

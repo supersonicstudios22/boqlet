@@ -6,6 +6,7 @@ dist/
 engine/.venv/
 engine/.cache/
 engine/.pytest_cache/
+engine/.hypothesis/
 engine/*.egg-info/
 __pycache__/
 *.pyc

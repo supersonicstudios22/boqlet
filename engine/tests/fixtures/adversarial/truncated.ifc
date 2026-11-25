@@ -1,0 +1,24 @@
+ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
+FILE_NAME('','2026-11-25T14:50:19',(''),(''),'IfcOpenShell 0.9.0alpha0-8c614fa','IfcOpenShell 0.9.0alpha0-8c614fa','');
+FILE_SCHEMA(('IFC4'));
+ENDSEC;
+DATA;
+#1=IFCPROJECT('1Bbo1$Xhn5NBrmSxzkUQK1',$,'Odd sets',$,$,$,$,$,#3);
+#2=IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.);
+#3=IFCUNITASSIGNMENT((#2));
+#4=IFCSITE('1VJ_Tt3QXD8xzbHyMzBuyH',$,'Site',$,$,$,$,$,$,$,$,$,$,$);
+#5=IFCRELAGGREGATES('11AyDXVLz0LPIo0xZ7r$3g',$,$,$,#1,(#4));
+#6=IFCBUILDINGSTOREY('0NzuStV31ENubaaHkKIy4A',$,'Level 0',$,$,$,$,$,$,$);
+#7=IFCRELAGGREGATES('0uLeJ0hen1Kgd1lLY4O7Pl',$,$,$,#4,(#6));
+#8=IFCWALL('3q3okFDaz3xuSTZQszLb2t',$,'Wall with odd sets',$,$,$,$,$,$);
+#9=IFCRELCONTAINEDINSPATIALSTRUCTURE('1WTVjlixf41xvdDLf9gdoz',$,$,$,(#8),#6);
+#10=IFCPROPERTYSET('1p4G4ZoQzCUfVRO_PA5MWD',$,$,$,(#12));
+#11=IFCRELDEFINESBYPROPERTIES('0tXXPdf214pPiGYlJt_F$h',$,$,$,(#8),#10);
+#12=IFCPROPERTYSINGLEVALUE('Colour',$,IFCLABEL('Red'),$);
+#13=IFCPROPERTYSET('0IyJvwAxLBrAtwJfwtKlUr',$,'Pset_WallCommon',$,(#15,#16));
+#14=IFCRELDEFINESBYPROPERTIES('2HfD86Q3L1duiCcMCT86nM',$,$,$,(#8),#13);
+#15=IFCPROPERTYSINGLEVALUE('Reference',$,IFCLABEL('First'),$);
+#16=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.T.),$);
+#17=IFCPROPERTYSET('0

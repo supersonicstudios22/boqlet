@@ -14,3 +14,4 @@ google-re2>=1.1,<2  # user regexes in linear time (user_regex.py, review A-35)
 # dev
 pytest>=8
 httpx>=0.27,<1
+hypothesis>=6.100,<7  # property-based tests (review B-02)
