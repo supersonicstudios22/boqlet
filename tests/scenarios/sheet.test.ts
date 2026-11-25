@@ -262,7 +262,7 @@ describe("run export (F12, FE-017)", () => {
     const { data: meta } = await api.GET("/exports/{exportId}", { params: { path: { exportId } } });
     expect(meta).toMatchObject({ id: exportId, kind: "boq_xlsx", subjectType: "run", subjectId: run.id });
     // The run is named by when it finished (review A-41, CAS-027).
-    expect(meta!.fileName).toMatch(/^Duplex_Sheet_RevA_\d{4}-\d{2}-\d{2}_run\d{6}\.xlsx$/);
+    expect(meta!.fileName).toMatch(/^Duplex_Sheet_RevA_\d{4}-\d{2}-\d{2}_run\d{8}-\d{6}\.xlsx$/);
     const { data: list } = await api.GET("/revisions/{revisionId}/exports", { params: { path: { revisionId: run.revisionId } } });
     expect(list!.map((e) => e.id)).toContain(exportId);
     const { response: download } = await api.GET("/exports/{exportId}/download", { params: { path: { exportId } }, redirect: "manual" } as never);

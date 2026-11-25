@@ -29,8 +29,9 @@
   (302 to a signed URL). Small CSVs stream directly.
 - Every export records `Export {id, kind, subjectId, fileName, storageKey, createdBy, createdAt}`
   and an audit event. Downloads of saved-version exports are audited too (`export.downloaded`).
-- File names: `{projectCode or name}_{boqName}_Rev{label}_{yyyy-mm-dd}_run{HHmmss}.xlsx`, sanitised;
-  `HHmmss` is when the run finished (UTC), so two runs' files never share a name (A-41, CAS-027).
+- File names: `{projectCode or name}_{boqName}_Rev{label}_{yyyy-mm-dd}_run{yyyymmdd-HHmmss}.xlsx`, sanitised;
+  the first date is the export's, `run…` when the run finished (UTC), so two runs' files never share a
+  name and an older run is not read as today's (A-41, CAS-027).
   The change report keeps `..._{yyyy-mm-dd}_changes.xlsx`.
 - **The sheet's Excel and pending inputs** (A-41, DEC-38): the sheet shows the run with the edits and
   answers saved since, but a workbook is always written from a run (only the engine computes). When the

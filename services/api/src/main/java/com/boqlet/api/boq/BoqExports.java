@@ -256,14 +256,17 @@ public class BoqExports {
         return safe(project) + "_" + safe(boq) + "_Rev" + safe(label) + "_" + date + ".xlsx";
     }
 
-    /** A run's Excel also names the run, by the time it finished (UTC, `_run<HHmmss>`): two runs' files differ (A-41, CAS-027). */
+    /**
+     * A run's Excel also names the run, by when it finished (UTC, `_run<yyyyMMdd-HHmmss>`): two runs' files differ
+     * (A-41, CAS-027), and a run from another day isn't read as today's.
+     */
     static String fileName(String project, String boq, String label, java.time.LocalDate date, OffsetDateTime run) {
         String name = fileName(project, boq, label, date);
         return name.substring(0, name.length() - ".xlsx".length()) + "_run" + RUN_TIME.format(run) + ".xlsx";
     }
 
     private static final java.time.format.DateTimeFormatter RUN_TIME =
-            java.time.format.DateTimeFormatter.ofPattern("HHmmss").withZone(java.time.ZoneOffset.UTC);
+            java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(java.time.ZoneOffset.UTC);
 
     private static String safe(String value) {
         String clean = value.strip().replaceAll("[^\\p{L}\\p{N}_.-]+", "_");

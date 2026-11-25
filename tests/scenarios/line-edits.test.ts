@@ -263,7 +263,7 @@ describe("the Excel of a run while an edit waits for the next run (review A-41, 
     const last = await exported(api, run.id);
     expect(last.boqRows.find((r) => r[8] === line.key)![3]).toBe(line.quantity);
     expect(String(last.cover["Not included"])).toMatch(/^Changes made after this run \(.+\): line edits\. Generate the BoQ again to include them\.$/);
-    expect(last.meta.fileName).toMatch(/_run\d{6}\.xlsx$/);
+    expect(last.meta.fileName).toMatch(/_run\d{8}-\d{6}\.xlsx$/);
 
     const { run: next } = await generate(api);
     const fresh = await exported(api, next.id);
