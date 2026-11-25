@@ -245,19 +245,22 @@ describe("an edit whose line goes away (BR-09, TF-100)", () => {
   });
 });
 
-describe("change report timing (F08-AC4, TF-100)", () => {
-  it("an uncached Duplex report is ready in under 3 s", async () => {
+// The 3 s budget of an uncached report (F08-AC4) is measured nightly on a quiet runner, as the median of
+// three, by the browser suite's perf spec (apps/app/e2e-java/perf.spec.ts, review B-07): a deploy gate on a
+// loaded two-CPU runner timed it at 4.9-5.3 s (DEC-07). Here the uncached report is computed and read back.
+describe("change report, uncached (F08-AC4, TF-100)", () => {
+  it("an uncached Duplex report is computed by a job and its lines read", async () => {
     const boq = await newBoq("Timing");
     const first = await generate(boq.id);
     const v1 = (await api.GET("/models/{modelId}/versions", { params: { path: { modelId } } })).data!.find((v) => v.number === 1)!;
     await useVersion(boq.id, v1.id);
     const second = await generate(boq.id);
-    const started = Date.now();
     const res = await api.POST("/runs/{runId}/compare", { params: { path: { runId: second.id } }, body: { againstRunId: first.id } });
     expect(res.response.status).toBe(202);
     const done = await job((res.data as unknown as Schemas["Job"]).id, 10_000);
     const diffId = (done.output as { diffId: string }).diffId;
-    await api.GET("/diffs/{diffId}/lines", { params: { path: { diffId } } });
-    expect(Date.now() - started).toBeLessThan(3_000);
+    const lines = await api.GET("/diffs/{diffId}/lines", { params: { path: { diffId } } });
+    expect(lines.response.status).toBe(200);
+    expect(lines.data!.items.length).toBeGreaterThan(0);
   }, 300_000);
 });

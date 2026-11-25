@@ -34,6 +34,8 @@ are ported to the Java browser suite. How to repeat the rest: `docs/testing/READ
 | BoQ sheet: 20k lines | smooth scroll (virtualised); group switch ≤ 300 ms client-side | 60 fps, p95 frame 16.7 ms; switch 52 ms ✓ |
 | Viewer: Duplex interactive | ≤ 3 s warm | 460–630 ms ✓ |
 | Viewer: 50k elements | ≤ 15 s to interactive; picking ≤ 100 ms | 4.3–4.9 s cold for the 16,012-element MEP model (59 MB GLB; 15.9 s before outlines were built after the first frame); picking 30 ms there, 6–10 ms on the Duplex ✓ (no 50k model in the corpus) |
+| BoQ sheet, 4,000 lines (review B-07, nightly `e2e-java/perf.spec.ts`, production build, median of 3) | target: first row ≤ 2 s, no task > 100 ms while typing in search (B-18/B-19); gated today at 4 s and 250 ms (regression gates above today's spread, DEC-114) | 2026-11-25, owner's Windows machine, three runs: first row 2.18 / 2.18 / 2.79 s; longest task while typing 99 / 93 / 137 ms |
+| Change report, uncached Duplex v1 → v2 (F08-AC4; nightly, median of 3) | ≤ 3 s | 2026-11-25: 590 ms ✓ (the deploy-gate scenario no longer times it: a loaded 2-CPU runner measured 4.9–5.3 s, DEC-07) |
 | Live update latency (job finished → UI) | ≤ 2 s | 49 ms, event to refetched data (measured on the mock, removed by P53) ✓ |
 | (Pricing module) vendor request page load (500 lines) | ≤ 2 s | module not built (P48) |
 | Live edit visible to other users of the BoQ (P31) | ≤ 1 s | asserted ≤ 1 s by the mock-era `e2e/co-editing.spec.ts` F06-AC10 ✓ (deleted in P53; `apps/app/e2e-java/live.spec.ts` checks co-editing on Java) |

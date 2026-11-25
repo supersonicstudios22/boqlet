@@ -1,0 +1,54 @@
+# Nightly checks that are not deploy gates (docs/testing/README.md "CI").
+# The UI performance budgets (review B-07, apps/app/e2e-java/perf.spec.ts, docs/architecture/nfr.md "API and UI"):
+# the browser suite's `@perf` tests against Java, on a production build of the app. A median over its budget
+# fails the job; nothing is deployed from here.
+name: nightly
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  ui-performance:
+    name: UI performance budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+        env:
+          IFC_BOQ_SKIP_ENGINE_SETUP: "1"
+      - run: python -m pip install -e ./engine
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/app
+      - name: The @perf browser tests against Java
+        run: |
+          export BOQLET_NATIVE_WORKER_PYTHON="$(command -v python)"
+          export BOQLET_NATIVE_NODE="$(command -v node)"
+          mvn -B -ntp -f services/api/pom.xml verify -Dtest='NativeWorkerTest#browserSmokeAgainstJava' -Dsurefire.failIfNoSpecifiedTests=false
+        env:
+          BOQLET_BROWSER_SMOKE: "1"
+          BOQLET_BROWSER_PERF: "1"
+          BOQLET_BROWSER_SMOKE_FILTER: "@perf"
+          IFC_BOQ_PYTHON: python
+          AWS_ACCESS_KEY_ID: boqlet-test
+          AWS_SECRET_ACCESS_KEY: boqlet-local-test-only
+      - name: The measured numbers
+        if: always()
+        run: grep -h '\[perf\]' services/api/target/browser-smoke.log | tee -a "$GITHUB_STEP_SUMMARY" || true

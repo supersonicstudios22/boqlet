@@ -85,9 +85,56 @@ public class SuiteSupport {
     @RequestMapping("/_test")
     static class SuiteController {
         private final JdbcTemplate database;
+        private final com.fasterxml.jackson.databind.ObjectMapper json;
+        private final com.boqlet.api.storage.ObjectStorage storage;
+        private final com.boqlet.api.boq.RunIndex runIndex;
 
-        SuiteController(JdbcTemplate database) {
+        SuiteController(JdbcTemplate database, com.fasterxml.jackson.databind.ObjectMapper json,
+                com.boqlet.api.storage.ObjectStorage storage, com.boqlet.api.boq.RunIndex runIndex) {
             this.database = database;
+            this.json = json;
+            this.storage = storage;
+            this.runIndex = runIndex;
+        }
+
+        /**
+         * A large BoQ for the browser performance spec (review B-07, `e2e-java/perf.spec.ts`): the run's
+         * result is stored again with its lines repeated to `{lines}` (each copy's key gets `#n`, so keys
+         * stay unique) and indexed again, as `apiPerformanceAgainstJava` does for 50,000 lines. `{lines}`
+         * from 1 to 100,000.
+         */
+        @PostMapping("/runs/{runId}/inflate")
+        org.springframework.http.ResponseEntity<Map<String, Object>> inflate(
+                @org.springframework.web.bind.annotation.PathVariable UUID runId, @RequestBody Map<String, Object> body) throws java.io.IOException {
+            int target = body.get("lines") instanceof Number n ? n.intValue() : 0;
+            var found = database.queryForList("SELECT result_key FROM runs WHERE id = ? AND result_key IS NOT NULL", String.class, runId);
+            if (target < 1 || target > 100_000 || found.isEmpty()) {
+                return org.springframework.http.ResponseEntity.badRequest().body(Map.of("code", "invalid_body", "message", "A finished run and 1 to 100,000 lines."));
+            }
+            com.fasterxml.jackson.databind.JsonNode result;
+            try (var raw = storage.open(found.get(0)); var decoded = new java.util.zip.GZIPInputStream(raw)) {
+                result = json.readTree(decoded);
+            }
+            var source = result.path("lines");
+            var lines = json.createArrayNode();
+            for (int i = 0; lines.size() < target && !source.isEmpty(); i++) {
+                var line = (com.fasterxml.jackson.databind.node.ObjectNode) source.get(i % source.size()).deepCopy();
+                if (i >= source.size()) line.put("key", line.path("key").asText() + "#" + i);
+                lines.add(line);
+            }
+            ((com.fasterxml.jackson.databind.node.ObjectNode) result).set("lines", lines);
+            var bytes = new java.io.ByteArrayOutputStream();
+            try (var gzip = new java.util.zip.GZIPOutputStream(bytes)) {
+                json.writeValue(gzip, result);
+            }
+            String key = found.get(0) + ".inflated-" + target;
+            storage.put(key, "application/gzip", bytes.toByteArray());
+            for (String table : java.util.List.of("run_lines", "run_line_elements", "run_questions", "run_warnings", "run_log_entries")) {
+                database.update("DELETE FROM " + table + " WHERE run_id = ?", runId);
+            }
+            database.update("UPDATE runs SET result_key = ?, indexed_at = NULL WHERE id = ?", key, runId);
+            runIndex.ensure(runId);
+            return org.springframework.http.ResponseEntity.ok(Map.of("lines", lines.size()));
         }
 
         /**

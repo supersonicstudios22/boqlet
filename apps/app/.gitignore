@@ -1,5 +1,6 @@
 .next/
 .next-java/
+.next-java-perf/
 .next-demo/
 out/
 next-env.d.ts

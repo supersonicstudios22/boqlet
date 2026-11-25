@@ -18,6 +18,9 @@ import { timeFactor } from "../../tests/support/time-factor.mjs";
  * the retry are listed as flaky (e2e-java/flaky-reporter.ts).
  */
 const factor = timeFactor();
+// The UI performance spec (`@perf`, e2e-java/perf.spec.ts, review B-07) runs only when asked, on a production
+// build (its numbers mean little on `next dev`): the nightly job sets BOQLET_BROWSER_PERF=1.
+const perf = process.env.BOQLET_BROWSER_PERF === "1";
 const app = new URL(process.env.BOQLET_JAVA_APP ?? "http://localhost:3100");
 const api = process.env.BOQLET_JAVA_API;
 if (!api) throw new Error("BOQLET_JAVA_API is not set: run the suite through NativeWorkerTest#browserSmokeAgainstJava.");
@@ -29,6 +32,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
+  grepInvert: perf ? undefined : /@perf/,
   // Only a timeout is retried: e2e-java/fixtures.ts fails the retry of any other failure at once.
   retries: 1,
   reporter: [["list"], ["./e2e-java/flaky-reporter.ts"]],
@@ -40,16 +44,18 @@ export default defineConfig({
   globalSetup: "./e2e-java/global-setup.ts",
   use: { baseURL: app.origin, trace: "retain-on-failure", ...devices["Desktop Chrome"] },
   webServer: {
-    command: `${node} scripts/pseudo-locale.mjs && ${node} ${next} dev --port ${app.port}`,
+    command: perf
+      ? `${node} scripts/pseudo-locale.mjs && ${node} ${next} build && ${node} ${next} start --port ${app.port}`
+      : `${node} scripts/pseudo-locale.mjs && ${node} ${next} dev --port ${app.port}`,
     url: app.origin,
     env: {
       NEXT_PUBLIC_AUTH_ADAPTER: "native",
       API_PROXY_TARGET: api,
-      NEXT_DIST_DIR: ".next-java",
+      NEXT_DIST_DIR: perf ? ".next-java-perf" : ".next-java",
       NEXT_TELEMETRY_DISABLED: "1",
     },
     reuseExistingServer: false,
-    timeout: 240_000 * factor,
+    timeout: (perf ? 600_000 : 240_000) * factor,
     stdout: "pipe",
   },
 });

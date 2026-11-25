@@ -88,6 +88,7 @@ mvn -B -ntp -f services/api/pom.xml verify
 | `BOQLET_NATIVE_QUEUE_TEST=1` | Jobs go through the Postgres queue with queue workers (as on the pilot) instead of HTTP dispatch. CI sets it |
 | `BOQLET_NATIVE_RESILIENCE=1` | `jobsSurviveTheWorkerAndTheDatabaseGoingAway`: the worker killed mid-parse for 25 s, then the database restarted mid-parse; each job ends with at most 2 attempts (TF-186). About 1.5 min. CI sets it |
 | `BOQLET_TEST_TIME_FACTOR` | A number from 1 to 10 (default 1; CI sets 2): every timeout of the shared suites (`tests/vitest.config.ts`), the browser suite (`playwright.java.config.ts`) and `NativeWorkerTest`'s waits is multiplied by it, and the browser suite's overall limit is 5 min + 2 min per spec file, times it (review B-08) |
+| `BOQLET_BROWSER_PERF=1` | The browser suite runs its `@perf` tests (left out otherwise) on `next build` + `next start` (`.next-java-perf`) instead of `next dev`; with `BOQLET_BROWSER_SMOKE_FILTER=@perf` only them (the nightly job; budgets in [../architecture/nfr.md](../architecture/nfr.md)) |
 | `BOQLET_API_PERF=1` | `apiPerformanceAgainstJava`: `tests/perf/api.test.ts` plus 50k-line ingestion; results appended to `PERF_OUT=<file>`. Not in CI |
 
 **Load tolerance** (review B-08, DEC-07). A shared-suite or browser test that fails **only by its timeout** is
@@ -149,7 +150,9 @@ Results go into [../architecture/nfr.md](../architecture/nfr.md). Never load-tes
 | `local` | `local:up` + `local:check` (the Docker stack) | no |
 | `deploy` | On a push to `main` after the five gates: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
 
-Not in CI: the performance suite, engine timing, the corpus run, the review samples beyond S01–S05 and
+| `nightly` (`.github/workflows/nightly.yml`, 02:17 UTC and on demand) | the browser suite's `@perf` tests (`e2e-java/perf.spec.ts`, review B-07) against Java on a production build of the app (`BOQLET_BROWSER_PERF=1`, `BOQLET_BROWSER_SMOKE_FILTER=@perf`): the uncached change report (F08-AC4, ≤ 3 s), the first row of a 4,000-line sheet (≤ 4 s) and the longest task while typing in its search (≤ 250 ms), each the median of 3 (regression gates; B-18/B-19 tighten them to 2 s and 100 ms); the `[perf]` lines go to the job summary. The 4,000 lines are the Duplex run's lines repeated by the harness's `/_test/runs/{id}/inflate` | no |
+
+Not in CI: the API performance suite, engine timing, the corpus run, the review samples beyond S01–S05 and
 S09 (the full compare-baseline takes about 50 minutes), other browsers, accessibility, a nightly job,
 Python or Java linters. There is no separate "core only" build job; the pricing
 boundary is guarded by the ArchUnit `CoreArchitectureTest`, the BR-41 lint rule, the

@@ -34,6 +34,9 @@ export async function setupLink(email: string, purpose: "setup" | "reset" = "set
   return (await testCall<{ token: string }>("/setup-link", { email, purpose })).token;
 }
 
+/** A run's lines repeated to `lines` and indexed again (the harness's `/_test/runs/{id}/inflate`, review B-07). */
+export const inflateRun = (runId: string, lines: number) => testCall<{ lines: number }>(`/runs/${runId}/inflate`, { lines });
+
 /** One address signs in many people here; Java's per-source sign-in limit is for people. */
 export const resetAuthLimits = () => testCall("/auth-limits/reset");
 
