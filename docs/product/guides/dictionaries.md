@@ -112,7 +112,11 @@ Everything this dictionary knows, one per line, with a sentence on top:
    - **In its**: which names to look at: material, layer material, type name, name, object type, IFC
      class, predefined type, system, room name, or a property (`props.Pset_WallCommon.Reference`);
    - **Text**: **is exactly**, **starts with**, **contains**, or **matches a pattern** (a regular
-     expression, for codes like Z-25 / Z25 / Z 25);
+     expression, for codes like Z-25 / Z25 / Z 25). Patterns use **RE2 syntax**: the usual
+     operators, classes and named parts, but no look-aheads, look-behinds or back-references, and at
+     most 500 characters; the check names a pattern it can't use. `\b`, `\w` and `\d` only know
+     A-Z and 0-9: for a word in another script write `\pL` (any letter), e.g.
+     `(?:^|\PL)бетон(?:\PL|$)`. Accents need nothing special: the name is also tried without them;
    - **Matching**: whether capitals matter, whether accents are ignored;
    - **Only when** (optional): a condition, so the same name can mean different things on different
      elements: "CT" is ceramic tile only when `ifc_class = "IfcCovering"`.
@@ -145,8 +149,9 @@ Readers that find values written in names. Each has a sentence on top:
 
 > From the type name, text matching (?<t>\d+)\s?cm gives the thickness (written in cm) from the part "t". A value the model already has is kept.
 
-1. **Where to look**: which names (type name, material…), the **pattern** (a regular expression;
-   name each part you want, e.g. `(?<t>\d+)\s?cm` reads the number before "cm" as part *t*), and
+1. **Where to look**: which names (type name, material…), the **pattern** (a regular expression in
+   RE2 syntax, as above; name each part you want, e.g. `(?<t>\d+)\s?cm` reads the number before "cm"
+   as part *t*), and
    whether to **overwrite** values the model already has (usually not: measured geometry wins over
    names). Optionally **only when** a condition holds.
 2. **What each part gives**: thickness, width, height, length, diameter, strength class, steel

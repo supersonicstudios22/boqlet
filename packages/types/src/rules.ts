@@ -167,7 +167,7 @@ export type SelectorOp =
   | "in" | "not_in"
   | "gt" | "gte" | "lt" | "lte"
   | "between"
-  | "contains" | "starts_with" | "matches" // matches = regex
+  | "contains" | "starts_with" | "matches" // matches = regex: RE2 syntax, case-insensitive (as TextMatch's)
   | "exists" | "missing"
   | "under"; // dictionary term or anything beneath it: material under "concrete" matches "concrete.in_situ"
 

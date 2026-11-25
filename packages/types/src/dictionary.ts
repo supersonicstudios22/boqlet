@@ -70,7 +70,12 @@ export type TextMatch =
   | { exact: string | string[] }
   | { startsWith: string | string[] }
   | { contains: string | string[] }
-  /** ECMAScript regex syntax (as in JavaScript); named groups written (?<name>...). Case-insensitive unless caseSensitive. */
+  /**
+   * RE2 syntax (matching in linear time: no look-arounds, no back-references), at most 500 characters; named
+   * groups written (?<name>...) or (?P<name>...). \b, \w and \d are ASCII, so write \pL for a letter in any
+   * script (the accent-folded name is tried too, so Latin-script names need nothing special). Case-insensitive
+   * unless caseSensitive. A pattern RE2 refuses is refused when the dictionary is checked. `flags` is not read.
+   */
   | { regex: string; flags?: string };
 
 export interface DictionaryEntry {
@@ -117,7 +122,7 @@ export type ExtractTarget =
 export interface Extractor {
   id: string;
   field: DictField | DictField[];
-  /** ECMAScript regular expression with NAMED groups, e.g. "(?<t>\\d+)\\s?mm". */
+  /** RE2 regular expression (as TextMatch's) with NAMED groups, e.g. "(?<t>\\d+)\\s?mm". Case-insensitive; `flags` is not read. */
   regex: string;
   flags?: string;
   outputs: Record<string, {

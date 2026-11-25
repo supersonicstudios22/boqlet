@@ -245,16 +245,24 @@ def _schema_problems(doc, kind: str, where: str) -> list[str]:
 
 
 def _expr_problems(node, path: str = "") -> list[str]:
-    """Syntax-check every expression in a preset (keys known to hold one), without evaluating."""
+    """Syntax-check every expression in a preset (keys known to hold one), without evaluating, and every
+    user regex (a dictionary entry's or extractor's `regex`, a `matches` selector's value) against RE2's
+    rules and length cap (review A-35)."""
     from .expr import syntax_problem
+    from .user_regex import problem as regex_problem
     out = []
     if isinstance(node, dict):
         base = f"{path}[{node['id']}]" if isinstance(node.get("id"), str) else path
+        if node.get("op") == "matches" and isinstance(node.get("value"), str) and (p := regex_problem(node["value"])):
+            out.append(f"{base + '.' if base else ''}value: regex: {p}")
         for k, v in node.items():
             here = f"{base}.{k}" if base else k
             if isinstance(v, str) and (k in EXPR_KEYS or (k == "quantity" and "from" in node)):
                 if (p := syntax_problem(v)):
                     out.append(f"{here}: {p}")
+            elif k == "regex" and isinstance(v, str):
+                if (p := regex_problem(v)):
+                    out.append(f"{here}: regex: {p}")
             elif k == "lineKey" and isinstance(v, list):
                 out += [f"{here}: {p}" for s in v if isinstance(s, str) and (p := syntax_problem(s))]
             else:
@@ -369,21 +377,12 @@ def check(kind: str, doc: dict, library: list[dict] | None = None) -> list[str]:
         problems = _schema_problems(doc, "dictionaries", "")
         if problems:
             return problems
-        import re
-        from .names import py_regex
         known = {t["id"] for d in dictionaries().values() if d["id"] != doc["id"] for t in d.get("terms", [])}
         known |= {t["id"] for t in doc.get("terms", [])}
         problems += [f"term '{t['id']}' is under '{t['broader']}', which is not defined"
                      for t in doc.get("terms", []) if t.get("broader") and t["broader"] not in known]
         problems += [f"entry '{e['id']}' points to undefined term '{e['term']}'"
                      for e in doc["entries"] if e["term"] not in known]
-        for x in doc["entries"] + doc.get("extractors", []):
-            rx = x.get("regex") or (x.get("match") or {}).get("regex")
-            if rx:
-                try:
-                    re.compile(py_regex(rx))
-                except re.error as err:
-                    problems.append(f"'{x['id']}': regex does not compile: {err}")
         for dup in {i for i in [e["id"] for e in doc["entries"]] if [e["id"] for e in doc["entries"]].count(i) > 1}:
             problems.append(f"entry id '{dup}' is used more than once")
         return problems + _expr_problems({k: v for k, v in doc.items() if k != "id"})

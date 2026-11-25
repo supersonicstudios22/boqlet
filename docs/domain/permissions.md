@@ -32,6 +32,7 @@ isn't built (P48), so the vendor sections below are specification only.
 | Library: view org presets | ✓ | ✓ | ✓ | ✓ |
 | Library: create, edit, publish, archive org presets | ✓ | ✓ | ✓ | |
 | Library: preview a preset on a model of a project they can see (any project role; P54 Q43) | ✓ | ✓ | ✓ | ✓ |
+| Library: preview names in a model with an unsaved dictionary (`draftDictionaries`, D97) | ✓ | ✓ | ✓ | as lead or estimator of the model's project |
 | Promote a decision to the company dictionary | ✓ | ✓ | ✓ | |
 | Finish the setup wizard (F16) | ✓ | ✓ | ✓ | |
 | See org usage | ✓ | ✓ | | |

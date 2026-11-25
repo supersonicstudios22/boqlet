@@ -19,6 +19,7 @@ dependencies = [
   "uvicorn>=0.30",
   "boto3>=1.35,<2",
   "psycopg[binary]>=3.2,<4",
+  "google-re2>=1.1,<2",
 ]
 
 [project.optional-dependencies]

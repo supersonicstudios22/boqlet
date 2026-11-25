@@ -4115,7 +4115,7 @@ export interface components {
         Extractor: {
             id: string;
             field: components["schemas"]["DictField"] | components["schemas"]["DictField"][];
-            /** @description ECMAScript regular expression with NAMED groups, e.g. "(?<t>\\d+)\\s?mm". */
+            /** @description RE2 regular expression (as TextMatch's) with NAMED groups, e.g. "(?<t>\\d+)\\s?mm". Case-insensitive; `flags` is not read. */
             regex: string;
             flags?: string;
             outputs: {

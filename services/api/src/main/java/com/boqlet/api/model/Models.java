@@ -310,6 +310,10 @@ public class Models {
         var row = visible(version, actor);
         String parsed = ready(row, "parsedKey");
         Project project = projects.require(row.project(), actor);
+        // Unsaved dictionaries are the Library editor's preview: their patterns are the caller's own text, run on
+        // the shared engine, so they need the right to edit presets; viewers see the saved dictionaries only (review
+        // A-35). A library editor keeps P54 Q43's preview on any project they can see.
+        if (request.getDraftDictionaries() != null) projects.presetEditor(project, actor);
         var docs = new ArrayList<JsonNode>();
         List<UUID> ids = request.getDictionaryVersionIds();
         if (ids == null) {

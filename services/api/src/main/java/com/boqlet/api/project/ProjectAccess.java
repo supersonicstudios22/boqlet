@@ -114,6 +114,18 @@ public class ProjectAccess {
                 && entitlements.enabled(org, "approvalWorkflow");
     }
 
+    /**
+     * May the actor edit a preset that reaches this project: an org library editor (owner, admin, library_editor;
+     * org presets) or one of the project's editors (`editPresets`, its project-layer presets). Otherwise 403 with
+     * `required: estimator` (review A-35: unsaved dictionaries run on the shared engine).
+     */
+    public void presetEditor(Project project, UUID actor) {
+        var role = orgs.require(project.getOrgId(), actor).role();
+        if (role == com.boqlet.contract.model.OrgRole.OWNER || role == com.boqlet.contract.model.OrgRole.ADMIN
+                || role == com.boqlet.contract.model.OrgRole.LIBRARY_EDITOR) return;
+        role(project, "editPresets");
+    }
+
     public void role(Project project, String action) {
         var allowed = ACTIONS.get(action);
         if (!allowed.contains(project.getMyRole())) {

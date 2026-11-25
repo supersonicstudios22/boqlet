@@ -139,7 +139,7 @@ Any field typed `Value<T>` takes a literal or `{ "param": "name" }`. In expressi
 { "expr": "thickness > 0.2 AND UNDER(element_type, \"wall.party\")" }   // escape hatch
 ```
 
-Ops: eq, neq, in, not_in, gt, gte, lt, lte, between, contains, starts_with, matches (regex),
+Ops: eq, neq, in, not_in, gt, gte, lt, lte, between, contains, starts_with, matches (regex, RE2 syntax, case-insensitive: see TextMatch in `dictionary.ts`),
 exists, missing, under. Fields: any measured field, plus ifc_class, predefined_type, type_name,
 family, family_name, material, element_type, space_type, discipline, storey, space, zone,
 status, is_external, load_bearing, system, profile, nominal_size, tag, `props.<Pset.Prop>`.

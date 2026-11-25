@@ -114,6 +114,14 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   `application/octet-stream` for non-PDF/image types; virus scanning optional.
 - Formulas from users are evaluated only by the engine's safe evaluator (`expr.py`, never
   `eval`, D21).
+- Regular expressions from users (dictionary `regex` entries, extractors, `matches` selectors) run
+  only on RE2 (`google-re2`, `engine/ifc_boq/user_regex.py`; D97): matching takes time linear in
+  the name, so no pattern can stall the shared engine (ENG-006). Patterns RE2 refuses
+  (look-arounds, back-references) and patterns over 500 characters are refused by the preset check
+  and fail a run with the entry's id. The names preview (`POST /model-versions/{id}/names`) takes
+  unsaved dictionaries (`draftDictionaries`) only from someone who may edit presets: an org
+  library editor, or a lead or estimator of the model's project (`ProjectAccess.presetEditor`;
+  others `403`, `required: estimator`); with saved dictionaries it stays open to every project role.
 - JSON inputs are validated against the OpenAPI schemas by Java's generated interfaces and bean
   validation: `400 unknown_field`, `invalid_body` (`tests/contract/validation.test.ts`). Every
   free-text request field has a `maxLength` and every request array a `maxItems` (the families are

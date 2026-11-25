@@ -106,6 +106,9 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   (`mail/EmailDelivery.java`).
 
 **Security**
+- User regexes run on RE2 (D97): ``, `\w` and `\d` know only A-Z and 0-9, so a pattern for a
+  word in a non-Latin script uses `\pL`; Latin-script names are also tried without accents and match as
+  before. An extractor's or entry's `flags` field is not read (case follows `caseSensitive`).
 - No full Content-Security-Policy is set (the app sends only `frame-ancestors 'none'`, TF-046),
   although `security.md` asks for one. The `private-headers` Traefik middleware the pilot's routes
   name is defined outside this repo.

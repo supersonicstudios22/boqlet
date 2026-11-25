@@ -177,10 +177,13 @@ export function NamesTab({ preset, doc, onChange, known, pick, onPick }: {
   const [bulkPrefix, setBulkPrefix] = useState(false);
   const [bulkOnly, setBulkOnly] = useState(false);
 
-  // The draft goes with every request (most specific last), a moment after the last change.
+  // The draft goes with every request (most specific last), a moment after the last change. Someone who can't edit
+  // the preset previews its published version instead: unsaved dictionaries need edit rights (review A-35).
+  const canEdit = preset.permissions?.edit ?? false;
+  const published = preset.latestPublishedVersion?.id;
   const draft = useDebounced(JSON.stringify(doc), 350);
   const names = useQuery({
-    queryKey: [...keys.names(versionId ?? "none"), { layers: layerVersionIds, draft }],
+    queryKey: [...keys.names(versionId ?? "none"), { layers: layerVersionIds, draft: canEdit ? draft : published }],
     enabled: !!versionId && !presets.isPending,
     // Keep the table while the same version re-resolves; another version starts empty.
     placeholderData: (prev, prevQuery) => (prevQuery?.queryKey[1] === versionId ? prev : undefined),
@@ -188,7 +191,9 @@ export function NamesTab({ preset, doc, onChange, known, pick, onPick }: {
       (
         await api.POST("/model-versions/{versionId}/names", {
           params: { path: { versionId: versionId! } },
-          body: { dictionaryVersionIds: layerVersionIds, draftDictionaries: [JSON.parse(draft)] },
+          body: canEdit
+            ? { dictionaryVersionIds: layerVersionIds, draftDictionaries: [JSON.parse(draft)] }
+            : { dictionaryVersionIds: [...layerVersionIds, ...(published ? [published] : [])] },
         })
       ).data!,
   });

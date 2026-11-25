@@ -17,6 +17,7 @@ import re
 from collections import Counter, defaultdict
 from itertools import combinations
 
+from . import user_regex
 from .expr import Expr, fmt, step_round
 from .log import CalcLog
 from .measure import scale_label
@@ -255,7 +256,7 @@ def select(sel: dict, el: dict, expr: Expr, val=lambda v: v, ctx=None) -> bool:
     if op == "starts_with":
         return x is not None and str(x).lower().startswith(str(v).lower())
     if op == "matches":
-        return x is not None and re.search(str(v), str(x), re.I) is not None
+        return x is not None and user_regex.search(str(v), str(x)) is not None   # RE2 (review A-35)
     if op == "under":
         return expr.under(x, v)
     if op == "exists":

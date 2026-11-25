@@ -83,6 +83,23 @@ describe("ModelVersion: upload, parse, ready (F03)", () => {
     expect(data!.names.length).toBeGreaterThan(0);
     expect(data!.names[0]).toHaveProperty("raw");
   });
+
+  it("an unsaved dictionary's patterns run on RE2: a catastrophic one answers at once, a look-ahead is refused (review A-35)", async () => {
+    const draft = (regex: string) => ({
+      schemaVersion: "1.0", id: "draft-a35", name: "Draft", version: "0.1.0", layer: "project" as const,
+      entries: [{ id: "evil", field: "material" as const, match: { regex }, term: "concrete", source: "user" as const }],
+    });
+    const names = (regex: string) => client(owner.token).POST("/model-versions/{versionId}/names", {
+      params: { path: { versionId: readyVersion.id } }, body: { draftDictionaries: [draft(regex) as never] } });
+    const started = Date.now();
+    const evil = await names("(.|.)*X");
+    expect(evil.response.status, JSON.stringify(evil.error)).toBe(200);
+    expect(Date.now() - started).toBeLessThan(10_000);       // Python `re` took minutes per 40-character name
+    const refused = await names("(?=beton)b");
+    expect(refused.response.status).toBe(400);
+    expect(refused.error).toMatchObject({ code: "engine_input" });
+    expect(JSON.stringify(refused.error)).toContain("look-arounds");
+  });
 });
 
 describe("models: permissions", () => {

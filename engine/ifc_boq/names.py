@@ -16,6 +16,7 @@ import re
 import unicodedata
 from collections import defaultdict
 
+from . import user_regex
 from .expr import Expr
 from .units import TO_METRES
 
@@ -34,8 +35,8 @@ def fold(s: str | None, accents: bool = True, lower: bool = True) -> str:
 
 
 def py_regex(pattern: str) -> str:
-    """Dictionaries use ECMAScript named groups (?<name>...); Python needs (?P<name>...)."""
-    return re.sub(r"\(\?<(?![=!])", "(?P<", pattern)
+    """Named groups written (?<name>...) (as in JavaScript) become (?P<name>...)."""
+    return user_regex.translate(pattern)
 
 
 def as_list(x):
@@ -64,6 +65,14 @@ class Resolver:
             for d in dictionaries:
                 if d["layer"] == layer:
                     self.extractors += d.get("extractors", [])
+        # every user pattern is checked once here, so a bad one fails the run with its entry's id (RE2, review
+        # A-35) whether or not a name happens to reach it
+        for e in [e for layer in self.entries.values() for e in layer] + self.extractors:
+            rx = e["regex"] if "regex" in e else (e.get("match") or {}).get("regex")
+            if rx is not None:
+                reason = user_regex.problem(rx)
+                if reason:
+                    raise user_regex.PatternError(f"'{e['id']}': the regex cannot be used: {reason}")
         self.broader = {k: v.get("broader") for k, v in self.terms.items()}
         self.expr = Expr(self.broader)
         self.cache: dict = {}
@@ -81,13 +90,12 @@ class Resolver:
         if "contains" in m:
             return any(fold(x, acc, lower) in r for x in as_list(m["contains"]))
         if "regex" in m:
-            flags = re.I if lower else 0
-            pat = py_regex(m["regex"])
+            pat = user_regex.compile(m["regex"], ignore_case=lower)
             # "_" is a word character, so \bconcrete\b misses "concrete_reinforced_in-situ"
             # (material libraries that name by category_subtype); CamelCase hides words the same
             # way ("ReinforcingSteel"). Also try the name with both read as separators.
             spaced = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", fold(raw, acc, False)).replace("_", " ")
-            return any(re.search(pat, s, flags) for s in dict.fromkeys((raw, fold(raw, acc, False), spaced)))
+            return any(pat.search(s) for s in dict.fromkeys((raw, fold(raw, acc, False), spaced)))
         return False
 
     def when_ok(self, item, ctx) -> bool:
@@ -128,7 +136,7 @@ class Resolver:
         for x in self.extractors:
             if field not in as_list(x["field"]) or not self.when_ok(x, ctx):
                 continue
-            m = re.search(py_regex(x["regex"]), raw, re.I)
+            m = user_regex.search(x["regex"], raw)
             if not m:
                 continue
             for group, spec in x["outputs"].items():

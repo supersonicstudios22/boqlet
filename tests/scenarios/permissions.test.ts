@@ -331,6 +331,9 @@ const ROWS: Row[] = [
   { id: "P8a", table: "project", action: "Edit project-layer presets (create)", allow: EDITING, write: true,
     call: (a) => a.post(`/orgs/${S.org.id}/presets`, { kind: "dictionary", name: `Proj ${stamp()}`, projectId: P(), start: { mode: "empty" } }), after: async (r) => r.json?.id && own.post(`/presets/${r.json.id}/archive`) },
   { id: "P8b", table: "project", action: "Edit project-layer presets (rename)", allow: EDITING, write: true, target: T.projectPreset, reuse: true, call: (a, id) => a.patch(`/presets/${id}`, { name: `Proj ${stamp()}` }) },
+  { id: "Px5", table: "project", extra: true, action: "(extra) Names in a model with the saved dictionaries", allow: ALL_PROJECT, in: ["off"], call: (a) => a.post(`/model-versions/${S.version}/names`, {}) },
+  // review A-35: a draft dictionary's patterns run on the shared engine, so only people who may edit presets preview them
+  { id: "P8c", table: "project", action: "Preview names with an unsaved dictionary (Library editor)", allow: EDITING, in: ["off"], call: (a) => a.post(`/model-versions/${S.version}/names`, { draftDictionaries: [S.dictDoc] }) },
   { id: "P9", table: "project", action: "Save version (approval off)", allow: (ph) => (ph.approval ? ["lead", "approver"] : EDITING), write: true, in: ["off", "archived"], target: T.saveBoq,
     call: async (a, b) => a.post(`/revisions/${(await ready(b)).id}/issue`, { notModelledConfirmed: true }) },
   { id: "P9v", table: "project", action: "Save version, approval on, not approved", allow: ["lead", "approver"], write: true, in: ["on"], allowedState: ["not_approved"], target: T.reviewBoq, reuse: true,
