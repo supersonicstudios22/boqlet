@@ -43,6 +43,7 @@ translate (no Python-only tricks where a plain loop would do). Formulas are eval
 | `templates.py` | Brace templates (`{thickness}`) in rule descriptions and classification item texts (P14) | |
 | `trace_steps.py` | Structured steps of each line's quantity ("How it is calculated", EN-013) | |
 | `pipeline.py` | Order of stages, coverage, questions, stats; `names_in_model` | Contain stage logic |
+| `invariants.py` | What every result must satisfy before it leaves the engine (review B-01): unique question ids and line keys (hard: the worker answers `result_invalid`); `stats` agree with the lines, an item line is the sum of its elements within its rounding, unclaimed double counts carry their warning (soft: a `log.invariants.violation` warning; raised in strict mode, `IFC_BOQ_STRICT_INVARIANTS=1`, which the engine tests set) | Fix a result |
 | `expr.py`, `log.py` | The safe expression evaluator; the calculation log | |
 | `diff.py` | Change report between two runs and their model versions, by line key and GlobalId (F08) | |
 | `preview.py` | Comparing a preset preview's lines with the current lines by key (F10) | |
@@ -381,7 +382,9 @@ keeps parsed.json, result.json and summary.json per file to compare runs after a
 | `test_mesh_repair.py`, `test_model_summary.py` | numpy mesh repair; the model summary the worker writes |
 | `test_worker.py`, `test_worker_logging.py` | The HTTP worker on the Duplex; unsafe storage keys refused; worker JSON logs |
 
-`conftest.py` parses the Duplex once per session (about 5 s). `npm run test:engine` runs them
+`conftest.py` parses the Duplex once per session (about 5 s) and turns the result invariants strict
+(`IFC_BOQ_STRICT_INVARIANTS=1`, review B-01): every `get_boq` in a test raises on a violation
+(`test_invariants.py` feeds broken results). `npm run test:engine` runs them
 all (211 collected); how they fit the other suites: [docs/testing/README.md](../testing/README.md).
 
 ## Measured on the Duplex (2.4 MB, 218 elements)

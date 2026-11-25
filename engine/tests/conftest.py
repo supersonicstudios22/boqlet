@@ -5,6 +5,8 @@ from pathlib import Path
 
 # Presets a developer saved from the Library (presets/user) must not change test results.
 os.environ["IFC_BOQ_USER_PRESETS"] = tempfile.mkdtemp(prefix="ifc-boq-user-presets-")
+# Review B-01: every result an engine test makes is checked against the invariants, and any violation raises.
+os.environ["IFC_BOQ_STRICT_INVARIANTS"] = "1"
 
 import pytest  # noqa: E402
 

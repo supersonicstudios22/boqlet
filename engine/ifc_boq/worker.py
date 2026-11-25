@@ -17,6 +17,7 @@ from tempfile import TemporaryDirectory
 import jsonschema
 
 from . import __version__, presets, service
+from .invariants import InvariantError
 from .diff import compare
 from .export_xlsx import export
 from .geometry import load_meshes, save_meshes
@@ -223,8 +224,11 @@ def _run_result(job, storage, prefix, progress, *, check_result=True, models=Non
             raise JobError("invalid_input", f"The scope of model {model.get('name') or model.get('id')}: {problems[0]}")
     if models is None:
         models = _load_models(job, storage)
-    result = get_boq(models, flat, classifications, dictionaries, job.get("resolution"), decisions,
-                     federation=job.get("federation"), progress=progress, manual_items=manual_items)
+    try:
+        result = get_boq(models, flat, classifications, dictionaries, job.get("resolution"), decisions,
+                         federation=job.get("federation"), progress=progress, manual_items=manual_items)
+    except InvariantError as exc:            # review B-01: the result can't be stored; running again gives the same
+        raise JobError("result_invalid", f"The engine's result breaks its own rules: {exc}") from exc
     if check_result:
         # A preview's results are read only by its own report, never ingested as a run: their schema check
         # (~0.3 s each on the Duplex, two per preview) is left to runs and the engine tests (TF-134).

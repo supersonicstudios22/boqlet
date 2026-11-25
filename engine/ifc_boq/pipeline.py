@@ -28,6 +28,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 
+from . import invariants
 from .classify import classify, fill_item_texts
 from .expr import Expr, fmt
 from .federation import combine
@@ -406,7 +407,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     ruleset_snapshot["meta"] = {**ruleset_snapshot.get("meta", {}), "chain": " -> ".join(flat["chain"]),
                                 # for people: names and versions, the rule set first (review A-34)
                                 "chainLabel": " \u2192 ".join(reversed(labels))}
-    return {
+    result = {
         "status": status,
         "log": log.entries,
         "ruleSet": ruleset_snapshot,
@@ -426,3 +427,5 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
             "durationMs": int((time.time() - t0) * 1000),
         },
     }
+    invariants.check(result)                 # review B-01: unique ids always; sums and counts in strict mode
+    return result

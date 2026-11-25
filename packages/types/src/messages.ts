@@ -86,6 +86,7 @@ export type LogCode =
   | "log.match.double_count"
   | "log.quantity.skipped"
   | "log.quantity.parts_volume"
+  | "log.invariants.violation"
   | "log.quantity.element"
   | "log.quantity.line"
   | "log.derived.disabled"
