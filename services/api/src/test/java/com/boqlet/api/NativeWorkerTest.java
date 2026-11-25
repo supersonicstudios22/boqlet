@@ -68,6 +68,37 @@ class NativeWorkerTest {
     private static final boolean POSTGRES_QUEUE = "1".equals(System.getenv("BOQLET_NATIVE_QUEUE_TEST"));
     private static final HttpClient NETWORK = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
+    /**
+     * Review B-08 (DEC-07): how much slower than a quiet machine this run may be. Every wait of this class
+     * and of the suites it starts (which read the same variable: tests/support/time-factor.mjs) is
+     * multiplied by `BOQLET_TEST_TIME_FACTOR`, a number from 1 to 10 (1 when unset).
+     */
+    static final double TIME_FACTOR = timeFactor();
+
+    static double timeFactor() {
+        String raw = System.getenv("BOQLET_TEST_TIME_FACTOR");
+        if (raw == null || raw.isBlank()) return 1;
+        double factor = Double.parseDouble(raw.trim());
+        if (!(factor >= 1 && factor <= 10)) throw new IllegalArgumentException("BOQLET_TEST_TIME_FACTOR must be from 1 to 10, not " + raw);
+        return factor;
+    }
+
+    static Duration scaled(Duration wait) {
+        return Duration.ofMillis(Math.round(wait.toMillis() * TIME_FACTOR));
+    }
+
+    /**
+     * The browser suite's overall limit: the server's start and first compiles, then a budget per spec
+     * file, so a new spec raises it (review B-08), scaled like every wait.
+     */
+    static Duration browserSmokeLimit(Path specs) throws IOException {
+        long files;
+        try (var list = java.nio.file.Files.list(specs)) {
+            files = list.filter(file -> file.getFileName().toString().endsWith(".spec.ts")).count();
+        }
+        return scaled(Duration.ofMinutes(5).plus(Duration.ofMinutes(2).multipliedBy(files)));
+    }
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
@@ -158,7 +189,7 @@ class NativeWorkerTest {
     void workerRefusesCallsWithoutTheToken() throws Exception {
         // The resilience test stops and restarts the worker; wait until it answers again (its /health needs no token).
         var health = java.net.http.HttpRequest.newBuilder(java.net.URI.create(workerUrl + "/health")).GET().build();
-        for (long deadline = System.nanoTime() + Duration.ofSeconds(90).toNanos(); ; Thread.sleep(500)) {
+        for (long deadline = System.nanoTime() + scaled(Duration.ofSeconds(90)).toNanos(); ; Thread.sleep(500)) {
             try {
                 if (NETWORK.send(health, java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode() == 200) break;
             } catch (java.io.IOException notYet) {
@@ -323,7 +354,7 @@ class NativeWorkerTest {
     /** The shared contract suite (`tests/contract`) against this API. */
     private void verifySharedContract() throws Exception {
         if (node() == null) return;
-        runSharedSuite("contract", null, Duration.ofSeconds(90));
+        runSharedSuite("contract", null, scaled(Duration.ofSeconds(90)));
     }
 
     /**
@@ -336,7 +367,7 @@ class NativeWorkerTest {
     void sharedScenariosPassAgainstJava() throws Exception {
         assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
         if (POSTGRES_QUEUE) startQueueWorkers();
-        runSharedSuite("scenarios", System.getenv("BOQLET_SCENARIO_FILTER"), Duration.ofMinutes(25));
+        runSharedSuite("scenarios", System.getenv("BOQLET_SCENARIO_FILTER"), scaled(Duration.ofMinutes(25)));
     }
 
     /**
@@ -351,7 +382,7 @@ class NativeWorkerTest {
     void apiPerformanceAgainstJava() throws Exception {
         assertThat(node()).as("BOQLET_NATIVE_NODE").isNotNull();
         if (POSTGRES_QUEUE) startQueueWorkers();
-        runSharedSuite("perf", null, Duration.ofMinutes(20));
+        runSharedSuite("perf", null, scaled(Duration.ofMinutes(20)));
 
         var latest = database.queryForMap("SELECT id, result_key FROM runs WHERE result_key IS NOT NULL ORDER BY created_at DESC LIMIT 1");
         var run = (java.util.UUID) latest.get("id");
@@ -468,9 +499,10 @@ class NativeWorkerTest {
             script.environment().put("BOQLET_JAVA_APP", app);
             script.environment().put("BOQLET_SUITE_MAILHOG", "http://" + MAIL.getHost() + ":" + MAIL.getMappedPort(8025));
             script.environment().put("BOQLET_NODE", node());
+            Duration limit = browserSmokeLimit(appDir.resolve("e2e-java"));
             Process test = script.start();
             try {
-                assertThat(test.waitFor(25, java.util.concurrent.TimeUnit.MINUTES)).as("browser smoke timed out").isTrue();
+                assertThat(test.waitFor(limit.toSeconds(), java.util.concurrent.TimeUnit.SECONDS)).as("browser smoke timed out after %s", limit).isTrue();
                 assertThat(test.exitValue()).as("browser smoke result %s", java.nio.file.Files.readString(log)).isZero();
             } finally {
                 if (test.isAlive()) test.descendants().forEach(ProcessHandle::destroyForcibly);
@@ -994,7 +1026,7 @@ class NativeWorkerTest {
         stopWorkers();
         Thread.sleep(25_000);
         startWorkers();
-        awaitJob(parse, cookie, Duration.ofSeconds(180));
+        awaitJob(parse, cookie, scaled(Duration.ofSeconds(180)));
         long waited = (System.nanoTime() - stopped) / 1_000_000;
         assertThat(database.queryForObject("SELECT attempts FROM jobs WHERE id = ?", Integer.class, java.util.UUID.fromString(parse)))
                 .as("attempts").isLessThanOrEqualTo(2);
@@ -1019,7 +1051,7 @@ class NativeWorkerTest {
             statement.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND backend_type = 'client backend'");
         }
         awaitDatabase();
-        awaitJob(second, cookie, Duration.ofSeconds(180));
+        awaitJob(second, cookie, scaled(Duration.ofSeconds(180)));
         assertThat(database.queryForObject("SELECT attempts FROM jobs WHERE id = ?", Integer.class, java.util.UUID.fromString(second)))
                 .as("attempts after a database restart").isLessThanOrEqualTo(2);
     }
@@ -1065,7 +1097,7 @@ class NativeWorkerTest {
      * parse of the Duplex (2.8 s) ended without one.
      */
     private void awaitRunning(String job) throws Exception {
-        long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
+        long until = System.nanoTime() + scaled(Duration.ofSeconds(60)).toNanos();
         while (System.nanoTime() < until) {
             var row = database.queryForMap("""
                     SELECT status, progress->>'stage' AS stage, worker_result IS NOT NULL AS answered FROM jobs WHERE id = ?
@@ -1099,7 +1131,7 @@ class NativeWorkerTest {
     }
 
     private void awaitDatabase() throws Exception {
-        long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
+        long until = System.nanoTime() + scaled(Duration.ofSeconds(60)).toNanos();
         while (System.nanoTime() < until) {
             try {
                 database.queryForObject("SELECT 1", Integer.class);
@@ -1112,7 +1144,7 @@ class NativeWorkerTest {
     }
 
     private JsonNode awaitJob(String job, Cookie cookie) throws Exception {
-        return awaitJob(job, cookie, Duration.ofSeconds(120));
+        return awaitJob(job, cookie, scaled(Duration.ofSeconds(120)));
     }
 
     private JsonNode awaitJob(String job, Cookie cookie, Duration timeout) throws Exception {

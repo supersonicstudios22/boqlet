@@ -87,7 +87,15 @@ mvn -B -ntp -f services/api/pom.xml verify
 | `BOQLET_BROWSER_SMOKE=1` | `browserSmokeAgainstJava`: a second Java with `BOQLET_NATIVE_AUTH=true`, the app on 3100 (`NEXT_DIST_DIR=.next-java`), `npm run e2e:java`; `BOQLET_BROWSER_SMOKE_FILTER` narrows it |
 | `BOQLET_NATIVE_QUEUE_TEST=1` | Jobs go through the Postgres queue with queue workers (as on the pilot) instead of HTTP dispatch. CI sets it |
 | `BOQLET_NATIVE_RESILIENCE=1` | `jobsSurviveTheWorkerAndTheDatabaseGoingAway`: the worker killed mid-parse for 25 s, then the database restarted mid-parse; each job ends with at most 2 attempts (TF-186). About 1.5 min. CI sets it |
+| `BOQLET_TEST_TIME_FACTOR` | A number from 1 to 10 (default 1; CI sets 2): every timeout of the shared suites (`tests/vitest.config.ts`), the browser suite (`playwright.java.config.ts`) and `NativeWorkerTest`'s waits is multiplied by it, and the browser suite's overall limit is 5 min + 2 min per spec file, times it (review B-08) |
 | `BOQLET_API_PERF=1` | `apiPerformanceAgainstJava`: `tests/perf/api.test.ts` plus 50k-line ingestion; results appended to `PERF_OUT=<file>`. Not in CI |
+
+**Load tolerance** (review B-08, DEC-07). A shared-suite or browser test that fails **only by its timeout** is
+tried once more; any other failure fails at once (Vitest's `retry.condition` on its timeout message; in the
+browser suite `e2e-java/fixtures.ts`, whose `test` every spec imports, fails the retry of an attempt that did not
+end `timedOut`). A test that passes on its retry is listed as flaky: `[flaky] …` lines at the end of the log and,
+in CI, a "Flaky … tests" section of the job summary (`tests/support/flaky-reporter.ts`,
+`e2e-java/flaky-reporter.ts`). A flaky test is a finding to look at, not a pass to forget.
 
 Inside the harness the suites get `API_URL`, `SUITE_TARGET=java`, `BOQLET_JAVA_SUITE_USERS` (six users
 with open sessions, written straight into the DB) and `BOQLET_SUITE_MAILHOG`. The scenarios sign in

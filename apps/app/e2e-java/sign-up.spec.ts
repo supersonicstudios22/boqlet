@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { PASSWORD, hydrated, mailLinks, newEmail, resetAuthLimits, setPasswordWithForm, setPublicSignUp, signInWithForm, unique, waitFor } from "./helpers";
 
 /**

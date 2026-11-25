@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { apiAs, createOrg, invitationToken, newEmail, newPerson, rawAs, useSession } from "./helpers";
 
 /** Smoke against Java: invitations, plan limits, owners and several orgs (F01, F14). */

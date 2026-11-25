@@ -49,6 +49,9 @@ jobs:
           BOQLET_NATIVE_SCENARIOS: "1"
           # The app with native sign-in in a browser against Java (FE-041/FE-043).
           BOQLET_BROWSER_SMOKE: "1"
+          # Two CPUs run Java, the engine, Node and a browser at once: every suite timeout doubles, and a
+          # test that failed only by its timeout gets one retry, listed as flaky in the job summary (review B-08).
+          BOQLET_TEST_TIME_FACTOR: "2"
           IFC_BOQ_PYTHON: python
           AWS_ACCESS_KEY_ID: boqlet-test
           AWS_SECRET_ACCESS_KEY: boqlet-local-test-only

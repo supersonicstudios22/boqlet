@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from "./helpers";
 
 /**
