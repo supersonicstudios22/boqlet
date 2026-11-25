@@ -1,5 +1,5 @@
 """
-verify_quantities.py - independent check of boqlet's quantities (QS review, Phase 1).
+verify_quantities.py - independent check of boqlet's quantities (QS review, Phase 1; a CI gate since review B-04).
 
 Recomputes chosen elements' quantities WITHOUT boqlet's measuring code and compares them with the
 app's BoQ, element by element (via each line's trace: GlobalId -> share) and for a few whole lines:
@@ -46,9 +46,10 @@ import sys
 from collections import defaultdict, deque
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-REVIEW = HERE.parent
-ROOT = REVIEW.parents[1]
+# Kept with the engine's tests (review B-04) so CI runs it; docs/review/tools/verify-quantities calls it.
+ROOT = Path(__file__).resolve().parents[3]
+REVIEW = ROOT / "docs" / "review"
+HERE = REVIEW / "tools"                   # compare_baseline.py (its parse cache) lives there
 SAMPLES = REVIEW / "_samples"
 BASELINE = REVIEW / "baseline" / "engine"
 

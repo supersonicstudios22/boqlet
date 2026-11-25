@@ -109,6 +109,17 @@ jobs:
         env:
           IFC_BOQ_PYTHON: python
       - run: npm run test:engine
+      # Review B-04: the review's independent checks as gates. Six small public samples (licence-clean,
+      # SHA-256 checked by fetch-samples.sh), cached by the script that pins them.
+      - uses: actions/cache@v4
+        with:
+          path: docs/review/_samples
+          key: review-samples-${{ hashFiles('docs/review/tools/fetch-samples.sh') }}-S01-S05-S09
+      - run: bash docs/review/tools/fetch-samples.sh --only=S01,S02,S03,S04,S05,S09
+      - name: Independent quantity checks (verify-quantities, strict)
+        run: docs/review/tools/verify-quantities --only S01 S02 S03 S04 S05 S09 --strict
+      - name: Engine output equals the review baseline on the small samples
+        run: docs/review/tools/compare-baseline --layer engine --only S01-default S02-default S03-default S04-default S05-default S09-default
 
   local:
     # The local backend (ops/local, docs/development/local-setup.md) builds, starts and works end to end:

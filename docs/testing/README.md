@@ -118,12 +118,13 @@ Results go into [../architecture/nfr.md](../architecture/nfr.md). Never load-tes
 | `rollback` | builds this revision's API image and the previous release's (`git describe --tags --match 'v*' HEAD^`), migrates a fresh database with the first and starts the second on it (`scripts/ci-rollback-check.sh`) | yes |
 | `contract` | `api:lint`, `api:check`, `codegen` + `git diff --exit-code packages/types/schema` | yes |
 | `typecheck` | `typecheck`, `lint`, `test:app`, `build:app`, `bundle:check` | yes |
-| `engine` | `test:engine` | yes |
+| `engine` | `test:engine` (result invariants strict, review B-01); then the review's independent checks on six small public samples (S01–S05, S09, fetched SHA-checked by `docs/review/tools/fetch-samples.sh --only=…` and cached): `verify-quantities --strict` (`engine/tests/independent/verify_quantities.py`) and `compare-baseline --layer engine --only S01-default … S09-default` against `docs/review/baseline/` (review B-04) | yes |
 | `local` | `local:up` + `local:check` (the Docker stack) | no |
 | `deploy` | On a push to `main` after the five gates: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
 
-Not in CI: the performance suite, engine timing, the corpus run, other browsers, accessibility, a
-nightly job, Python or Java linters. There is no separate "core only" build job; the pricing
+Not in CI: the performance suite, engine timing, the corpus run, the review samples beyond S01–S05 and
+S09 (the full compare-baseline takes about 50 minutes), other browsers, accessibility, a nightly job,
+Python or Java linters. There is no separate "core only" build job; the pricing
 boundary is guarded by the ArchUnit `CoreArchitectureTest`, the BR-41 lint rule, the
 `MODULE_PRICING` build guard and `api:lint` of `openapi-pricing.yaml` ([../architecture/modules.md](../architecture/modules.md)).
 
@@ -132,7 +133,9 @@ boundary is guarded by the ArchUnit `CoreArchitectureTest`, the BR-41 lint rule,
 | Fixture | Source | Used by |
 |---|---|---|
 | Duplex v1 / v2 | `fixtures/ifc/Ifc2x3_Duplex_Architecture.ifc`, `…_v2.ifc` | almost everything; v2 for revisions and diffs |
-| Hand BoQ | `engine/tests/test_duplex.py` `HAND_BOQ` (read at run time through Python by `tests/scenarios/duplex.test.ts`) | v1 criterion 1 |
+| Hand BoQ | `engine/tests/test_duplex.py` `HAND_BOQ` (read at run time through Python by `tests/scenarios/duplex.test.ts`); its wall rows are the file's axis length x height less openings, read independently by `engine/tests/independent/duplex_walls.py` (review B-03) | v1 criterion 1 |
+| Review samples S01–S14 | Public files pinned by URL and SHA-256 in `docs/review/tools/fetch-samples.sh` (git-ignored `docs/review/_samples`); expectations in `engine/tests/independent/verify_quantities.py` and `docs/review/baseline/` | the review tools; CI's `engine` job on S01–S05, S09 (review B-04) |
+| Adversarial IFC corpus | `engine/tests/fixtures/adversarial/` (hand-built by `make.py`, outcomes in `expected.json`) | `test_adversarial.py` (review B-02) |
 | buildingSMART samples | `fixtures/ifc/buildingsmart` (CC BY 4.0) | parse edge cases, schemas, units |
 | Federated pairs | NBU Medical Clinic architecture + structure, the reference pair of nfr.md (downloads, not in git; [the corpus catalogue](ifc-corpus-catalogue.md)) | federation, performance |
 | Workbooks to import | made by `tests/support/edit_boq_xlsx.py` from exported BoQs | edits import (F12-AC4) |

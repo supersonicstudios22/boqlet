@@ -5,6 +5,7 @@
 #   bash docs/review/tools/fetch-samples.sh            # download what is missing, verify all
 #   bash docs/review/tools/fetch-samples.sh --force    # download everything again
 #   bash docs/review/tools/fetch-samples.sh --verify   # only verify checksums, no network
+#   bash docs/review/tools/fetch-samples.sh --only=S01,S05   # some samples (CI, review B-04)
 #
 # Every URL is pinned to a git commit, so the bytes never change. Two edge-case files
 # (S13, S14) are derived locally from S05 so they need no download; their checksums are
@@ -16,11 +17,12 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="$(cd "$HERE/.." && pwd)/_samples"
 mkdir -p "$OUT"
-FORCE=0; VERIFY_ONLY=0
+FORCE=0; VERIFY_ONLY=0; ONLY=""
 for a in "$@"; do
   case "$a" in
     --force) FORCE=1 ;;
     --verify) VERIFY_ONLY=1 ;;
+    --only=*) ONLY=",${a#--only=}," ;;        # e.g. --only=S01,S05 (review B-04: CI fetches the small samples)
     *) echo "unknown flag $a" >&2; exit 64 ;;
   esac
 done
@@ -53,6 +55,7 @@ fail=0
 
 for row in "${SAMPLES[@]}"; do
   IFS='|' read -r id name url want <<<"$row"
+  if [[ -n "$ONLY" && "$ONLY" != *",$id,"* ]]; then continue; fi
   f="$OUT/$name"
   if [[ $VERIFY_ONLY -eq 0 && ( $FORCE -eq 1 || ! -s "$f" ) ]]; then
     case "$url" in
@@ -77,4 +80,4 @@ for row in "${SAMPLES[@]}"; do
 done
 
 if [[ $fail -ne 0 ]]; then echo "fetch-samples: some files are missing or changed" >&2; exit 1; fi
-echo "fetch-samples: all ${#SAMPLES[@]} samples present and verified in $OUT"
+if [[ -n "$ONLY" ]]; then echo "fetch-samples: the requested samples (${ONLY:1:-1}) are present and verified in $OUT"; else echo "fetch-samples: all ${#SAMPLES[@]} samples present and verified in $OUT"; fi
