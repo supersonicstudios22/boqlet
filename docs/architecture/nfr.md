@@ -69,6 +69,8 @@ patterns as well). The 3D viewer is exempt but has keyboard shortcuts and a non-
 - Duplex acceptance test green in the engine and through the full stack (v1 criterion 1).
 - Contract and scenario suites green against Java (`NativeWorkerTest`, CI's `api` job;
   docs/testing/README.md). Java is the only implementation since P53.
-- No `serious`/`critical` axe violations on the main screens. The axe suite (TS-003) ran in the
-  mock-era Playwright suite and was deleted in P53; until it is ported to `apps/app/e2e-java`
-  this gate is not checked automatically.
+- No `serious`/`critical` axe violations on the main screens: `apps/app/e2e-java/sweep.spec.ts` (review
+  B-06) sweeps 38 screens (WCAG 2.0–2.2 A/AA tags) in the deploy smoke; a violation not in
+  `e2e-java/axe-known.json` fails it (one known on 2026-11-25: `scrollable-region-focusable` in the
+  dictionary editor, C-56). The same spec checks the pseudo-locale `en-XA` on 12 core screens: no message
+  key shown, no missing message, no horizontal overflow at 1440 px.

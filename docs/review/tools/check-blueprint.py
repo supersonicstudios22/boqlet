@@ -34,7 +34,7 @@ errors: list[str] = []
 items: dict[str, dict] = {}
 cur = None
 for line in bp.splitlines():
-    m = re.match(r"^#### ([ABCD]-\d{2}) · (.+?)\s+\((WP-[A-D]\d+)\)\s*$", line)
+    m = re.match(r"^#### ([ABCD]-\d{2}) · (.+?)\s+\((WP-[A-D]\d+[a-z]?)\)\s*$", line)
     if m:
         if m.group(1) in items:
             errors.append(f"duplicate item heading {m.group(1)}")
@@ -69,7 +69,8 @@ wps: dict[str, dict] = {}
 wp_order: list[str] = []
 cur = None
 for line in bp.splitlines():
-    m = re.match(r"^#### (WP-[A-D]\d+) · (.+?)\s*$", line)
+    # A split package carries a letter (WP-C2b, BLUEPRINT.md 6.1 step 5).
+    m = re.match(r"^#### (WP-[A-D]\d+[a-z]?) · (.+?)\s*$", line)
     if m:
         cur = m.group(1)
         if cur in wps:
@@ -87,7 +88,7 @@ for line in bp.splitlines():
         if line.startswith("- **Items:**"):
             wps[cur]["items"] = ITEM_RE.findall(line)
         if line.startswith("- **Requires:**"):
-            wps[cur]["req"] = re.findall(r"WP-[A-D]\d+", line)
+            wps[cur]["req"] = re.findall(r"WP-[A-D]\d+[a-z]?", line)
 
 WP_REQUIRED = {"Items", "Requires", "Touches", "Entry check", "Exit check", "Expected baseline changes"}
 for w, d in wps.items():

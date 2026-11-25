@@ -163,11 +163,12 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   covers sign-in, accounts and sessions, orgs, FL-1 to the sample BoQ, upload → parse → BoQ → Excel
   → share link (incl. a line's explanation), co-editing, live-update reconnects and edits through an
   API restart, keyboard editing and focus, page titles and small screens, org number formats, the
-  limit dialog, a new model version and the change report, and the owner-answer behaviours (B7). Not
-  covered in a browser: the Library editors, the viewer beyond the no-WebGL fallback, notifications,
-  the admin console, most of the setup wizard, the axe scans (TS-003; run by hand in the campaign),
-  the pseudo-locale check (v1 criterion 11) and the UI performance specs (TS-002, TS-006). The
-  campaign's scripts in its session scratchpad were the starting point and are not in the repo.
+  limit dialog, a new model version and the change report, and the owner-answer behaviours (B7).
+  Since review B-06/B-07 (2026-11-25) it also sweeps 38 screens with axe (serious and critical
+  violations beyond `e2e-java/axe-known.json` fail it; one known: the dictionary editor's scroll region,
+  C-56), checks 12 core screens in the pseudo-locale `en-XA`, and measures UI budgets nightly
+  (`perf.spec.ts`). Not covered in a browser yet: the Library editors' editing, the viewer beyond the
+  no-WebGL fallback, notifications, the admin console and most of the setup wizard (review WP-B2b, B-06b).
 - Untested in the suites: signed-URL lifetimes,
   `PATCH /manual-items/{id}`, project member GET/PATCH, the billing webhook; two `it.todo` (24 h
   `awaiting_upload` expiry, a successful parse retry). The plan limits, rate limits,

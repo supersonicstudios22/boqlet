@@ -1,0 +1,6 @@
+{
+  "about": "Serious and critical axe violations known on each screen of e2e-java/sweep.spec.ts (review B-06). A violation not listed fails the sweep. C-56 fixes them and takes them off; the sweep prints the ones it no longer finds.",
+  "violations": {
+    "lib-dictionary": ["scrollable-region-focusable"]
+  }
+}

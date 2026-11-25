@@ -834,6 +834,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Acceptance:** `BOQLET_BROWSER_SMOKE=1` run passes; the axe gate fails on a new serious/critical violation.
 - **Tests:** themselves.
 - **Effort:** L · **Depends on:** B-05 · **Risk:** suite time — keep under the smoke budget or add a nightly job.
+- **Split (2026-11-25):** WP-B2 did the gates (the axe sweep with its known list and the `en-XA` check, `e2e-java/sweep.spec.ts`); the area specs are B-06b in WP-B2b.
 
 #### B-07 · UI performance gate and the F08-AC4 timing  (WP-B2)
 - **Sources:** FM-36 · ENG-007 (gate part) · nfr.md TS-002/TS-006
@@ -2444,6 +2445,14 @@ means compare-baseline must report 0 differences.
 - **Entry check:** standard; record S06/S07 parse seconds and peak MB from a quiet run (meta.json) as the "before".
 - **Exit check:** standard; peak memory and parse time targets in B-22/B-23 met on the same machine.
 - **Expected baseline changes:** none within 1e-6 (numbers); `meta.json` timings/memory change but are not compared — record before/after in PROGRESS.md.
+
+#### WP-B2b · Browser specs for the Library editors, viewer, notifications, admin and wizard (split from WP-B2)
+- **Items:** B-06b, the area specs of the browser-coverage item (WP-B2 did its axe and pseudo-locale gates; the item's text is in section 4 under WP-B2)
+- **Requires:** —
+- **Touches:** `apps/app/e2e-java/*.spec.ts` (new: library editors, viewer with WebGL, notifications, admin console, setup wizard paths beyond the suggested one), `apps/app/e2e-java/helpers.ts`, `docs/testing/README.md`, `docs/product/known-limitations.md`.
+- **Entry check:** standard; `npm run local:up`; the browser smoke green (`BOQLET_BROWSER_SMOKE=1`, `mvn verify` targeted).
+- **Exit check:** standard; `BOQLET_BROWSER_SMOKE=1` run passes with the new specs (inside B-08's per-spec budget); the outcome coverage map in `docs/testing/README.md` names them.
+- **Expected baseline changes:** none.
 
 ### Phase C packages
 
