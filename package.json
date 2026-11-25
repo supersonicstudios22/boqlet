@@ -41,7 +41,7 @@
     "api:check": "node scripts/api-codegen.mjs --check"
   },
   "devDependencies": {
-    "@redocly/cli": "2.77.0",
+    "@redocly/cli": "2.82.0",
     "concurrently": "^9.2.5",
     "openapi-typescript": "7.13.0"
   },
