@@ -205,3 +205,104 @@ describe("F10 §6 preview (fake until EN-005)", () => {
     expect((await preview(names.id, { ruleSetVersionId: ruleDraft, classificationVersionIds: [codesDraft] })).result.lines.length).toBeGreaterThan(10);
   }, 240_000);
 });
+
+/**
+ * Review A-43 (LEAD-001): a draft records the version it started from. A version published past it (a promoted
+ * name answer) is merged into a dictionary draft when it is published; a rule-set draft is refused
+ * `draft_stale` until it is rebased on the latest version.
+ */
+describe("A-43 stale drafts", () => {
+  const head = (presetId: string) => api(ivana).GET("/presets/{presetId}", { params: { path: { presetId } } }).then((r) => r.data!);
+  const versionDoc = (presetVersionId: string) => api(ivana).GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId } } }).then((r) => r.data!);
+  const entryIds = (doc: unknown) => (((doc as { entries?: { id: string }[] }).entries) ?? []).map((e) => e.id);
+
+  it("publishing a dictionary draft opened before a promotion keeps the promoted entry and says what it merged", async () => {
+    const created = await api(ivana).POST("/orgs/{orgId}/presets", { params: { path: { orgId: studioId } }, body: { kind: "dictionary", name: `Firm names ${slug("d")}`, start: { mode: "empty" } } });
+    expect(created.error).toBeUndefined();
+    const dict = created.data!;
+    expect((await publish(ivana, dict.id, "Start")).error).toBeUndefined();
+    const v1 = (await head(dict.id)).latestPublishedVersion!;
+    const v1doc = (await versionDoc(v1.id)).doc as Record<string, unknown>;
+    const own = { id: "lib-entry-1", term: "space.kitchen", field: "space_name", match: { exact: "Kueche" }, source: "user", caseSensitive: true };
+    const saved = await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [own] } } });
+    expect(saved.data).toMatchObject({ status: "draft", baseVersionId: v1.id, baseNumber: 1 });
+
+    // An answer in a project, promoted by the owner: version 2, published past the open draft.
+    const project = (await api(olivia).POST("/orgs/{orgId}/projects", { params: { path: { orgId: studioId } }, body: { name: `Stale ${slug("p")}` } })).data!;
+    const answered = await api(olivia).POST("/projects/{projectId}/decisions", { params: { path: { projectId: project.id } }, body: { decisions: [{ questionId: "name:space_name:Roof", kind: "unknown_name", answer: "space.bedroom" }], addToProjectDictionary: false } });
+    expect(answered.error).toBeUndefined();
+    const decision = answered.data!.decisions.find((d) => d.questionId === "name:space_name:Roof")!;
+    const promoted = await api(olivia).POST("/decisions/{decisionId}/promote", { params: { path: { decisionId: decision.id } }, body: { dictionaryPresetId: dict.id } });
+    expect(promoted.error).toBeUndefined();
+    expect(promoted.data!.number).toBe(2);
+    const promotedIds = entryIds(promoted.data!.doc);
+    expect(promotedIds).toHaveLength(1);
+
+    // The open draft got the entry too (its ETag moved), and it still starts from version 1.
+    const behind = await head(dict.id);
+    expect(behind.draft).toMatchObject({ baseNumber: 1 });
+    expect(behind.draft!.etag).not.toBe(saved.data!.etag);
+    expect(entryIds((await versionDoc(behind.draft!.id)).doc).sort()).toEqual(["lib-entry-1", promotedIds[0]].sort());
+
+    const v3 = await publish(ivana, dict.id, "Add Kueche");
+    expect(v3.error).toBeUndefined();
+    expect(v3.data!.number).toBe(3);
+    expect(entryIds(v3.data!.doc).sort()).toEqual(["lib-entry-1", promotedIds[0]].sort());
+    expect(v3.data!.merged).toContain("field:version");
+  });
+
+  it("an entry the draft and a promotion changed differently is refused draft_stale until rebased; keep mine or take theirs", async () => {
+    const dict = (await api(ivana).POST("/orgs/{orgId}/presets", { params: { path: { orgId: studioId } }, body: { kind: "dictionary", name: `Firm names ${slug("d")}`, start: { mode: "empty" } } })).data!;
+    expect((await publish(ivana, dict.id, "Start")).error).toBeUndefined();
+    const v1doc = (await versionDoc((await head(dict.id)).latestPublishedVersion!.id)).doc as Record<string, unknown>;
+    const id = "answer:space_name:Attic";
+    const mine = { id, term: "space.kitchen", field: "space_name", match: { exact: "Attic" }, source: "user", caseSensitive: true };
+    const project = (await api(olivia).POST("/orgs/{orgId}/projects", { params: { path: { orgId: studioId } }, body: { name: `Stale ${slug("p")}` } })).data!;
+    const promoteAttic = async () => {
+      const answered = await api(olivia).POST("/projects/{projectId}/decisions", { params: { path: { projectId: project.id } }, body: { decisions: [{ questionId: "name:space_name:Attic", kind: "unknown_name", answer: "space.bedroom" }], addToProjectDictionary: false } });
+      const decision = answered.data!.decisions.find((d) => d.questionId === "name:space_name:Attic")!;
+      return api(olivia).POST("/decisions/{decisionId}/promote", { params: { path: { decisionId: decision.id } }, body: { dictionaryPresetId: dict.id } });
+    };
+    await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [mine] } } });
+    expect((await promoteAttic()).data!.number).toBe(2);
+    // Ivana's tab saves over the draft (overwrite after draft_conflict) with her own value for the same entry.
+    await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [mine] } } });
+    const refused = await publish(ivana, dict.id, "Kitchen");
+    expect(refused.response.status).toBe(409);
+    expect(refused.error).toMatchObject({ code: "draft_stale", details: { baseNumber: 1, latestNumber: 2, conflicts: [`entries:${id}`] } });
+
+    const theirs = await api(ivana).POST("/presets/{presetId}/draft/rebase", { params: { path: { presetId: dict.id } }, body: { keep: "theirs" } });
+    expect(theirs.error).toBeUndefined();
+    expect(theirs.data).toMatchObject({ baseNumber: 2 });
+    expect(((theirs.data!.doc as { entries: { id: string; term: string }[] }).entries).find((e) => e.id === id)!.term).toBe("space.bedroom");
+
+    // Again behind (a second promotion is the same entry: nothing new), then rebase keeping mine by choice.
+    await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [mine] } } });
+    expect((await head(dict.id)).draft!.baseNumber).toBe(2);
+    const v3 = await publish(ivana, dict.id, "Kitchen after all");
+    expect(v3.error).toBeUndefined();
+    expect(((v3.data!.doc as { entries: { id: string; term: string }[] }).entries).find((e) => e.id === id)!.term).toBe("space.kitchen");
+    expect(v3.data!.merged ?? []).toEqual([]);
+  });
+
+  it("rebase choices settle each conflict; a draft that is not behind comes back unchanged", async () => {
+    const dict = (await api(ivana).POST("/orgs/{orgId}/presets", { params: { path: { orgId: studioId } }, body: { kind: "dictionary", name: `Firm names ${slug("d")}`, start: { mode: "empty" } } })).data!;
+    expect((await publish(ivana, dict.id, "Start")).error).toBeUndefined();
+    const v1doc = (await versionDoc((await head(dict.id)).latestPublishedVersion!.id)).doc as Record<string, unknown>;
+    const id = "answer:space_name:Loft";
+    const mine = { id, term: "space.kitchen", field: "space_name", match: { exact: "Loft" }, source: "user", caseSensitive: true };
+    const fresh = await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [mine] } } });
+    const same = await api(ivana).POST("/presets/{presetId}/draft/rebase", { params: { path: { presetId: dict.id } }, body: { keep: "theirs" } });
+    expect(same.data).toMatchObject({ etag: fresh.data!.etag, baseNumber: 1 });
+    const project = (await api(olivia).POST("/orgs/{orgId}/projects", { params: { path: { orgId: studioId } }, body: { name: `Stale ${slug("p")}` } })).data!;
+    const answered = await api(olivia).POST("/projects/{projectId}/decisions", { params: { path: { projectId: project.id } }, body: { decisions: [{ questionId: "name:space_name:Loft", kind: "unknown_name", answer: "space.bedroom" }], addToProjectDictionary: false } });
+    const decision = answered.data!.decisions.find((d) => d.questionId === "name:space_name:Loft")!;
+    expect((await api(olivia).POST("/decisions/{decisionId}/promote", { params: { path: { decisionId: decision.id } }, body: { dictionaryPresetId: dict.id } })).error).toBeUndefined();
+    await api(ivana).PUT("/presets/{presetId}/draft", { params: { path: { presetId: dict.id } }, body: { doc: { ...v1doc, entries: [mine] } } });
+    const kept = await api(ivana).POST("/presets/{presetId}/draft/rebase", { params: { path: { presetId: dict.id } }, body: { keep: "theirs", choices: { [`entries:${id}`]: "mine" } } });
+    expect(((kept.data!.doc as { entries: { id: string; term: string }[] }).entries).find((e) => e.id === id)!.term).toBe("space.kitchen");
+    expect((await publish(ivana, dict.id, "Mine")).error).toBeUndefined();
+    // Only library editors rebase an org preset.
+    expect((await api(marko).POST("/presets/{presetId}/draft/rebase", { params: { path: { presetId: dict.id } }, body: { keep: "mine" } })).response.status).toBe(403);
+  });
+});

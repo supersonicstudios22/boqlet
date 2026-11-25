@@ -26,8 +26,9 @@ public class PresetCatalog {
             WHERE true
             """;
     private static final String VERSION = """
-            SELECT v.*, u.name AS publisher_name
+            SELECT v.*, u.name AS publisher_name, base.number AS base_number
             FROM preset_versions v LEFT JOIN users u ON u.id = v.published_by AND u.deleted_at IS NULL
+            LEFT JOIN preset_versions base ON base.id = v.base_version_id
             WHERE true
             """;
 
@@ -44,7 +45,8 @@ public class PresetCatalog {
                        OffsetDateTime updated, UserRef editor, String unavailable) {}
 
     public record Version(UUID id, UUID preset, Integer number, String status, ObjectNode doc, UUID parent, List<String> problems,
-                          int etag, String note, OffsetDateTime publishedAt, OffsetDateTime updated, UserRef publisher) {
+                          int etag, String note, OffsetDateTime publishedAt, OffsetDateTime updated, UserRef publisher,
+                          UUID base, Integer baseNumber) {
         public boolean draft() { return status.equals("draft"); }
         public String tag() { return "\"" + id + "." + etag + "\""; }
 
@@ -52,7 +54,7 @@ public class PresetCatalog {
             var result = new PresetVersionInfo(id, PresetVersionInfo.StatusEnum.fromValue(status))
                     .number(number).changeNote(note).publishedBy(publisher).publishedAt(publishedAt)
                     .updatedAt(updated).problemCount(problems.size());
-            if (draft()) result.setEtag(tag());
+            if (draft()) result.etag(tag()).baseVersionId(base).baseNumber(baseNumber);
             return result;
         }
 
@@ -60,7 +62,7 @@ public class PresetCatalog {
             var result = new PresetVersion(id, PresetVersion.StatusEnum.fromValue(status), preset, doc, problems)
                     .number(number).changeNote(note).publishedBy(publisher).publishedAt(publishedAt)
                     .updatedAt(updated).problemCount(problems.size()).extendsVersionId(parent);
-            if (draft()) result.setEtag(tag());
+            if (draft()) result.etag(tag()).baseVersionId(base).baseNumber(baseNumber);
             if (flat != null) result.flattened(flat);
             return result;
         }
@@ -86,7 +88,7 @@ public class PresetCatalog {
     }
 
     List<Version> versions(UUID preset) {
-        return database.query(VERSION + " AND v.preset_id = ? ORDER BY number DESC NULLS FIRST", this::versionRow, preset);
+        return database.query(VERSION + " AND v.preset_id = ? ORDER BY v.number DESC NULLS FIRST", this::versionRow, preset);
     }
 
     public Version version(UUID id) {
@@ -171,7 +173,8 @@ public class PresetCatalog {
                 StreamSupport.stream(issues.spliterator(), false).map(JsonNode::asText).toList(),
                 row.getInt("etag"), row.getString("change_note"), row.getObject("published_at", OffsetDateTime.class),
                 row.getObject("updated_at", OffsetDateTime.class),
-                name == null ? null : new UserRef(row.getObject("published_by", UUID.class), name));
+                name == null ? null : new UserRef(row.getObject("published_by", UUID.class), name),
+                row.getObject("base_version_id", UUID.class), row.getObject("base_number", Integer.class));
     }
 
     static ApiException missing() {

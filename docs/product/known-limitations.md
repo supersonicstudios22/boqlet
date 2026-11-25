@@ -86,8 +86,10 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   above that, F06); item texts are one line (no three-line clamp). The viewer has no merged-mesh
   picking above 200k elements; "Show in 3D" from a question carries at most 300 GlobalIds; the
   shared filter bar lacks IFC class, type, material and "changed since".
-- Library: no manual "rebase on latest" (a "Based on it" clone's draft is rebased when the original is
-  published, TF-140), no un-archive (not in the contract), no rename of ids across
+- Library: no manual "rebase on latest" of a "Based on it" clone onto a newer original (its draft is rebased
+  when the original is published, TF-140; a draft behind its own preset's newer version is rebased by
+  hand, A-43), a dictionary conflict is settled for all conflicting entries at once in the app (the API
+  takes a choice per entry), no un-archive (not in the contract), no rename of ids across
   documents, a JSON line diff instead of a structured version diff, no "keep other columns" on
   code-list import.
 - Setup wizard is simpler than F16: steps 2 and 3 are the full editors (no "Suggest codes", not
@@ -162,7 +164,7 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   the admin console, most of the setup wizard, the axe scans (TS-003; run by hand in the campaign),
   the pseudo-locale check (v1 criterion 11) and the UI performance specs (TS-002, TS-006). The
   campaign's scripts in its session scratchpad were the starting point and are not in the repo.
-- Untested in the suites: signed-URL lifetimes, `POST /decisions/{id}/promote`,
+- Untested in the suites: signed-URL lifetimes,
   `PATCH /manual-items/{id}`, project member GET/PATCH, the billing webhook; two `it.todo` (24 h
   `awaiting_upload` expiry, a successful parse retry). The plan limits, rate limits,
   `invalid_transition`, app security headers, the `.xlsm` refusal and the role matrix are covered

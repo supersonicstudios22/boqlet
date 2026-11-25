@@ -798,8 +798,40 @@ paths:
               required: [changeNote]
               properties:
                 changeNote: { type: string, maxLength: 4000 }
+      description: |
+        `409 draft_stale` (review A-43) when a version was published after the draft started (its `baseVersionId`)
+        and the draft can't take it on its own: always for rule sets and the other kinds, and for a dictionary when
+        the draft and that version changed one entry differently (`details.conflicts`, ids `entries:<id>` /
+        `field:<name>`). Otherwise a dictionary draft takes that version's changes and the response lists them in `merged`.
+        `details`: `baseNumber`, `latestNumber`, `latestVersionId`, `conflicts`. Rebase with `POST /presets/{presetId}/draft/rebase`.
       responses:
         "200": { description: Published version, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersion" } } } }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /presets/{presetId}/draft/rebase:
+    parameters: [{ $ref: "#/components/parameters/PresetId" }]
+    post:
+      tags: [library]
+      operationId: rebaseDraft
+      summary: Start the draft again from the latest version (review A-43)
+      description: |
+        A dictionary merges the draft with the latest version entry by entry; a conflict takes `choices[<id>]`, else
+        `keep`. Another kind keeps its own document (`keep: mine`) or takes the latest version's (`keep: theirs`).
+        The draft's base becomes the latest version. A draft that is not behind is returned unchanged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [keep]
+              properties:
+                keep: { $ref: "#/components/schemas/DraftSide" }
+                choices:
+                  type: object
+                  maxProperties: 5000
+                  additionalProperties: { $ref: "#/components/schemas/DraftSide" }
+      responses:
+        "200": { description: The rebased draft, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersion" } } } }
         "409": { $ref: "#/components/responses/Conflict" }
   /presets/check:
     post:
@@ -3182,6 +3214,12 @@ components:
         publishedAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         etag: { type: string }
+        baseVersionId: { type: [string, "null"], format: uuid, description: "Drafts: the published version the draft started from (review A-43)" }
+        baseNumber: { type: [integer, "null"], description: "Drafts: that version's number" }
+    DraftSide:
+      type: string
+      enum: [mine, theirs]
+      description: "In a rebase: the draft's own change, or the latest version's (review A-43)"
     PresetVersion:
       allOf:
         - $ref: "#/components/schemas/PresetVersionInfo"
@@ -3193,6 +3231,10 @@ components:
             extendsVersionId: { type: [string, "null"], format: uuid }
             problems: { type: array, items: { type: string } }
             flattened: { description: "For rule-set patches, the flattened RuleSet" }
+            merged:
+              type: array
+              items: { type: string }
+              description: "Publish of a dictionary draft that was behind (review A-43): what it took from the newer version (`entries:<id>`, `field:<name>`)"
     CheckResponse:
       type: object
       required: [ok, problems]

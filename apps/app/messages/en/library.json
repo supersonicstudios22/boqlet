@@ -438,7 +438,17 @@
     "conflictTitle": "Someone else saved this draft",
     "conflictBody": "The draft was saved in another tab or by a colleague after you opened it. Load their version (your unsaved changes are lost) or save yours over it.",
     "conflictReload": "Load theirs",
-    "conflictOverwrite": "Keep mine"
+    "conflictOverwrite": "Keep mine",
+    "behind": "Version {n} was published after this draft started from version {base}.",
+    "behindDictionary": "Publishing adds what version {n} added. Where you both changed the same entry, choose which to keep.",
+    "behindOther": "Publishing is refused until you choose: keep your draft on top of version {n}, or start again from version {n}.",
+    "keepMine": "Keep my draft",
+    "takeTheirs": "Start again from version {n}",
+    "takeTheirsDictionary": "Take version {n}'s entries",
+    "takeTheirsTitle": "Start again from version {n}?",
+    "takeTheirsBody": "Your draft's changes are replaced by version {n}. The published versions stay as they are.",
+    "takeTheirsBodyDictionary": "Where your draft and version {n} changed the same entry, version {n}'s is kept. Your other changes stay.",
+    "rebased": "The draft now starts from version {n}."
   },
   "versions": {
     "hint": "Published versions never change. Tick two to compare them.",
@@ -786,7 +796,8 @@
     "confirm": "Publish version {n}",
     "done": "Version {n} published",
     "problems": "{n, plural, one {The draft has a problem} other {The draft has # problems}} to fix first (listed above the editor).",
-    "conflict": "The draft changed elsewhere. Reload or keep yours first."
+    "conflict": "The draft changed elsewhere. Reload or keep yours first.",
+    "merged": "{n, plural, one {# change} other {# changes}} from version {v} were kept in the new version."
   },
   "clone": {
     "open": "Clone",

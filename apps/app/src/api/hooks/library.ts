@@ -145,6 +145,15 @@ export function usePublishDraft(presetId: string) {
   });
 }
 
+/** Review A-43: the draft starts again from the latest version (`mine`: keep its changes on top; `theirs`: take the latest's). */
+export function useRebaseDraft(presetId: string) {
+  const refresh = useRefreshPreset();
+  return useMutation({
+    mutationFn: async (keep: "mine" | "theirs") => (await api.POST("/presets/{presetId}/draft/rebase", { params: { path: { presetId } }, body: { keep } })).data!,
+    onSuccess: async () => refresh(presetId),
+  });
+}
+
 export type PreviewResult = Schemas["PreviewResult"];
 export interface PreviewOutput {
   result: PreviewResult;

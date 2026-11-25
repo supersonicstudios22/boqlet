@@ -87,6 +87,11 @@ class LibraryController implements LibraryApi {
     }
 
     @Override
+    public ResponseEntity<PresetVersion> rebaseDraft(UUID preset, RebaseDraftRequest request) {
+        return respond(library.rebase(preset, actor(), request));
+    }
+
+    @Override
     public ResponseEntity<CheckResponse> checkPreset(CheckPresetRequest request) {
         return ResponseEntity.ok(library.check(request, rpcActor()));
     }

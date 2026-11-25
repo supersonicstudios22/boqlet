@@ -49,7 +49,7 @@ export function PublishDialog({ preset, draft }: { preset: Preset; draft: Draft<
               publish.mutate(note.trim(), {
                 onSuccess: (v) => {
                   setOpen(false);
-                  toast(t("done", { n: v.number ?? next }));
+                  toast(t("done", { n: v.number ?? next }), v.merged?.length ? { description: t("merged", { n: v.merged.length, v: preset.latestPublishedVersion?.number ?? 0 }) } : undefined);
                 },
               });
             }}

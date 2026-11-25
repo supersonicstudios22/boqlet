@@ -877,7 +877,38 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * @description `409 draft_stale` (review A-43) when a version was published after the draft started (its `baseVersionId`)
+         *     and the draft can't take it on its own: always for rule sets and the other kinds, and for a dictionary when
+         *     the draft and that version changed one entry differently (`details.conflicts`, ids `entries:<id>` /
+         *     `field:<name>`). Otherwise a dictionary draft takes that version's changes and the response lists them in `merged`.
+         *     `details`: `baseNumber`, `latestNumber`, `latestVersionId`, `conflicts`. Rebase with `POST /presets/{presetId}/draft/rebase`.
+         */
         post: operations["publishDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/{presetId}/draft/rebase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                presetId: components["parameters"]["PresetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start the draft again from the latest version (review A-43)
+         * @description A dictionary merges the draft with the latest version entry by entry; a conflict takes `choices[<id>]`, else
+         *     `keep`. Another kind keeps its own document (`keep: mine`) or takes the latest version's (`keep: theirs`).
+         *     The draft's base becomes the latest version. A draft that is not behind is returned unchanged.
+         */
+        post: operations["rebaseDraft"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3393,7 +3424,19 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             etag?: string;
+            /**
+             * Format: uuid
+             * @description Drafts: the published version the draft started from (review A-43)
+             */
+            baseVersionId?: string | null;
+            /** @description Drafts: that version's number */
+            baseNumber?: number | null;
         };
+        /**
+         * @description In a rebase: the draft's own change, or the latest version's (review A-43)
+         * @enum {string}
+         */
+        DraftSide: "mine" | "theirs";
         PresetVersion: components["schemas"]["PresetVersionInfo"] & {
             /** Format: uuid */
             presetId: string;
@@ -3404,6 +3447,8 @@ export interface components {
             problems: string[];
             /** @description For rule-set patches, the flattened RuleSet */
             flattened?: unknown;
+            /** @description Publish of a dictionary draft that was behind (review A-43): what it took from the newer version (`entries:<id>`, `field:<name>`) */
+            merged?: string[];
         };
         CheckResponse: {
             ok: boolean;
@@ -6286,6 +6331,38 @@ export interface operations {
         };
         responses: {
             /** @description Published version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetVersion"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rebaseDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                presetId: components["parameters"]["PresetId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    keep: components["schemas"]["DraftSide"];
+                    choices?: {
+                        [key: string]: components["schemas"]["DraftSide"];
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description The rebased draft */
             200: {
                 headers: {
                     [name: string]: unknown;

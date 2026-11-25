@@ -137,6 +137,7 @@
       "export_downloaded": "Downloaded a saved version's Excel",
       "preset_published": "Published a preset version",
       "preset_rebased": "Updated a preset's draft to its parent's new version",
+      "preset_draft_rebased": "Started a preset's draft again from its latest version",
       "org_setup_done": "Finished the setup",
       "run_completed": "Generated a BoQ",
       "run_cancelled": "Cancelled a BoQ run",

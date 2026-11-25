@@ -1,6 +1,6 @@
 # F10 Library: rule sets, classifications, dictionaries
 
-> **Status (2026-11-22):** Built (gaps). Rule sets, classifications, dictionaries and resolution settings with drafts, versions, publish, preview, Where used, code-list import and Excel templates (`apps/app/src/features/library`, `services/api/src/main/java/com/boqlet/api/library`). A preview may use the caller's own current drafts as its other inputs (TF-133) and follows a change within 3 s (TF-134); a preview on a project's model needs only access to the project (P54 Q43); slot answers are checked against their slots (TF-135); publishing a preset rebases its "Based on it" clones' drafts at once (Q58, TF-140). Resolution settings have fields for the contradiction thresholds (the rest as JSON) and are checked by the engine before publishing (review WP-A1, A-04); federation settings are still JSON only and unchecked.
+> **Status (2026-11-22):** Built (gaps). Rule sets, classifications, dictionaries and resolution settings with drafts, versions, publish, preview, Where used, code-list import and Excel templates (`apps/app/src/features/library`, `services/api/src/main/java/com/boqlet/api/library`). A preview may use the caller's own current drafts as its other inputs (TF-133) and follows a change within 3 s (TF-134); a preview on a project's model needs only access to the project (P54 Q43); slot answers are checked against their slots (TF-135); publishing a preset rebases its "Based on it" clones' drafts at once (Q58, TF-140); a draft opened before a newer version (a promotion) merges it or is refused until rebased, never overwriting it (review A-43). Resolution settings have fields for the contradiction thresholds (the rest as JSON) and are checked by the engine before publishing (review WP-A1, A-04); federation settings are still JSON only and unchecked.
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Not built: a manual "rebase on latest", unarchive (no contract operation), renaming ids across documents, a structured version diff (a JSON line diff is shown), "keep other columns" on code-list import.
 > - An item text's "Reads as" sample needs a preview run.
@@ -61,7 +61,14 @@ Also editable as advanced documents: **federation settings** (discipline ownersh
    (`POST /presets/check` inside the backend) and returns `problems[]`, shown inline.
 4. **Publish:** only with zero problems; change note required → immutable version n+1.
    Projects pinned to a version stay pinned; "latest" pickers move to the new one for new
-   revisions only (BR-07).
+   revisions only (BR-07). A draft remembers the version it started from (review A-43, D104). If a
+   newer version was published meanwhile (a promoted name answer publishes a dictionary at once),
+   publishing a **dictionary** draft takes that version's changes where the draft left them alone
+   and says what it kept; a **rule set** or other kind, or a dictionary entry both sides changed
+   differently, is refused (`409 draft_stale`) until the editor rebases: "Keep my draft" (on top of
+   the newer version) or "Start again from version n" (`POST /presets/{id}/draft/rebase`). A
+   promotion also writes its entry into an open draft. The editor shows "Version n was published
+   after this draft started".
 5. **Versions:** history list (number, note, by, at), view any version read-only, diff two
    versions as JSON diff (structured diff later), "restore as draft".
 6. **Preview** (rule sets, classifications, dictionaries): pick a project and model
@@ -132,7 +139,7 @@ Also editable as advanced documents: **federation settings** (discipline ownersh
 `GET /orgs/{orgId}/presets`, `POST /orgs/{orgId}/presets`, `GET /presets/{presetId}`,
 `PATCH /presets/{presetId}`, `POST /presets/{presetId}/archive`,
 `GET /presets/{presetId}/versions`, `GET /preset-versions/{versionId}`,
-`PUT /presets/{presetId}/draft`, `DELETE /presets/{presetId}/draft`,
+`PUT /presets/{presetId}/draft`, `DELETE /presets/{presetId}/draft`, `POST /presets/{presetId}/draft/rebase`,
 `POST /presets/{presetId}/publish`, `POST /presets/check`, `POST /presets/{presetId}/preview`,
 `GET /presets/{presetId}/template.xlsx`, `POST /presets/{presetId}/template-import`,
 `GET /presets/{presetId}/usage`, `GET /orgs/{orgId}/terms`, `POST /model-versions/{versionId}/names`,

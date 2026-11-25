@@ -186,7 +186,7 @@ public class Library {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, id, org, project, project == null ? "org" : "project", kind.getValue(), slug, name,
                 request.getDescription(), request.getBasedOn(), draft, actor);
-        insertDraft(draft, id, doc, parent, checked.getProblems(), actor);
+        insertDraft(draft, id, doc, parent, null, checked.getProblems(), actor);
         event(catalog.head(id), actor, "preset.created");
         return view(catalog.head(id), true, actor);
     }
@@ -227,7 +227,7 @@ public class Library {
         List<String> problems = check(head.kind(), doc, parent).getProblems();
         UUID draft = prior == null ? Ids.newId() : prior.id();
         if (prior == null) {
-            insertDraft(draft, head.id(), doc, parent, problems, actor);
+            insertDraft(draft, head.id(), doc, parent, head.published(), problems, actor);
         } else {
             database.update("""
                     UPDATE preset_versions SET doc = CAST(? AS jsonb), extends_version_id = ?, problems = CAST(? AS jsonb),
@@ -245,7 +245,22 @@ public class Library {
             throw new ApiException(HttpStatus.BAD_REQUEST, "change_note_required", "Say what changed in this version.", Map.of());
         }
         var draft = draft(head);
-        var checked = check(head.kind(), draft.doc(), draft.parent());
+        var doc = draft.doc();
+        List<String> merged = List.of();
+        if (stale(head, draft)) {
+            // A-43: a version was published after this draft started (a promoted name answer, a colleague's
+            // publish). A dictionary takes that version's changes where the draft left them alone; anything
+            // else, or a conflict, is refused until the draft is rebased: never silently overwritten.
+            var latest = catalog.version(head.published());
+            if (head.kind() != PresetKind.DICTIONARY) throw stale(draft, latest, List.of());
+            var result = DraftMerge.merge(catalog.version(draft.base()).doc(), draft.doc(), latest.doc(), Map.of());
+            if (!result.conflicts().isEmpty()) throw stale(draft, latest, List.copyOf(result.conflicts()));
+            doc = result.doc();
+            merged = List.copyOf(result.taken());
+            database.update("UPDATE preset_versions SET doc = CAST(? AS jsonb), base_version_id = ? WHERE id = ?",
+                    doc.toString(), latest.id(), draft.id());
+        }
+        var checked = check(head.kind(), doc, draft.parent());
         if (!checked.getOk()) throw new ApiException(HttpStatus.CONFLICT, "draft_has_problems",
                 "Fix the draft before publishing.", Map.of("problems", checked.getProblems()));
         int number = database.queryForObject("SELECT coalesce(max(number), 0) + 1 FROM preset_versions WHERE preset_id = ?",
@@ -260,7 +275,57 @@ public class Library {
                 """, draft.id(), actor, id);
         event(head, actor, "preset.published");
         followers(id, draft.id(), actor);
-        return catalog.version(draft.id()).response(checked.getFlattened().orElse(null));
+        var published = catalog.version(draft.id()).response(checked.getFlattened().orElse(null));
+        if (!merged.isEmpty()) published.setMerged(merged);
+        return published;
+    }
+
+    /**
+     * A-43 "rebase on latest": the draft starts again from the latest version. A dictionary merges it entry by
+     * entry, each conflict settled by `choices` (`entries:<id>`, `field:<name>`) or else by `keep`; another kind
+     * keeps its document (`mine`) or takes the latest version's (`theirs`).
+     */
+    @Transactional
+    public PresetVersion rebase(UUID id, UUID actor, RebaseDraftRequest request) {
+        var head = editable(id, actor);
+        var draft = draft(head);
+        if (!stale(head, draft)) return draft.response(null);
+        var latest = catalog.version(head.published());
+        var keep = request.getKeep() == DraftSide.THEIRS ? DraftMerge.Side.THEIRS : DraftMerge.Side.MINE;
+        var choices = new HashMap<String, DraftMerge.Side>();
+        if (request.getChoices() != null) request.getChoices().forEach((key, side) ->
+                choices.put(key, side == DraftSide.THEIRS ? DraftMerge.Side.THEIRS : DraftMerge.Side.MINE));
+        ObjectNode doc = draft.doc();
+        UUID parent = draft.parent();
+        if (head.kind() == PresetKind.DICTIONARY) {
+            var base = catalog.version(draft.base()).doc();
+            var first = DraftMerge.merge(base, draft.doc(), latest.doc(), choices);
+            first.conflicts().forEach(conflict -> choices.put(conflict, keep));
+            doc = DraftMerge.merge(base, draft.doc(), latest.doc(), choices).doc();
+        } else if (keep == DraftMerge.Side.THEIRS) {
+            doc = latest.doc().deepCopy();
+            parent = latest.parent();
+        }
+        database.update("""
+                UPDATE preset_versions SET doc = CAST(? AS jsonb), extends_version_id = ?, base_version_id = ?,
+                    problems = CAST(? AS jsonb), etag = etag + 1, updated_by = ?, updated_at = now() WHERE id = ?
+                """, doc.toString(), parent, latest.id(), encodeProblems(check(head.kind(), doc, parent).getProblems()),
+                actor, draft.id());
+        database.update("UPDATE presets SET updated_by = ?, updated_at = now() WHERE id = ?", actor, id);
+        event(head, actor, "preset.draft_rebased");
+        return catalog.version(draft.id()).response(null);
+    }
+
+    /** The draft started from a version older than the latest one (A-43). */
+    private static boolean stale(PresetCatalog.Head head, PresetCatalog.Version draft) {
+        return head.published() != null && draft.base() != null && !draft.base().equals(head.published());
+    }
+
+    private static ApiException stale(PresetCatalog.Version draft, PresetCatalog.Version latest, List<String> conflicts) {
+        return new ApiException(HttpStatus.CONFLICT, "draft_stale",
+                "Version " + latest.number() + " was published after this draft started from version " + draft.baseNumber() + ".",
+                Map.of("baseNumber", draft.baseNumber(), "latestNumber", latest.number(), "latestVersionId", latest.id(),
+                        "conflicts", conflicts));
     }
 
     /**
@@ -286,7 +351,8 @@ public class Library {
             } else {
                 var latest = catalog.version(head.published());
                 UUID draft = Ids.newId();
-                insertDraft(draft, clone, latest.doc().deepCopy(), published, check(head.kind(), latest.doc(), published).getProblems(), actor);
+                insertDraft(draft, clone, latest.doc().deepCopy(), published, latest.id(),
+                        check(head.kind(), latest.doc(), published).getProblems(), actor);
                 database.update("UPDATE presets SET draft_version_id = ?, updated_at = now() WHERE id = ?", draft, clone);
             }
             event(head, actor, "preset.rebased");
@@ -318,6 +384,21 @@ public class Library {
                 """, version, preset, number, doc.toString(), note, actor, actor);
         database.update("UPDATE presets SET latest_published_version_id = ?, updated_at = now(), updated_by = ? WHERE id = ?",
                 version, actor, preset);
+        if (head.draft() != null) {
+            // A-43: an open draft gets the entries too, so its editor sees them (a save with the old ETag answers
+            // draft_conflict); publishing it would merge them in any case.
+            var open = catalog.version(head.draft());
+            var draftDoc = open.doc().deepCopy();
+            var draftEntries = new LinkedHashMap<String, JsonNode>();
+            for (JsonNode entry : draftDoc.path("entries")) draftEntries.put(entry.path("id").asText(), entry);
+            entries.forEach(entry -> draftEntries.put(entry.path("id").asText(), entry));
+            var list = draftDoc.putArray("entries");
+            draftEntries.values().forEach(list::add);
+            database.update("""
+                    UPDATE preset_versions SET doc = CAST(? AS jsonb), problems = CAST(? AS jsonb), etag = etag + 1,
+                        updated_at = now() WHERE id = ?
+                    """, draftDoc.toString(), encodeProblems(check(head.kind(), draftDoc, null).getProblems()), open.id());
+        }
         event(head, actor, "preset.published");
         return catalog.version(version).response(null);
     }
@@ -418,11 +499,12 @@ public class Library {
         return catalog.version(head.draft());
     }
 
-    private void insertDraft(UUID version, UUID preset, ObjectNode doc, UUID parent, List<String> problems, UUID actor) {
+    /** A new draft; `base` is the published version it starts from (A-43), null for a preset never published. */
+    private void insertDraft(UUID version, UUID preset, ObjectNode doc, UUID parent, UUID base, List<String> problems, UUID actor) {
         database.update("""
-                INSERT INTO preset_versions (id, preset_id, status, doc, extends_version_id, problems, etag, updated_by)
-                VALUES (?, ?, 'draft', CAST(? AS jsonb), ?, CAST(? AS jsonb), 0, ?)
-                """, version, preset, doc.toString(), parent, encodeProblems(problems), actor);
+                INSERT INTO preset_versions (id, preset_id, status, doc, extends_version_id, base_version_id, problems, etag, updated_by)
+                VALUES (?, ?, 'draft', CAST(? AS jsonb), ?, ?, CAST(? AS jsonb), 0, ?)
+                """, version, preset, doc.toString(), parent, base, encodeProblems(problems), actor);
     }
 
     private void event(PresetCatalog.Head head, UUID actor, String action) {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { useArchivePreset, useDiscardDraft, usePreset, useUpdatePreset, type Preset, type PreviewResult } from "@/api/hooks/library";
+import { useArchivePreset, useDiscardDraft, usePreset, useRebaseDraft, useUpdatePreset, type Preset, type PreviewResult } from "@/api/hooks/library";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Field } from "@/components/field";
@@ -262,6 +262,7 @@ function EditTab({ preset: p, editable }: { preset: Preset; editable: boolean })
         )}
         {!guided && <TemplateTools preset={p} draft={draft} editable={editable} />}
       </div>
+      {p.draft && <DraftBehind preset={p} editable={editable} reload={draft.reload} />}
       {p.draft ? (
         <div className="flex flex-wrap items-center gap-3">
           <p className="flex-1">
@@ -299,5 +300,46 @@ function EditTab({ preset: p, editable }: { preset: Preset; editable: boolean })
       </div>
       </div>
     </PreviewResultContext.Provider>
+  );
+}
+
+/**
+ * Review A-43: a version was published after the draft started (a promoted name answer). A dictionary's
+ * publish takes that version's changes; other kinds (and conflicting entries) need a choice first.
+ */
+function DraftBehind({ preset: p, editable, reload }: { preset: Preset; editable: boolean; reload: () => Promise<void> }) {
+  const t = useTranslations("library");
+  const rebase = useRebaseDraft(p.id);
+  const latest = p.latestPublishedVersion;
+  const base = p.draft?.baseVersionId;
+  if (!latest || !base || base === latest.id) return null;
+  const n = latest.number ?? 0;
+  const dictionary = p.kind === "dictionary";
+  const run = async (keep: "mine" | "theirs") => {
+    await rebase.mutateAsync(keep);
+    await reload();
+    toast(t("edit.rebased", { n }));
+  };
+  return (
+    <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-border bg-muted px-3 py-2" role="status" data-testid="draft-behind">
+      <p>
+        {t("edit.behind", { n, base: p.draft?.baseNumber ?? 0 })} {t(dictionary ? "edit.behindDictionary" : "edit.behindOther", { n })}
+      </p>
+      {editable && (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => void run("mine")} disabled={rebase.isPending} data-testid="draft-keep-mine">
+            {t("edit.keepMine")}
+          </Button>
+          <ConfirmDialog
+            trigger={<Button variant="outline" disabled={rebase.isPending} data-testid="draft-take-theirs">{t(dictionary ? "edit.takeTheirsDictionary" : "edit.takeTheirs", { n })}</Button>}
+            title={t("edit.takeTheirsTitle", { n })}
+            body={t(dictionary ? "edit.takeTheirsBodyDictionary" : "edit.takeTheirsBody", { n })}
+            confirm={t(dictionary ? "edit.takeTheirsDictionary" : "edit.takeTheirs", { n })}
+            testId="draft-take-theirs-confirm"
+            onConfirm={() => run("theirs")}
+          />
+        </div>
+      )}
+    </div>
   );
 }
