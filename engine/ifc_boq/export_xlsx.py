@@ -20,6 +20,7 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+
 from .sheets.boq_import import annotate
 from .trace_steps import describe as describe_step
 
@@ -146,7 +147,7 @@ class _Group:
     def __init__(self, code: str, title: str):
         self.code, self.title, self.children, self.lines = code, title, {}, []
 
-    def child(self, code: str, title: str) -> "_Group":
+    def child(self, code: str, title: str) -> _Group:
         return self.children.setdefault(code, _Group(code, title))
 
     def all_lines(self) -> list:

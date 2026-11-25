@@ -115,7 +115,7 @@ def classifications() -> dict[str, dict]:
             if cl_path.exists():
                 entry["codeList"] = _load(cl_path, "codelist")
             else:
-                entry["reason"] = (f"Code list not installed. Run `npm run import:uniclass`" if "uniclass" in d.name
+                entry["reason"] = ("Code list not installed. Run `npm run import:uniclass`" if "uniclass" in d.name
                                    else "codelist.json missing")
             out[d.name] = entry
     return out

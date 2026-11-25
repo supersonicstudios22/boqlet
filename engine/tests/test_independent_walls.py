@@ -3,10 +3,10 @@ independent reader (tests/independent/duplex_walls.py, ifcopenshell only) gives 
 per wall type; the hand rows in test_duplex.HAND_BOQ are those numbers written out, and the engine must match them
 (test_duplex). A hand value that disagrees with the engine is a defect to record, never a tolerance to widen."""
 import pytest
-
-from ifc_boq.paths import FIXTURES
 from independent.duplex_walls import wall_areas
 from test_duplex import HAND_BOQ
+
+from ifc_boq.paths import FIXTURES
 
 DUPLEX = FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture.ifc"
 # wall type (as the file names it) -> the HAND_BOQ row it backs, and what the hand row adds to the axis numbers

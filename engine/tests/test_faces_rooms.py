@@ -7,7 +7,7 @@ room solids against the authoring tool's own room volumes.
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache
 
 import pytest
 
@@ -191,7 +191,7 @@ def test_room_finishes_off_by_default_excludes_rooms(room_doc):
     assert not [x for x in r["questions"] if x["kind"] == "unmatched"]
 
 
-@lru_cache(maxsize=None)
+@cache
 def _duplex() -> str:
     from ifc_boq.paths import FIXTURES
     return json.dumps(parse_file(str(FIXTURES / "ifc" / "Ifc2x3_Duplex_Architecture.ifc"), overlaps=False)[0])

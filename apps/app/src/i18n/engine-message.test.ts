@@ -12,8 +12,8 @@ const render = (m: EngineMessage) => renderEngineMessage(t as never, format as n
 /** Codes in a union type of `packages/types/src/messages.ts`, read from the source (the union has no runtime value). */
 function union(name: string): string[] {
   const source = readFileSync(path.resolve(__dirname, "../../../../packages/types/src/messages.ts"), "utf8");
-  const body = source.match(new RegExp(`export type ${name} =([^;]+);`))![1];
-  return [...body.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  const body = source.match(new RegExp(`export type ${name} =([^;]+);`))![1]!;
+  return [...body.matchAll(/"([^"]+)"/g)].map((m) => m[1]!);
 }
 
 /** Warnings whose params don't carry the whole message (or carry English text): they keep the engine's English. */

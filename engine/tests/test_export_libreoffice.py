@@ -19,13 +19,13 @@ from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq.diff import compare
 from ifc_boq.export_xlsx import export
 from ifc_boq.parse import parse_file
 from ifc_boq.paths import FIXTURES
 from ifc_boq.sheets import boq_import, diff_export
-from test_duplex import run
 
 pytestmark = pytest.mark.libreoffice
 

@@ -372,13 +372,17 @@ def test_unknown_material_blocks_until_answered(duplex_parsed):
 def test_result_matches_the_typescript_contract(result):
     """BoqResult must validate against the schema generated from packages/types/src/engine.ts."""
     import json
+
     import jsonschema
+
     from ifc_boq.paths import SCHEMAS
     jsonschema.validate(json.loads(json.dumps(result)), json.loads((SCHEMAS / "boq-result.schema.json").read_text(encoding="utf-8")))
 
 
 def test_parsed_model_matches_the_typescript_contract(duplex_parsed):
     import json
+
     import jsonschema
+
     from ifc_boq.paths import SCHEMAS
     jsonschema.validate(duplex_parsed, json.loads((SCHEMAS / "parsed-model.schema.json").read_text(encoding="utf-8")))

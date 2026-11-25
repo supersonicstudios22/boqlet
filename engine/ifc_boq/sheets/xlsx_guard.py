@@ -6,8 +6,8 @@ CRC check if there is more), so a member can't expand past what the directory sa
 """
 from __future__ import annotations
 
-from io import BytesIO
 import re
+from io import BytesIO
 from xml.etree.ElementTree import iterparse
 from zipfile import ZipFile
 

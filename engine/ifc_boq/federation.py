@@ -54,8 +54,17 @@ from collections import Counter, defaultdict
 from . import geometry
 from .expr import fmt
 from .log import CalcLog
-from .measure import (PLANAR_VERTICAL, add_embedded, contradiction_thresholds, facing_openings, opening_record,
-                      roll_up_parts, keep_face_layers, set_room_openings, side_faces)
+from .measure import (
+    PLANAR_VERTICAL,
+    add_embedded,
+    contradiction_thresholds,
+    facing_openings,
+    keep_face_layers,
+    opening_record,
+    roll_up_parts,
+    set_room_openings,
+    side_faces,
+)
 from .rules import select
 
 PAD = 0.005          # m added to every box side, so flat or touching elements still compare
@@ -254,7 +263,7 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
             continue
         owners = owning_disciplines(settings, [e for _, e in cs], x)
 
-        def score(me):
+        def score(me, owners=owners):
             m, e = me
             body = any(e.get(k) is not None for k in ("net_volume", "net_area", "length")) or bool(e.get("child_guids"))
             return (body, owner_rank(settings, m["discipline"], owners), owned_by_discipline(settings, m["discipline"], e, x),
@@ -310,11 +319,11 @@ def combine(models: list[dict], settings: dict, x, log: CalcLog, answers: dict |
         scope = m.get("scope") or {}
         mine = {e["guid"]: e for e in m["elements"]}
 
-        def whole_owned(e, depth=0):
+        def whole_owned(e, depth=0, mine=mine, m=m):
             """A part of an aggregate this model owns (a curtain wall's mullions, a stair's stringers)."""
             p = mine.get(e.get("parent_guid"))
             return p is not None and depth < 20 and (owned_by_discipline(settings, m["discipline"], p, x)
-                                                     or whole_owned(p, depth + 1))
+                                                     or whole_owned(p, depth + 1, mine, m))
         for e in m["elements"]:
             g = e["guid"]
             if g in keep_copy and keep_copy[g] != m["id"]:
@@ -430,7 +439,7 @@ def _storeys(models, settings, log, warnings):
                         targetElevation=z,
                     ))
     names = defaultdict(set)
-    for (mid, n), (canon, _) in rename.items():
+    for (_mid, n), (canon, _) in rename.items():
         names[n].add(canon)
     for n, canon in names.items():
         if len(canon) > 1:
@@ -473,7 +482,7 @@ def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, s
         if e["guid"] in m["boxes"]:
             groups[e["ifc_class"]].append((m, e, m["boxes"][e["guid"]]))
     pairs = defaultdict(list)                            # (key a, key b, class) -> [(ea, eb)]
-    for cls_, items in groups.items():
+    for items in groups.values():
         items.sort(key=lambda t: t[2][0][0])
         for i, (ma, ea, ba) in enumerate(items):
             for mb, eb, bb in items[i + 1:]:

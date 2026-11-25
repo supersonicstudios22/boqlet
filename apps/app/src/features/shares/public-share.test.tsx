@@ -73,7 +73,7 @@ describe("TF-158 share page: lines by keyboard", () => {
     const page = mount();
     const rows = page.querySelectorAll<HTMLTableRowElement>("[data-testid=share-line]");
     expect(rows).toHaveLength(2);
-    const open = rows[1].querySelector<HTMLButtonElement>("button");
+    const open = rows[1]!.querySelector<HTMLButtonElement>("button");
     expect(open, "a button in the line").not.toBeNull();
     expect(open!.textContent).toBe("Slab");
     expect(open!.getAttribute("aria-expanded")).toBe("false");
@@ -91,7 +91,7 @@ describe("TF-158 share page: lines by keyboard", () => {
     const close = detail!.querySelector<HTMLButtonElement>(`button[aria-label="${shares.public.close}"]`)!;
     act(() => close.click());
     expect(page.querySelector("[data-testid=share-detail]")).toBeNull();
-    expect(document.activeElement).toBe(page.querySelectorAll("[data-testid=share-line]")[1].querySelector("button"));
+    expect(document.activeElement).toBe(page.querySelectorAll("[data-testid=share-line]")[1]!.querySelector("button"));
   });
 });
 

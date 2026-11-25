@@ -5,13 +5,13 @@ from time import monotonic
 
 import pytest
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq.diff import compare
 from ifc_boq.parse import parse_file
 from ifc_boq.paths import FIXTURES
 from ifc_boq.storage import LocalStorage, write_json_gzip
 from ifc_boq.worker import execute, validate
-from test_duplex import run
 
 
 def test_duplex_revision_matches_known_changes(duplex_parsed, tmp_path):

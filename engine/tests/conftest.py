@@ -1,7 +1,5 @@
-import json
 import os
 import tempfile
-from pathlib import Path
 
 # Presets a developer saved from the Library (presets/user) must not change test results.
 os.environ["IFC_BOQ_USER_PRESETS"] = tempfile.mkdtemp(prefix="ifc-boq-user-presets-")

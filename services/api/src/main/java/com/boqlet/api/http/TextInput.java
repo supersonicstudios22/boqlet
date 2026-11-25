@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
  * Every string: no NUL (PostgreSQL can't store it) and no unpaired surrogate (stored as `?`).
  * Names and labels (`name`, `label`, `deviceLabel`): also no control characters (C0, DEL, C1, line and
  * paragraph separators) and no bidirectional formatting characters, which spoof text in member lists,
- * mails and exports ("abc‮txt.exe"). The same rule as model file names.
+ * mails and exports ("abc\u202etxt.exe"). The same rule as model file names.
  */
 public final class TextInput {
     static final Set<String> NAME_FIELDS = Set.of("name", "label", "deviceLabel");
@@ -116,9 +116,9 @@ public final class TextInput {
     }
 
     private static boolean forbiddenInName(char at) {
-        return Character.getType(at) == Character.CONTROL || at == ' ' || at == ' '
-                || at == '؜' || at == '‎' || at == '‏'
-                || (at >= '‪' && at <= '‮') || (at >= '⁦' && at <= '⁩');
+        return Character.getType(at) == Character.CONTROL || at == '\u2028' || at == '\u2029'
+                || at == '\u061c' || at == '\u200e' || at == '\u200f'
+                || (at >= '\u202a' && at <= '\u202e') || (at >= '\u2066' && at <= '\u2069');
     }
 
     private static ApiException refused(String field, String message) {

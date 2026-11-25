@@ -5,14 +5,14 @@ import gzip
 import json
 import re
 import shutil
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, ContextManager, Protocol
+from typing import BinaryIO, Protocol
 
 
 class Storage(Protocol):
-    def open(self, key: str) -> ContextManager[BinaryIO]: ...
+    def open(self, key: str) -> AbstractContextManager[BinaryIO]: ...
     def exists(self, key: str) -> bool: ...
     def get_bytes(self, key: str) -> bytes: ...
     def put_bytes(self, key: str, data: bytes) -> None: ...

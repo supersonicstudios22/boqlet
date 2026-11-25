@@ -27,8 +27,8 @@ Every npm script, run from the repository root (`package.json`). The most used o
 | `npm run typecheck` | `tsc` in every workspace (app, packages, tests) |
 | `npm run lint` | The app's ESLint (includes the no-literal-UI-strings rule, F15) |
 | `npm run test:app` | The app's Vitest unit tests |
-| `npm run test:engine` | pytest in `engine/tests`, including the Duplex acceptance test |
-| `mvn -f services/api/pom.xml verify` | The Java build and its tests (Docker needed); with the `BOQLET_NATIVE_*` variables also the shared suites and the browser smoke ([../testing/README.md](../testing/README.md)) |
+| `npm run test:engine` | `ruff check` and `mypy` (strict on `engine/ifc_boq`, with the per-module baseline in `engine/pyproject.toml`), then pytest in `engine/tests`, including the Duplex acceptance test (review B-10). With arguments (`-- tests/test_diff.py`, `-- -k name`) only pytest runs, with them |
+| `mvn -f services/api/pom.xml verify` | The Java build (with Error Prone: its errors fail the compile, its warnings are printed; review B-10) and its tests (Docker needed); with the `BOQLET_NATIVE_*` variables also the shared suites and the browser smoke ([../testing/README.md](../testing/README.md)) |
 | `npm run test:contract` / `npm run test:scenarios` | The shared suites against `API_URL`. They only work inside `NativeWorkerTest` (they need its test-only routes and seeded sessions); run outside it they stop at once with a message saying so (`tests/run.mjs` checks for `BOQLET_JAVA_SUITE_USERS`) |
 | `npm run perf -w @ifc-boq/tests` | The shared performance suite (TS-002 API latency); inside `NativeWorkerTest` only, with `BOQLET_API_PERF=1` ([../testing/README.md](../testing/README.md)) |
 | `npm run e2e:java -w @ifc-boq/app` | The browser smoke (`apps/app/e2e-java`); needs `BOQLET_JAVA_API` and the test-only routes, so it is started by `NativeWorkerTest` |

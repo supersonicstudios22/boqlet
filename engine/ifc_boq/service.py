@@ -6,7 +6,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from . import presets
-from .export_xlsx import export
 from .pipeline import get_boq
 
 

@@ -2,7 +2,8 @@
 /**
  * Runs the Python engine from engine/.venv without activating it.
  *   node scripts/run-engine.mjs worker           -> engine worker on http://127.0.0.1:8788 (ENGINE_WORKER_PORT)
- *   node scripts/run-engine.mjs test             -> pytest
+ *   node scripts/run-engine.mjs test             -> ruff check, mypy (strict, pyproject.toml baseline), then pytest;
+ *                                                   with arguments (a file, -k ...) only pytest with them
  *   node scripts/run-engine.mjs cli <args>       -> python -m ifc_boq.cli <args>
  *   node scripts/run-engine.mjs corpus <folder>  -> python -m ifc_boq.corpus <folder> (summary per IFC)
  *   node scripts/run-engine.mjs catalogue        -> render fixtures/corpus/catalogue.json as docs/testing/ifc-corpus-catalogue.md
@@ -44,6 +45,12 @@ if (cmd === "worker" && !env.ENGINE_STORAGE) {
   // A standalone worker for engine work; the local backend runs its own in Docker (ops/local).
   env.ENGINE_STORAGE = `file://${join(engine, ".cache", "blobs")}`;
 }
-const child = spawn(py, args, { cwd, stdio: "inherit", env });
-child.on("exit", (code) => process.exit(code ?? 0));
+// Review B-10: the full engine test run lints and type-checks first (engine/pyproject.toml has both configs).
+const steps = cmd === "test" && rest.length === 0 ? [["-m", "ruff", "check", "."], ["-m", "mypy"], args] : [args];
+let child;
+const next = (index) => {
+  child = spawn(py, steps[index], { cwd, stdio: "inherit", env });
+  child.on("exit", (code) => (code || index === steps.length - 1 ? process.exit(code ?? 0) : next(index + 1)));
+};
+next(0);
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => child.kill(sig));

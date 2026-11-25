@@ -27,8 +27,9 @@ from __future__ import annotations
 
 import math
 import re
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, Callable
+from typing import Any
 
 TOKEN = re.compile(r"""\s*(?:
     (?P<num>\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)|

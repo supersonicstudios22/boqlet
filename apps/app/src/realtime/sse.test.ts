@@ -60,8 +60,8 @@ describe("TF-182 connectRealtime", () => {
     // The stream ends cleanly at 5:00; the client reconnects within the server's 1 s retry.
     await vi.advanceTimersByTimeAsync(FIVE_MIN + 1_500);
     expect(calls).toHaveLength(2);
-    expect(calls[1].lastEventId).toBe("41");
-    expect(calls[1].at - calls[0].at).toBeLessThanOrEqual(FIVE_MIN + 1_100);
+    expect(calls[1]!.lastEventId).toBe("41");
+    expect(calls[1]!.at - calls[0]!.at).toBeLessThanOrEqual(FIVE_MIN + 1_100);
     expect(events).toEqual(["41", "42"]);
     expect(status).toEqual(["open", "retrying", "open"]);
   });

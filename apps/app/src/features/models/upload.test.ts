@@ -11,7 +11,7 @@ const later = () => new Date(Date.now() + 3_600_000).toISOString();
 
 function multipart(size: number, tag = "a"): Schemas["UploadInstructions"] {
   const parts = Array.from({ length: Math.ceil(size / PART) }, (_, i) => ({ partNumber: i + 1, url: `https://s3/${tag}/part/${i + 1}` }));
-  return { method: "PUT", url: parts[0].url, expiresAt: later(), partSizeBytes: PART, parts };
+  return { method: "PUT", url: parts[0]!.url, expiresAt: later(), partSizeBytes: PART, parts };
 }
 
 /** A file of `size` bytes without allocating them all: one byte repeated (Blob slices stay lazy). */

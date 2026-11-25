@@ -16,7 +16,7 @@ solid overlaps across a federation) reads the sidecar. Without it that work is s
 """
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -105,7 +105,7 @@ def _lattice(tris: np.ndarray, cell: float) -> tuple[np.ndarray, np.ndarray, np.
     return np.vstack(pts), np.vstack(nrm), np.concatenate(area)
 
 
-@lru_cache(maxsize=None)
+@cache
 def _bary(k: int) -> np.ndarray:
     """Barycentric (along u, along v) centres of the k x k sub-triangles of a triangle: the upright
     one of each row i, column j, and the inverted one beside it where there is one."""

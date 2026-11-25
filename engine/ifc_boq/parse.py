@@ -27,13 +27,13 @@ import sys
 import time
 from datetime import datetime, timezone
 
-import numpy as np
-import trimesh
 import ifcopenshell
 import ifcopenshell.geom
 import ifcopenshell.util.element as ue
 import ifcopenshell.util.placement as up
 import ifcopenshell.util.unit as uu
+import numpy as np
+import trimesh
 
 from . import geometry
 from .geometry import components, fix_winding
@@ -277,7 +277,7 @@ class Parser:
             if not keys or not all(keys):
                 out.setdefault(name, {}).update(props)
                 continue
-            for m, (k, v) in zip(keys, props.items()):
+            for m, v in zip(keys, props.values()):
                 out.setdefault(m[1], {})[m[2]] = v
             self.split_sets.append((getattr(obj, "GlobalId", None), name))
         return out

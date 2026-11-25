@@ -372,7 +372,7 @@ class RuleEngine:
                 amount = lambda o, whole=whole, share=share: whole(o) * share
             t = self.val(d.get("threshold")) or 0
             by = self.val(d.get("compareBy")) or ("volume" if what == "embedded" else "area")
-            size = lambda o: o.get(by) or 0
+            size = lambda o, by=by: o.get(by) or 0
             if mode == "all":
                 chosen = ops
                 ded = sum(amount(o) for o in ops)

@@ -6,7 +6,8 @@ from __future__ import annotations
 import math
 
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from ifc_boq.expr import STEP_TOLERANCE, Expr, fmt
 from ifc_boq.rules import RuleEngine

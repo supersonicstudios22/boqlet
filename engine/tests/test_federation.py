@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from functools import lru_cache
+from functools import cache
 
 import jsonschema
 import pytest
@@ -22,7 +22,7 @@ from ifc_boq.pipeline import get_boq
 SCENE = FIXTURES / "ifc" / "buildingsmart" / "IFC4X3"
 
 
-@lru_cache(maxsize=None)
+@cache
 def _parse(name: str) -> str:
     return json.dumps(parse_file(str(SCENE / f"Building-{name}.ifc"), overlaps=False)[0])
 

@@ -57,7 +57,7 @@ def test_flattened_sets_are_read_back_and_the_material_named_by_a_property_reach
 
 def test_an_ordinary_set_with_a_bracket_in_one_name_is_left_alone(tmp_path):
     f = ifcopenshell.file(schema="IFC4")
-    project = ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcProject", name="P")
+    ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcProject", name="P")
     ifcopenshell.api.run("unit.assign_unit", f, units=[f.createIfcSIUnit(None, "LENGTHUNIT", None, "METRE")])
     beam = ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcBeam", name="B")
     pset = ifcopenshell.api.run("pset.add_pset", f, product=beam, name="Pset_Mine")

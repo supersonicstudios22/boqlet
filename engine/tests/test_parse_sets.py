@@ -10,9 +10,8 @@ import json
 
 import ifcopenshell
 import ifcopenshell.api
-import pytest
-
 from conftest import DUPLEX
+
 from ifc_boq import paths, presets
 from ifc_boq.parse import parse_file
 from ifc_boq.pipeline import get_boq

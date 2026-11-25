@@ -141,6 +141,7 @@ export function move<T>(list: T[], i: number, by: -1 | 1): T[] {
   const j = i + by;
   if (j < 0 || j >= list.length) return list;
   const out = [...list];
-  [out[i], out[j]] = [out[j], out[i]];
+  // Both indexes are inside the list (checked above), so neither element is missing.
+  [out[i], out[j]] = [out[j]!, out[i]!];
   return out;
 }

@@ -7,11 +7,11 @@ from io import BytesIO
 
 import pytest
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq.export_xlsx import export
 from ifc_boq.parse import parse_file
 from ifc_boq.paths import FIXTURES
-from test_duplex import run
 
 PARTITION = "walls | Interior - Partition (92mm Stud) | False |  | m2"
 

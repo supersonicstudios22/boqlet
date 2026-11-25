@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "httpx>=0.27,<1", "hypothesis>=6.100,<7"]
+dev = ["pytest>=8", "httpx>=0.27,<1", "hypothesis>=6.100,<7", "ruff==0.17.6", "mypy==2.4.1"]
 
 [project.scripts]
 ifc-boq = "ifc_boq.cli:main"
@@ -41,3 +41,178 @@ markers = [
   "slow: re-runs a review sample (docs/review/_samples); skipped when the samples are not fetched",
   "libreoffice: opens exported workbooks in LibreOffice (review B-11); skipped without soffice unless BOQLET_REQUIRE_LIBREOFFICE=1",
 ]
+
+[tool.ruff]
+# Review B-10: `npm run test:engine` runs `ruff check` before pytest (scripts/run-engine.mjs).
+target-version = "py310"
+line-length = 120
+extend-exclude = [".venv", ".cache"]
+
+[tool.ruff.lint]
+# pyflakes, pycodestyle, import order, bugbear, pyupgrade. Left out: E501 (no formatter runs; tables and messages
+# are long lines on purpose), E741 and E731 (`l` for a line and named lambdas are the house style), B905
+# (`zip(strict=True)` would raise where the engine relies on the shorter side today; a behaviour change, not lint).
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "E741", "E731", "B905"]
+
+[tool.ruff.lint.per-file-ignores]
+# A fixture imported from another test module is "redefined" by every test that takes it as a parameter.
+"tests/*" = ["F811"]
+
+[tool.mypy]
+# Review B-10: strict on the engine package, run by `npm run test:engine` (scripts/run-engine.mjs) before pytest.
+python_version = "3.10"
+files = ["ifc_boq"]
+strict = true
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
+# Libraries without type hints.
+module = ["ifcopenshell", "ifcopenshell.*", "trimesh", "trimesh.*", "manifold3d", "re2", "networkx", "networkx.*",
+          "boto3", "boto3.*", "botocore", "botocore.*", "jsonschema", "jsonschema.*", "openpyxl", "openpyxl.*",
+          "uvicorn", "psycopg", "psycopg.*"]
+ignore_missing_imports = true
+
+# Baseline (review B-10): the error codes each module still has under strict, with today's counts, to burn
+# down. Fix a module's errors and remove its codes (or its block); a module not listed here is fully strict.
+# 1244 errors in 35 modules on 2026-11-25.
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.catalogue"
+disable_error_code = ["no-untyped-def", "type-arg", "var-annotated"]  # var-annotated 3, no-untyped-def 2, type-arg 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.classify"
+disable_error_code = ["no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # type-arg 6, no-untyped-call 4, var-annotated 3, no-untyped-def 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.cli"
+disable_error_code = ["arg-type", "no-untyped-def"]  # arg-type 1, no-untyped-def 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.codelist_import"
+disable_error_code = ["arg-type", "no-untyped-call", "no-untyped-def", "type-arg"]  # no-untyped-call 7, type-arg 7, no-untyped-def 2, arg-type 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.corpus"
+disable_error_code = ["no-untyped-def", "type-arg"]  # type-arg 3, no-untyped-def 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.diff"
+disable_error_code = ["index", "no-untyped-call", "no-untyped-def", "var-annotated"]  # no-untyped-call 14, no-untyped-def 10, index 3, var-annotated 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.export_xlsx"
+disable_error_code = ["no-any-return", "no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-call 40, no-untyped-def 9, type-arg 7, var-annotated 3, no-any-return 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.expr"
+disable_error_code = ["arg-type", "no-any-return", "no-untyped-call", "no-untyped-def", "type-arg"]  # no-untyped-call 92, no-untyped-def 31, type-arg 5, arg-type 2, no-any-return 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.federation"
+disable_error_code = ["arg-type", "assignment", "index", "no-any-return", "no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-call 27, type-arg 22, no-untyped-def 20, index 5, var-annotated 3, arg-type 1, assignment 1, no-any-return 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.geometry"
+disable_error_code = ["no-any-return", "no-untyped-call", "no-untyped-def", "type-arg"]  # type-arg 13, no-untyped-def 6, no-untyped-call 2, no-any-return 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.invariants"
+disable_error_code = ["no-untyped-def", "type-arg"]  # type-arg 5, no-untyped-def 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.log"
+disable_error_code = ["no-untyped-def", "type-arg"]  # no-untyped-def 5, type-arg 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.measure"
+disable_error_code = ["arg-type", "assignment", "attr-defined", "call-overload", "index", "misc", "no-any-return", "no-untyped-call", "no-untyped-def", "operator", "type-arg", "var-annotated"]  # type-arg 32, no-untyped-call 26, no-untyped-def 11, index 10, arg-type 7, attr-defined 7, var-annotated 5, assignment 4, call-overload 3, operator 3, no-any-return 2, misc 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.names"
+disable_error_code = ["no-any-return", "no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # type-arg 8, no-untyped-call 5, no-untyped-def 5, no-any-return 1, var-annotated 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.overrides"
+disable_error_code = ["no-untyped-call", "type-arg"]  # type-arg 4, no-untyped-call 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.parse"
+disable_error_code = ["arg-type", "assignment", "index", "list-item", "misc", "no-untyped-call", "no-untyped-def", "type-arg", "union-attr", "var-annotated"]  # no-untyped-call 138, no-untyped-def 39, type-arg 9, union-attr 8, var-annotated 8, assignment 6, arg-type 5, index 4, list-item 1, misc 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.pipeline"
+disable_error_code = ["arg-type", "assignment", "index", "misc", "no-untyped-call", "no-untyped-def", "type-arg", "union-attr", "var-annotated"]  # type-arg 20, no-untyped-call 19, no-untyped-def 8, index 7, arg-type 4, assignment 2, misc 2, union-attr 1, var-annotated 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.plausibility"
+disable_error_code = ["index", "misc", "no-any-return", "no-untyped-def", "type-arg", "union-attr"]  # type-arg 11, no-untyped-def 3, index 2, misc 1, no-any-return 1, union-attr 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.presets"
+disable_error_code = ["index", "no-any-return", "no-untyped-call", "no-untyped-def", "operator", "type-arg", "union-attr"]  # type-arg 19, index 7, no-untyped-def 7, no-untyped-call 5, no-any-return 2, operator 2, union-attr 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.preview"
+disable_error_code = ["type-arg"]  # type-arg 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.rpc"
+disable_error_code = ["no-untyped-def", "type-arg"]  # no-untyped-def 1, type-arg 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.rules"
+disable_error_code = ["arg-type", "assignment", "index", "misc", "no-any-return", "no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-call 117, type-arg 37, no-untyped-def 24, no-any-return 6, var-annotated 4, arg-type 2, assignment 2, index 2, misc 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.service"
+disable_error_code = ["arg-type", "no-untyped-def", "type-arg"]  # type-arg 4, arg-type 1, no-untyped-def 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.sheets.boq_import"
+disable_error_code = ["assignment", "no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-call 11, no-untyped-def 6, assignment 3, var-annotated 2, type-arg 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.sheets.diff_export"
+disable_error_code = ["no-untyped-call", "no-untyped-def"]  # no-untyped-call 9, no-untyped-def 3
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.sheets.templates"
+disable_error_code = ["no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-call 26, no-untyped-def 15, type-arg 2, var-annotated 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.sheets.xlsx_guard"
+disable_error_code = ["no-untyped-def", "union-attr"]  # no-untyped-def 2, union-attr 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.storage"
+disable_error_code = ["no-any-return", "no-untyped-def", "type-arg"]  # no-untyped-def 3, no-any-return 2, type-arg 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.templates"
+disable_error_code = ["no-any-return", "no-untyped-def", "type-arg"]  # type-arg 4, no-any-return 3, no-untyped-def 2
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.trace_steps"
+disable_error_code = ["no-untyped-call", "no-untyped-def"]  # no-untyped-def 6, no-untyped-call 4
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.units"
+disable_error_code = ["no-untyped-def", "type-arg"]  # no-untyped-def 1, type-arg 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.user_regex"
+disable_error_code = ["no-untyped-def"]  # no-untyped-def 3
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.worker"
+disable_error_code = ["no-untyped-call", "no-untyped-def", "type-arg"]  # no-untyped-call 16, no-untyped-def 16, type-arg 3
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.worker_http"
+disable_error_code = ["no-untyped-call", "no-untyped-def", "type-arg", "var-annotated"]  # no-untyped-def 6, no-untyped-call 2, type-arg 2, var-annotated 1
+
+[[tool.mypy.overrides]]
+module = "ifc_boq.worker_queue"
+disable_error_code = ["index", "no-untyped-call", "no-untyped-def"]  # no-untyped-def 10, no-untyped-call 7, index 1

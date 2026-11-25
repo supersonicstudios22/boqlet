@@ -13,7 +13,7 @@ pinned without an IFC file. The `review_sample` tests re-run the review's real s
 from __future__ import annotations
 
 import copy
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import pytest
@@ -105,7 +105,7 @@ def test_an_uncontradicted_volume_still_gives_the_area():
 
 
 # ---------------------------------------------------------------- the review samples
-@lru_cache(maxsize=None)
+@cache
 def _parsed_sample(path: str) -> dict:
     from ifc_boq.parse import parse_file
     return parse_file(path)[0]

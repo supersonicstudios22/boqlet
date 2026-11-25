@@ -50,7 +50,7 @@ def test_material_groups_add_up_like_layers_not_n_times_the_element(duplex_break
     # each material its own share: the groups add up to the layers (243.70 m3), not 1,094 m3
     assert sum(materials.values()) == pytest.approx(sum(layers.values()), abs=1e-4)
     assert sum(materials.values()) == pytest.approx(243.70, abs=0.01)
-    for g, v in whole.items():
+    for g in whole:
         assert materials[g] == pytest.approx(layers[g], abs=1e-5), g
 
 

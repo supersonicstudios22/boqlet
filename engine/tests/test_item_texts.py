@@ -1,11 +1,11 @@
 from io import BytesIO
 
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq import presets
 from ifc_boq.export_xlsx import export
 from ifc_boq.pipeline import get_boq
-from test_duplex import run
 
 
 def test_item_text_uses_rule_expressions_without_changing_quantities(duplex_parsed):

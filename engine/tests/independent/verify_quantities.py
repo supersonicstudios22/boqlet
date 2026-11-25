@@ -234,8 +234,8 @@ def length_unit(f) -> float:
 
 
 def meshes(f, guids):
-    import numpy as np
     import ifcopenshell.geom as geom
+    import numpy as np
     s = geom.settings()
     s.set("use-world-coords", True)
     s.set("convert-back-units", True)          # file units; scaled with our own factor below
@@ -362,7 +362,8 @@ def script_value(f, method: str, guids: list[str]):
 # ------------------------------------------------------------------------------------------------
 def engine_result(sid: str) -> dict:
     sys.path.insert(0, str(HERE))
-    import compare_baseline as cb        # parse cache + presets folder handling (no measuring code used here)
+    import compare_baseline as cb  # parse cache + presets folder handling (no measuring code used here)
+
     from ifc_boq import presets
     from ifc_boq.pipeline import get_boq
     parsed, meshes_ = cb.cached_parse(SAMPLES / S[sid])

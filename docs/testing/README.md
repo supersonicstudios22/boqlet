@@ -161,8 +161,11 @@ ecosystem; they run CI like any PR, and merging one deploys, so the owner review
 | `nightly` (`.github/workflows/nightly.yml`, 02:17 UTC and on demand) | **API**: `NativeWorkerTest#apiPerformanceAgainstJava` (`BOQLET_API_PERF=1`, review B-09): `tests/perf/api.test.ts` (CRUD p95 ≤ 300 ms, a 500-line page p95 ≤ 500 ms, ten in flight) and 50,000-line run ingestion ≤ 10 s; the `PERF_OUT` lines go to the job summary. **UI**: the browser suite's `@perf` tests (`e2e-java/perf.spec.ts`, review B-07) against Java on a production build of the app (`BOQLET_BROWSER_PERF=1`, `BOQLET_BROWSER_SMOKE_FILTER=@perf`): the uncached change report (F08-AC4, ≤ 3 s), the first row of a 4,000-line sheet (≤ 4 s) and the longest task while typing in its search (≤ 250 ms), each the median of 3 (regression gates; B-18/B-19 tighten them to 2 s and 100 ms); the `[perf]` lines go to the job summary. The 4,000 lines are the Duplex run's lines repeated by the harness's `/_test/runs/{id}/inflate` | no |
 
 Not in CI: engine timing, the corpus run, the review samples beyond S01–S05 and
-S09 (the full compare-baseline takes about 50 minutes), other browsers,
-Python or Java linters. There is no separate "core only" build job; the pricing
+S09 (the full compare-baseline takes about 50 minutes), other browsers.
+Static analysis since review B-10: `ruff` and strict `mypy` in `test:engine` (every `engine` leg; the mypy
+baseline in `engine/pyproject.toml` lists the error codes each module still has, a new module is strict),
+Error Prone in every Java compile (`api`, `rollback`), `noUncheckedIndexedAccess` in the app's `tsconfig.json`
+(`typecheck`). There is no separate "core only" build job; the pricing
 boundary is guarded by the ArchUnit `CoreArchitectureTest`, the BR-41 lint rule, the
 `MODULE_PRICING` build guard and `api:lint` of `openapi-pricing.yaml` ([../architecture/modules.md](../architecture/modules.md)).
 

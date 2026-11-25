@@ -17,10 +17,10 @@ from tempfile import TemporaryDirectory
 import jsonschema
 
 from . import __version__, presets, service
-from .invariants import InvariantError
 from .diff import compare
 from .export_xlsx import export
 from .geometry import load_meshes, save_meshes
+from .invariants import InvariantError
 from .parse import PARSE_FORMAT, IfcFileError, parse_file, sha256
 from .pipeline import get_boq
 from .preview import compare_lines, sample

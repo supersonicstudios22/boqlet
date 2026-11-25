@@ -5,10 +5,10 @@ change a number and never block. Synthetic documents from test_reported_quantiti
 from __future__ import annotations
 
 import pytest
+from test_reported_quantities import doc, review_sample, sample_lines, slab
 
 from ifc_boq import presets
 from ifc_boq.pipeline import get_boq
-from test_reported_quantities import doc, review_sample, sample_lines, slab
 
 
 def run(parsed: dict, settings: dict | None = None) -> dict:

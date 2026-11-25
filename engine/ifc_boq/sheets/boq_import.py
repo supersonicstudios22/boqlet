@@ -1,11 +1,11 @@
 """Workbook round-trip metadata and read-only proposals for edits from Excel."""
 from __future__ import annotations
 
-from contextlib import closing
-from hashlib import sha256
 import json
 import math
 import re
+from contextlib import closing
+from hashlib import sha256
 from xml.etree.ElementTree import ParseError
 from zipfile import BadZipFile
 

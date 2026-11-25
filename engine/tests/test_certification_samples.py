@@ -8,7 +8,7 @@ engine's own output. See docs/testing/engine-validation.md.
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache
 
 import numpy as np
 import pytest
@@ -25,7 +25,7 @@ BSI = FIXTURES / "ifc" / "buildingsmart"
 SCHEMAS = ("IFC2X3", "IFC4", "IFC4X3")
 
 
-@lru_cache(maxsize=None)
+@cache
 def _parse(rel: str) -> str:
     doc, _ = parse_file(str(BSI / rel), overlaps=False)
     return json.dumps(doc)
@@ -369,6 +369,7 @@ def test_corpus_reads_ifczip_and_skips_old_schemas(tmp_path):
     """Schependomlaan ships .ifczip files (ifcopenshell opens them by extension); DURAARK and the
     Auckland repository hold IFC2x2 / IFC2.0 files the engine cannot read: skip with a reason."""
     import zipfile
+
     from ifc_boq.corpus import header_schema, run_one
     src = BSI / "IFC4" / "wall-with-opening-and-window.ifc"
     z = tmp_path / "wall.ifczip"
@@ -388,6 +389,7 @@ def test_unnamed_elements_keep_the_result_valid():
     """Elements without a Name (common in Tekla and test files) reached derived-line traces as
     null; BoqResult requires a string there. Found on the OpenIFC and DURAARK files."""
     import jsonschema
+
     from ifc_boq.paths import SCHEMAS as SCHEMA_DIR
     doc = parsed("IFC4X3/Building-Structural.ifc")
     for e in doc["elements"]:

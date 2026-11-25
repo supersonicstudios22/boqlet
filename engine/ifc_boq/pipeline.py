@@ -30,15 +30,16 @@ from collections import defaultdict
 
 from . import invariants
 from .classify import classify, fill_item_texts
-from .expr import Expr, fmt
+from .expr import Expr
 from .federation import combine
 from .log import CalcLog
-from .measure import build as measure, building_measures, merge_question, public_question
-from .plausibility import element_warnings, line_warnings, unhosted_warnings
+from .measure import build as measure
+from .measure import building_measures, merge_question, public_question
 from .names import Resolver, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
-from .trace_steps import finish as finish_trace
+from .plausibility import element_warnings, line_warnings, unhosted_warnings
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
+from .trace_steps import finish as finish_trace
 
 INTERNAL = ("_fields", "_mixed", "_parts", "_source_key", "_manual_kind", "_manual_codes", "_text_context", "_excluded")
 

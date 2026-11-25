@@ -7,7 +7,7 @@ from ifc_boq.codelist_import import build_codes, guess_separator, read_table
 
 
 def test_csv_with_bom_semicolons_and_local_headers():
-    data = "﻿Šifra;Naziv;Napomena\nA;Pripremni radovi;\nA.01;Gradilište;ograda\nA.02;Skele;\nB;Zemljani radovi;\nB.01;Iskop;\n".encode("utf-8")
+    data = "﻿Šifra;Naziv;Napomena\nA;Pripremni radovi;\nA.01;Gradilište;ograda\nA.02;Skele;\nB;Zemljani radovi;\nB.01;Iskop;\n".encode()
     sheet = read_table("troskovnik.csv", data)["sheets"][0]
     g = sheet["guess"]
     assert (g["headerRow"], g["code"], g["title"], g["separator"]) == (0, 0, 1, ".")

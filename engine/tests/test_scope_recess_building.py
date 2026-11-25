@@ -10,12 +10,12 @@ from __future__ import annotations
 import copy
 
 import pytest
+from test_faces_rooms import ROOM, measured
+from test_federation_links import box, models, pair, run  # noqa: F401 (pair is a fixture)
 
 from ifc_boq import presets
 from ifc_boq.parse import parse_file
 from ifc_boq.pipeline import get_boq
-from test_faces_rooms import ROOM, measured
-from test_federation_links import box, models, pair, run  # noqa: F401 (pair is a fixture)
 
 CONTAINED = "#190=IFCRELCONTAINEDINSPATIALSTRUCTURE('0hqIFTRjfCC8VsZJ2gIZz4',$,$,$,(#110,#120,#130,#140,#150,#168,#180),#24);"
 ROOM_PLUS = ROOM.replace(CONTAINED, "".join([

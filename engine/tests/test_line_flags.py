@@ -10,11 +10,11 @@ import copy
 
 import pytest
 from openpyxl import load_workbook
+from test_reported_quantities import doc, review_sample, sample_lines, slab
 
 from ifc_boq import presets
 from ifc_boq.export_xlsx import export
 from ifc_boq.pipeline import get_boq
-from test_reported_quantities import doc, review_sample, sample_lines, slab
 
 
 def run(parsed: dict, decisions: list | None = None) -> dict:

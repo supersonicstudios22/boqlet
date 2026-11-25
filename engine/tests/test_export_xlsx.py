@@ -2,9 +2,9 @@
 from io import BytesIO
 
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq.export_xlsx import export
-from test_duplex import run
 
 
 def _rows(workbook_bytes):

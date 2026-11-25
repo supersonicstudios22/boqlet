@@ -66,7 +66,7 @@ import json
 import os
 import re
 from collections import defaultdict
-from functools import lru_cache
+from functools import cache
 
 import ifcopenshell.ifcopenshell_wrapper as ifc_schema
 
@@ -102,7 +102,7 @@ GENERIC_2X3 = {"IfcFlowSegment", "IfcFlowFitting", "IfcFlowTerminal", "IfcFlowCo
                "IfcDistributionControlElement", "IfcDistributionFlowElement", "IfcDistributionElement"}
 
 
-@lru_cache(maxsize=None)
+@cache
 def ancestry(cls: str, schema: str = "IFC4X3_ADD2") -> tuple[str, ...]:
     """cls and its supertypes, nearest first. Looks in the model's schema, then IFC4.3
     (an IFC2x3 type can name an IFC4 class). Just (cls,) if no schema knows it."""
@@ -1006,7 +1006,7 @@ def measure_rooms(parsed: dict, rooms: dict, elements: list[dict], model_id: str
         rec = {"quantities": {"reported": s.get("quantities", {})}, "psets": s.get("psets", {})}
         prov, bits = {}, []
 
-        def pick(kind, geo_key, label):
+        def pick(kind, geo_key, label, rec=rec, prov=prov, bits=bits, geo=geo):
             v, src = find_reported(rec, kind)
             if v is not None:
                 prov[kind] = "reported"

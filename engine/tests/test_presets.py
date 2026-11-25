@@ -96,6 +96,7 @@ def test_patch_sections_merge_and_slots_are_checked():
 
 def test_save_writes_user_presets_and_never_shipped_ones(tmp_path, monkeypatch):
     import copy
+
     from ifc_boq import paths
     monkeypatch.setattr(paths, "USER_PRESETS", tmp_path)
     lib = presets.rule_sets()

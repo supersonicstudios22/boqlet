@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
+from test_duplex import run
 
 from ifc_boq import presets
 from ifc_boq.sheets import boq_import
 from ifc_boq.storage import LocalStorage, write_json_gzip
 from ifc_boq.worker import execute
-from test_duplex import run
 
 
 @pytest.fixture(scope="module")

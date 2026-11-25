@@ -2,14 +2,14 @@ import json
 from io import BytesIO
 
 import pytest
+from conftest import DUPLEX
 from fastapi.testclient import TestClient
 from openpyxl import load_workbook
+from test_duplex import HAND_BOQ, q
 
-from conftest import DUPLEX
 from ifc_boq import presets, worker_http
 from ifc_boq.storage import LocalStorage, read_json_gzip
 from ifc_boq.worker import execute
-from test_duplex import HAND_BOQ, q
 
 
 def envelope(kind, data, prefix):
