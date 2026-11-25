@@ -11,7 +11,7 @@ a gap in [known-limitations.md](known-limitations.md).
 | Item | Why | Who |
 |---|---|---|
 | Person checks of v1 criteria 4 (traceability), 7 (Library) and 12 (first setup in < 15 min) | The only v1 criteria not checked at all | Owner |
-| Open exported workbooks in Excel and LibreOffice by hand | F12-AC1 is checked with openpyxl only | Owner or agent with LibreOffice |
+| Open exported workbooks in Microsoft Excel by hand (no repair prompt, totals as the sheet) | F12-AC1: LibreOffice is checked in CI since review B-11, Excel is not | Owner or agent with Excel |
 | A live acceptance run on booqlet.com with synthetic accounts (`ops/pilot/verify-live.sh`) | v1 acceptance ran on CI's local native stack, not on the pilot | Operator with host access |
 | On the host: apply `ops/pilot/compose.yaml` (JSON logs, metrics); install `ops/pilot/backup.sh` with an off-host copy; an alert destination; error tracking | Pilot operations are not qualified ([../operations/pilot.md](../operations/pilot.md)) | Operator |
 | Remove or repoint the old Vercel demo project | `main` no longer has the PoC (tag `poc-final`) | Owner |

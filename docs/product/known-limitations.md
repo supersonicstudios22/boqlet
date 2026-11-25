@@ -183,6 +183,7 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   gate; its budgets are not yet proven on a GitHub runner, TS-006). The 20 k-line lines page
   under 20 clients met p95 ≤ 500 ms at the API (122 ms) but was measured from a client only on a
   laptop through Docker Desktop (679 ms); a check from a Linux client is still to do (TF-179).
-- Workbooks are checked with openpyxl only; opening them in Excel and LibreOffice by hand is still to do.
+- Workbooks are opened in LibreOffice in CI (review B-11: PDF, recalculated totals equal the engine's);
+  opening them in Microsoft Excel is still a check by hand (F12-AC1).
 - The keyboard pass was done in the test campaign (Stage 4, fixes TF-158…TF-172); a screen-reader
   pass (NVDA) and the 15-minute first-setup test with a new person (v1-12) are still to do by hand.

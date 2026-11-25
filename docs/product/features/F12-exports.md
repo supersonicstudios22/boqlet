@@ -2,7 +2,7 @@
 
 > **Status (2026-11-25):** Built. The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
 > **Not built / differs:**
-> - Workbooks are checked with openpyxl only; never opened by hand in Excel or LibreOffice (F12-AC1).
+> - F12-AC1 is half automated: since review B-11 CI opens the run, saved-version and change-report workbooks in LibreOffice (printed to PDF, saved again with every formula recalculated; the recalculated amounts, subtotals and total equal the engine's, protection and the edits import survive). Opening them in Microsoft Excel is still a check by hand.
 
 ## Formats in v1
 

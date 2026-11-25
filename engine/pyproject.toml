@@ -39,4 +39,5 @@ ifc_boq = ["data/*.json"]
 testpaths = ["tests"]
 markers = [
   "slow: re-runs a review sample (docs/review/_samples); skipped when the samples are not fetched",
+  "libreoffice: opens exported workbooks in LibreOffice (review B-11); skipped without soffice unless BOQLET_REQUIRE_LIBREOFFICE=1",
 ]

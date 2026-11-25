@@ -338,9 +338,10 @@ with the numbers. The UI filters by stage, line and text; Excel gets a Log sheet
 
 With a BoQ id the BoQ sheet also carries a hidden line-key column, so an edited workbook can be
 imported back (`sheets/boq_import.py`, job `import_boq_edits`, F12). Formulas were verified to
-recalculate with zero errors in LibreOffice (PoC era); the product's workbooks are checked with
-openpyxl only, opening them in Excel and LibreOffice by hand is still to do
-([known limitations](../product/known-limitations.md)).
+recalculate with zero errors in LibreOffice (PoC era); since review B-11 CI's `workbooks` job opens
+the run, saved-version and change-report workbooks in LibreOffice headless and compares the
+recalculated amounts and subtotals with the engine's (`tests/test_export_libreoffice.py`, marker
+`libreoffice`). Opening them in Excel is still by hand ([known limitations](../product/known-limitations.md)).
 
 ## Command line (`cli.py`)
 
