@@ -99,6 +99,11 @@ project is archived except `archive` and `revokeShares` (above; added in FE-006)
 Four-eyes (org setting `fourEyes`, plan feature `approvalWorkflow`, only with approval on): the
 user who submitted a version cannot approve or save it, even as lead.
 
+Sharing a version that is not saved (review A-46, D105): with approval on, only the project's lead or
+an approver (an estimator gets `403 approval_required_for_share`, `required: approver`); with the org
+setting `shareOnlySavedVersions`, nobody (`403 saved_versions_only`). Saved versions and "latest saved"
+links stay open to everyone with `share`. A revision's permissions carry `shareWorking` for it.
+
 Members of the org with no project role and no admin rights don't see the project at all (it
 isn't listed, and direct access returns `404`, not `403`, so its existence isn't revealed).
 

@@ -12,6 +12,7 @@ import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useOrg } from "@/features/orgs/org-context";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { LIMITS } from "@/lib/limits";
 
@@ -59,7 +60,11 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
   const t = useTranslations("shares");
   const message = useErrorMessage();
   const systems = boq.currentRevision.currentRun?.classifications ?? [];
-  const [mode, setMode] = useState<"pinned" | "latest_issued">("pinned");
+  // Review A-46: under approval (or "share only saved versions") the working version is shared only by those allowed.
+  const rev = boq.currentRevision;
+  const workingBlocked = rev.status !== "issued" && rev.permissions?.shareWorking === false;
+  const savedOnly = useOrg().org.settings?.shareOnlySavedVersions === true;
+  const [mode, setMode] = useState<"pinned" | "latest_issued">(workingBlocked ? "latest_issued" : "pinned");
   const [include, setInclude] = useState<ShareInclude>({ lineDetail: true, viewer: true, log: false, excel: false, ...(systems[0] ? { groupBy: systems[0].id } : {}) });
   const [expiry, setExpiry] = useState<Expiry>("30");
   const [label, setLabel] = useState("");
@@ -107,13 +112,18 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
             <legend className="label-caps mb-1.5 text-muted-foreground">{t("what")}</legend>
             {(["pinned", "latest_issued"] as const).map((m) => (
               <label key={m} className="flex items-start gap-2">
-                <input type="radio" name="share-mode" className="mt-1" checked={mode === m} onChange={() => setMode(m)} data-testid={`share-mode-${m}`} />
+                <input type="radio" name="share-mode" className="mt-1" checked={mode === m} onChange={() => setMode(m)} disabled={m === "pinned" && workingBlocked} data-testid={`share-mode-${m}`} />
                 <span>
                   {t(`mode.${m}`, { label: boq.currentRevision.label })}
                   <span className="block text-muted-foreground">{t(`modeHint.${m}`)}</span>
                 </span>
               </label>
             ))}
+            {workingBlocked && (
+              <p className="text-muted-foreground" data-testid="share-working-restricted">
+                {t("workingRestricted", { reason: t(savedOnly ? "workingReason.savedOnly" : "workingReason.approval") })}
+              </p>
+            )}
           </fieldset>
           <Includes value={include} onChange={setInclude} systems={systems} />
           <Field id="share-expiry" label={t("expires")}>

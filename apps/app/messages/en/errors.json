@@ -75,6 +75,8 @@
     "no_draft": "There are no unpublished changes: edit the preset first.",
     "draft_conflict": "Someone else saved this draft in the meantime. Load theirs, or keep yours and overwrite it.",
     "draft_has_problems": "Fix the problems listed in the draft first.",
+    "approval_required_for_share": "With approval required, only the project's lead or an approver can share a version that isn't saved. Share the latest saved version instead.",
+    "saved_versions_only": "This organisation shares only saved versions. Share the latest saved version instead.",
     "draft_stale": "A newer version was published after this draft started. Keep your draft on top of it, or start again from it, then publish.",
     "model_too_large": "The file is larger than your plan allows for one model.",
     "model_archived": "This model is archived. Restore it to upload a new version.",

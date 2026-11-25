@@ -6,6 +6,11 @@
     "pinned": "This version as it is now ({label})",
     "latest_issued": "Always the latest saved version"
   },
+  "workingRestricted": "Only saved versions can be shared here: {reason} Share the latest saved version, or save this one first.",
+  "workingReason": {
+    "approval": "with approval required, a project's lead or an approver shares a version that isn't saved.",
+    "savedOnly": "this organisation shares only saved versions."
+  },
   "modeHint": {
     "pinned": "Keeps showing this run, even after you generate again.",
     "latest_issued": "Moves to each version you save; shows nothing until one is saved."

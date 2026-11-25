@@ -95,6 +95,29 @@ public class BoqAccess {
                 && billing.enabled(project.getOrgId(), "approvalWorkflow");
     }
 
+    /**
+     * Review A-46 (DEC-42): may the actor share a version that is not saved? Not when the org shares only saved
+     * versions (`saved_versions_only`); with approval on, only the project's lead or an approver
+     * (`approval_required_for_share`): the firm's check before something leaves the office holds for links too.
+     */
+    void requireShareWorking(Project project, UUID actor) {
+        var refusal = shareWorkingRefusal(project, actor);
+        if (refusal != null) throw refusal;
+    }
+
+    private ApiException shareWorkingRefusal(Project project, UUID actor) {
+        var settings = orgs.require(project.getOrgId(), actor).org().getSettings();
+        if (Boolean.TRUE.equals(settings.getShareOnlySavedVersions())) {
+            return failure(HttpStatus.FORBIDDEN, "saved_versions_only", "This organisation shares only saved versions.");
+        }
+        if (approval(project, actor) && project.getMyRole() != ProjectRole.LEAD && project.getMyRole() != ProjectRole.APPROVER) {
+            return new ApiException(HttpStatus.FORBIDDEN, "approval_required_for_share",
+                    "With approval required, only the project's lead or an approver shares a version that isn't saved.",
+                    Map.of("required", "approver"));
+        }
+        return null;
+    }
+
     boolean fourEyes(Scope scope, UUID actor) {
         return actor.equals(scope.revision().submitter()) && approval(scope.project(), actor)
                 && Boolean.TRUE.equals(orgs.require(scope.project().getOrgId(), actor).org().getSettings().getFourEyes());
@@ -187,6 +210,7 @@ public class BoqAccess {
         out.put("reopen", scope.bill().status() == Boq.StatusEnum.CONFIRMED && !scope.bill().archived() && allowed(base, "reopen"));
         // An archived BoQ gets no new or edited share link (review A-39); revoking stays (`revokeShares`).
         if (scope.bill().archived()) out.put("share", false);
+        out.put("shareWorking", allowed(out, "share") && shareWorkingRefusal(scope.project(), actor) == null);
         // An archived project is read-only (permissions.md, F02-AC4, TF-012): only view and seeAudit stay.
         if (scope.project().getStatus() == Project.StatusEnum.ARCHIVED) {
             out.replaceAll((key, value) -> value && (key.equals("view") || key.equals("seeAudit")));

@@ -99,6 +99,7 @@ class ShareLinks {
                         """, Boolean.class, version.bill(), org))) throw BoqAccess.missing("revision");
                 throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_body", "That version belongs to another BoQ.");
             }
+            if (version.status() != RevisionStatus.ISSUED) boqs.requireShareWorking(project, actor);
             if (version.run() == null || shown(version.run()) == null) {
                 throw BoqAccess.failure(HttpStatus.CONFLICT, "no_run", "Generate the BoQ before sharing this version.");
             }

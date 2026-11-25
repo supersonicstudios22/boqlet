@@ -55,6 +55,11 @@ active.
      approve or save their own submission.
    - Any edit while `in_review` or `approved` warns, then returns the revision to `draft` and
      tells the reviewers the review was withdrawn (BR-23).
+   - **Share links follow the check** (review A-46, DEC-42, D105): while approval is on, a link to
+     a version that is not saved is made only by the project's lead or an approver; others share
+     a saved version or "always the latest saved version" (`403 approval_required_for_share`).
+     The org setting **Share only saved versions** (`shareOnlySavedVersions`) applies that to
+     everyone, with approval on or off (`403 saved_versions_only`). Links made before stay.
 5. **Confirm BoQ** (lead; with approval on, an approver or lead): "Mark this BoQ as done".
    Saves a final version first if the working version differs from the last saved one (same
    dialog as §2; with approval on, the last saved version must already be approved and saved).

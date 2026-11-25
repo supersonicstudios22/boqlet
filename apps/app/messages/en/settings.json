@@ -38,6 +38,8 @@
     "dateFormatHint": "For example dd.MM.yyyy; empty uses the language's format.",
     "workflow": "Sharing and approval",
     "publicLinks": "Allow public share links",
+    "savedOnly": "Share only saved versions",
+    "savedOnlyHint": "Links show saved versions only, for everyone. With approval required, only leads and approvers share a version that isn't saved.",
     "approval": "Saving a version needs review and approval",
     "fourEyes": "Four eyes: the approver must be someone else",
     "save": "Save changes",

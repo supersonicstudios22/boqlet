@@ -131,6 +131,7 @@ export function GeneralSettings() {
           <section className="flex flex-col gap-3">
             <h2 className="label-caps">{t("workflow")}</h2>
             <Toggle id="org-links" checked={settings.publicLinksAllowed ?? true} onChange={(v) => set("publicLinksAllowed", v)} label={t("publicLinks")} disabled={!inPlan("shareLinks") && !(settings.publicLinksAllowed ?? true)} hint={inPlan("shareLinks") ? undefined : t("notInPlan")} />
+            <Toggle id="org-saved-only" checked={settings.shareOnlySavedVersions ?? false} onChange={(v) => set("shareOnlySavedVersions", v)} label={t("savedOnly")} hint={t("savedOnlyHint")} />
             <Toggle id="org-approval" checked={settings.approvalRequired ?? false} onChange={(v) => set("approvalRequired", v)} label={t("approval")} disabled={!inPlan("approvalWorkflow") && !settings.approvalRequired} hint={inPlan("approvalWorkflow") ? undefined : t("notInPlan")} />
             <Toggle id="org-four-eyes" checked={settings.fourEyes ?? false} onChange={(v) => set("fourEyes", v)} label={t("fourEyes")} disabled={!settings.approvalRequired || !inPlan("approvalWorkflow")} />
           </section>

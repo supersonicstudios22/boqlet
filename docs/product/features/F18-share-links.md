@@ -17,7 +17,9 @@ explanations and 3D view the firm sees (P26).
 1. **Create** (BoQ workspace › Share): a dialog with:
    - **What:** "This version as it is now" (pins the working or saved version's current run;
      default) or "Always the latest saved version of this BoQ" (follows each newly saved version; shows
-     nothing until one is saved).
+     nothing until one is saved). Pinning a version that is not saved defers to approval (F09 §4,
+     review A-46): with approval on, only the lead or an approver may; with "Share only saved
+     versions", nobody may. The dialog then offers the latest saved version and says why.
    - **Includes:** the sheet (always), grouped by the chosen classification with its item texts
      (P14); line detail with **How it is calculated** (F06 §5, default on); the **3D view**
      (F07, default on); the calculation log (default off); **Excel download** (default off).

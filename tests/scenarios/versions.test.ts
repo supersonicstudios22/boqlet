@@ -336,3 +336,66 @@ describe("frozen exports and the audit CSV (F12, FE-032)", () => {
     expect((await fetch(`${API_URL}/projects/${projectId}/audit.csv`, { headers: await authentication(estimator.token) })).status).toBe(403);
   });
 });
+
+/**
+ * Review A-46 (LEAD-004, DEC-42): with approval required, a link to a version that isn't saved is the lead's or
+ * an approver's to make; others share saved versions (pinned, or the latest saved one). "Share only saved
+ * versions" applies that to everyone. Links made before stay.
+ */
+describe("A-46 sharing under approval", () => {
+  let shareBoq: string;
+  let saved: string;
+  const current = async (u: TestUser = lead) => (await as(u).GET("/boqs/{boqId}", { params: { path: { boqId: shareBoq } } })).data!.currentRevision;
+  const share = (u: TestUser, body: Record<string, unknown>) => as(u).POST("/boqs/{boqId}/share-links", { params: { path: { boqId: shareBoq } }, body: body as never });
+  const settings = (s: Record<string, unknown>) => as(lead).PATCH("/orgs/{orgId}", { params: { path: { orgId } }, body: { settings: s } });
+  async function run() {
+    const { data } = await as(lead).POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: (await current()).id } } });
+    const deadline = Date.now() + 120_000;
+    for (;;) {
+      const { data: r } = await as(lead).GET("/runs/{runId}", { params: { path: { runId: data!.run.id } } });
+      if (r && r.status !== "queued" && r.status !== "running") return r;
+      if (Date.now() > deadline) throw new Error("run did not finish");
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+
+  beforeAll(async () => {
+    expect((await settings({ approvalRequired: false, shareOnlySavedVersions: false })).response.status).toBe(200);
+    shareBoq = (await as(lead).POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "Shared" } })).data!.id;
+    await run();
+    const issued = await save(lead, (await current()).id);
+    expect(issued.response.status).toBe(200);
+    saved = issued.data!.id;
+    await run();
+  }, 300_000);
+
+  it("an estimator can't pin the working version; an approver can; a saved version and the latest saved one stay open", async () => {
+    expect((await settings({ approvalRequired: true, fourEyes: true })).response.status).toBe(200);
+    const working = await current(estimator);
+    expect(working.status).toBe("draft");
+    expect(working.permissions).toMatchObject({ share: true, shareWorking: false });
+    const refused = await share(estimator, { mode: "pinned", revisionId: working.id });
+    expect(refused.response.status).toBe(403);
+    expect(refused.error).toMatchObject({ code: "approval_required_for_share", details: { required: "approver" } });
+    // Without a revision id a pinned link pins the working version: refused the same way.
+    expect((await share(estimator, { mode: "pinned" })).error).toMatchObject({ code: "approval_required_for_share" });
+    expect((await share(estimator, { mode: "pinned", revisionId: saved })).response.status).toBe(201);
+    expect((await share(estimator, { mode: "latest_issued" })).response.status).toBe(201);
+    expect((await current(approver)).permissions).toMatchObject({ shareWorking: true });
+    expect((await share(approver, { mode: "pinned", revisionId: working.id })).response.status).toBe(201);
+    expect((await share(lead, { mode: "pinned", revisionId: working.id })).response.status).toBe(201);
+  });
+
+  it("'share only saved versions' refuses a working pin for everyone, even with approval off; existing links stay", async () => {
+    const before = (await as(lead).GET("/boqs/{boqId}/share-links", { params: { path: { boqId: shareBoq } } })).data!.filter((l) => l.status === "active").length;
+    expect((await settings({ approvalRequired: false, shareOnlySavedVersions: true })).response.status).toBe(200);
+    const working = await current();
+    expect(working.permissions).toMatchObject({ share: true, shareWorking: false });
+    expect((await share(lead, { mode: "pinned", revisionId: working.id })).error).toMatchObject({ code: "saved_versions_only" });
+    expect((await share(lead, { mode: "pinned", revisionId: saved })).response.status).toBe(201);
+    const after = (await as(lead).GET("/boqs/{boqId}/share-links", { params: { path: { boqId: shareBoq } } })).data!.filter((l) => l.status === "active").length;
+    expect(after).toBe(before + 1);
+    expect((await settings({ shareOnlySavedVersions: false })).response.status).toBe(200);
+    expect((await current()).permissions).toMatchObject({ shareWorking: true });
+  });
+});

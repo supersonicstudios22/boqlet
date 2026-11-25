@@ -2067,7 +2067,13 @@ export interface paths {
         };
         get: operations["listShareLinks"];
         put?: never;
-        /** @description `409 boq_archived` on an archived BoQ (restore it first); `409 public_links_off`; `409 no_run` for a pinned version without a run. */
+        /**
+         * @description `409 boq_archived` on an archived BoQ (restore it first); `409 public_links_off`; `409 no_run` for a pinned version without a run.
+         *     A pinned link to a version that is not saved (not `issued`; review A-46, DEC-42): `403 saved_versions_only` when the org
+         *     has `shareOnlySavedVersions`; `403 approval_required_for_share` (`details.required: approver`) when approval is on and the
+         *     caller is not the project's lead or an approver. The revision's `permissions.shareWorking` says whether the caller may.
+         *     Links made before stay as they are.
+         */
         post: operations["createShareLink"];
         delete?: never;
         options?: never;
@@ -3015,10 +3021,12 @@ export interface components {
             /** @default true */
             publicLinksAllowed?: boolean;
             /**
-             * @description Saving a version needs review and approval (F09 §4, P29)
+             * @description Saving a version needs review and approval (F09 §4, P29). While on, only a project's lead or approvers share versions that are not saved (review A-46)
              * @default false
              */
             approvalRequired?: boolean;
+            /** @description Share links show only saved versions, for everyone: a pinned link to a version that is not saved is refused (review A-46). Off when not set (no `default`: a partial settings PATCH would reset it, TF-191) */
+            shareOnlySavedVersions?: boolean;
             /** @description Overrides the locale's separators (P35) */
             numberFormat?: {
                 /** @enum {string} */
