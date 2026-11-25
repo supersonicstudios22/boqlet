@@ -70,6 +70,11 @@ class ModelController implements ModelsApi {
     }
 
     @Override
+    public ResponseEntity<UploadInstructions> renewModelUpload(UUID id) {
+        return ResponseEntity.ok(models.renewUpload(id, actor()));
+    }
+
+    @Override
     public ResponseEntity<ModelVersion> retryModelVersion(UUID id, UUID idempotencyKey) {
         UUID actor = actor();
         return ResponseEntity.ok(idempotency.once(actor, idempotencyKey, 200, ModelVersion.class,

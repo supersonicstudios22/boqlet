@@ -662,6 +662,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/model-versions/{versionId}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: components["parameters"]["VersionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fresh signed URLs for a version still waiting for its file
+         * @description Signed upload URLs last an hour, an upload 24 hours (state-machines.md). A client resuming an interrupted upload after its URLs expired asks for new ones: the same instructions as `createModelVersion`, for the same storage upload, so parts already sent stay sent and their ETags stay valid. Needs `editModels`.
+         */
+        post: operations["renewModelUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/model-versions/{versionId}/retry": {
         parameters: {
             query?: never;
@@ -2854,7 +2876,7 @@ export interface components {
             };
             /** Format: date-time */
             expiresAt?: string;
-            /** @description Multipart upload URLs for files over 100 MB */
+            /** @description Multipart upload URLs for files over 100 MiB: PUT bytes `[(partNumber - 1) * partSizeBytes, partNumber * partSizeBytes)` of the file to each part's URL, keep each answer's `ETag` header and send them all to `completeModelUpload`. `url` is then the first part's URL. */
             parts?: {
                 partNumber: number;
                 url: string;
@@ -5887,6 +5909,37 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             402: components["responses"]["LimitReached"];
+        };
+    };
+    renewModelUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: components["parameters"]["VersionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadInstructions"];
+                };
+            };
+            /** @description `upload_not_awaited`: the version already has its file, or failed (`upload_expired` after 24 hours) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     retryModelVersion: {

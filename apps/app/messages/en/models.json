@@ -19,7 +19,10 @@
   "upload": {
     "notIfc": "Choose an IFC file (.ifc).",
     "tooLarge": "This file is larger than your plan allows ({max} MB).",
-    "uploading": "Uploading {pct} %"
+    "uploading": "Uploading {pct} %",
+    "retrying": "Uploading {pct} %: the connection dropped, trying again…",
+    "stopped": "The upload of {name} stopped at {pct} %.",
+    "resume": "Resume upload"
   },
   "status": {
     "awaiting_upload": "Waiting for the file",

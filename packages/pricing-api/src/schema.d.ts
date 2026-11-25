@@ -1448,7 +1448,7 @@ export interface components {
             };
             /** Format: date-time */
             expiresAt?: string;
-            /** @description Multipart upload URLs for files over 100 MB */
+            /** @description Multipart upload URLs for files over 100 MiB: PUT bytes `[(partNumber - 1) * partSizeBytes, partNumber * partSizeBytes)` of the file to each part's URL, keep each answer's `ETag` header and send them all to `completeModelUpload`. `url` is then the first part's URL. */
             parts?: {
                 partNumber: number;
                 url: string;

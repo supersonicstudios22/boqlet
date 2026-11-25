@@ -46,10 +46,12 @@ UI ──POST /model-versions/{v}/complete────────────�
                                                           enqueue parse
 ```
 Multipart: the API returns `upload.parts[]` (one URL per 16 MiB part) when `sizeBytes > 100 MiB`
-(`ObjectStorage.java`), and `complete` takes the ETags. **Gap:** the app's uploader
-(`apps/app/src/features/models/upload.ts`) ignores `parts` and PUTs the whole file to
-`upload.url`, so uploads above 100 MiB from the browser are not handled as designed; it also
-accepts only `.ifc` although the API accepts `.ifczip`.
+(`ObjectStorage.java`), and `complete` takes the ETags. The app's uploader
+(`apps/app/src/features/models/upload.ts`) PUTs each part's slice (three in flight, three retries
+with backoff per part), reads each answer's `ETag` (the bucket's CORS exposes it: `ops/local/init-storage.py`,
+`ops/pilot/configure-storage.py`) and completes with all of them. URLs signed for an hour are
+renewed for the same upload id by `POST /model-versions/{id}/upload` (`renewModelUpload`), so a
+resumed upload keeps the parts it sent. It accepts only `.ifc` although the API accepts `.ifczip`.
 
 ## Jobs
 

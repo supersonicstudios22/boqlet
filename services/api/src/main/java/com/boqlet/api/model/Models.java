@@ -252,6 +252,27 @@ public class Models {
         return enqueue(project, row, actor);
     }
 
+    /**
+     * New signed URLs for a version still waiting for its file (A-40): a browser resuming an upload after its
+     * URLs expired. The storage upload stays the same, so parts already sent stay sent.
+     */
+    @Transactional
+    public UploadInstructions renewUpload(UUID id, UUID actor) {
+        projects.lock(version(id).project(), actor, "editModels");
+        VersionRow row = version(id);
+        checkModelActive(model(row.tree().getModelId()));
+        if (row.tree().getStatus() != ModelVersionStatus.AWAITING_UPLOAD) {
+            throw failure(HttpStatus.CONFLICT, "upload_not_awaited", "This version is not waiting for its file.");
+        }
+        // Past 24 h the upload has failed; the hourly sweep (or `complete`) records it, a refusal here can't
+        // (it rolls the transaction back).
+        if (Boolean.TRUE.equals(database.queryForObject(
+                "SELECT created_at <= now() - interval '24 hours' FROM model_versions WHERE id = ?", Boolean.class, id))) {
+            throw failure(HttpStatus.CONFLICT, "upload_expired", "The upload was not completed within 24 hours.");
+        }
+        return storage.renew(row.upload(), row.tree().getSizeBytes(), row.multipart());
+    }
+
     @Transactional
     public ModelVersion retry(UUID id, UUID actor) {
         Project project = projects.lock(version(id).project(), actor, "editModels");

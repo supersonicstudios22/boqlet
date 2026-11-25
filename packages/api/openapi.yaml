@@ -636,6 +636,16 @@ paths:
         "200": { description: Version queued or ready (deduplicated), content: { application/json: { schema: { $ref: "#/components/schemas/ModelVersion" } } } }
         "400": { $ref: "#/components/responses/BadRequest" }
         "402": { $ref: "#/components/responses/LimitReached" }
+  /model-versions/{versionId}/upload:
+    parameters: [{ $ref: "#/components/parameters/VersionId" }]
+    post:
+      tags: [models]
+      operationId: renewModelUpload
+      summary: Fresh signed URLs for a version still waiting for its file
+      description: "Signed upload URLs last an hour, an upload 24 hours (state-machines.md). A client resuming an interrupted upload after its URLs expired asks for new ones: the same instructions as `createModelVersion`, for the same storage upload, so parts already sent stay sent and their ETags stay valid. Needs `editModels`."
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UploadInstructions" } } } }
+        "409": { description: "`upload_not_awaited`: the version already has its file, or failed (`upload_expired` after 24 hours)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /model-versions/{versionId}/retry:
     parameters: [{ $ref: "#/components/parameters/VersionId" }]
     post:
@@ -2668,7 +2678,7 @@ components:
         expiresAt: { type: string, format: date-time }
         parts:
           type: array
-          description: Multipart upload URLs for files over 100 MB
+          description: "Multipart upload URLs for files over 100 MiB: PUT bytes `[(partNumber - 1) * partSizeBytes, partNumber * partSizeBytes)` of the file to each part's URL, keep each answer's `ETag` header and send them all to `completeModelUpload`. `url` is then the first part's URL."
           items:
             type: object
             required: [partNumber, url]

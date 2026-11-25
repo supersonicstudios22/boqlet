@@ -71,10 +71,9 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   written. The 12 h idle expiry is hard-coded (`identity/Sessions.java`), not configurable (F01).
 
 **Models, BoQs, sheet, viewer**
-- **Uploads over 100 MB from the browser are likely broken**: Java answers with multipart part URLs
-  (16 MB parts, `storage/ObjectStorage.java`), but the app PUTs the whole file to the first URL
-  (`apps/app/src/features/models/upload.ts`). Not verified at runtime. No resume after an
-  interruption. The app refuses `.ifczip`, which Java accepts.
+- An interrupted upload resumes only in the tab that started it (A-40 keeps the parts sent in
+  memory); after a reload the file goes up again as a new version. The app refuses `.ifczip`,
+  which Java accepts.
 - Scope rules per model / BoQ are shown, not editable. A model can be removed (archived) from its
   page (TF-080), but a model version can't be deleted from the UI (the endpoint exists and answers
   `409 version_in_use` with what uses it, TF-032); no note column.

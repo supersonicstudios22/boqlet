@@ -54,7 +54,7 @@ These outcomes are the yardstick for every feature and test. The test plans map 
 
 | Id | Outcome | Features | State |
 |---|---|---|---|
-| **O1** | **From IFC models to a measured, coded BoQ in minutes**: several discipline models per project, federated into one BoQ, nothing counted twice | F03, F04 | Built. Not built: uploads over 100 MB from the browser (likely broken), coordinate alignment |
+| **O1** | **From IFC models to a measured, coded BoQ in minutes**: several discipline models per project, federated into one BoQ, nothing counted twice | F03, F04 | Built. Not built: coordinate alignment |
 | **O2** | **Measure the firm's own way**: rule sets, classifications with item numbers and item texts, and dictionaries as versioned presets; a setup wizard for the first ones | F10, F16 | Built. Gaps: wizard simplified, no per-project default-preset pickers, scope rules not editable |
 | **O3** | **Trust every number**: each line explains itself ("How it is calculated", formula, parameters, element shares), and line ↔ elements link both ways in the 3D viewer | F06, F07 | Built |
 | **O4** | **Nothing silently dropped**: everything the engine can't decide becomes a question; answers are kept and carried across versions and BoQs; work not in the models is flagged as the user's to add | F05, F06 | Built. Gap: no AI name suggestions; unknown local-language names are the main source of questions |
@@ -141,7 +141,7 @@ Planned in the specs but **not built**:
 | Trial driven by plan config, downgrade rules | plans-and-limits | Admins set `trialEndsAt` by hand; no job drops an org to Free; excess projects don't become read-only |
 | Default presets chosen per project | F02 | Defaults come from the org's starred presets or the wizard's "Publish all" |
 | Scope rules editable per model / BoQ | F03, D44 | Stored and used by the engine; the UI only shows them |
-| Large uploads (> 100 MB) | F03 | Java returns multipart part URLs; the app PUTs the whole file to the first one. Likely broken, not verified at runtime. Resume isn't built either. A model can be removed (archived, P54 Q50); a version can't be deleted from the UI |
+| Large uploads (> 100 MB) | F03 | Multipart in 16 MiB parts with retries; resume in the same tab only (A-40). A model can be removed (archived, P54 Q50); a version can't be deleted from the UI |
 | Server-side grouping above 20,000 lines; three-line item-text clamp | F06 | The client loads every line of the run, 20,000 per request, and groups them in the browser |
 | Setup wizard as specified | F16 | Simplified: steps 2 and 3 are the full editors; no "Suggest codes", no "setup in progress by…" |
 | Pricing module (vendors, pricebooks, estimates, offer requests) | P32–P36, F11, F17, F20 | Deferred (P48). Only `openapi-pricing.yaml` and the core's extension points exist; `packages/pricing-ui` does not exist |

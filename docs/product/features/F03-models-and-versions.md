@@ -1,8 +1,8 @@
 # F03 Models and versions
 
-> **Status (2026-11-22):** Partly built. Models, versions, browser upload to signed URLs, parse jobs with live progress and the input-check report are built. Every check row opens the viewer with its affected elements (TF-125); "Remove model" archives a model (P54 Q50, TF-080); a discipline is `detect` or one of the org's federation keys, and the model forms offer those (TF-128); processing minutes are checked before any upload (TF-076); a version a BoQ uses can't be deleted (`409 version_in_use`, TF-032).
+> **Status (2026-11-25):** Partly built. Models, versions, browser upload to signed URLs (files over 100 MiB in 16 MiB parts, each retried, resumable in the same tab, review A-40), parse jobs with live progress and the input-check report are built. Every check row opens the viewer with its affected elements (TF-125); "Remove model" archives a model (P54 Q50, TF-080); a discipline is `detect` or one of the org's federation keys, and the model forms offer those (TF-128); processing minutes are checked before any upload (TF-076); a version a BoQ uses can't be deleted (`409 version_in_use`, TF-032).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
-> - Uploads over 100 MB: Java returns multipart part URLs (`services/api/src/main/java/com/boqlet/api/storage/ObjectStorage.java`, 16 MB parts) but the app PUTs the whole file to the first URL and ignores `parts` (`apps/app/src/features/models/upload.ts`). Likely broken; not verified at runtime. No resume after an interruption.
+> - An interrupted upload resumes only in the tab that started it (the parts sent and their ETags are kept in memory); after a reload the file is uploaded again as a new version.
 > - `.ifczip` is accepted by Java (`Models.java`) but refused by the app (`upload-button.tsx` accepts `.ifc` only).
 > - Scope rules per model or BoQ can't be edited; the UI shows "Whole model / N rules" only (`apps/app/src/features/boqs/setup-tab.tsx`).
 > - Version list: no "used by", note column, comparison of two versions' summaries, or delete button (`DELETE /model-versions/{id}` exists; the app never calls it).
@@ -32,7 +32,11 @@ background, and show what is in them and what is wrong with them before any BoQ 
    1. Client validates: extension `.ifc` (`.ifczip` later), size ≤ `maxModelVersionMb`.
    2. `POST /models/{id}/versions {fileName, sizeBytes, sha256?, note?}` → `{version, upload: {url, method, headers}}`.
       Checks entitlements (`402 limit_reached`, `maxModelVersionMb`, `processingMinutesPerMonth`).
-   3. Client PUTs the file to `upload.url` with progress (resumable/multipart for > 100 MB).
+   3. Client PUTs the file to `upload.url` with progress. Over 100 MiB, `upload.parts` holds one signed
+      URL per 16 MiB part (`partSizeBytes`): the client PUTs each slice (three at a time, each retried
+      three times with backoff), keeps each part's `ETag` and sends them all to `complete`. Signed URLs
+      last an hour: `POST /model-versions/{id}/upload` renews them for the same storage upload
+      (`renewModelUpload`, `409 upload_not_awaited` once the file is in) (A-40).
    4. `POST /model-versions/{id}/complete` → backend verifies the object exists, checks the
       header starts with `ISO-10303-21`, computes sha256 if missing, then either reuses an
       identical parse (same sha256 in org → straight to `ready`) or enqueues a `parse` job.
@@ -73,8 +77,9 @@ background, and show what is in them and what is wrong with them before any BoQ 
 
 - Same file uploaded twice to the same model: allowed, a new version number with "identical to
   v3" shown. No re-parse.
-- Upload interrupted: the version stays `awaiting_upload`. Resume is offered on the same
-  device. Abandoned versions are cleaned up after 24 h.
+- Upload interrupted: the version stays `awaiting_upload`. "Resume upload" continues it in the
+  same tab, sending only the parts not yet sent (fresh URLs when they expired). Abandoned
+  versions are cleaned up after 24 h.
 - A huge model (> 300 MB) on Enterprise: allowed, routed to the large worker pool (NFR).
 - Models in different coordinate systems: v1 assumes shared coordinates. The run warns (BR-32).
 

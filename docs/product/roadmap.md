@@ -22,8 +22,9 @@ a gap in [known-limitations.md](known-limitations.md).
    stack (a test image of the API with `SuiteSupport`, or a suite profile), port the browser flows
    that matter to `apps/app/e2e-java` (sheet edits, questions, Library editors, versions, exports,
    admin, setup wizard), and bring back the axe and pseudo-locale checks. Protects O2–O7 on every push.
-2. **Large uploads**: multipart upload with progress and resume in the app (Java already signs the
-   parts). Without it, real projects over 100 MB can't be uploaded (O1).
+2. **Large uploads**: done (review A-40, 2026-11-25): multipart upload with per-part retries and
+   resume in the same tab. Left: resume after a reload (the file is chosen again; storage keeps the
+   parts for 24 h, `ListParts` would tell which).
 3. **Collect a minimum real-world corpus**: modern Revit IFC4, Archicad, Tekla with rebar, Bonsai,
    a federated office set, and **2–3 reference projects with a professional BoQ** as the answer key.
    Run each with `npm run corpus`, fix quirks, add tests. Nothing else de-risks accuracy as much (O1, O3).

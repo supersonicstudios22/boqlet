@@ -62,30 +62,47 @@ public class ObjectStorage {
 
     public Upload upload(String key, long size) {
         configured();
-        var expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(UPLOAD_TTL);
-        if (size <= MULTIPART_THRESHOLD) {
-            String url = presigner.presignPutObject(request -> request.signatureDuration(UPLOAD_TTL)
-                    .putObjectRequest(object -> object.bucket(bucket).key(key).contentLength(size))).url().toString();
-            return new Upload(null, new UploadInstructions(UploadInstructions.MethodEnum.PUT, url).expiresAt(expiresAt));
-        }
+        if (size <= MULTIPART_THRESHOLD) return new Upload(null, instructions(key, size, null));
         String multipart = client.createMultipartUpload(request -> request.bucket(bucket).key(key)).uploadId();
-        var urls = new ArrayList<UploadInstructionsPartsInner>();
         try {
-            int number = 1;
-            for (long remaining = size; remaining > 0; remaining -= PART_SIZE) {
-                final int part = number++;
-                long bytes = Math.min(remaining, PART_SIZE);
-                String url = presigner.presignUploadPart(request -> request.signatureDuration(UPLOAD_TTL)
-                        .uploadPartRequest(object -> object.bucket(bucket).key(key).uploadId(multipart)
-                                .partNumber(part).contentLength(bytes))).url().toString();
-                urls.add(new UploadInstructionsPartsInner(part, url));
-            }
+            return new Upload(multipart, instructions(key, size, multipart));
         } catch (RuntimeException failure) {
             abort(key, multipart);
             throw failure;
         }
-        return new Upload(multipart, new UploadInstructions(UploadInstructions.MethodEnum.PUT, urls.getFirst().getUrl())
-                .expiresAt(expiresAt).partSizeBytes(PART_SIZE).parts(urls));
+    }
+
+    /**
+     * Fresh signed URLs for an upload still under way (A-40): the same object, and for a multipart upload the
+     * same upload id, so parts already sent keep their ETags.
+     */
+    public UploadInstructions renew(String key, long size, String multipart) {
+        configured();
+        if ((multipart == null) != (size <= MULTIPART_THRESHOLD)) {
+            throw new IllegalStateException("The upload's multipart state does not match its size.");
+        }
+        return instructions(key, size, multipart);
+    }
+
+    private UploadInstructions instructions(String key, long size, String multipart) {
+        var expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(UPLOAD_TTL);
+        if (multipart == null) {
+            String url = presigner.presignPutObject(request -> request.signatureDuration(UPLOAD_TTL)
+                    .putObjectRequest(object -> object.bucket(bucket).key(key).contentLength(size))).url().toString();
+            return new UploadInstructions(UploadInstructions.MethodEnum.PUT, url).expiresAt(expiresAt);
+        }
+        var urls = new ArrayList<UploadInstructionsPartsInner>();
+        int number = 1;
+        for (long remaining = size; remaining > 0; remaining -= PART_SIZE) {
+            final int part = number++;
+            long bytes = Math.min(remaining, PART_SIZE);
+            String url = presigner.presignUploadPart(request -> request.signatureDuration(UPLOAD_TTL)
+                    .uploadPartRequest(object -> object.bucket(bucket).key(key).uploadId(multipart)
+                            .partNumber(part).contentLength(bytes))).url().toString();
+            urls.add(new UploadInstructionsPartsInner(part, url));
+        }
+        return new UploadInstructions(UploadInstructions.MethodEnum.PUT, urls.getFirst().getUrl())
+                .expiresAt(expiresAt).partSizeBytes(PART_SIZE).parts(urls);
     }
 
     public void seal(String incoming, String source, String multipart, List<CompleteModelUploadRequestPartsInner> parts,
