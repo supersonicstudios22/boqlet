@@ -111,6 +111,9 @@ services:
       AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?}
       AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?}
       BOQLET_ENGINE_HTTP_URL: http://engine:8788
+      # The HTTP worker's shared secret (review A-36): the engine below gets the same value. An empty value
+      # leaves both without one (the network boundary only); docs/operations/pilot.md "Worker token".
+      BOQLET_WORKER_TOKEN: ${WORKER_TOKEN:-}
       BOQLET_ENGINE_TRANSPORT: postgres
       BOQLET_ENGINE_MODEL_POOL: ${ENGINE_QUEUE_POOL:-default}
       BOQLET_ENGINE_GENERAL_POOL: ${ENGINE_QUEUE_POOL:-default}
@@ -133,7 +136,9 @@ services:
   engine:
     <<: *service
     image: boqlet-engine:${PILOT_RELEASE:?}
-    environment: *engine-environment
+    environment:
+      <<: *engine-environment
+      BOQLET_WORKER_TOKEN: ${WORKER_TOKEN:-}
     networks: [backend]
     mem_limit: ${ENGINE_HTTP_MEMORY:-1536m}
     cpus: ${ENGINE_HTTP_CPUS:-1.0}

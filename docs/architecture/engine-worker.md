@@ -173,6 +173,9 @@ Excel (`boq/PublicShares.java`).
   (default `PT30M`) bounds a job; `BOQLET_ENGINE_HTTP_CONCURRENCY` (default 1) caps the API's
   simultaneous HTTP jobs (`worker/JobDispatcher.java`).
 - `POST {url}/rpc/{op}`, `GET {url}/health`.
+- With `BOQLET_WORKER_TOKEN` set, `/jobs` and `/rpc` need `Authorization: Bearer <token>` (else `401`,
+  constant-time compare); Java sends it from `boqlet.worker.token` (the same variable). `/health` stays
+  open; the interactive docs and `/openapi.json` are off (review A-36). The local stack and the pilot set it.
 - Storage: `ENGINE_STORAGE=file://…` (default `engine/.cache/worker`; `npm run dev:engine-worker`
   uses `engine/.cache/blobs`) or `s3://bucket` with `ENGINE_S3_ENDPOINT`.
 - `ENGINE_HTTP_CONCURRENCY` sets simultaneous jobs per HTTP process (default 1).

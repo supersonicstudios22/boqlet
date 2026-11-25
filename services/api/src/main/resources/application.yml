@@ -79,6 +79,7 @@ boqlet:
     public-endpoint: ${BOQLET_S3_PUBLIC_ENDPOINT:}
   worker:
     url: ${BOQLET_ENGINE_HTTP_URL:http://127.0.0.1:8788}
+    token: ${BOQLET_WORKER_TOKEN:}
     concurrency: ${BOQLET_ENGINE_HTTP_CONCURRENCY:1}
     job-timeout: ${BOQLET_ENGINE_JOB_TIMEOUT:PT30M}
     max-upload-mib: ${BOQLET_MAX_UPLOAD_MIB:1024}

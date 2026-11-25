@@ -71,6 +71,28 @@ Compose file against it) and leaves the rest to Narudzbe and the OS. CPU limits 
 
 Set values in `pilot.env`. On a drained queue, apply slot, CPU or memory changes with `docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps queue`. Pool, timeout and maximum upload size must be kept in sync with the API and relevant engine services. Review queue wait time, job duration, peak memory and host headroom with actual pilot IFCs before increasing parallelism. The proxy has a 60-second read timeout and a 120-second write timeout. The upload API uses a single PUT through 100 MiB and 16 MiB parts above that, so check slow connections with actual pilot models before promising supported transfer times.
 
+## Worker token
+
+The HTTP worker (`engine`) refuses `/jobs` and `/rpc` without the API's bearer token once it has
+one (review A-36, D98). Both read `WORKER_TOKEN` from `pilot.env` (`api` as `BOQLET_WORKER_TOKEN`,
+`engine` likewise, `ops/pilot/compose.yaml`); with the key absent or empty both run without it, as
+before (the network boundary only), so a deploy whose trusted Compose file predates the change
+keeps working. `prepare-state.sh` writes the key for a new host. **Turning it on is an operator
+task, and the API and the engine must get it together**, or every rpc (names, preset checks, code
+lists, the share page's Excel) answers `503 engine_unavailable`:
+
+1. Point `/srv/boqlet/current` at a release whose `ops/pilot/compose.yaml` passes `WORKER_TOKEN`
+   (`grep WORKER_TOKEN /srv/boqlet/current/ops/pilot/compose.yaml`).
+2. Add the key once: `printf 'WORKER_TOKEN=%s\n' "$(openssl rand -hex 32)" >> /srv/boqlet/state/pilot.env`
+   (as root; the file stays mode 0600).
+3. Recreate both in one command: `docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps api engine`,
+   then `sh check-private.sh` and `python3 check-public-edge.py`.
+4. Check the guard (a call without the token):
+   `docker compose --env-file /srv/boqlet/state/pilot.env exec -T engine python -c "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8788/rpc/check', b'{}', {'Content-Type': 'application/json'}))"`
+   ends with `HTTP Error 401: Unauthorized`, and the engine log no longer says "BOQLET_WORKER_TOKEN is not set".
+
+To rotate it, replace the line and repeat step 3. To roll back, empty the value and repeat step 3.
+
 ## Pilot enrollment *(2026-11-16 go-live record; superseded by setup links, `auth-and-deploys.md` "Sign-in")*
 
 Keycloak registration and password reset start disabled. Keep `PILOT_EMAILS` limited to verified bootstrap owners. Those addresses bypass the requirement for a pending organisation invitation. With the address confirmed, create the owner in the Boqlet realm through private admin access and use a verified password setup flow. Enable Keycloak registration with mandatory email verification only after configuring the realm SMTP settings. Configure the same Boqlet-scoped sender in the Java API via `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` and `SMTP_FROM` in `pilot.env` (passed to the API as `BOQLET_SMTP_*`). This still applies to invitation and notification email. Verify delivered mail to an authorized test recipient before sending real invitations. With mail enabled, additional pilots join using a pending matching invitation. Keep public Keycloak administration blocked.

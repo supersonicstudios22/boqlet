@@ -17,7 +17,7 @@ temp=$(mktemp "$state/.pilot.XXXXXX")
 trap 'rm -f "$temp"' EXIT HUP INT TERM
 {
   printf 'PILOT_RELEASE=%s\nPILOT_STATE_DIR=%s\n' "$release" "$state"
-  for key in DB_ADMIN_PASSWORD DB_PASSWORD QUEUE_PASSWORD IDENTITY_DB_PASSWORD IDENTITY_ADMIN_PASSWORD INVITATION_SECRET STORAGE_SECRET_KEY; do
+  for key in DB_ADMIN_PASSWORD DB_PASSWORD QUEUE_PASSWORD IDENTITY_DB_PASSWORD IDENTITY_ADMIN_PASSWORD INVITATION_SECRET STORAGE_SECRET_KEY WORKER_TOKEN; do
     printf '%s=%s\n' "$key" "$(openssl rand -hex 32)"
   done
   printf 'STORAGE_ACCESS_KEY=boqlet_%s\n' "$(openssl rand -hex 8)"

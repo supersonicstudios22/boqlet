@@ -113,9 +113,10 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   although `security.md` asks for one. The `private-headers` Traefik middleware the pilot's routes
   name is defined outside this repo.
 - **Accepted for the pilot (P54, Q47; TF-045):** the engine workers hold the same full-bucket storage
-  key as the API, and the HTTP worker and its rpc take requests without a credential; the control is
-  the network boundary (internal networks, no host ports). Before a wider rollout: a scoped storage
-  identity and a shared secret ([../architecture/security.md](../architecture/security.md)).
+  key as the API; the control is the network boundary (internal networks, no host ports) plus, since
+  review A-36, the HTTP worker's shared secret (`BOQLET_WORKER_TOKEN`; on the pilot only once the
+  operator has set `WORKER_TOKEN`, `docs/operations/pilot.md`). Before a wider rollout: a scoped
+  storage identity ([../architecture/security.md](../architecture/security.md)).
 - Not built (TF-048): MFA (also for platform admins) and enterprise SSO; an audit row for a failed
   permission check or a failed billing webhook; per-org data export and account deletion with
   "deleted user" audit references. `auth_throttled` (sign-in, set-password) answers without

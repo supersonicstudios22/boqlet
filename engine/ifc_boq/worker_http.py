@@ -1,15 +1,22 @@
-"""Internal HTTP transport for worker jobs and RPCs."""
+"""Internal HTTP transport for worker jobs and RPCs.
+
+`/jobs` and `/rpc` need `Authorization: Bearer <BOQLET_WORKER_TOKEN>` when the worker has a token (review A-36,
+DEC-64): the API sends it (`boqlet.worker.token`), anything else gets 401. Without a token the worker keeps the
+pilot's network-boundary control (P54 Q47) and says so at start; `/health` never needs it.
+"""
 from __future__ import annotations
 
 import asyncio
+import hmac
 import json
+import logging
 import os
 from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 from threading import Event
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from starlette.responses import StreamingResponse
 
 from . import rpc
@@ -17,13 +24,30 @@ from .paths import CACHE
 from .storage import LocalStorage, S3Storage, Storage
 from .worker import JOB_TYPES, JobCancelled, execute, health
 
+TOKEN_ENV = "BOQLET_WORKER_TOKEN"
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.slots = asyncio.Semaphore(max(1, int(os.environ.get("ENGINE_HTTP_CONCURRENCY", "1"))))
+    if not os.environ.get(TOKEN_ENV):
+        logger.warning("%s is not set: /jobs and /rpc accept calls without a credential", TOKEN_ENV)
     yield
 
 
-app = FastAPI(title="Boqlet engine worker", lifespan=lifespan)
+def authorised(authorization: str | None = Header(default=None)) -> None:
+    """The caller holds the worker token (constant-time compare); a no-op while none is configured."""
+    token = os.environ.get(TOKEN_ENV, "")
+    if not token:
+        return
+    scheme, _, given = (authorization or "").partition(" ")
+    if scheme.lower() != "bearer" or not hmac.compare_digest(given.strip().encode(), token.encode()):
+        raise HTTPException(401, "A valid worker token is required", headers={"WWW-Authenticate": "Bearer"})
+
+
+# An internal service: no interactive docs or schema to browse.
+app = FastAPI(title="Boqlet engine worker", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 app.get("/health")(health)
 
 
@@ -37,7 +61,7 @@ def storage() -> Storage:
     raise RuntimeError("ENGINE_STORAGE must be file://<directory> or s3://<bucket>")
 
 
-@app.post("/jobs/{kind}")
+@app.post("/jobs/{kind}", dependencies=[Depends(authorised)])
 async def jobs(kind: str, envelope: dict, request: Request):
     if kind not in JOB_TYPES:
         raise HTTPException(404, "Unknown job type")
@@ -79,7 +103,7 @@ async def jobs(kind: str, envelope: dict, request: Request):
     return StreamingResponse(stream(), media_type="application/x-ndjson")
 
 
-@app.post("/rpc/{op}")
+@app.post("/rpc/{op}", dependencies=[Depends(authorised)])
 def invoke(op: str, request: dict):
     if op not in rpc.OPERATIONS:
         raise HTTPException(404, "Unknown RPC operation")

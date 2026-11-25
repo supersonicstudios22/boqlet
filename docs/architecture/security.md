@@ -89,10 +89,13 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   (`docs/architecture/engine-worker.md`). Job timeouts: `BOQLET_ENGINE_JOB_TIMEOUT` (default
   30 min) for HTTP jobs and `ENGINE_QUEUE_JOB_TIMEOUT_SECONDS` (default 1800 s) for queue jobs.
   Container CPU and memory limits are set in `ops/pilot/compose.yaml`.
-- **Engine workers: the network boundary is the control (accepted for the pilot, P54 Q47,
-  TF-045).** The HTTP worker (`engine`, port 8788 on all its interfaces) takes jobs and rpc calls
-  without a credential (`worker_http.py`; `WorkerClient.java` sends none), and an rpc such as
-  `codelist-read` reads whatever storage key it is given. The `engine`, `queue` and
+- **Engine workers: a shared secret and the network boundary (P54 Q47, TF-045, D98).** The HTTP
+  worker (`engine`, port 8788 on all its interfaces) takes jobs and rpc calls only with
+  `Authorization: Bearer <BOQLET_WORKER_TOKEN>` (`worker_http.py`, constant-time compare; `401`
+  otherwise; `WorkerClient.java` sends it), once the token is set on the API and the engine
+  (`ops/local` sets a fixed local value, `ops/pilot` `WORKER_TOKEN` from `pilot.env`); without one it
+  accepts every call and logs a warning. An rpc such as `codelist-read` still reads whatever storage
+  key it is given. The `engine`, `queue` and
   `queue-interactive` containers hold the same full-bucket storage key as the API
   (`x-engine-environment` in `ops/pilot/compose.yaml`). What keeps them apart from callers is the
   Compose networks: `backend` and `database` are `internal: true`, no Boqlet container publishes a
@@ -100,8 +103,8 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   network. The edge (`ops/pilot/traefik-routes.json`) routes `/api/v1` to the API and only signed
   GET/PUT requests under the bucket on `files.booqlet.com` to the storage; nothing reaches a worker. A parser exploit or a foothold on the backend network could therefore
   read, write or delete every org's files. Before a wider rollout the workers get a storage identity
-  limited to model sources and job output prefixes, and the API and the HTTP worker a shared
-  secret (a known limitation, `docs/product/known-limitations.md`).
+  limited to model sources and job output prefixes (D-50; a known limitation,
+  `docs/product/known-limitations.md`).
 - Spreadsheets (code lists, preset templates, BoQ edits; in the planned module also offers and
   pricebooks): parsed only in the worker or rpc, with openpyxl in read-only, data-only mode (no
   formulas evaluated, no macros: `.xlsm` rejected). Size ≤ 20 MB. Before openpyxl reads anything,

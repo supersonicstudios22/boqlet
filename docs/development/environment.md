@@ -27,7 +27,7 @@ Full reference with what each does: [services/api/README.md](../../services/api/
 | Sign-in and sessions | `BOQLET_NATIVE_AUTH` (`true` for native sign-in), `BOQLET_SECURE_COOKIE` (`false` only over plain HTTP), `BOQLET_APP_URL` (the one allowed Origin), `BOQLET_INVITATION_SECRET` (≥ 32 bytes); OIDC rollback: `BOQLET_OIDC_ISSUER`, `_AUDIENCE`, `_JWKS_URL`, `_REVOCATION_CLIENT_ID`, `_REVOCATION_CLIENT_SECRET`, `BOQLET_PILOT_EMAILS` |
 | Mail | `BOQLET_SMTP_HOST`, `_PORT` (587), `_USERNAME`, `_PASSWORD`, `_AUTH`, `_STARTTLS`, `_FROM`, `_POLL_MS` |
 | Object storage | `BOQLET_S3_BUCKET`, `BOQLET_S3_REGION`, `BOQLET_S3_ENDPOINT`, `BOQLET_S3_PUBLIC_ENDPOINT` (the address browsers use for signed URLs), plus `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
-| Engine | `BOQLET_ENGINE_TRANSPORT` (`http` default, or `postgres` for the queue), `BOQLET_ENGINE_HTTP_URL`, `BOQLET_ENGINE_HTTP_CONCURRENCY`, `BOQLET_ENGINE_JOB_TIMEOUT`, `BOQLET_ENGINE_MODEL_POOL`, `BOQLET_ENGINE_GENERAL_POOL`, `BOQLET_MAX_UPLOAD_MIB` |
+| Engine | `BOQLET_ENGINE_TRANSPORT` (`http` default, or `postgres` for the queue), `BOQLET_ENGINE_HTTP_URL`, `BOQLET_WORKER_TOKEN` (the HTTP worker's shared secret, sent as a bearer token; the worker must have the same value), `BOQLET_ENGINE_HTTP_CONCURRENCY`, `BOQLET_ENGINE_JOB_TIMEOUT`, `BOQLET_ENGINE_MODEL_POOL`, `BOQLET_ENGINE_GENERAL_POOL`, `BOQLET_MAX_UPLOAD_MIB` |
 | Observability | `BOQLET_LOG_FORMAT`, `BOQLET_TRACING_SAMPLING`, `BOQLET_MANAGEMENT_PORT`, `BOQLET_MANAGEMENT_ENDPOINTS` (OTLP endpoint through the standard OpenTelemetry settings) |
 | Limits and retention | `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE` (300), `BOQLET_ORG_PURGE_HOURS` (24), `BOQLET_RUN_INDEX_DAYS` |
 | Scheduled-task intervals | `BOQLET_MAINTENANCE_POLL_MS`, `BOQLET_RETENTION_POLL_MS`, `BOQLET_SAMPLE_POLL_MS`, `BOQLET_ALERT_POLL_MS`, `BOQLET_LIMIT_ALERT_POLL_MS`, `BOQLET_JOB_METRICS_POLL_MS`, `BOQLET_OIDC_REVOCATION_POLL_MS` |
@@ -39,6 +39,7 @@ Full reference with what each does: [services/api/README.md](../../services/api/
 | `ENGINE_STORAGE` | `file://<folder>` or `s3://<bucket>` for job inputs and outputs (`npm run dev:engine-worker` defaults to `engine/.cache/blobs`) |
 | `ENGINE_S3_ENDPOINT` | S3 endpoint (with the `AWS_*` credentials) |
 | `ENGINE_WORKER_PORT` | HTTP worker port (8788) |
+| `BOQLET_WORKER_TOKEN` | The HTTP worker's shared secret: when set, `/jobs` and `/rpc` answer `401` without `Authorization: Bearer <token>` (constant-time compare; `/health` is open). Unset, the worker accepts every call and logs a warning (`npm run dev:engine-worker`). The API gets the same value (review A-36) |
 | `ENGINE_HTTP_CONCURRENCY`, `ENGINE_MAX_MODEL_MB` | HTTP worker concurrency and model size cap |
 | `ENGINE_QUEUE_DSN`, `ENGINE_QUEUE_POOL`, `ENGINE_QUEUE_TYPES`, `ENGINE_QUEUE_CONCURRENCY`, `ENGINE_QUEUE_JOB_TIMEOUT_SECONDS`, `ENGINE_QUEUE_POLL_SECONDS` | The Postgres queue worker (`boqlet-worker`, used on the pilot) |
 | `ENGINE_LOG_FORMAT` | `json` for structured logs |

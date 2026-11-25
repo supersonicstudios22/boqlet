@@ -98,6 +98,7 @@ class NativeWorkerTest {
         start.environment().put("AWS_ACCESS_KEY_ID", ACCESS);
         start.environment().put("AWS_SECRET_ACCESS_KEY", SECRET);
         start.environment().put("AWS_DEFAULT_REGION", "us-east-1");
+        start.environment().put("BOQLET_WORKER_TOKEN", WORKER_TOKEN);   // the worker refuses calls without it (review A-36)
         workerStart = start;
         worker = start.start();
         try {
@@ -122,12 +123,17 @@ class NativeWorkerTest {
         SETTINGS.put("boqlet.storage.region", "us-east-1");
         SETTINGS.put("boqlet.storage.endpoint", endpoint);
         SETTINGS.put("boqlet.worker.url", url);
+        SETTINGS.put("boqlet.worker.token", WORKER_TOKEN);
+        workerUrl = url;
         if (POSTGRES_QUEUE) {
             SETTINGS.put("BOQLET_ENGINE_TRANSPORT", "postgres");
             SETTINGS.put("BOQLET_ENGINE_MODEL_POOL", "ifc");
         }
         SETTINGS.forEach((name, value) -> properties.add(name, () -> value));
     }
+
+    private static final String WORKER_TOKEN = "native-worker-test-token-" + java.util.UUID.randomUUID();
+    private static String workerUrl;
 
     /** The API's configuration in this test, for a second instance on the same database. */
     private static final java.util.Map<String, Object> SETTINGS = new java.util.LinkedHashMap<>();
@@ -146,6 +152,22 @@ class NativeWorkerTest {
     @Autowired com.boqlet.api.boq.RunIndex runIndex;
     @Autowired com.boqlet.api.boq.BoqReadService readService;
     @LocalServerPort int apiPort;
+
+    /** Review A-36: the worker answers a job or rpc call without the API's token with 401; with it, the call goes through. */
+    @Test
+    void workerRefusesCallsWithoutTheToken() throws Exception {
+        for (String path : java.util.List.of("/rpc/check", "/jobs/parse")) {
+            var bare = java.net.http.HttpRequest.newBuilder(java.net.URI.create(workerUrl + path)).header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"));
+            assertThat(NETWORK.send(bare.build(), java.net.http.HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(401);
+            assertThat(NETWORK.send(bare.header("Authorization", "Bearer wrong").build(),
+                    java.net.http.HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(401);
+        }
+        var signed = java.net.http.HttpRequest.newBuilder(java.net.URI.create(workerUrl + "/rpc/check"))
+                .header("Content-Type", "application/json").header("Authorization", "Bearer " + WORKER_TOKEN)
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{\"kind\":\"dictionaries\",\"doc\":{}}")).build();
+        assertThat(NETWORK.send(signed, java.net.http.HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+    }
 
     @Test
     void duplexUploadRunsWorkerAndServesModelArtifacts() throws Exception {

@@ -62,6 +62,7 @@ services:
       <<: *storage-credentials
       ENGINE_STORAGE: s3://boqlet-local
       ENGINE_S3_ENDPOINT: http://storage:8333
+      BOQLET_WORKER_TOKEN: &worker-token boqlet-local-worker-token-not-for-production
 
   api:
     build: {context: ../.., dockerfile: services/api/Dockerfile}
@@ -91,6 +92,7 @@ services:
       BOQLET_S3_PUBLIC_ENDPOINT: http://localhost:${LOCAL_S3_PORT:-8333}
       BOQLET_ENGINE_TRANSPORT: http
       BOQLET_ENGINE_HTTP_URL: http://engine:8788
+      BOQLET_WORKER_TOKEN: *worker-token
 
 volumes:
   db:

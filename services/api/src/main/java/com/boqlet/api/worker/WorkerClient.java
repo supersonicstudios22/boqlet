@@ -21,13 +21,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkerClient {
     private final String base;
+    private final String token;
     private final ObjectMapper json;
     private final HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10)).build();
 
-    WorkerClient(ObjectMapper json, @Value("${boqlet.worker.url}") String url) {
+    /**
+     * {@code token}: the HTTP worker's shared secret (`BOQLET_WORKER_TOKEN`, review A-36), sent as a bearer token on
+     * every job and rpc call; blank sends none (the worker then accepts calls only while it has no token either).
+     */
+    WorkerClient(ObjectMapper json, @Value("${boqlet.worker.url}") String url, @Value("${boqlet.worker.token:}") String token) {
         this.json = json;
         this.base = url.replaceAll("/+$", "");
+        this.token = token == null ? "" : token.strip();
     }
 
     public JsonNode run(String type, Map<String, Object> envelope, Consumer<JsonNode> progress) throws IOException, InterruptedException {
@@ -75,8 +81,9 @@ public class WorkerClient {
     }
 
     private HttpRequest request(String path, Object payload, Duration timeout) throws IOException {
-        return HttpRequest.newBuilder(URI.create(base + path)).timeout(timeout).header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofByteArray(json.writeValueAsBytes(payload))).build();
+        var builder = HttpRequest.newBuilder(URI.create(base + path)).timeout(timeout).header("Content-Type", "application/json");
+        if (!token.isEmpty()) builder.header("Authorization", "Bearer " + token);
+        return builder.POST(HttpRequest.BodyPublishers.ofByteArray(json.writeValueAsBytes(payload))).build();
     }
 
     private static ApiException unavailable() {
