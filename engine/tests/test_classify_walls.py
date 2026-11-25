@@ -58,7 +58,11 @@ def test_demo_trades_masonry_only_for_masonry_walls():
     assert got == {"brick": "02", "board": "99", "concrete": "01", "none": "99"}
 
 
-def test_the_shipped_maps_pass_the_preset_check():
-    for system in ("acme-cost-codes", "demo-trades", "uniclass2015-ef"):
-        code_list, cmap = presets.load_classification(system)
-        assert presets.check("classifications", {"codeList": code_list, "map": cmap}) == [], system
+@pytest.mark.parametrize("system", ["acme-cost-codes", "demo-trades", "uniclass2015-ef"])
+def test_the_shipped_maps_pass_the_preset_check(system):
+    entry = presets.classifications()[system]
+    if not entry["available"]:
+        # Uniclass's code list is fetched (`npm run import:uniclass`), not in git, so a clean checkout (CI) has none.
+        pytest.skip(f"{system}: {entry['reason']}")
+    code_list, cmap = presets.load_classification(system)
+    assert presets.check("classifications", {"codeList": code_list, "map": cmap}) == []
