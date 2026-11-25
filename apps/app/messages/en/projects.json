@@ -211,6 +211,9 @@
     "archive": "Archive project",
     "restoreTitle": "Restore project",
     "restoreBody": "Makes the project editable again, if your plan has room for another active project.",
-    "restore": "Restore project"
+    "restore": "Restore project",
+    "defaults": "Defaults for new BoQs",
+    "defaultsHint": "New BoQs in this project start from these preset versions. BoQs already made keep theirs: move them from their Setup tab or from the preset's Where used.",
+    "defaultsSaved": "Defaults saved"
   }
 }

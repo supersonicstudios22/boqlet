@@ -21,8 +21,11 @@ class LibraryController implements LibraryApi {
     private final LibraryPreview previews;
     private final Idempotency idempotency;
     private final RateLimits rates;
+    private final com.boqlet.api.boq.PresetMoves moves;
 
-    LibraryController(Library library, LibraryFiles files, LibraryPreview previews, Idempotency idempotency, RateLimits rates) {
+    LibraryController(Library library, LibraryFiles files, LibraryPreview previews, Idempotency idempotency, RateLimits rates,
+                      com.boqlet.api.boq.PresetMoves moves) {
+        this.moves = moves;
         this.library = library;
         this.files = files;
         this.previews = previews;
@@ -84,6 +87,12 @@ class LibraryController implements LibraryApi {
     @Override
     public ResponseEntity<PresetVersion> publishDraft(UUID preset, PublishDraftRequest request) {
         return ResponseEntity.ok(library.publish(preset, actor(), request.getChangeNote()));
+    }
+
+    @Override
+    public ResponseEntity<MovePresetToLatest200Response> movePresetToLatest(UUID preset, MovePresetToLatestRequest request) {
+        return ResponseEntity.ok(moves.move(library.visible(preset, actor()), actor(),
+                request != null && Boolean.TRUE.equals(request.getProjectDefaults())));
     }
 
     @Override

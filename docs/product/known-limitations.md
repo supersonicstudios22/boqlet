@@ -92,6 +92,8 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   takes a choice per entry), no un-archive (not in the contract), no rename of ids across
   documents, a JSON line diff instead of a structured version diff, no "keep other columns" on
   code-list import.
+- A new project takes the org's default presets; pickers come in its settings, not in the creation form
+  (review A-44). "Move working BoQs to version n" skips versions in review rather than withdraw them.
 - Share links to a version that is not saved, made before approval (or "Share only saved versions")
   was switched on, keep working and can still be edited; nothing revokes them (review A-46, D105).
 - Setup wizard is simpler than F16: steps 2 and 3 are the full editors (no "Suggest codes", not

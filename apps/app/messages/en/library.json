@@ -483,6 +483,15 @@
       "in_review": "In review",
       "approved": "Approved",
       "issued": "Issued"
+    },
+    "moveIntro": "Some working BoQs use an older version. Saved versions keep theirs; working ones move only when you ask.",
+    "moveDefaults": "Also move the projects' defaults (for their new BoQs)",
+    "move": "Move working BoQs to version {n}",
+    "moved": "{boqs, plural, =0 {No BoQ moved} one {# BoQ moved} other {# BoQs moved}}, {projects, plural, =0 {no project defaults} one {# project's defaults} other {# projects' defaults}}. Generate them again to see the new numbers.",
+    "skipped": {
+      "no_permission": "{name}: you can't change it",
+      "in_review": "{name}: in review; it moves after the review",
+      "project_archived": "{name}: the project is archived"
     }
   },
   "document": {
@@ -844,5 +853,17 @@
     "warnPctHint": "A difference above this asks which value to use. Empty: {n} %.",
     "blockPct": "Block above (%)",
     "blockPctHint": "Above this the question must be answered before the BoQ is complete. Empty: {n} %. Not below “Ask above”."
+  },
+  "newer": {
+    "available": "{kind} {name}: version {newer} is published (this uses version {current})",
+    "archived": "{kind} {name} is archived. It keeps working; choose another one.",
+    "use": "Use version {n}",
+    "kinds": {
+      "rule_set": "Rule set",
+      "classification": "Classification",
+      "dictionary": "Dictionary",
+      "federation": "Federation settings",
+      "resolution": "Resolution settings"
+    }
   }
 }

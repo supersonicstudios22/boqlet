@@ -85,7 +85,11 @@ Also editable as advanced documents: **federation settings** (discipline ownersh
    labels the code's `description` column **Item text**. The engine already guesses it from
    headers like "description", "opis", "Langtext" (`codelist_import.py`).
 9. **Where used:** `GET /presets/{presetId}/usage` → BoQ revisions (project, BoQ, revision,
-   status, version used). Rename of ids across documents within the org: specified, **not built** (see Status).
+   status, version used). When working BoQs use an older version: **Move working BoQs to
+   version n** (`POST /presets/{presetId}/move-to-latest`, review A-44), optionally with the
+   projects' defaults; each moves as an edit of its inputs would (pending, not regenerated);
+   saved versions never move; BoQs in review, ones the caller can't edit and archived projects
+   are listed as skipped. Rename of ids across documents within the org: specified, **not built** (see Status).
 10. **Archive:** hides from pickers. Runs and saved versions keep their snapshots.
 11. **Permissions:** org presets: library editors and admins edit; members view and pick.
     Project presets: project lead and estimators edit.

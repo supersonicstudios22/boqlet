@@ -22,6 +22,7 @@ import { useRevisions } from "@/api/hooks/diffs";
 import { SaveVersionDialog, SubmitDialog, type SaveMode } from "@/features/versions/version-dialogs";
 import { ReviewStrip } from "@/features/versions/review-strip";
 import { NewModelVersions } from "./new-model-versions";
+import { NewPresetVersions } from "./new-preset-versions";
 import { ReopenBoqDialog } from "./reopen-boq-dialog";
 import { ShareDialog } from "@/features/shares/share-dialog";
 import { headerState, nextStep, saveBlockedReason, type NextStep } from "./run-state";
@@ -272,6 +273,7 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         )}
         <ReviewStrip boq={boq} base={base} compact />
         <NewModelVersions boq={boq} base={base} />
+        <NewPresetVersions boq={boq} />
         {error ? (
           <p role="alert" className="text-error">
             {message(error)}

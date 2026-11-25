@@ -50,6 +50,17 @@ class BoqInputs {
                 .federationVersionId(defaults.getFederationVersionId().orElse(null)).resolutionVersionId(null);
     }
 
+    /** Review A-44: the preset versions of these inputs, with a newer version where `newer`. */
+    List<PresetInputInfo> presets(RevisionInputs input, boolean newer) {
+        var ids = new ArrayList<UUID>();
+        ids.add(input.getRuleSetVersionId());
+        ids.addAll(input.getClassificationVersionIds());
+        ids.addAll(input.getDictionaryVersionIds());
+        ids.add(input.getFederationVersionId().orElse(null));
+        ids.add(input.getResolutionVersionId().orElse(null));
+        return catalog.inputs(ids, newer);
+    }
+
     RevisionInputs merge(RevisionInputs current, RevisionInputsPartial patch) {
         if (patch == null) return current;
         var base = json.object(current);

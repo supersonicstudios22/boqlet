@@ -142,9 +142,11 @@ public class BoqAccess {
         Bill bill = scope.bill();
         BoqRevision revision = viewRevision(scope, actor);
         boolean newer = revision.getInputs().getModels().stream().anyMatch(m -> m.getNewerVersionAvailable().orElse(null) != null);
+        boolean newerPresets = revision.getPresetInputs().stream().anyMatch(p -> p.getNewerVersionAvailable().orElse(null) != null);
         return new Boq(bill.id(), bill.project(), bill.name(), revision, bill.archived())
                 .description(bill.description()).status(bill.status()).confirmedBy(user(bill.confirmedBy()))
                 .confirmedAt(bill.confirmedAt()).latestIssuedRevisionId(bill.latest()).newModelVersionsAvailable(newer)
+                .newPresetVersionsAvailable(newerPresets)
                 .createdAt(bill.createdAt()).updatedAt(bill.updatedAt());
     }
 
@@ -165,6 +167,7 @@ public class BoqAccess {
         var base = version.basedOn() == null ? null : readVersion(version.basedOn());
         return new BoqRevision(version.id(), version.bill(), version.number(), version.label(), version.status(),
                 input, pending(scope), permissions(scope, actor))
+                .presetInputs(inputs.presets(input, version.status() != RevisionStatus.ISSUED))
                 .currentRun(current).basedOnRevisionId(version.basedOn()).basedOnRunId(base == null ? null : base.run())
                 .reviewers(version.reviewers().stream().map(this::user).filter(Objects::nonNull).toList())
                 .reviewComments(comments(version.id(), null)).submittedBy(user(version.submitter())).submittedAt(version.submitted())

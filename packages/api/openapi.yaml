@@ -880,6 +880,68 @@ paths:
       operationId: getPresetUsage
       responses:
         "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PresetUsage" } } } } }
+  /presets/{presetId}/move-to-latest:
+    parameters: [{ $ref: "#/components/parameters/PresetId" }]
+    post:
+      tags: [library]
+      operationId: movePresetToLatest
+      summary: Give the working BoQs (and optionally project defaults) that use an older version the latest one (review A-44)
+      description: |
+        Every working BoQ the caller can see whose working version uses an older published version of this preset gets the
+        latest one, as `PATCH /revisions/{id}` would (the version becomes pending; nothing is regenerated). Saved versions
+        never move (BR-07). A version in review or approved, a BoQ the caller can't edit (`editBoqs`) and an archived
+        project are skipped and listed. With `projectDefaults`, the projects' defaults move too where the caller may edit
+        the project (`edit`). `409 no_published_version` when the preset has none.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectDefaults: { type: boolean, description: "Also move the projects' defaults (new BoQs)" }
+      responses:
+        "200":
+          description: What moved and what was skipped
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [latestVersionId, moved, projects, skipped]
+                properties:
+                  latestVersionId: { type: string, format: uuid }
+                  moved:
+                    type: array
+                    items:
+                      type: object
+                      required: [boqId, boqName, projectId, projectName, revisionId]
+                      properties:
+                        boqId: { type: string, format: uuid }
+                        boqName: { type: string }
+                        projectId: { type: string, format: uuid }
+                        projectName: { type: string }
+                        revisionId: { type: string, format: uuid }
+                  projects:
+                    type: array
+                    description: Projects whose defaults moved
+                    items:
+                      type: object
+                      required: [projectId, projectName]
+                      properties:
+                        projectId: { type: string, format: uuid }
+                        projectName: { type: string }
+                  skipped:
+                    type: array
+                    items:
+                      type: object
+                      required: [projectId, projectName, reason]
+                      properties:
+                        projectId: { type: string, format: uuid }
+                        projectName: { type: string }
+                        boqId: { type: [string, "null"], format: uuid }
+                        boqName: { type: [string, "null"] }
+                        reason: { type: string, enum: [no_permission, in_review, project_archived] }
+        "409": { $ref: "#/components/responses/Conflict" }
   /codelists/read:
     post:
       tags: [library]
@@ -2960,6 +3022,10 @@ components:
         status: { type: string, enum: [active, archived] }
         sample: { type: boolean }
         defaults: { $ref: "#/components/schemas/ProjectDefaults" }
+        defaultPresets:
+          type: array
+          description: "The presets of `defaults`, each with a newer published version and whether it is archived (review A-44); read-only"
+          items: { $ref: "#/components/schemas/PresetInputInfo" }
         projectDictionaryId: { type: string, format: uuid }
         myRole: { $ref: "#/components/schemas/ProjectRole" }
         permissions: { $ref: "#/components/schemas/Permissions" }
@@ -3222,6 +3288,20 @@ components:
         etag: { type: string }
         baseVersionId: { type: [string, "null"], format: uuid, description: "Drafts: the published version the draft started from (review A-43)" }
         baseNumber: { type: [integer, "null"], description: "Drafts: that version's number" }
+    PresetInputInfo:
+      type: object
+      description: A preset version used as a BoQ input or a project default (review A-44)
+      required: [versionId, presetId, kind, layer, name, archived]
+      properties:
+        versionId: { type: string, format: uuid }
+        presetId: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/PresetKind" }
+        layer: { $ref: "#/components/schemas/PresetLayer" }
+        name: { type: string }
+        number: { type: [integer, "null"] }
+        archived: { type: boolean, description: The preset is archived (it keeps working; choose another) }
+        newerVersionAvailable: { type: [integer, "null"], description: "The latest published version's number, when it is newer" }
+        latestVersionId: { type: [string, "null"], format: uuid, description: "That version, when it is newer" }
     DraftSide:
       type: string
       enum: [mine, theirs]
@@ -3400,6 +3480,10 @@ components:
         label: { type: string }
         status: { $ref: "#/components/schemas/RevisionStatus" }
         inputs: { $ref: "#/components/schemas/RevisionInputs" }
+        presetInputs:
+          type: array
+          description: "The preset versions of `inputs` (rule set, classifications, dictionaries, federation, resolution) with their preset, a newer published version (not on saved versions) and whether the preset is archived (review A-44); read-only"
+          items: { $ref: "#/components/schemas/PresetInputInfo" }
         currentRun: { $ref: "#/components/schemas/Run" }
         basedOnRevisionId: { type: [string, "null"], format: uuid }
         basedOnRunId: { type: [string, "null"], format: uuid, description: The frozen run of the based-on revision }
@@ -3440,6 +3524,7 @@ components:
         currentRevision: { $ref: "#/components/schemas/BoqRevision" }
         latestIssuedRevisionId: { type: [string, "null"], format: uuid }
         newModelVersionsAvailable: { type: boolean }
+        newPresetVersionsAvailable: { type: boolean, description: "A preset input of the working version has a newer published version (review A-44)" }
         archived: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }

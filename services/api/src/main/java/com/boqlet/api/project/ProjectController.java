@@ -16,11 +16,24 @@ class ProjectController implements ProjectsApi {
     private final Projects projects;
     private final ProjectAccess access;
     private final AuditReader audit;
+    private final com.boqlet.api.library.PresetCatalog catalog;
 
-    ProjectController(Projects projects, ProjectAccess access, AuditReader audit) {
+    ProjectController(Projects projects, ProjectAccess access, AuditReader audit, com.boqlet.api.library.PresetCatalog catalog) {
         this.projects = projects;
         this.access = access;
         this.audit = audit;
+        this.catalog = catalog;
+    }
+
+    /** Review A-44: the defaults' presets, with a newer version and the archived ones. */
+    private Project presets(Project project) {
+        var defaults = project.getDefaults();
+        var ids = new java.util.ArrayList<UUID>();
+        ids.add(defaults.getRuleSetVersionId().orElse(null));
+        if (defaults.getClassificationVersionIds() != null) ids.addAll(defaults.getClassificationVersionIds());
+        if (defaults.getDictionaryVersionIds() != null) ids.addAll(defaults.getDictionaryVersionIds());
+        ids.add(defaults.getFederationVersionId().orElse(null));
+        return project.defaultPresets(catalog.inputs(ids, true));
     }
 
     @Override
@@ -30,27 +43,27 @@ class ProjectController implements ProjectsApi {
 
     @Override
     public ResponseEntity<Project> createProject(UUID org, ProjectCreate request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(projects.create(org, actor(), request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(presets(projects.create(org, actor(), request)));
     }
 
     @Override
     public ResponseEntity<Project> getProject(UUID project) {
-        return ResponseEntity.ok(access.require(project, actor()));
+        return ResponseEntity.ok(presets(access.require(project, actor())));
     }
 
     @Override
     public ResponseEntity<Project> updateProject(UUID project, ProjectUpdate request) {
-        return ResponseEntity.ok(projects.update(project, actor(), request));
+        return ResponseEntity.ok(presets(projects.update(project, actor(), request)));
     }
 
     @Override
     public ResponseEntity<Project> archiveProject(UUID project) {
-        return ResponseEntity.ok(projects.status(project, actor(), Project.StatusEnum.ARCHIVED));
+        return ResponseEntity.ok(presets(projects.status(project, actor(), Project.StatusEnum.ARCHIVED)));
     }
 
     @Override
     public ResponseEntity<Project> unarchiveProject(UUID project) {
-        return ResponseEntity.ok(projects.status(project, actor(), Project.StatusEnum.ACTIVE));
+        return ResponseEntity.ok(presets(projects.status(project, actor(), Project.StatusEnum.ACTIVE)));
     }
 
     @Override

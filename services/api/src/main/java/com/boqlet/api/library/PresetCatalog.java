@@ -177,6 +177,34 @@ public class PresetCatalog {
                 row.getObject("base_version_id", UUID.class), row.getObject("base_number", Integer.class));
     }
 
+    /**
+     * Review A-44: each preset version with its preset, whether the preset is archived and, when `newer`, the
+     * latest published version if it is newer. In the order given; unknown ids are left out.
+     */
+    public List<com.boqlet.contract.model.PresetInputInfo> inputs(List<UUID> versions, boolean newer) {
+        var ids = versions.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) return List.of();
+        var found = new java.util.HashMap<UUID, com.boqlet.contract.model.PresetInputInfo>();
+        database.query("""
+                SELECT v.id, v.number, p.id AS preset_id, p.kind, p.layer, p.name, p.archived,
+                    p.latest_published_version_id AS latest, lv.number AS latest_number
+                FROM preset_versions v JOIN presets p ON p.id = v.preset_id
+                LEFT JOIN preset_versions lv ON lv.id = p.latest_published_version_id
+                WHERE v.id IN (""" + String.join(",", java.util.Collections.nCopies(ids.size(), "?")) + ")", row -> {
+            var info = new com.boqlet.contract.model.PresetInputInfo(row.getObject("id", UUID.class),
+                    row.getObject("preset_id", UUID.class), PresetKind.fromValue(row.getString("kind")),
+                    PresetLayer.fromValue(row.getString("layer")), row.getString("name"), row.getBoolean("archived"))
+                    .number(row.getObject("number", Integer.class));
+            Integer number = row.getObject("number", Integer.class);
+            Integer latest = row.getObject("latest_number", Integer.class);
+            if (newer && latest != null && number != null && latest > number) {
+                info.newerVersionAvailable(latest).latestVersionId(row.getObject("latest", UUID.class));
+            }
+            found.put(info.getVersionId(), info);
+        }, ids.toArray());
+        return ids.stream().map(found::get).filter(java.util.Objects::nonNull).toList();
+    }
+
     static ApiException missing() {
         return new ApiException(HttpStatus.NOT_FOUND, "not_found", "The preset or version was not found.", Map.of());
     }

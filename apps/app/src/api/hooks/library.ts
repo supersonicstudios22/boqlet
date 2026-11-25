@@ -154,6 +154,20 @@ export function useRebaseDraft(presetId: string) {
   });
 }
 
+/** Review A-44: the working BoQs (and, if asked, project defaults) on an older version get the latest one. */
+export function useMovePresetToLatest(presetId: string) {
+  const refresh = useRefreshPreset();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (projectDefaults: boolean) =>
+      (await api.POST("/presets/{presetId}/move-to-latest", { params: { path: { presetId } }, body: { projectDefaults } })).data!,
+    onSuccess: async () => {
+      await Promise.all([refresh(presetId), client.invalidateQueries({ queryKey: ["boqs"] }), client.invalidateQueries({ queryKey: ["projects"] })]);
+    },
+    onError: () => {},
+  });
+}
+
 export type PreviewResult = Schemas["PreviewResult"];
 export interface PreviewOutput {
   result: PreviewResult;

@@ -68,7 +68,7 @@ export function SetupTab({ boq, orgId }: { boq: Boq; orgId: string }) {
   );
 }
 
-type Catalogue = ReturnType<typeof usePresetCatalogue>;
+export type Catalogue = ReturnType<typeof usePresetCatalogue>;
 
 function Section({ title, hint, children, testId }: { title: string; hint?: string; children: React.ReactNode; testId: string }) {
   return (
@@ -192,7 +192,7 @@ function scopeSummary(scope: unknown, t: ReturnType<typeof useTranslations>) {
 
 const presetLabel = (p: Preset, t: ReturnType<typeof useTranslations>) => `${p.name} · ${t(`layers.${p.layer}`)}`;
 
-function RuleSetSection({ inputs, catalogue, editable, onChange }: { inputs: RevisionInputs; catalogue: Catalogue; editable: boolean; onChange: (patch: Partial<RevisionInputs>) => void }) {
+export function RuleSetSection({ inputs, catalogue, editable, onChange }: { inputs: RevisionInputs; catalogue: Catalogue; editable: boolean; onChange: (patch: Partial<RevisionInputs>) => void }) {
   const t = useTranslations("boqs.setup");
   const ruleSets = catalogue.list.filter((p) => p.kind === "rule_set" && p.latestPublishedVersion);
   const current = catalogue.byVersion.get(inputs.ruleSetVersionId);
@@ -240,7 +240,7 @@ function RuleSetSection({ inputs, catalogue, editable, onChange }: { inputs: Rev
   );
 }
 
-function OrderedPresets({
+export function OrderedPresets({
   kind,
   title,
   hint,

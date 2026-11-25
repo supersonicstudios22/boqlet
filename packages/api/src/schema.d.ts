@@ -968,6 +968,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/presets/{presetId}/move-to-latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                presetId: components["parameters"]["PresetId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Give the working BoQs (and optionally project defaults) that use an older version the latest one (review A-44)
+         * @description Every working BoQ the caller can see whose working version uses an older published version of this preset gets the
+         *     latest one, as `PATCH /revisions/{id}` would (the version becomes pending; nothing is regenerated). Saved versions
+         *     never move (BR-07). A version in review or approved, a BoQ the caller can't edit (`editBoqs`) and an archived
+         *     project are skipped and listed. With `projectDefaults`, the projects' defaults move too where the caller may edit
+         *     the project (`edit`). `409 no_published_version` when the preset has none.
+         */
+        post: operations["movePresetToLatest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/codelists/read": {
         parameters: {
             query?: never;
@@ -3174,6 +3200,8 @@ export interface components {
             status: "active" | "archived";
             sample?: boolean;
             defaults: components["schemas"]["ProjectDefaults"];
+            /** @description The presets of `defaults`, each with a newer published version and whether it is archived (review A-44); read-only */
+            defaultPresets?: components["schemas"]["PresetInputInfo"][];
             /** Format: uuid */
             projectDictionaryId?: string;
             myRole?: components["schemas"]["ProjectRole"];
@@ -3440,6 +3468,26 @@ export interface components {
             /** @description Drafts: that version's number */
             baseNumber?: number | null;
         };
+        /** @description A preset version used as a BoQ input or a project default (review A-44) */
+        PresetInputInfo: {
+            /** Format: uuid */
+            versionId: string;
+            /** Format: uuid */
+            presetId: string;
+            kind: components["schemas"]["PresetKind"];
+            layer: components["schemas"]["PresetLayer"];
+            name: string;
+            number?: number | null;
+            /** @description The preset is archived (it keeps working; choose another) */
+            archived: boolean;
+            /** @description The latest published version's number, when it is newer */
+            newerVersionAvailable?: number | null;
+            /**
+             * Format: uuid
+             * @description That version, when it is newer
+             */
+            latestVersionId?: string | null;
+        };
         /**
          * @description In a rebase: the draft's own change, or the latest version's (review A-43)
          * @enum {string}
@@ -3609,6 +3657,8 @@ export interface components {
             label: string;
             status: components["schemas"]["RevisionStatus"];
             inputs: components["schemas"]["RevisionInputs"];
+            /** @description The preset versions of `inputs` (rule set, classifications, dictionaries, federation, resolution) with their preset, a newer published version (not on saved versions) and whether the preset is archived (review A-44); read-only */
+            presetInputs?: components["schemas"]["PresetInputInfo"][];
             currentRun?: components["schemas"]["Run"];
             /** Format: uuid */
             basedOnRevisionId?: string | null;
@@ -3662,6 +3712,8 @@ export interface components {
             /** Format: uuid */
             latestIssuedRevisionId?: string | null;
             newModelVersionsAvailable?: boolean;
+            /** @description A preset input of the working version has a newer published version (review A-44) */
+            newPresetVersionsAvailable?: boolean;
             archived: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -6462,6 +6514,65 @@ export interface operations {
                     "application/json": components["schemas"]["PresetUsage"][];
                 };
             };
+        };
+    };
+    movePresetToLatest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                presetId: components["parameters"]["PresetId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Also move the projects' defaults (new BoQs) */
+                    projectDefaults?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description What moved and what was skipped */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        latestVersionId: string;
+                        moved: {
+                            /** Format: uuid */
+                            boqId: string;
+                            boqName: string;
+                            /** Format: uuid */
+                            projectId: string;
+                            projectName: string;
+                            /** Format: uuid */
+                            revisionId: string;
+                        }[];
+                        /** @description Projects whose defaults moved */
+                        projects: {
+                            /** Format: uuid */
+                            projectId: string;
+                            projectName: string;
+                        }[];
+                        skipped: {
+                            /** Format: uuid */
+                            projectId: string;
+                            projectName: string;
+                            /** Format: uuid */
+                            boqId?: string | null;
+                            boqName?: string | null;
+                            /** @enum {string} */
+                            reason: "no_permission" | "in_review" | "project_archived";
+                        }[];
+                    };
+                };
+            };
+            409: components["responses"]["Conflict"];
         };
     };
     readCodeListFile: {

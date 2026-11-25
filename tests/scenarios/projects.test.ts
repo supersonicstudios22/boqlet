@@ -113,3 +113,61 @@ describe("F02 projects", () => {
     expect(data!.items.map((e) => e.action)).toEqual(expect.arrayContaining(["project.created", "project.updated"]));
   });
 });
+
+/**
+ * Review A-44 (LEAD-002, DEC-44): project defaults are versions, not "latest": a v2 of the firm's rule set shows as
+ * available on the project and its BoQs, and moves them only by an explicit action; an archived default is flagged.
+ */
+describe("A-44 project defaults and newer preset versions", () => {
+  it("House A shows v2 available; moving its defaults gives v2 to new BoQs; existing BoQs move only by 'move to latest'", async () => {
+    const [olivia, ivana] = await Promise.all([user("olivia"), user("ivana")]);
+    const studio = await studioDemo();
+    const lib = client(ivana.token);
+    const own = client(olivia.token);
+    const system = (await own.GET("/orgs/{orgId}/presets", { params: { path: { orgId: studio.id }, query: { kind: "rule_set", layer: "system" } } })).data!;
+    const asModelled = system.find((p) => p.slug === "as-modelled")!.latestPublishedVersion!.id;
+    const preset = (await lib.POST("/orgs/{orgId}/presets", { params: { path: { orgId: studio.id } }, body: { kind: "rule_set", name: `Firm rules ${slug("r")}`, start: { mode: "copy", fromVersionId: asModelled } } })).data!;
+    const v1 = (await lib.POST("/presets/{presetId}/publish", { params: { path: { presetId: preset.id } }, body: { changeNote: "v1" } })).data!;
+    const houseA = (await createProject(olivia, studio.id, `House A ${slug("a")}`, { defaults: { ruleSetVersionId: v1.id } })).data!;
+    expect(houseA.defaultPresets).toEqual([expect.objectContaining({ versionId: v1.id, presetId: preset.id, kind: "rule_set", number: 1, archived: false })]);
+    expect(houseA.defaultPresets![0]!.newerVersionAvailable ?? null).toBeNull();
+    const old = (await own.POST("/projects/{projectId}/boqs", { params: { path: { projectId: houseA.id } }, body: { name: "Before v2" } })).data!;
+    expect(old.currentRevision.inputs.ruleSetVersionId).toBe(v1.id);
+
+    const doc = (await lib.GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: v1.id } } })).data!.doc as Record<string, unknown>;
+    await lib.PUT("/presets/{presetId}/draft", { params: { path: { presetId: preset.id } }, body: { doc: { ...doc, name: "Firm rules (v2)" } } });
+    const v2 = (await lib.POST("/presets/{presetId}/publish", { params: { path: { presetId: preset.id } }, body: { changeNote: "v2" } })).data!;
+
+    const seen = (await own.GET("/projects/{projectId}", { params: { path: { projectId: houseA.id } } })).data!;
+    expect(seen.defaultPresets![0]).toMatchObject({ versionId: v1.id, newerVersionAvailable: 2, latestVersionId: v2.id });
+    const boq = (await own.GET("/boqs/{boqId}", { params: { path: { boqId: old.id } } })).data!;
+    expect(boq.newPresetVersionsAvailable).toBe(true);
+    expect(boq.currentRevision.presetInputs!.find((p) => p.presetId === preset.id)).toMatchObject({ versionId: v1.id, newerVersionAvailable: 2 });
+    // A new BoQ still starts from the project's default, v1, until the project moves.
+    const stillV1 = (await own.POST("/projects/{projectId}/boqs", { params: { path: { projectId: houseA.id } }, body: { name: "Still v1" } })).data!;
+    expect(stillV1.currentRevision.inputs.ruleSetVersionId).toBe(v1.id);
+    expect((await own.PATCH("/projects/{projectId}", { params: { path: { projectId: houseA.id } }, body: { defaults: { ...seen.defaults, ruleSetVersionId: v2.id } } })).response.status).toBe(200);
+    const fresh = (await own.POST("/projects/{projectId}/boqs", { params: { path: { projectId: houseA.id } }, body: { name: "After the move" } })).data!;
+    expect(fresh.currentRevision.inputs.ruleSetVersionId).toBe(v2.id);
+    expect(fresh.newPresetVersionsAvailable).toBe(false);
+    expect((await own.GET("/boqs/{boqId}", { params: { path: { boqId: old.id } } })).data!.currentRevision.inputs.ruleSetVersionId).toBe(v1.id);
+
+    // The bulk move from Where used: both v1 BoQs move (pending, not regenerated); another project's defaults too.
+    const houseB = (await createProject(olivia, studio.id, `House B ${slug("b")}`, { defaults: { ruleSetVersionId: v1.id } })).data!;
+    const moved = await own.POST("/presets/{presetId}/move-to-latest", { params: { path: { presetId: preset.id } }, body: { projectDefaults: true } });
+    expect(moved.error).toBeUndefined();
+    expect(moved.data!.latestVersionId).toBe(v2.id);
+    expect(moved.data!.moved.map((m) => m.boqId).sort()).toEqual([old.id, stillV1.id].sort());
+    expect(moved.data!.projects.map((p) => p.projectId)).toEqual([houseB.id]);
+    const after = (await own.GET("/boqs/{boqId}", { params: { path: { boqId: old.id } } })).data!;
+    expect(after.currentRevision.inputs.ruleSetVersionId).toBe(v2.id);
+    expect((await own.GET("/projects/{projectId}", { params: { path: { projectId: houseB.id } } })).data!.defaults.ruleSetVersionId).toBe(v2.id);
+    // Nothing left to move.
+    const again = (await own.POST("/presets/{presetId}/move-to-latest", { params: { path: { presetId: preset.id } }, body: {} })).data!;
+    expect(again.moved).toEqual([]);
+
+    // An archived default is flagged on the project.
+    expect((await lib.POST("/presets/{presetId}/archive", { params: { path: { presetId: preset.id } } })).response.status).toBe(200);
+    expect((await own.GET("/projects/{projectId}", { params: { path: { projectId: houseA.id } } })).data!.defaultPresets![0]).toMatchObject({ presetId: preset.id, archived: true });
+  });
+});

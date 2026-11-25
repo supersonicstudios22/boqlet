@@ -1,9 +1,8 @@
 # F02 Projects
 
-> **Status (2026-11-22):** Partly built. Create, settings, members, archive, dashboard "Needs you" and the sample project are built. An archived project keeps `archive` (to restore it) and still allows revoking share links and promoting a name answer (P54 Q42, Q53; `permissions.md`).
+> **Status (2026-11-25):** Partly built. Create, settings (with the default presets, review A-44), members, archive, dashboard "Needs you" and the sample project are built. An archived project keeps `archive` (to restore it) and still allows revoking share links and promoting a name answer (P54 Q42, Q53; `permissions.md`).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
-> - No default-preset pickers at creation or in project settings (`apps/app/app/(app)/[org]/projects/new/page.tsx`, `projects/[projectId]/settings`): defaults come from the org's starred presets or the wizard's "Publish all".
-> - Warning for an archived default preset: not found in the code.
+> - No default-preset pickers at creation (`apps/app/app/(app)/[org]/projects/new/page.tsx`): a new project takes the org's defaults; change them in the project's settings afterwards.
 > - The project's unit system has no effect yet (EN-imperial, deferred): see [known limitations](../known-limitations.md).
 
 ## Purpose
@@ -31,7 +30,12 @@ who works on it.
    Defaults prefill new BoQs. Initial defaults: the org's starred presets, else the system
    "As modelled" rule set, the global seed dictionary and no classification. After the setup
    wizard (F16) the org's starred presets are the ones it published. Defaults only prefill:
-   every BoQ can use other presets (F04 §1–2, P19).
+   every BoQ can use other presets (F04 §1–2, P19). Defaults are **versions**, never "the
+   latest" (BR-07, DEC-44, D106): project settings › **Defaults for new BoQs** picks the
+   preset and version; a newer published version shows as "version n is published" with
+   **Use version n**, an archived default as a warning (it keeps working). BoQs already made
+   keep their inputs: each moves from its Setup tab or the BoQ header ("Use version n"), or
+   all of them from the preset's Where used (**Move working BoQs to version n**, F10 §9).
 3. **Project dictionary:** created automatically (an empty project-layer dictionary preset)
    and always applied as the most specific layer. Edited in the project's Library tab (F10).
 4. **Members:** add org members by picking them (`lead`, `estimator`, `approver`, `viewer`).

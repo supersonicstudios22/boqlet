@@ -8,6 +8,9 @@ import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useProjectMembers } from "@/api/hooks/projects";
+import { usePresetCatalogue, type RevisionInputs } from "@/api/hooks/boqs";
+import { OrderedPresets, RuleSetSection } from "@/features/boqs/setup-tab";
+import { NewerPresets } from "@/features/library/newer-presets";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
@@ -27,6 +30,7 @@ export default function ProjectSettingsPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-12">
       <GeneralForm key={project.updatedAt} />
+      <DefaultsSection />
       <Members />
       <ArchiveSection />
     </div>
@@ -134,6 +138,78 @@ function GeneralForm() {
         )}
       </fieldset>
     </form>
+  );
+}
+
+/**
+ * Review A-44 (FM-12, DEC-44): the presets new BoQs of this project start from, as versions (BR-07): pick
+ * another preset or version; a newer published version shows as available, an archived preset as a warning.
+ * BoQs already made keep their inputs; they move from their own Setup tab or the preset's Where used.
+ */
+function DefaultsSection() {
+  const t = useTranslations("projects.settings");
+  const ts = useTranslations("boqs.setup");
+  const message = useErrorMessage();
+  const { org } = useOrg();
+  const { project, can } = useProjectScope();
+  const refresh = useRefreshProject();
+  const catalogue = usePresetCatalogue(org.id, project.id);
+  const editable = can("edit");
+  const d = project.defaults;
+  const ids = {
+    ruleSetVersionId: d.ruleSetVersionId ?? null,
+    classificationVersionIds: d.classificationVersionIds ?? [],
+    dictionaryVersionIds: d.dictionaryVersionIds ?? [],
+    federationVersionId: d.federationVersionId ?? null,
+  };
+  const save = useMutation({
+    mutationFn: async (patch: Partial<typeof ids>) => api.PATCH("/projects/{projectId}", { params: { path: { projectId: project.id } }, body: { defaults: { ...ids, ...patch } } }),
+    onSuccess: async () => {
+      toast(t("defaultsSaved"));
+      await refresh();
+    },
+    onError: () => {},
+  });
+  const change = (patch: Partial<RevisionInputs>) =>
+    save.mutate({
+      ...(patch.ruleSetVersionId ? { ruleSetVersionId: patch.ruleSetVersionId } : {}),
+      ...(patch.classificationVersionIds ? { classificationVersionIds: patch.classificationVersionIds } : {}),
+      ...(patch.dictionaryVersionIds ? { dictionaryVersionIds: patch.dictionaryVersionIds } : {}),
+    });
+  const asInputs = { ...ids, models: [], ruleSetVersionId: ids.ruleSetVersionId ?? "" } as RevisionInputs;
+  return (
+    <section className="flex flex-col gap-6" data-testid="project-defaults" aria-busy={save.isPending}>
+      <div className="flex flex-col gap-1">
+        <h2 className="label-caps">{t("defaults")}</h2>
+        <p className="prose-text text-muted-foreground">{t("defaultsHint")}</p>
+      </div>
+      <NewerPresets list={project.defaultPresets} ids={ids} editable={editable} pending={save.isPending} onUse={(patch) => save.mutate(patch as Partial<typeof ids>)} testId="project-default-newer" />
+      {save.error ? (
+        <p role="alert" className="text-error">
+          {message(save.error)}
+        </p>
+      ) : null}
+      <RuleSetSection inputs={asInputs} catalogue={catalogue} editable={editable} onChange={change} />
+      <OrderedPresets
+        kind="classification"
+        title={ts("classifications")}
+        hint={ts("classificationsHint")}
+        chosen={ids.classificationVersionIds}
+        catalogue={catalogue}
+        editable={editable}
+        onChange={(next) => change({ classificationVersionIds: next })}
+      />
+      <OrderedPresets
+        kind="dictionary"
+        title={ts("dictionaries")}
+        hint={ts("dictionariesHint")}
+        chosen={ids.dictionaryVersionIds}
+        catalogue={catalogue}
+        editable={editable}
+        onChange={(next) => change({ dictionaryVersionIds: next })}
+        fixedLast={catalogue.list.find((p) => p.kind === "dictionary" && p.layer === "project")}
+      />
+    </section>
   );
 }
 
