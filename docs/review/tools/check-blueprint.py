@@ -228,7 +228,7 @@ print(f"work packages: {len(wps)} (A {wp_phase['A']}, B {wp_phase['B']}, C {wp_p
 print(f"findings in coverage: {sum(1 for f in expected_findings if f in rows)}/{len(expected_findings)} "
       f"(186 report findings + 7 VER); rejected: {', '.join(sorted(rejected))}")
 print(f"FM rows in coverage: {sum(1 for n in range(1,124) if (f'FM-{n:02d}' if n < 100 else f'FM-{n}') in rows)}/123")
-dec = sorted(set(re.findall(r"^\| (DEC-\d{2}) \|", bp, re.M)))
+dec = sorted(set(re.findall(r"^\| (DEC-\d{2,3}) \|", bp, re.M)), key=lambda d: int(d[4:]))
 print(f"decisions logged: {len(dec)} ({dec[0]}…{dec[-1]})" if dec else "decisions logged: 0")
 if errors:
     print(f"\nFAIL: {len(errors)} problem(s)")
