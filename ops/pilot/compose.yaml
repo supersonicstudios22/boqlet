@@ -80,6 +80,11 @@ services:
   boqlet-web:
     <<: *service
     image: boqlet-web:${PILOT_RELEASE:?}
+    environment:
+      # The Content-Security-Policy (review A-38, docs/operations/pilot.md "Content-Security-Policy"): the
+      # storage origin signed URLs point at, and report-only until one deploy has run without reports.
+      BOQLET_STORAGE_ORIGIN: https://files.booqlet.com
+      BOQLET_CSP: ${WEB_CSP:-report-only}
     networks:
       ingress:
         aliases: [boqlet-web]

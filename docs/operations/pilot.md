@@ -93,6 +93,26 @@ lists, the share page's Excel) answers `503 engine_unavailable`:
 
 To rotate it, replace the line and repeat step 3. To roll back, empty the value and repeat step 3.
 
+## Content-Security-Policy
+
+The web app sends a Content-Security-Policy with a nonce on every page (review A-38, D101;
+`security.md` "Web security"). A production build sends it as **report-only** until told otherwise:
+browsers report what it would block to `/csp-report`, and the web container logs each report as one
+`csp.violation` line (tokens masked, at most 60 a minute). `ops/pilot/compose.yaml` sets the storage
+origin (`BOQLET_STORAGE_ORIGIN: https://files.booqlet.com`) and the mode (`BOQLET_CSP: ${WEB_CSP:-report-only}`);
+like every Compose change, these reach the pilot when the operator points `/srv/boqlet/current` at a
+release that has them (before that the policy is report-only and allows any https storage origin).
+
+1. After a deploy with the policy, use the app as usual for a day (upload, the 3D view, the sheet,
+   Excel, a share link), then look for reports:
+   `docker compose --env-file /srv/boqlet/state/pilot.env logs boqlet-web --since 24h | grep csp.violation`.
+2. None (or only browser extensions, whose `blocked` is `chrome-extension` or similar): add
+   `WEB_CSP=enforce` to `pilot.env` and `docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps boqlet-web`.
+   The response header becomes `Content-Security-Policy` (`curl -sI https://booqlet.com/sign-in`).
+3. A real violation: leave it report-only and fix the policy in `apps/app/src/lib/csp.ts` first.
+
+To switch it off in an emergency: `WEB_CSP=off` and recreate `boqlet-web`.
+
 ## Pilot enrollment *(2026-11-16 go-live record; superseded by setup links, `auth-and-deploys.md` "Sign-in")*
 
 Keycloak registration and password reset start disabled. Keep `PILOT_EMAILS` limited to verified bootstrap owners. Those addresses bypass the requirement for a pending organisation invitation. With the address confirmed, create the owner in the Boqlet realm through private admin access and use a verified password setup flow. Enable Keycloak registration with mandatory email verification only after configuring the realm SMTP settings. Configure the same Boqlet-scoped sender in the Java API via `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` and `SMTP_FROM` in `pilot.env` (passed to the API as `BOQLET_SMTP_*`). This still applies to invitation and notification email. Verify delivered mail to an authorized test recipient before sending real invitations. With mail enabled, additional pilots join using a pending matching invitation. Keep public Keycloak administration blocked.

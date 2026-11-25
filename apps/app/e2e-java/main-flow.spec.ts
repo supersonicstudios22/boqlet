@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { createOrg, newPerson, useSession } from "./helpers";
+import { createOrg, cspViolations, newPerson, useSession } from "./helpers";
 
 /**
  * Smoke against Java: the main flow in the browser (FL-1): the sample project, then a project of
@@ -37,8 +37,13 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   const owner = await newPerson("Flow Owner");
   const org = await createOrg(owner, "Flow Firm");
   await useSession(page.context(), owner);
+  const violations = await cspViolations(page.context());
 
-  await page.goto(`/${org.slug}/projects/new`);
+  // Review A-38: every page has the Content-Security-Policy, with a nonce (the smoke's `next dev` enforces it).
+  const first = await page.goto(`/${org.slug}/projects/new`);
+  const policy = first!.headers()["content-security-policy"] ?? "";
+  expect(policy).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+  expect(policy).toContain("frame-ancestors 'none'");
   await page.getByTestId("project-name").fill("Duplex tender");
   await page.getByTestId("create-project").click();
   await expect(page.getByTestId("project-title")).toHaveText("Duplex tender");
@@ -55,6 +60,9 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   await expect(page.getByTestId("version-page")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("input-check-report")).toBeVisible({ timeout: 240_000 });
   await expect(page.getByTestId("version-page")).toContainText("IFC2X3");
+  // The 3D view: geometry from object storage through a signed URL.
+  await page.getByTestId("version-view-3d").click();
+  await expect(page.getByTestId("viewer-model").first()).toHaveAttribute("data-loaded", "true", { timeout: 120_000 });
 
   // A BoQ with the project's defaults, generated.
   await page.goto(`${project}/boqs`);
@@ -91,6 +99,7 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   const link = await share.getByTestId("share-url").inputValue();
   expect(link).toMatch(/\/s\/[A-Za-z0-9_-]{43}$/);
   const visitor = await browser.newContext();
+  const publicViolations = await cspViolations(visitor);
   const pub = await visitor.newPage();
   const opened = await pub.goto(new URL(link).pathname);
   expect(opened!.headers()["x-robots-tag"]).toBe("noindex, nofollow");
@@ -102,4 +111,6 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   await expect(pub.getByText("Something went wrong")).toHaveCount(0);
   await expect(pub.locator("body")).not.toContainText("Flow Owner");
   await visitor.close();
+  expect(violations, "CSP violations in the app").toEqual([]);
+  expect(publicViolations, "CSP violations on the share page").toEqual([]);
 });

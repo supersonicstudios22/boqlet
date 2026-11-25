@@ -109,9 +109,10 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
 - User regexes run on RE2 (D97): ``, `\w` and `\d` know only A-Z and 0-9, so a pattern for a
   word in a non-Latin script uses `\pL`; Latin-script names are also tried without accents and match as
   before. An extractor's or entry's `flags` field is not read (case follows `caseSensitive`).
-- No full Content-Security-Policy is set (the app sends only `frame-ancestors 'none'`, TF-046),
-  although `security.md` asks for one. The `private-headers` Traefik middleware the pilot's routes
-  name is defined outside this repo.
+- The Content-Security-Policy (D101) is report-only in a production build until the pilot has run
+  one deploy without `csp.violation` lines and the operator sets `WEB_CSP=enforce`
+  (`docs/operations/pilot.md`); styles may be inline (`style-src 'unsafe-inline'`). The `private-headers`
+  Traefik middleware the pilot's routes name is defined outside this repo.
 - **Accepted for the pilot (P54, Q47; TF-045):** the engine workers hold the same full-bucket storage
   key as the API; the control is the network boundary (internal networks, no host ports) plus, since
   review A-36, the HTTP worker's shared secret (`BOQLET_WORKER_TOKEN`; on the pilot only once the

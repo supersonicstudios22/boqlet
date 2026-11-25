@@ -15,6 +15,8 @@ need these only to run a part on its own, or to deploy.
 | `NEXT_PUBLIC_AUTH_ADAPTER` | `native` | `native` (P50) or `keycloak` (rollback only) |
 | `NEXT_PUBLIC_KEYCLOAK_URL`, `_REALM`, `_CLIENT_ID` | — | Only with the `keycloak` adapter |
 | `NEXT_DIST_DIR` | `.next` | Separate build folder (the browser smoke uses `.next-java`) |
+| `BOQLET_CSP` | `report-only` in a production build, `enforce` in development | The Content-Security-Policy (`apps/app/proxy.ts`, `src/lib/csp.ts`): `enforce`, `report-only` (violations logged as `csp.violation` by `/csp-report`, nothing blocked) or `off`. Read at run time |
+| `BOQLET_STORAGE_ORIGIN` | any `https:` origin in production, `http://localhost:*` in development | The object storage's origin(s) the policy lets the browser upload to and download from (the API's `BOQLET_S3_PUBLIC_ENDPOINT`); several separated by spaces or commas |
 | `MODULE_PRICING` | unset | Setting it to `1` fails the build on purpose: there is no pricing module (P48) |
 
 ## Java API (`services/api`)

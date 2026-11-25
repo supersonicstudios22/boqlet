@@ -164,12 +164,19 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 - App response headers (`apps/app/next.config.ts`, TF-046): every page sends
   `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` with `Content-Security-Policy:
   frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, and no `X-Powered-By`.
+- **Content-Security-Policy** (review A-38, D101): `apps/app/proxy.ts` sends it on every page with a fresh
+  nonce (`src/lib/csp.ts`): `default-src 'self'`; `script-src 'self' 'nonce-…' 'strict-dynamic'` (no
+  `'unsafe-inline'`, no `'unsafe-eval'` outside `next dev`; Next puts the nonce on its scripts, the root layout
+  on the theme script); `style-src 'self' 'unsafe-inline'` (React's `style` attributes); `img-src` and
+  `connect-src` `'self'` plus the storage origin (`BOQLET_STORAGE_ORIGIN`; signed URLs for uploads, geometry and
+  Excel); `worker-src 'self' blob:`; `object-src 'none'`; `base-uri` and `form-action 'self'`; `frame-ancestors
+  'none'`; `report-uri /csp-report`, which logs each violation as one `csp.violation` line (tokens masked, 60 a
+  minute). Every page renders dynamically (the root layout reads the request), so every page gets a nonce. A
+  production build sends it as `Content-Security-Policy-Report-Only` until `BOQLET_CSP=enforce` (the pilot:
+  `docs/operations/pilot.md`); `next dev` and the browser smoke enforce it, and `main-flow.spec.ts` fails on any
+  violation (upload, 3D view, sheet, Excel, share page).
   The bearer links (`/s/*`, `/invite/*`, `/sign-up`) send `Referrer-Policy: no-referrer`; `/s/*` and
   `/invite/*` also `X-Robots-Tag: noindex, nofollow`.
-- **Gap: no CSP is set** (no `Content-Security-Policy` in `apps/app/next.config.ts`, in Java or
-  in `ops/pilot`). Intended policy: `default-src 'self'`; `connect-src` the API, the SSE endpoint
-  and the storage domain; `img-src 'self' data: blob:` and the storage domain; `worker-src blob:`
-  for the viewer.
 - Cookies: `boqlet_session` as above. No tokens in `localStorage`.
 - CSRF: `SameSite=Lax` plus the exact-Origin check on state-changing requests.
 - Rate limits **implemented**: native sign-in and set-password, public shares (see above), and

@@ -121,6 +121,21 @@ export async function hydrated(page: Page) {
   await expect(page.locator("html")).toHaveAttribute("data-hydrated", "true", { timeout: 60_000 });
 }
 
+/**
+ * Content-Security-Policy violations in a browser context (review A-38): every page of it reports them to the list,
+ * from the `securitypolicyviolation` event, whether the policy enforces or only reports. Call before opening pages.
+ */
+export async function cspViolations(context: BrowserContext): Promise<string[]> {
+  const seen: string[] = [];
+  await context.exposeBinding("__cspViolation", (_source, text: string) => void seen.push(text));
+  await context.addInitScript(() => {
+    document.addEventListener("securitypolicyviolation", (e) => {
+      (window as unknown as { __cspViolation: (t: string) => void }).__cspViolation(`${e.effectiveDirective} blocked ${e.blockedURI} on ${location.pathname}`);
+    });
+  });
+  return seen;
+}
+
 /** Fills the native sign-in form and waits until the app's session is open (or the takeover question). */
 export async function signInWithForm(page: Page, email: string, opts: SignInOptions = {}) {
   await resetAuthLimits();
