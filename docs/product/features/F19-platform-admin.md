@@ -1,6 +1,6 @@
 # F19 Platform admin console
 
-> **Status (2026-11-22):** Built (gaps). Overview, orgs, org detail, users, plans (list and editor with the effect on the orgs on a plan before saving), platform settings (currency, public sign-up; P57), funnel and health pages (`apps/app/app/(admin)/admin`, `services/api/src/main/java/com/boqlet/api/admin`), metadata only; every admin read and action is audited (P54 Q59, TF-156); a trial ends on a day in UTC (TF-153).
+> **Status (2026-11-25):** Built (gaps). Overview, orgs, org detail, users, plans (list and editor with the effect on the orgs on a plan before saving; the watermark switch is "Watermark on exports: On", review A-42), platform settings (currency, public sign-up; P57), funnel and health pages (`apps/app/app/(admin)/admin`, `services/api/src/main/java/com/boqlet/api/admin`), metadata only; every admin read and action is audited (P54 Q59, TF-156); a trial ends on a day in UTC (TF-153).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Not built: the vendors section, links to ops dashboards, billing-webhook failures and email bounces in health (the page says "not tracked yet", TF-154; `AdminReports.health()` has failed jobs and durations only), MFA.
 > - Revenue is always empty (`AdminReports.java`).

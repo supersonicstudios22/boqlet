@@ -8,7 +8,7 @@
     "body": "This action needs more than your current plan allows.",
     "detail": "{limit}: {current} of {max} in use.",
     "feature": "{limit} isn't part of your plan.",
-    "name": "{limit, select, seats {Seats} activeProjects {Active projects} ownedOrgsPerUser {Organisations you own on this plan} maxModelVersionMb {Model file size (MB)} maxModelsPerBoq {Models in one BoQ} processingMinutesPerMonth {Processing minutes this month} libraryOrgPresets {Company presets} auditLogRetentionDays {Audit log history (days)} approvalWorkflow {Review and approval} shareLinks {Share links} exportWatermark {Excel without the watermark} other {A plan limit}}",
+    "name": "{limit, select, seats {Seats} activeProjects {Active projects} ownedOrgsPerUser {Organisations you own on this plan} maxModelVersionMb {Model file size (MB)} maxModelsPerBoq {Models in one BoQ} processingMinutesPerMonth {Processing minutes this month} libraryOrgPresets {Company presets} auditLogRetentionDays {Audit log history (days)} approvalWorkflow {Review and approval} shareLinks {Share links} exportWatermark {Watermark on exports} other {A plan limit}}",
     "upgrade": "Upgrade",
     "askOwner": "Ask your organisation's owner to change the plan.",
     "ownedOrgs": "You already own {max, plural, one {an organisation} other {# organisations}} on the plan new organisations start on. Open it from the organisation menu, or ask boqlet to change its plan."

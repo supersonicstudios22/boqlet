@@ -41,7 +41,7 @@ the decision.
 | `openOfferRequests` (pricing module) | — | 20 | unlimited | unlimited |
 | `shareLinks` (feature) | yes, with "Made with" badge | yes | yes | yes |
 | `approvalWorkflow` (feature: review, approval, four-eyes) | no | yes | yes | yes |
-| `exportWatermark` (feature) | yes | no | no | no |
+| `exportWatermark` (setting: yes = exports and share pages carry the watermark) | yes | no | no | no |
 | `auditLogRetentionDays` | 30 | 365 | 365 | custom |
 
 Definitions:
@@ -98,7 +98,8 @@ The org settings show usage for the current month against limits (F14).
   excluded); `maxModelVersionMb` at upload; `maxModelsPerBoq` at BoQ inputs; `libraryOrgPresets`
   at preset create; `processingMinutesPerMonth` at job enqueue (`worker/Jobs.java`); the features
   `shareLinks` and `approvalWorkflow`. `exportWatermark` and `auditLogRetentionDays` are applied
-  (exports and share pages; maintenance purge).
+  (exports and share pages; maintenance purge). `exportWatermark` is named by its effect everywhere
+  ("Watermark on exports"; the admin plan editor's switch reads "On", not "Included", review A-42).
 - **Not built:** the trial by plan configuration (`trialPlanId`, `trialDays`; an admin can set
   `trialEndsAt` by hand, but no job drops the org to Free when it ends) and downgrade handling
   (excess projects read-only, invites blocked).

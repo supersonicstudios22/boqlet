@@ -30,3 +30,15 @@ describe("plan limit names", () => {
     expect(t("notifications.kinds.limit_reached", { limit: name, current: 1, max: 1 })).toBe("Your plan's limit is reached: Active projects, 1 of 1");
   });
 });
+
+describe("the watermark switch (review A-42, PRD-010)", () => {
+  it("is named by its effect: on means exports carry the watermark", () => {
+    expect(t("errors.limit.name", { limit: "exportWatermark" })).toBe("Watermark on exports");
+  });
+  it("reads On in the plan editor, never Included; real features stay Included", async () => {
+    const { switchLabel } = await import("./limits");
+    expect(switchLabel("exportWatermark")).toBe("switchOn");
+    expect(switchLabel("shareLinks")).toBe("included");
+    expect(switchLabel("approvalWorkflow")).toBe("included");
+  });
+});

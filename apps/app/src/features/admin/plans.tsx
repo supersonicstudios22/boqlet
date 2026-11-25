@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useLimitName } from "@/i18n/limits";
+import { switchLabel, useLimitName } from "@/i18n/limits";
 import { LIMITS } from "@/lib/limits";
 import { ReasonDialog } from "./reason-dialog";
 import { draftEntitlements, parsePrice, savedEntitlements, type EntitlementDraft } from "./values";
@@ -243,7 +243,7 @@ function Editor({ plan, keys, currency, position }: { plan: AdminPlan | undefine
                 {typeof entry === "boolean" ? (
                   <label className="col-span-2 flex items-center gap-2">
                     <input type="checkbox" checked={entry} onChange={(e) => setEntitlement(key, e.target.checked)} className="accent-[var(--link)]" data-testid={`plan-feature-${key}`} />
-                    {t("included")}
+                    {t(switchLabel(key))}
                   </label>
                 ) : (
                   <>
