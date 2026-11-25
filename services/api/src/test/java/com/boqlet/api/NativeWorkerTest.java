@@ -156,6 +156,16 @@ class NativeWorkerTest {
     /** Review A-36: the worker answers a job or rpc call without the API's token with 401; with it, the call goes through. */
     @Test
     void workerRefusesCallsWithoutTheToken() throws Exception {
+        // The resilience test stops and restarts the worker; wait until it answers again (its /health needs no token).
+        var health = java.net.http.HttpRequest.newBuilder(java.net.URI.create(workerUrl + "/health")).GET().build();
+        for (long deadline = System.nanoTime() + Duration.ofSeconds(90).toNanos(); ; Thread.sleep(500)) {
+            try {
+                if (NETWORK.send(health, java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode() == 200) break;
+            } catch (java.io.IOException notYet) {
+                // not listening yet
+            }
+            if (System.nanoTime() > deadline) throw new AssertionError("The worker did not answer /health within 90 s.");
+        }
         for (String path : java.util.List.of("/rpc/check", "/jobs/parse")) {
             var bare = java.net.http.HttpRequest.newBuilder(java.net.URI.create(workerUrl + path)).header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"));
