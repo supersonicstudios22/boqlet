@@ -160,7 +160,7 @@ expire sessions, and write usage and audit events. System actions are audited wi
 |---|---|
 | Not signed in | `401 unauthenticated` |
 | Session ended by a sign-in elsewhere | `401 session_replaced` |
-| Resource exists but the user may not know it (other org, project without access, module off) | `404 not_found` |
+| Resource exists but the user may not know it (other org, project without access, module off) | `404 not_found`, the same body as an id that doesn't exist (D99) |
 | Resource visible but the action is not allowed by role | `403 forbidden` with `{"required": "approver"}` |
 | Allowed by role but blocked by state | `409` with a specific code (`revision_locked`, `boq_confirmed`, `invalid_transition`, `deadline_passed`) |
 | Blocked by plan | `402 limit_reached` |

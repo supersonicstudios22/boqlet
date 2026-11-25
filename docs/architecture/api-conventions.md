@@ -68,7 +68,7 @@ Every failure has this body, also those raised before a handler runs (the servle
 | 401 | no or invalid credentials | `unauthenticated` |
 | 402 | plan limit | `limit_reached` (+ `details.limit`, `details.current`, `details.max`) |
 | 403 | role not allowed | `forbidden` (+ `details.required`: the least role that may), `four_eyes` (+ `details.required: approver`; TF-013) |
-| 404 | missing or not visible | `not_found` |
+| 404 | missing or not visible: one body for both, `{"code": "not_found", "message": "The resource was not found."}`, whichever resource or scope check failed (D99) | `not_found` |
 | 405 | method not served on this path | `method_not_allowed` (+ `Allow`) |
 | 409 | blocked by state | `invalid_transition` (+ `details.state`, the current state; TF-030), `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `draft_has_problems` (publishing a draft the engine check refuses; + `details.problems`), `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
 | 413 | upload or request body too large | `too_large`; `model_too_large` for a model version over the worker's upload limit |

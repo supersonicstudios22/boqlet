@@ -28,7 +28,7 @@ class ErrorPages implements ErrorController {
             case 400 -> new ApiError("invalid_request", "The request could not be understood.");
             case 401 -> new ApiError("unauthenticated", "Sign in to continue.");
             case 403 -> new ApiError("forbidden", "You don't have access to this.");
-            case 404 -> new ApiError("not_found", "Resource not found.");
+            case 404 -> new ApiError("not_found", ApiException.NOT_FOUND_MESSAGE);
             case 405 -> new ApiError("method_not_allowed", "This method is not allowed here.");
             case 406 -> new ApiError("not_acceptable", "This response type is not available.");
             case 413 -> new ApiError("too_large", "The request is too large.");

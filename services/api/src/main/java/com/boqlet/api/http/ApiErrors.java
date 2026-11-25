@@ -89,7 +89,7 @@ class ApiErrors {
 
     @ExceptionHandler(NoResourceFoundException.class)
     ResponseEntity<ApiError> notFound() {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("not_found", "Resource not found."));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("not_found", ApiException.NOT_FOUND_MESSAGE));
     }
 
     /** An event stream that times out or whose client left: nothing to answer. */

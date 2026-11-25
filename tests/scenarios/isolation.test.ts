@@ -83,6 +83,33 @@ describe("another org's ids in a body answer like ids that don't exist (security
   });
 });
 
+describe("another org's resources answer exactly like ids that don't exist (review A-37, ENG-014)", () => {
+  // Runs, jobs and the rest answer through the same ApiException rule; these are the ones this suite owns.
+  it("the same 404 body for a foreign and a random id of an org, project, BoQ, revision, model, version and preset", async () => {
+    const own = client(owner.token);
+    const revisionId = (await own.GET("/boqs/{boqId}", { params: { path: { boqId } } })).data!.currentRevision.id;
+    const versionId = (await own.POST("/models/{modelId}/versions", { params: { path: { modelId } }, body: { fileName: "iso.ifc", sizeBytes: 100 } })).data!.version.id;
+    const preset = (await own.POST("/orgs/{orgId}/presets", { params: { path: { orgId } }, body: { kind: "dictionary", name: "Iso names", start: { mode: "empty" } } })).data!;
+    const random = "0193a2b4-0000-7000-8000-00000000abcd";
+    const api = client(stranger.token);
+    const reads: [string, (id: string) => Promise<{ response: Response; error?: unknown }>, string][] = [
+      ["org", (id) => api.GET("/orgs/{orgId}", { params: { path: { orgId: id } } }), orgId],
+      ["project", (id) => api.GET("/projects/{projectId}", { params: { path: { projectId: id } } }), projectId],
+      ["BoQ", (id) => api.GET("/boqs/{boqId}", { params: { path: { boqId: id } } }), boqId],
+      ["revision", (id) => api.GET("/revisions/{revisionId}", { params: { path: { revisionId: id } } }), revisionId],
+      ["model", (id) => api.GET("/models/{modelId}", { params: { path: { modelId: id } } }), modelId],
+      ["model version", (id) => api.GET("/model-versions/{versionId}", { params: { path: { versionId: id } } }), versionId],
+      ["preset", (id) => api.GET("/presets/{presetId}", { params: { path: { presetId: id } } }), preset.id],
+    ];
+    for (const [what, read, foreign] of reads) {
+      const a = await read(foreign);
+      const b = await read(random);
+      expect({ what, status: a.response.status, body: a.error }).toEqual({ what, status: 404, body: b.error });
+      expect(a.error).toEqual({ code: "not_found", message: "The resource was not found." });
+    }
+  });
+});
+
 describe("operations no other suite calls", () => {
   it("a model's name and discipline change (F03), audited", async () => {
     const res = await client(owner.token).PATCH("/models/{modelId}", { params: { path: { modelId } }, body: { name: "Architecture", discipline: "architecture" } });

@@ -55,7 +55,9 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
 
 - Every request resolves `(user, org)` context. Repository queries filter by `org_id` (and
   project membership where needed) through `OrgAccess` and `ProjectAccess` (BR-50).
-- Cross-tenant access returns `404`, not `403` (`docs/domain/permissions.md`).
+- Cross-tenant access returns `404`, not `403` (`docs/domain/permissions.md`), with the same body as an id that
+  doesn't exist: every `not_found` says "The resource was not found." (`ApiException.NOT_FOUND_MESSAGE`), so the
+  message no longer tells which scope check failed (ENG-014, D99; the specific text stays in the server log).
 - **Pricing module endpoints** (`/pricing/*`, P36) are **planned, not built** (P48). They are to
   be a separate module with its own Policy; vendor endpoints (`/pricing/vendor/*`) would read only
   the vendor's own pricebooks, matches, links and the lines of requests sent to them; with the
