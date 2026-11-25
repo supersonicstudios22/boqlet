@@ -244,7 +244,7 @@ uploaded for extraction (BR-53, F10 §12).
 
 Existing: `GET/POST /orgs/{orgId}/presets`, `PUT /presets/{presetId}/draft`,
 `POST /presets/check`, `POST /presets/{presetId}/preview`, `POST /presets/{presetId}/publish`,
-`PATCH /presets/{presetId}` (`starred`), `POST /codelists/read`, `POST /codelists/build`,
+`PATCH /presets/{presetId}` (`starred`, `defaultForNewProjects`, review A-45), `POST /codelists/read`, `POST /codelists/build`,
 `POST /model-versions/{versionId}/names`, `PATCH /projects/{projectId}` (defaults).
 New: `GET /orgs/{orgId}/setup`, `PUT /orgs/{orgId}/setup`.
 

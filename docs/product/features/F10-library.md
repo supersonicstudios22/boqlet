@@ -90,8 +90,13 @@ Also editable as advanced documents: **federation settings** (discipline ownersh
    projects' defaults; each moves as an edit of its inputs would (pending, not regenerated);
    saved versions never move; BoQs in review, ones the caller can't edit and archived projects
    are listed as skipped. Rename of ids across documents within the org: specified, **not built** (see Status).
-10. **Archive:** hides from pickers. Runs and saved versions keep their snapshots.
-11. **Permissions:** org presets: library editors and admins edit; members view and pick.
+10. **Archive:** hides from pickers. Runs and saved versions keep their snapshots. An archived
+   preset stops being a default for new projects.
+11. **Default for new projects** (review A-45, D107): a library editor ticks it on a published
+   company rule set (one per org: ticking another replaces it), classification or dictionary
+   (several allowed); new projects start from those presets' latest versions (F02 §2). Audited
+   (`preset.default_set`, `preset.default_cleared`). **Star** is a favourite marker only.
+12. **Permissions:** org presets: library editors and admins edit; members view and pick.
     Project presets: project lead and estimators edit.
 12. **Licensing guardrails** (BR-53): no upload of standards documents for extraction; the
     "based on" field is free text; UI copy never says "compliant". A one-time notice on first

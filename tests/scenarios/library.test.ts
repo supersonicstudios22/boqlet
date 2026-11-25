@@ -175,3 +175,55 @@ describe("F10 Library shell", () => {
     expect((await create(ivana, { kind: "dictionary", name: "Not mine", projectId: project.id, start: { mode: "empty" } })).response.status).toBe(404);
   });
 });
+
+/**
+ * Review A-45 (LEAD-008, DEC-45): new projects take the presets a library editor chose as "Default for new
+ * projects" (one rule set), never "the most recently edited starred one": saving a draft changes nothing.
+ */
+describe("A-45 one explicit default per preset kind", () => {
+  it("the s16 repro: a draft save of another starred rule set doesn't change new projects' defaults", async () => {
+    const { setPlan } = await import("../support/plans");
+    const owner = await signUp("Default Owner", uniqueEmail("defaults"));
+    const own = client(owner.token);
+    const org = (await own.POST("/orgs", { body: { name: "Defaults Firm", slug: `defaults-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}` } })).data!;
+    const billing = (await own.GET("/orgs/{orgId}/billing", { params: { path: { orgId: org.id } } })).data!;
+    await setPlan(owner, org.id, billing.plans!.find((p) => (p.entitlements.libraryOrgPresets ?? 99) >= 4)!.id);
+    const system = (await own.GET("/orgs/{orgId}/presets", { params: { path: { orgId: org.id }, query: { kind: "rule_set", layer: "system" } } })).data!;
+    const asModelled = system.find((p) => p.slug === "as-modelled")!.latestPublishedVersion!.id;
+    const ruleSet = async (name: string) => {
+      const p = (await own.POST("/orgs/{orgId}/presets", { params: { path: { orgId: org.id } }, body: { kind: "rule_set", name, start: { mode: "copy", fromVersionId: asModelled } } })).data!;
+      const v = (await own.POST("/presets/{presetId}/publish", { params: { path: { presetId: p.id } }, body: { changeNote: "v1" } })).data!;
+      return { id: p.id, version: v.id };
+    };
+    const patch = (presetId: string, body: Record<string, unknown>) => own.PATCH("/presets/{presetId}", { params: { path: { presetId } }, body: body as never });
+    const newProject = async (name: string) => (await own.POST("/orgs/{orgId}/projects", { params: { path: { orgId: org.id } }, body: { name } })).data!;
+
+    const first = await ruleSet("Measuring rules");
+    const second = await ruleSet("Second rules");
+    // Starring alone chooses nothing any more.
+    await patch(first.id, { starred: true });
+    await patch(second.id, { starred: true });
+    expect((await newProject("P0")).defaults.ruleSetVersionId).toBe(asModelled);
+
+    const chosen = await patch(second.id, { defaultForNewProjects: true });
+    expect(chosen.data).toMatchObject({ defaultForNewProjects: true, starred: true });
+    expect((await newProject("P1")).defaults.ruleSetVersionId).toBe(second.version);
+    // A draft save of the other starred rule set: nothing changes (before A-45 it became the default).
+    const doc = (await own.GET("/preset-versions/{presetVersionId}", { params: { path: { presetVersionId: first.version } } })).data!.doc as Record<string, unknown>;
+    expect((await own.PUT("/presets/{presetId}/draft", { params: { path: { presetId: first.id } }, body: { doc: { ...doc, name: "Measuring rules (draft)" } } })).response.status).toBe(200);
+    expect((await newProject("P2")).defaults.ruleSetVersionId).toBe(second.version);
+
+    // One rule set per org: choosing the first clears the second; the audit says so.
+    expect((await patch(first.id, { defaultForNewProjects: true })).data!.defaultForNewProjects).toBe(true);
+    expect((await own.GET("/presets/{presetId}", { params: { path: { presetId: second.id } } })).data!.defaultForNewProjects).toBe(false);
+    expect((await newProject("P3")).defaults.ruleSetVersionId).toBe(first.version);
+    const audit = (await own.GET("/orgs/{orgId}/audit", { params: { path: { orgId: org.id }, query: { entityType: "preset" } } })).data!;
+    expect(audit.items.map((a) => a.action)).toEqual(expect.arrayContaining(["preset.default_set", "preset.default_cleared"]));
+
+    // A classification may be one of several; an unpublished preset can't be a default; archiving clears it.
+    const empty = (await own.POST("/orgs/{orgId}/presets", { params: { path: { orgId: org.id } }, body: { kind: "classification", name: "Codes", start: { mode: "empty" } } })).data!;
+    expect((await patch(empty.id, { defaultForNewProjects: true })).response.status).toBe(400);
+    expect((await own.POST("/presets/{presetId}/archive", { params: { path: { presetId: first.id } } })).data!.defaultForNewProjects).toBe(false);
+    expect((await newProject("P4")).defaults.ruleSetVersionId).toBe(asModelled);
+  });
+});

@@ -22,12 +22,13 @@ class ProjectPresets {
     }
 
     ProjectDefaults defaults(UUID org) {
-        List<UUID> rules = starred(org, "rule_set", "updated_at DESC, id");
+        // Review A-45: the presets library editors chose as "Default for new projects" (one rule set), not the starred ones.
+        List<UUID> rules = chosen(org, "rule_set", "name, id");
         var dictionaries = new ArrayList<>(system("dictionary", "global-seed"));
-        dictionaries.addAll(starred(org, "dictionary", "name, id"));
+        dictionaries.addAll(chosen(org, "dictionary", "name, id"));
         return new ProjectDefaults()
                 .ruleSetVersionId((rules.isEmpty() ? system("rule_set", "as-modelled") : rules).stream().findFirst().orElse(null))
-                .classificationVersionIds(starred(org, "classification", "name, id"))
+                .classificationVersionIds(chosen(org, "classification", "name, id"))
                 .dictionaryVersionIds(dictionaries).federationVersionId(null);
     }
 
@@ -64,10 +65,10 @@ class ProjectPresets {
                 """, version, preset, doc, actor, actor);
     }
 
-    private List<UUID> starred(UUID org, String kind, String order) {
+    private List<UUID> chosen(UUID org, String kind, String order) {
         return database.queryForList("""
                 SELECT latest_published_version_id FROM presets
-                WHERE org_id = ? AND layer = 'org' AND kind = ? AND starred AND NOT archived
+                WHERE org_id = ? AND layer = 'org' AND kind = ? AND org_default AND NOT archived
                     AND latest_published_version_id IS NOT NULL ORDER BY
                 """ + " " + order, UUID.class, org, kind);
     }

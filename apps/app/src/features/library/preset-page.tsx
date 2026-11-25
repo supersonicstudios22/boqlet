@@ -31,6 +31,8 @@ import { LoadingLines } from "@/components/loading";
 import { tabClass } from "@/components/nav-styles";
 
 const TABS = ["edit", "versions", "usage"] as const;
+/** Review A-45: the kinds new projects take defaults of (one rule set; classifications and dictionaries may be several). */
+const DEFAULT_KINDS: string[] = ["rule_set", "classification", "dictionary"];
 type Tab = (typeof TABS)[number];
 
 /**
@@ -107,6 +109,7 @@ function PresetHeader({ preset: p, canCopy, orgId, orgSlug }: { preset: Preset; 
         <Tag>{t(`kindsOne.${p.kind}`)}</Tag>
         <Tag data-testid="preset-layer">{t(`layers.${p.layer}`)}</Tag>
         {p.starred && <Tag title={t("preset.starredHint")}>{t("preset.starred")}</Tag>}
+        {p.defaultForNewProjects && <Tag title={t("preset.defaultHint")} data-testid="preset-default">{t("preset.default")}</Tag>}
         {p.archived && <Tag data-testid="preset-archived">{t("preset.archived")}</Tag>}
       </div>
       {p.description && <p>{p.description}</p>}
@@ -149,6 +152,18 @@ function PresetHeader({ preset: p, canCopy, orgId, orgSlug }: { preset: Preset; 
           <Button variant="outline" onClick={() => update.mutate({ starred: !p.starred })} disabled={update.isPending} data-testid="preset-star">
             {t(p.starred ? "preset.unstar" : "preset.star")}
           </Button>
+        )}
+        {editable && p.layer === "org" && DEFAULT_KINDS.includes(p.kind) && (
+          <label className="flex items-center gap-2" title={p.latestPublishedVersion ? undefined : t("preset.defaultNeedsVersion")}>
+            <input
+              type="checkbox"
+              checked={p.defaultForNewProjects === true}
+              disabled={update.isPending || (!p.latestPublishedVersion && !p.defaultForNewProjects)}
+              onChange={(e) => update.mutate({ defaultForNewProjects: e.target.checked })}
+              data-testid="preset-default-toggle"
+            />
+            {t(p.kind === "rule_set" ? "preset.defaultRuleSet" : "preset.defaultMany")}
+          </label>
         )}
         {canCopy && copyFrom && <CloneDialog preset={p} orgId={orgId} orgSlug={orgSlug} />}
         {editable && (

@@ -27,7 +27,7 @@ export const AUDIT_ACTIONS = [
   "run.created", "run.completed", "decision.set", "decision.cleared", "decision.promoted",
   "line.edited", "line.restored", "manual_line.added", "manual_line.updated", "manual_line.removed",
   "export.created", "export.downloaded", "share_link.created", "share_link.updated", "share_link.revoked",
-  "preset.created", "preset.updated", "preset.published", "preset.draft_discarded", "preset.draft_rebased", "preset.archived",
+  "preset.created", "preset.updated", "preset.published", "preset.draft_discarded", "preset.draft_rebased", "preset.default_set", "preset.default_cleared", "preset.archived",
 ] as const;
 
 export const AUDIT_ENTITIES = ["org", "user", "project", "model", "modelVersion", "boq", "revision", "run", "decision", "export", "preset"] as const;

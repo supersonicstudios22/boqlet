@@ -42,7 +42,7 @@ public class PresetCatalog {
 
     public record Head(UUID id, UUID org, UUID project, PresetKind kind, PresetLayer layer, String slug, String name,
                        String description, String basedOn, boolean starred, boolean archived, UUID published, UUID draft,
-                       OffsetDateTime updated, UserRef editor, String unavailable) {}
+                       OffsetDateTime updated, UserRef editor, String unavailable, boolean orgDefault) {}
 
     public record Version(UUID id, UUID preset, Integer number, String status, ObjectNode doc, UUID parent, List<String> problems,
                           int etag, String note, OffsetDateTime publishedAt, OffsetDateTime updated, UserRef publisher,
@@ -161,7 +161,8 @@ public class PresetCatalog {
                 row.getString("name"), row.getString("description"), row.getString("based_on"), row.getBoolean("starred"),
                 row.getBoolean("archived"), row.getObject("latest_published_version_id", UUID.class),
                 row.getObject("draft_version_id", UUID.class), row.getObject("updated_at", OffsetDateTime.class),
-                editor == null ? null : new UserRef(editorId, editor), row.getString("unavailable_reason"));
+                editor == null ? null : new UserRef(editorId, editor), row.getString("unavailable_reason"),
+                row.getBoolean("org_default"));
     }
 
     private Version versionRow(ResultSet row, int ignored) throws SQLException {

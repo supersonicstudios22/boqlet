@@ -136,6 +136,8 @@
       "export_created": "Exported",
       "export_downloaded": "Downloaded a saved version's Excel",
       "preset_published": "Published a preset version",
+      "preset_default_set": "Made a preset a default for new projects",
+      "preset_default_cleared": "Stopped a preset being a default for new projects",
       "preset_rebased": "Updated a preset's draft to its parent's new version",
       "preset_draft_rebased": "Started a preset's draft again from its latest version",
       "org_setup_done": "Finished the setup",

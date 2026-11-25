@@ -366,8 +366,8 @@
     "lastEdit": "Last edit",
     "editedBy": "{name}, {when}",
     "starred": "Starred",
-    "starredHint": "Preselected for new projects",
-    "star": "Star for new projects",
+    "starredHint": "A favourite. Defaults for new projects are chosen separately.",
+    "star": "Star",
     "unstar": "Unstar",
     "archived": "Archived",
     "archivedNote": "This preset is archived: it is hidden from pickers and can't be edited. BoQs that used it keep their numbers.",
@@ -379,7 +379,12 @@
     "archive": "Archive",
     "archiveTitle": "Archive {name}?",
     "archiveBody": "It disappears from the Library and from every picker. BoQs and saved versions that used it keep their numbers and their copy of it.",
-    "archivedToast": "{name} archived"
+    "archivedToast": "{name} archived",
+    "default": "Default for new projects",
+    "defaultHint": "New projects start from its latest version. Existing projects keep their defaults.",
+    "defaultRuleSet": "Default for new projects (one rule set; choosing this one replaces the current default)",
+    "defaultMany": "Default for new projects",
+    "defaultNeedsVersion": "Publish a version first."
   },
   "create": {
     "title": {

@@ -3415,7 +3415,10 @@ export interface components {
             name: string;
             description?: string;
             basedOn?: string;
+            /** @description A favourite marker (review A-45) */
             starred?: boolean;
+            /** @description Org presets: new projects start from its latest version (review A-45) */
+            defaultForNewProjects?: boolean;
             /** @description false when a code list must be downloaded first (e.g. Uniclass) */
             available?: boolean;
             unavailableReason?: string;
@@ -6238,7 +6241,10 @@ export interface operations {
                     name?: string;
                     description?: string;
                     basedOn?: string;
+                    /** @description A favourite marker; it doesn't choose defaults (review A-45) */
                     starred?: boolean;
+                    /** @description Review A-45: new projects start from this preset's latest version. Org rule sets, classifications and dictionaries, published; one rule set per org (setting one clears the other). Audited `preset.default_set` / `preset.default_cleared` */
+                    defaultForNewProjects?: boolean;
                 };
             };
         };

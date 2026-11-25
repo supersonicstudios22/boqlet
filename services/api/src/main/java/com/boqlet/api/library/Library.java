@@ -415,6 +415,9 @@ public class Library {
     @Transactional
     public Preset update(UUID id, UUID actor, UpdatePresetRequest request) {
         var head = editable(id, actor);
+        if (request.getDefaultForNewProjects() != null && request.getDefaultForNewProjects() != head.orgDefault()) {
+            defaultFor(head, actor, request.getDefaultForNewProjects());
+        }
         database.update("""
                 UPDATE presets SET name = coalesce(?, name), description = coalesce(?, description),
                     starred = coalesce(?, starred), updated_by = ?, updated_at = now() WHERE id = ?
@@ -428,11 +431,39 @@ public class Library {
     public Preset archive(UUID id, UUID actor) {
         var head = lock(id, actor);
         if (!head.archived()) {
-            database.update("UPDATE presets SET archived = true, starred = false, updated_by = ?, updated_at = now() WHERE id = ?",
-                    actor, id);
+            database.update("""
+                    UPDATE presets SET archived = true, starred = false, org_default = false, updated_by = ?, updated_at = now()
+                    WHERE id = ?
+                    """, actor, id);
             event(head, actor, "preset.archived");
         }
         return view(catalog.head(id), false, actor);
+    }
+
+    /**
+     * Review A-45 (DEC-45): "Default for new projects" is set deliberately by a library editor and audited
+     * (`preset.default_set` / `preset.default_cleared`); one rule set per org (choosing one clears the other),
+     * classifications and dictionaries may be several. Only published org presets of those kinds.
+     */
+    private void defaultFor(PresetCatalog.Head head, UUID actor, boolean on) {
+        if (on) {
+            if (head.layer() != PresetLayer.ORG
+                    || !Set.of(PresetKind.RULE_SET, PresetKind.CLASSIFICATION, PresetKind.DICTIONARY).contains(head.kind())) {
+                throw invalid("Only company rule sets, classifications and dictionaries can be defaults for new projects.");
+            }
+            if (head.published() == null) throw invalid("Publish the preset before making it a default for new projects.");
+            if (head.kind() == PresetKind.RULE_SET) {
+                for (UUID other : database.queryForList("""
+                        SELECT id FROM presets WHERE org_id = ? AND layer = 'org' AND kind = 'rule_set' AND org_default AND id <> ?
+                        FOR UPDATE
+                        """, UUID.class, head.org(), head.id())) {
+                    database.update("UPDATE presets SET org_default = false WHERE id = ?", other);
+                    event(catalog.head(other), actor, "preset.default_cleared");
+                }
+            }
+        }
+        database.update("UPDATE presets SET org_default = ? WHERE id = ?", on, head.id());
+        event(head, actor, on ? "preset.default_set" : "preset.default_cleared");
     }
 
     private PresetCatalog.Head editable(UUID id, UUID actor) {
@@ -485,7 +516,8 @@ public class Library {
     private Preset view(PresetCatalog.Head head, boolean edit, UUID actor) {
         var view = new Preset(head.id(), head.kind(), head.layer(), head.slug(), head.name(), head.archived())
                 .orgId(head.org()).projectId(head.project()).description(head.description()).basedOn(head.basedOn())
-                .starred(Boolean.TRUE.equals(head.starred()) ? Boolean.TRUE : null).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(usage(head.id(), actor).size())
+                .starred(Boolean.TRUE.equals(head.starred()) ? Boolean.TRUE : null)
+                .defaultForNewProjects(head.layer() == PresetLayer.ORG ? head.orgDefault() : null).updatedBy(head.editor()).updatedAt(head.updated()).usedByCount(usage(head.id(), actor).size())
                 .permissions(Map.of("edit", edit, "archive", edit, "publish", edit, "preview", head.unavailable() == null));
         if (head.published() != null) view.setLatestPublishedVersion(catalog.version(head.published()).info());
         if (head.draft() != null) view.setDraft(catalog.version(head.draft()).info());

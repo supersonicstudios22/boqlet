@@ -736,7 +736,10 @@ paths:
                 name: { type: string, maxLength: 200 }
                 description: { type: string, maxLength: 4000 }
                 basedOn: { type: string, maxLength: 200 }
-                starred: { type: boolean }
+                starred: { type: boolean, description: "A favourite marker; it doesn't choose defaults (review A-45)" }
+                defaultForNewProjects:
+                  type: boolean
+                  description: "Review A-45: new projects start from this preset's latest version. Org rule sets, classifications and dictionaries, published; one rule set per org (setting one clears the other). Audited `preset.default_set` / `preset.default_cleared`"
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Preset" } } } }
   /presets/{presetId}/archive:
@@ -3247,7 +3250,8 @@ components:
         name: { type: string }
         description: { type: string }
         basedOn: { type: string }
-        starred: { type: boolean }
+        starred: { type: boolean, description: "A favourite marker (review A-45)" }
+        defaultForNewProjects: { type: boolean, description: "Org presets: new projects start from its latest version (review A-45)" }
         available: { type: boolean, description: "false when a code list must be downloaded first (e.g. Uniclass)" }
         unavailableReason: { type: string }
         latestPublishedVersion: { $ref: "#/components/schemas/PresetVersionInfo" }

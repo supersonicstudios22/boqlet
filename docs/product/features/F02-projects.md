@@ -27,9 +27,11 @@ who works on it.
    becomes `lead`.
 2. **Default presets:** rule set version, classification versions (zero or more, ordered:
    the first is the default grouping), dictionary versions (ordered, most general first).
-   Defaults prefill new BoQs. Initial defaults: the org's starred presets, else the system
-   "As modelled" rule set, the global seed dictionary and no classification. After the setup
-   wizard (F16) the org's starred presets are the ones it published. Defaults only prefill:
+   Defaults prefill new BoQs. Initial defaults: the org presets a library editor chose as
+   **Default for new projects** (one rule set; any number of classifications and dictionaries;
+   review A-45, D107), else the system "As modelled" rule set, the global seed dictionary and
+   no classification. Starring is only a favourite and saving a draft never changes the
+   choice. After the setup wizard (F16) the defaults are the presets it published. Defaults only prefill:
    every BoQ can use other presets (F04 §1–2, P19). Defaults are **versions**, never "the
    latest" (BR-07, DEC-44, D106): project settings › **Defaults for new BoQs** picks the
    preset and version; a newer published version shows as "version n is published" with

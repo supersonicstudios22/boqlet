@@ -100,7 +100,7 @@ export function useCreatePreset(orgId: string) {
 export function useUpdatePreset(presetId: string) {
   const refresh = useRefreshPreset();
   return useMutation({
-    mutationFn: async (body: { name?: string; description?: string; basedOn?: string; starred?: boolean }) =>
+    mutationFn: async (body: { name?: string; description?: string; basedOn?: string; starred?: boolean; defaultForNewProjects?: boolean }) =>
       (await api.PATCH("/presets/{presetId}", { params: { path: { presetId } }, body })).data!,
     onSuccess: async () => refresh(presetId),
     onError: () => {},

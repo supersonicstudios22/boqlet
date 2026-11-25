@@ -72,7 +72,7 @@ export function ReviewStep({ rules, items, names, modelProjectId, onEdit }: { ru
       try {
         let versionId = row.preset.latestPublishedVersion?.id;
         if (row.preset.draft) versionId = (await api.POST("/presets/{presetId}/publish", { params: { path: { presetId: row.preset.id } }, body: { changeNote: t("changeNote") } })).data!.id;
-        await api.PATCH("/presets/{presetId}", { params: { path: { presetId: row.preset.id } }, body: { starred: true } });
+        await api.PATCH("/presets/{presetId}", { params: { path: { presetId: row.preset.id } }, body: { starred: true, defaultForNewProjects: true } });
         if (versionId) published[row.kind] = versionId;
       } catch (e) {
         setError({ kind: row.kind, error: e });

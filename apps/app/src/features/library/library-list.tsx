@@ -104,6 +104,7 @@ export function LibraryList({ projectId, canCreate }: { projectId?: string; canC
                       {p.name}
                     </Link>
                     {p.starred && <Tag title={t("preset.starredHint")}>{t("preset.starred")}</Tag>}
+                    {p.defaultForNewProjects && <Tag title={t("preset.defaultHint")}>{t("preset.default")}</Tag>}
                     {p.archived && <Tag>{t("preset.archived")}</Tag>}
                     {p.available === false && <Tag>{t("preset.unavailable")}</Tag>}
                   </div>
