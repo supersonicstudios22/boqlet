@@ -18,6 +18,12 @@ spring:
       fail-on-unknown-properties: true
   main:
     keep-alive: true
+  flyway:
+    # Rollback (TF-186; ops/pilot/deploy-release.sh, scripts/ci-rollback-check.sh) starts an older image on a
+    # schema a newer one migrated. Flyway ignores newer versioned migrations by default (`*:future`); a newer
+    # repeatable one (db.migration.R__Sync_system_presets, review A-3) is "missing" to the older image and must
+    # not stop it either. The pilot's Compose file sets the same for images built before this line.
+    ignore-migration-patterns: "*:future,repeatable:missing"
   mail:
     host: ${BOQLET_SMTP_HOST:}
     port: ${BOQLET_SMTP_PORT:587}

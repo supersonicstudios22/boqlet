@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Rollback compatibility (TF-186, nfr.md "Availability and recovery"): the current API migrates a fresh
 # database, then the previous release's API must start on that schema (Flyway ignores the newer
-# migrations) and answer. Used by CI (.github/workflows/ci.yml "rollback"); runs anywhere with Docker.
+# migrations, as ops/pilot/compose.yaml configures it: newer versioned and repeatable ones) and answer.
+# Used by CI (.github/workflows/ci.yml "rollback"); runs anywhere with Docker.
 #   scripts/ci-rollback-check.sh <current image> <previous image>
 set -euo pipefail
 current=${1:?current API image}
@@ -20,6 +21,7 @@ start() {
   docker rm -f "$net-api" >/dev/null 2>&1 || true
   docker run -d --name "$net-api" --network "$net" -p 127.0.0.1::8080 \
     -e BOQLET_JDBC_URL="jdbc:postgresql://$net-db:5432/boqlet" -e BOQLET_DB_USER=boqlet -e BOQLET_DB_PASSWORD=rollback-only \
+    -e SPRING_FLYWAY_IGNOREMIGRATIONPATTERNS='*:future,repeatable:missing' \
     -e BOQLET_NATIVE_AUTH=true -e BOQLET_SECURE_COOKIE=false -e BOQLET_APP_URL=http://localhost:3000 \
     -e BOQLET_INVITATION_SECRET=rollback-check-signing-secret-not-for-production \
     -e BOQLET_SMTP_HOST=localhost -e BOQLET_SMTP_PORT=1025 -e BOQLET_SMTP_AUTH=false -e BOQLET_SMTP_STARTTLS=false \

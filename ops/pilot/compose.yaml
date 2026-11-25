@@ -97,6 +97,10 @@ services:
       db: {condition: service_healthy}
     environment:
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65"
+      # Rollback to an image older than this revision's migrations (deploy-release.sh restores the previous
+      # one): Flyway must accept a newer repeatable migration as well as newer versioned ones. Images since
+      # review WP-B3 have it in application.yml; this covers the ones before (docs/operations/pilot.md).
+      SPRING_FLYWAY_IGNOREMIGRATIONPATTERNS: "*:future,repeatable:missing"
       BOQLET_JDBC_URL: jdbc:postgresql://db:5432/boqlet
       BOQLET_DB_USER: boqlet_app
       BOQLET_DB_PASSWORD: ${DB_PASSWORD:?}

@@ -93,6 +93,26 @@ lists, the share page's Excel) answers `503 engine_unavailable`:
 
 To rotate it, replace the line and repeat step 3. To roll back, empty the value and repeat step 3.
 
+## Rolling back across a repeatable migration
+
+`deploy-release.sh` restores the previous image set when a new one fails verification, on the
+database the new API has already migrated. Flyway in the older API ignores newer *versioned*
+migrations by default, but since review A-3 the API also has a *repeatable* one
+(`R__Sync_system_presets`, D81), which an older image sees as "missing" and refuses to start on
+(CI's `rollback` job failed on it from WP-A3 until WP-B3). The API accepts it since review WP-B3
+(`spring.flyway.ignore-migration-patterns: "*:future,repeatable:missing"` in `application.yml`),
+and `ops/pilot/compose.yaml` passes the same as `SPRING_FLYWAY_IGNOREMIGRATIONPATTERNS`, which
+covers the images built before. **Until the trusted Compose file on the host has that line, a
+rollback to an image older than WP-B3 fails at Flyway validation** and the API stays down:
+
+1. Point `/srv/boqlet/current` at a release whose `ops/pilot/compose.yaml` sets it
+   (`grep IGNOREMIGRATIONPATTERNS /srv/boqlet/current/ops/pilot/compose.yaml`) before the first
+   deploy that carries the repeatable migration. None had reached the pilot by 2026-11-25: the
+   last deploy was WP-A2's (CI was red from WP-A3 on), so the next green push is that deploy.
+2. If a rollback fails this way before then, add the line to the `api` service's `environment` in
+   the host's Compose file and recreate it with the previous release:
+   `PILOT_RELEASE=<previous> docker compose --env-file /srv/boqlet/state/pilot.env up -d --no-deps api`.
+
 ## Content-Security-Policy
 
 The web app sends a Content-Security-Policy with a nonce on every page (review A-38, D101;
