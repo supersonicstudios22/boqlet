@@ -11,7 +11,7 @@ PostgreSQL, S3 storage (SeaweedFS), MailHog and the real Python engine worker, i
 
 | Backend | Started by | Used for | Test-only routes (`SuiteSupport`)? |
 |---|---|---|---|
-| **Local Docker stack** (`ops/local`) | `npm run local:up` (or `npm run dev:app`) | `npm run local:check`; manual and exploratory testing; the test campaign | **No**: the product image |
+| **Local Docker stack** (`ops/local`) | `npm run local:up` (or `npm run dev:app`) | `npm run local:check`; `npm run local:suites` (the contract and scenario suites, below); manual and exploratory testing; the test campaign | **No**: the product image (the suites replace the routes with SQL and native sign-in) |
 | **Test harness** (`NativeWorkerTest`, Testcontainers) | `mvn -f services/api/pom.xml verify` with the variables below | Java integration tests, the shared contract and scenario suites, the browser smoke, the API performance suite | **Yes**: test clock, test users and sessions, setup links, mail settle |
 
 The pilot (booqlet.com) is development too (P51): functional checks with synthetic accounts are allowed
@@ -25,8 +25,8 @@ there (`ops/pilot/verify-live.sh`), load and destructive tests are not.
 | App unit | `apps/app/src/**/*.test.ts(x)`, `apps/app/scripts/*.test.mjs` | Vitest (node; jsdom for component tests) | 73 files, 405 tests | none |
 | Static | the workspaces, both contracts, the schemas | tsc, ESLint (incl. no literal UI strings), Redocly, codegen drift | — | none |
 | Java integration | `services/api/src/test/java` | JUnit 5 + Testcontainers + ArchUnit | 12 classes, 55 `@Test`s: `ApiFoundationTest`, `NativeAuthTest` (P57: public sign-up, its bot protection and throttling, the owned-org cap, self-service reset), `AccountSecurityTest` (rate limits, account audit, locale, names, preferences, headers, seats), `ErrorResponsesTest`, `NativeWorkerTest`, `BackupRestoreTest`, `AlertMonitorTest`, `http/RequestSizeFilterTest`, `http/HealthTimeoutTest`, `model/ParseJobErrorsTest`, `worker/JobDispatcherTest`, `CoreArchitectureTest` (ArchUnit); several `@Test`s run only with their `BOQLET_NATIVE_*` switch, so surefire's count depends on the environment | test harness |
-| Contract suite | `tests/contract` | Vitest over the generated client | 7 files, 198 tests; `auth.test.ts` checks all 172 operations for `401` / public | test harness |
-| Scenario suite | `tests/scenarios` | Vitest over the generated client | 30 files, 1,893 tests (1,889 and 2 `it.todo`, 2 skipped, after P57; most of them the role matrix of `permissions.test.ts`); named after rule ids, acceptance criteria and findings (`BR-27 …`, `F10-AC7 …`, `TF-094 …`); a cell that waits for an open finding is `it.fails` and names it (none left after Stage 6) | test harness |
+| Contract suite | `tests/contract` | Vitest over the generated client | 7 files, 198 tests; `auth.test.ts` checks all 172 operations for `401` / public | test harness or local stack |
+| Scenario suite | `tests/scenarios` | Vitest over the generated client | 30 files, 1,893 tests (1,889 and 2 `it.todo`, 2 skipped, after P57; most of them the role matrix of `permissions.test.ts`); named after rule ids, acceptance criteria and findings (`BR-27 …`, `F10-AC7 …`, `TF-094 …`); a cell that waits for an open finding is `it.fails` and names it (none left after Stage 6) | test harness or local stack |
 | Browser smoke | `apps/app/e2e-java` | Playwright (Chromium) | 12 specs, 36 tests (`a11y-layout`, `accounts`, `b7`, `batch6`, `formats`, `live`, `main-flow`, `orgs`, `resilience`, `sessions`, `sign-up`, `states`); the campaign's specs tag their tests (`@b6-…`, `@b7-…`) for `BOQLET_BROWSER_SMOKE_FILTER` | test harness (a second Java with native sign-in) |
 | Performance | `tests/perf` | Vitest (API latency) + `engine_timing.py` | 2 tests + a timing script | test harness / engine |
 | Local stack check | `scripts/local.mjs check` | Node | 1 end-to-end run | local Docker stack |
@@ -94,14 +94,33 @@ with open sessions, written straight into the DB) and `BOQLET_SUITE_MAILHOG`. Th
 through the harness's test JWT decoder, not native sign-in; native sign-in is covered by
 `NativeAuthTest` and the browser smoke.
 
-**Why not against the local Docker stack?** The suites need `SuiteSupport` (`/_test/users`,
-`/_test/clock`, `/_test/mail/settle`, `/_test/setup-link`, `/_test/auth-limits/reset`), the test JWT
-decoder, the `suite_clock` schema on the DB search path and DB-seeded sessions; `contract/auth.test.ts`
-also expects native sign-in to be off. None of that is in the product image. Run outside the harness,
-`npm run test:contract` and `npm run test:scenarios` stop at once with a message saying so
-(`tests/run.mjs` checks for `BOQLET_JAVA_SUITE_USERS`). Making them run locally (a test image of the API with `SuiteSupport`) is a
-todo ([../product/roadmap.md](../product/roadmap.md)). The browser smoke is the cheapest to port: it
-uses only the setup-link and auth-limit routes, which `scripts/local.mjs` already replaces with SQL.
+**The shared suites against the local Docker stack** (review B-05). With the stack up, `npm run local:suites`
+runs the contract and scenario suites against it, as the harness runs them against its own Java:
+
+```bash
+npm run local:up
+npm run local:suites                                  # contract, then scenarios (≈ 15 min)
+npm run local:suites -- --filter permissions          # some files (the names BOQLET_SCENARIO_FILTER takes)
+npm run local:suites -- --suite contract              # one suite (contract, scenarios or perf)
+```
+
+It sets `BOQLET_TARGET=local` (and `API_URL`, `BOQLET_LOCAL_ORIGIN`, `BOQLET_SUITE_MAILHOG`); `node tests/run.mjs
+<suite>` with those variables does the same. The stack runs the product image, so the suites do there what
+the harness does through `SuiteSupport` with the stack's own means (`tests/support/local-stack.mjs`,
+`local-provision.mjs`): every person (the six seeded people and everyone a scenario signs up) sets this run's
+password from a setup link written into the database, as `npm run local:user` issues one, and signs in natively;
+requests carry the session cookie and the app's Origin instead of a test bearer token, and a scenario's
+`POST /sessions` from a new browser is the app's `POST /auth/sign-in` with its device label and takeover. Mail
+settles by the same outbox query; sign-in limits are reset when a run reaches them. Each run makes its own people
+(`olivia-<run>@example.com`) and orgs (`studio-demo-<run>`), so runs never share state; nothing is deleted
+(`npm run local:reset` clears the stack). Differences from the harness, all by design:
+
+- the stack has no test clock: the four scenarios that move time (`state-machines` clock and session expiry,
+  `orgs` invitation expiry, `model-lifecycle` upload expiry) are skipped (`hasTestClock`, `support/clock.ts`);
+- `contract/auth.test.ts` checks native sign-in as it is on (a wrong password is `401`, another origin `403
+  invalid_origin`) instead of the harness's `404 native_auth_disabled`.
+
+The browser smoke still runs only in the harness (it starts its own Java with native sign-in and the app).
 
 **Engine timing:** `engine/.venv/Scripts/python tests/perf/engine_timing.py <file.ifc>` (Linux:
 `engine/.venv/bin/python`); `--federated A.ifc B.ifc` parses in parallel and runs one BoQ; `--repeat N`;

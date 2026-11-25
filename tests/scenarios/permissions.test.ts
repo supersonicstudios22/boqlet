@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { API_URL, authentication, client } from "../support/env";
+import { anonymous, API_URL, authentication, client } from "../support/env";
 import { checkResponse } from "../support/contract";
 import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
@@ -31,7 +31,7 @@ const denials: { row: string; persona: string; details: unknown }[] = [];
 
 async function call(who: Persona | Spare | null, method: string, path: string, body?: unknown): Promise<Res> {
   const token = who ? tokens[who] : undefined;
-  const headers: Record<string, string> = { ...(token ? await authentication(token) : {}), ...(body !== undefined ? { "Content-Type": "application/json" } : {}) };
+  const headers: Record<string, string> = { ...(token ? await authentication(token) : anonymous()), ...(body !== undefined ? { "Content-Type": "application/json" } : {}) };
   const request = new Request(`${API_URL}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), redirect: "manual" });
   const response = await fetch(request.clone());
   await checkResponse(request, response.clone());

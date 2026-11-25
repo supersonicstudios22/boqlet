@@ -12,12 +12,12 @@
  * Idempotent: a second suite in the same Java context finds them and leaves them.
  */
 import { client } from "./env";
-import { user } from "./users";
+import { STUDIO_SLUG, user } from "./users";
 
 export default async function seed() {
   const [olivia, ivana, marko, ana, victor] = await Promise.all((["olivia", "ivana", "marko", "ana", "victor"] as const).map((key) => user(key)));
   const me = (await client(olivia.token).GET("/me")).data!;
-  const orgId = me.memberships.find((m) => m.org.slug === "studio-demo")!.org.id;
+  const orgId = me.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org.id;
 
   const projects = (await client(olivia.token).GET("/orgs/{orgId}/projects", { params: { path: { orgId } } })).data!;
   if (!projects.some((p) => p.name === "Duplex")) {

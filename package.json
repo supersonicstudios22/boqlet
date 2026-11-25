@@ -21,6 +21,7 @@
     "local:admin": "node scripts/local.mjs admin",
     "local:check": "node scripts/local.mjs check",
     "local:demo": "node scripts/local.mjs demo",
+    "local:suites": "node scripts/local.mjs suites",
     "dev:engine-worker": "node scripts/run-engine.mjs worker",
     "build:app": "npm run build -w @ifc-boq/app",
     "typecheck": "npm run typecheck --workspaces --if-present",

@@ -10,12 +10,14 @@
  *   node scripts/local.mjs user <email>   a sign-up link for a new account (or a reset link if it exists)
  *   node scripts/local.mjs admin <email>  make an existing account a platform admin
  *   node scripts/local.mjs check         end-to-end check: sign-up, upload, parse, BoQ run
+ *   node scripts/local.mjs suites [--suite contract|scenarios|perf] [--filter name,name]
+ *                                        the shared suites (tests/) against this stack; default contract and scenarios
  *   node scripts/local.mjs demo [--email e] [--password p] [--port n] [--no-org]
  *                                        backend up, a demo account ready to sign in, the app on :3000
  */
 import { spawn, spawnSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
@@ -344,7 +346,46 @@ switch (cmd) {
     );
     break;
   }
+  case "suites": {
+    // The shared contract and scenario suites (tests/, docs/testing/README.md) against this stack, as
+    // NativeWorkerTest runs them against its own Java: tests/run.mjs provisions the seeded people and orgs
+    // through the stack's sign-up links (BOQLET_TARGET=local). `--filter` names test files, as
+    // BOQLET_SCENARIO_FILTER does; a suite with no matching file is skipped.
+    const option = (name) => (rest.includes(name) ? rest[rest.indexOf(name) + 1] ?? "" : undefined);
+    const suites = (option("--suite") ?? "contract,scenarios").split(",").filter(Boolean);
+    const filters = (option("--filter") ?? "").split(",").map((f) => f.trim()).filter(Boolean);
+    if (suites.some((suite) => !["contract", "scenarios", "perf"].includes(suite))) {
+      console.error("usage: npm run local:suites -- [--suite contract|scenarios|perf] [--filter name,name]");
+      process.exit(2);
+    }
+    if (!(await ready(3000))) {
+      console.error("[local] the backend is not running: npm run local:up");
+      process.exit(1);
+    }
+    // The origin the API allows is the app's URL it was started with (`demo --port` changes it).
+    const origin = spawnSync("docker", ["compose", "-f", composeFile, "exec", "-T", "api", "sh", "-c", "echo $BOQLET_APP_URL"],
+      { encoding: "utf8", cwd: root }).stdout?.trim() || `http://localhost:${appPort}`;
+    const testsDir = join(root, "tests");
+    let failed = 0;
+    for (const suite of suites) {
+      const files = readdirSync(join(testsDir, suite)).filter((f) => f.endsWith(".test.ts"));
+      const matching = filters.filter((f) => files.some((file) => file.includes(f)));
+      if (filters.length && !matching.length) {
+        console.log(`[local] ${suite}: no file matches ${filters.join(", ")}; skipped`);
+        continue;
+      }
+      console.log(`[local] ${suite}${matching.length ? ` (${matching.join(", ")})` : ""} against http://localhost:${apiPort}, origin ${origin}`);
+      const res = spawnSync(process.execPath, ["run.mjs", suite, ...(matching.length ? [matching.join(",")] : [])], {
+        cwd: testsDir,
+        stdio: "inherit",
+        env: { ...process.env, BOQLET_TARGET: "local", API_URL: `http://localhost:${apiPort}/api/v1`, BOQLET_LOCAL_ORIGIN: origin,
+          BOQLET_SUITE_MAILHOG: `http://localhost:${mailPort}` },
+      });
+      if (res.status !== 0) failed++;
+    }
+    process.exit(failed ? 1 : 0);
+  }
   default:
-    console.error("usage: node scripts/local.mjs up | down | reset | logs [service] | status | user <email> | admin <email> | check | demo [--email e] [--password p] [--port n] [--no-org]");
+    console.error("usage: node scripts/local.mjs up | down | reset | logs [service] | status | user <email> | admin <email> | check | demo [--email e] [--password p] [--port n] [--no-org] | suites [--suite s] [--filter f]");
     process.exit(2);
 }

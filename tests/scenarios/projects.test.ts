@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
-import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F02 projects: acceptance criteria and behaviour, through the API only. */
 
@@ -21,7 +21,7 @@ const createProject = (u: TestUser, orgId: string, name: string, extra: Record<s
 async function studioDemo() {
   const olivia = await user("olivia");
   const { data } = await client(olivia.token).GET("/me");
-  return data!.memberships.find((m) => m.org.slug === "studio-demo")!.org;
+  return data!.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org;
 }
 
 describe("F02 projects", () => {

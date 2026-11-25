@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
-import { user, type SeedUser } from "../support/users";
+import { SMALL_FIRM_SLUG, STUDIO_SLUG, user, type SeedUser } from "../support/users";
 
 describe("me: GET /me", () => {
   const expected: Record<SeedUser, [string, string][]> = {
     olivia: [
-      ["small-firm", "owner"],
-      ["studio-demo", "owner"],
+      [SMALL_FIRM_SLUG, "owner"],
+      [STUDIO_SLUG, "owner"],
     ],
-    ivana: [["studio-demo", "library_editor"]],
-    marko: [["studio-demo", "member"]],
-    ana: [["studio-demo", "member"]],
-    victor: [["studio-demo", "member"]],
+    ivana: [[STUDIO_SLUG, "library_editor"]],
+    marko: [[STUDIO_SLUG, "member"]],
+    ana: [[STUDIO_SLUG, "member"]],
+    victor: [[STUDIO_SLUG, "member"]],
     pat: [],
   };
 

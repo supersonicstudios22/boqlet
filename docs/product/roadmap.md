@@ -18,8 +18,8 @@ a gap in [known-limitations.md](known-limitations.md).
 
 ## Next: engineering candidates, roughly in order of value
 
-1. **Restore test coverage lost with the mock (P53)**: let the shared suites run against the local
-   stack (a test image of the API with `SuiteSupport`, or a suite profile), port the browser flows
+1. **Restore test coverage lost with the mock (P53)**: the shared suites run against the local
+   stack (`npm run local:suites`, review B-05, 2026-11-25); left: port the browser flows
    that matter to `apps/app/e2e-java` (sheet edits, questions, Library editors, versions, exports,
    admin, setup wizard), and bring back the axe and pseudo-locale checks. Protects O2–O7 on every push.
 2. **Large uploads**: done (review A-40, 2026-11-25): multipart upload with per-part retries and

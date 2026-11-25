@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
-import { user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, user, type TestUser } from "../support/users";
 
 /**
  * F10 §4 publish and §6 preview (FE-025): publishing needs a clean draft and a change note and makes
@@ -42,7 +42,7 @@ const publish = (u: TestUser, presetId: string, changeNote: string) => api(u).PO
 beforeAll(async () => {
   [ivana, marko, olivia] = await Promise.all([user("ivana"), user("marko"), user("olivia")]);
   const me = (await api(olivia).GET("/me")).data!;
-  studioId = me.memberships.find((m) => m.org.slug === "studio-demo")!.org.id;
+  studioId = me.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org.id;
   const presets = (await api(olivia).GET("/orgs/{orgId}/presets", { params: { path: { orgId: studioId }, query: { kind: "rule_set", layer: "system" } } })).data!;
   asModelled = presets.find((p) => p.slug === "as-modelled")!.latestPublishedVersion!.id;
 });

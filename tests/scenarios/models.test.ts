@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
-import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F03 models and versions, and the ModelVersion and Job state machines, through the API only. */
 
@@ -107,7 +107,7 @@ describe("models: permissions", () => {
     const olivia = await user("olivia");
     const victor = await user("victor");
     const { data: me } = await client(olivia.token).GET("/me");
-    const studio = me!.memberships.find((m) => m.org.slug === "studio-demo")!.org;
+    const studio = me!.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org;
     const { data: projects } = await client(olivia.token).GET("/orgs/{orgId}/projects", { params: { path: { orgId: studio.id } } });
     const duplex = projects!.find((p) => p.name === "Duplex")!;
     expect((await client(victor.token).GET("/projects/{projectId}/models", { params: { path: { projectId: duplex.id } } })).response.status).toBe(200);

@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { API_URL } from "../support/env";
 import { operationsByTag, samplePath, spec } from "../support/contract";
+import { isLocal, localOrigin } from "../support/local-stack.mjs";
 
 /**
  * One contract group per tag of `openapi.yaml`: every secured operation refuses a request
  * without credentials with `401 unauthenticated` and the contract's error body, and public
  * operations (`security: []`) never ask for credentials (conventions.md "Authentication").
+ * On the local stack (native sign-in) the requests come from the app's origin, as a browser's do:
+ * without it an unsafe request is refused first (403 invalid_origin, checked below).
  */
 const s = await spec();
 const byTag = operationsByTag(s);
@@ -18,7 +21,10 @@ for (const [tag, ops] of [...byTag].sort(([a], [b]) => a.localeCompare(b))) {
         it(`${op.operationId}: ${op.method} ${op.path} needs credentials`, async () => {
           const res = await fetch(API_URL + path, {
             method: op.method,
-            headers: op.method === "GET" || op.method === "DELETE" ? {} : { "Content-Type": "application/json" },
+            headers: {
+              ...(op.method === "GET" || op.method === "DELETE" ? {} : { "Content-Type": "application/json" }),
+              ...(isLocal() ? { Origin: localOrigin() } : {}),
+            },
             body: op.method === "GET" || op.method === "DELETE" ? undefined : "{}",
           });
           expect(res.status).toBe(401);
@@ -36,10 +42,10 @@ for (const [tag, ops] of [...byTag].sort(([a], [b]) => a.localeCompare(b))) {
   });
 }
 
-// Native sign-in (P50) is served only by a backend that runs it. The suites run against Java
-// with test tokens, so they see the disabled answer; Java's NativeAuthTest covers
-// the enabled behaviour.
-describe("native sign-in on a backend that doesn't run it", () => {
+// Native sign-in (P50) is served only by a backend that runs it. In the Java harness the suites run
+// with test tokens, so they see the disabled answer; Java's NativeAuthTest covers the enabled
+// behaviour, and so does the local stack, which runs it (below).
+describe.skipIf(isLocal())("native sign-in on a backend that doesn't run it", () => {
   for (const [path, body] of [
     ["/auth/sign-in", { email: "someone@example.com", password: "a long enough password", deviceLabel: "Contract suite" }],
     ["/auth/set-password", { token: "t".repeat(43), password: "a long enough password" }],
@@ -54,7 +60,25 @@ describe("native sign-in on a backend that doesn't run it", () => {
   }
 });
 
-it("GET /auth/sign-up answers 404 native_auth_disabled there too (P57)", async () => {
+describe.runIf(isLocal())("native sign-in on the local stack (P50)", () => {
+  it("a wrong password answers 401 unauthenticated", async () => {
+    const res = await fetch(API_URL + "/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: localOrigin() },
+      body: JSON.stringify({ email: "nobody@example.com", password: "a long enough password", deviceLabel: "Contract suite" }),
+    });
+    expect(res.status).toBe(401);
+    expect(((await res.json()) as { code: string }).code).toBe("unauthenticated");
+  });
+
+  it("an unsafe request from another origin answers 403 invalid_origin", async () => {
+    const res = await fetch(API_URL + "/orgs", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://elsewhere.example" }, body: "{}" });
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { code: string }).code).toBe("invalid_origin");
+  });
+});
+
+it.skipIf(isLocal())("GET /auth/sign-up answers 404 native_auth_disabled there too (P57)", async () => {
   const res = await fetch(API_URL + "/auth/sign-up");
   expect(res.status).toBe(404);
   expect(((await res.json()) as { code: string }).code).toBe("native_auth_disabled");

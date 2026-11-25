@@ -1,4 +1,5 @@
 import { ROOT_URL } from "./env";
+import { isLocal, settleMail } from "./local-stack.mjs";
 
 /**
  * Emails the backend sent (invitations carry their token only by email): the MailHog the Java
@@ -22,7 +23,7 @@ interface MailHogMessage {
 
 /**
  * Java sends real SMTP. The Java suite test runs MailHog and passes its HTTP API as
- * `BOQLET_SUITE_MAILHOG`. MailHog lists the newest message first.
+ * `BOQLET_SUITE_MAILHOG` (the local stack's is http://localhost:8025). MailHog lists the newest message first.
  */
 async function mailHog(email: string): Promise<SentMail[]> {
   const base = process.env.BOQLET_SUITE_MAILHOG;
@@ -42,9 +43,14 @@ async function mailHog(email: string): Promise<SentMail[]> {
       };
     });
   };
-  // Java's sender polls its outbox: wait until everything due is sent (the suite test's /_test/mail/settle).
-  const settled = await fetch(`${ROOT_URL}/_test/mail/settle`, { method: "POST" });
-  if (!settled.ok) throw new Error(`/_test/mail/settle answered ${settled.status}`);
+  // Java's sender polls its outbox: wait until everything due is sent (the suite test's /_test/mail/settle;
+  // on the local stack the same query on its database).
+  if (isLocal()) {
+    await settleMail();
+  } else {
+    const settled = await fetch(`${ROOT_URL}/_test/mail/settle`, { method: "POST" });
+    if (!settled.ok) throw new Error(`/_test/mail/settle answered ${settled.status}`);
+  }
   return read();
 }
 

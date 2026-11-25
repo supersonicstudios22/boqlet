@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { advanceDays, resetClock } from "../support/clock";
+import { advanceDays, hasTestClock, resetClock } from "../support/clock";
 import { API_URL, client } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { allowSeats } from "../support/plans";
-import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
+import { SMALL_FIRM_SLUG, STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F01 accounts, organisations, members: acceptance criteria and behaviour, through the API only. */
 
@@ -121,7 +121,7 @@ describe("F01 invitations", () => {
     expect(res.error).toMatchObject({ code: "already_member" });
   });
 
-  it("invitations expire after 14 days; resending gives a new link", async () => {
+  it.runIf(hasTestClock)("invitations expire after 14 days; resending gives a new link", async () => {
     const { owner, org } = await newOwnerWithOrg();
     const email = uniqueEmail("late");
     const { data: inv } = await invite(owner, org.id, email);
@@ -182,7 +182,7 @@ describe("F01 roles and members", () => {
   it("F01-AC6 a user in two orgs sees both, and each org's data stays its own", async () => {
     const olivia = await user("olivia");
     const { data: orgs } = await client(olivia.token).GET("/orgs");
-    expect(orgs!.map((o) => o.slug).sort()).toEqual(expect.arrayContaining(["small-firm", "studio-demo"]));
+    expect(orgs!.map((o) => o.slug).sort()).toEqual(expect.arrayContaining([SMALL_FIRM_SLUG, STUDIO_SLUG]));
     for (const org of orgs!) {
       const members = await client(olivia.token).GET("/orgs/{orgId}/members", { params: { path: { orgId: org.id } } });
       expect(members.response.status).toBe(200);

@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { API_URL, client, authentication } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
-import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F04 BoQs and runs, and the Run and Job state machines, through the API only. */
 
@@ -259,7 +259,7 @@ describe("Archive and permissions (F04 §6, permissions.md)", () => {
 
   it("on the seeded Duplex: an estimator creates BoQs; an approver and a viewer can't (403)", async () => {
     const marko = await user("marko");
-    const studio = (await client(marko.token).GET("/me")).data!.memberships.find((m) => m.org.slug === "studio-demo")!.org;
+    const studio = (await client(marko.token).GET("/me")).data!.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org;
     const { data: projects } = await client(marko.token).GET("/orgs/{orgId}/projects", { params: { path: { orgId: studio.id } } });
     const duplex = projects!.find((p) => p.name === "Duplex")!;
     const created = await client(marko.token).POST("/projects/{projectId}/boqs", { params: { path: { projectId: duplex.id } }, body: { name: `Estimator ${Date.now()}` } });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceClock, advanceDays, resetClock, serverNow } from "../support/clock";
+import { advanceClock, advanceDays, hasTestClock, resetClock, serverNow } from "../support/clock";
 import { client } from "../support/env";
 import { inSession, signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -10,7 +10,7 @@ import { inSession, signUp, uniqueEmail, type TestUser } from "../support/users"
  * it is listed here so the coverage still missing is visible in every run.
  */
 
-describe("test clock (testing.md)", () => {
+describe.runIf(hasTestClock)("test clock (testing.md)", () => {
   it("POST /_test/clock moves the server's time, and reset brings it back", async () => {
     const before = await serverNow();
     const later = await advanceDays(3);
@@ -66,7 +66,7 @@ describe("Session (BR-54, F01 §10)", () => {
     expect((await open(person, "Safari on iPad")).response.status).toBe(201);
   });
 
-  it("active → expired after 12 h without requests", async () => {
+  it.runIf(hasTestClock)("active → expired after 12 h without requests", async () => {
     const person = await signUp("Idle Person", uniqueEmail("sessions"));
     const { data } = await open(person, "Chrome on Windows");
     const inIt = inSession(person, data!.id);

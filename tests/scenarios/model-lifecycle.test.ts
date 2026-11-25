@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { advanceClock, resetClock } from "../support/clock";
+import { advanceClock, hasTestClock, resetClock } from "../support/clock";
 import { client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
@@ -92,7 +92,7 @@ describe("model versions (state-machines.md ModelVersion)", () => {
     }
   });
 
-  it("TF-031: an upload not completed within 24 h fails (upload_expired, audited); a late complete queues nothing", async () => {
+  it.runIf(hasTestClock)("TF-031: an upload not completed within 24 h fails (upload_expired, audited); a late complete queues nothing", async () => {
     const { data } = await api.POST("/models/{modelId}/versions", { params: { path: { modelId } }, body: { fileName: "Late.ifc", sizeBytes: 1000 } });
     // 25 h on, in steps that keep the session alive (it ends after 12 h without a request).
     for (const hours of [10, 10, 5]) {

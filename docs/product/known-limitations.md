@@ -153,11 +153,11 @@ backend was a plugin of the removed mock, so it needs its Java part (BE-P1…) b
 
 Details and the outcome coverage map: [../testing/README.md](../testing/README.md).
 
-- **The shared contract and scenario suites can't run against the local Docker stack.** They need
-  the test-only `SuiteSupport` routes, a test JWT decoder, the `suite_clock` schema and DB-seeded
-  sessions, which exist only inside `NativeWorkerTest` (`mvn verify`). Run outside it, the root
-  scripts `npm run test:contract` / `test:scenarios` stop at once with a message pointing to the
-  harness. A test image of the API (or a "suite" profile) would let them run locally.
+- **The shared suites on the local Docker stack skip what needs a test clock** (review B-05): `npm run
+  local:suites` runs the contract and scenario suites there with native sign-in and SQL in place of the
+  harness's test-only routes, but the product image has no `suite_clock`, so the four scenarios that move
+  time (session and invitation expiry, the 24 h upload expiry, the clock itself) run only in
+  `NativeWorkerTest`. The browser smoke still runs only in the harness.
 - **Browser coverage after P53** (TS-005, deferred): the 106 Playwright tests that ran on the mock were
   deleted. The Java browser suite (`apps/app/e2e-java`, 11 specs, 33 tests after the test campaign)
   covers sign-in, accounts and sessions, orgs, FL-1 to the sample BoQ, upload → parse → BoQ → Excel

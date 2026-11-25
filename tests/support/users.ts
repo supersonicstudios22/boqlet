@@ -1,9 +1,11 @@
-import { ROOT_URL } from "./env";
+import { API_URL, ROOT_URL } from "./env";
 import { browserOf, remember } from "./java-sessions";
+import { createAccount, isLocal } from "./local-stack.mjs";
 
 /**
  * Seeded people, by first name: the Java suite test makes them (NativeWorkerTest#suiteUsers) and
- * passes them with an open session each as `BOQLET_JAVA_SUITE_USERS`.
+ * passes them with an open session each as `BOQLET_JAVA_SUITE_USERS`; on the local stack run.mjs does
+ * (with this run's addresses, `olivia-<run>@example.com`).
  */
 export type SeedUser = "olivia" | "ivana" | "marko" | "ana" | "victor" | "pat";
 
@@ -24,7 +26,7 @@ if (process.env.BOQLET_JAVA_SUITE_USERS) {
 }
 
 export async function user(key: SeedUser): Promise<TestUser> {
-  const found = javaUsers.find((u) => u.email.startsWith(`${key}@`));
+  const found = javaUsers.find((u) => u.name === key);
   if (!found) throw new Error(`seeded user ${key} not found`);
   return found;
 }
@@ -33,9 +35,15 @@ export async function user(key: SeedUser): Promise<TestUser> {
  * A new person, as if they signed up (F01): the test-only `POST /_test/users` (registered only by
  * the Java suite test, never in a build) creates the account with a test token
  * (`suite.signup.<base64url email>`). Signing up opens no session: the person's first request
- * does (`java-sessions.ts`).
+ * does (`java-sessions.ts`). On the local stack the person sets this run's password from a setup
+ * link (local-stack.mjs) and gets the same kind of token, which names them to the suite only.
  */
 export async function signUp(name: string, email: string): Promise<TestUser> {
+  if (isLocal()) {
+    const normalized = email.trim().toLowerCase();
+    const id = await createAccount(API_URL, name, normalized);
+    return { id, name, email: normalized, token: `suite.signup.${Buffer.from(normalized).toString("base64url")}` };
+  }
   const res = await fetch(`${ROOT_URL}/_test/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
   if (!res.ok) throw new Error(`/_test/users answered ${res.status}`);
   return (await res.json()) as TestUser;
@@ -51,3 +59,10 @@ export const uniqueEmail = (prefix: string) => `${prefix}-${Date.now().toString(
 export function inSession(u: TestUser, sessionId: string): TestUser {
   return { ...u, token: browserOf(sessionId) };
 }
+
+/**
+ * The seeded orgs' slugs. In the Java harness they are `studio-demo` and `small-firm`; on the local
+ * stack, whose database outlives a run, each run makes its own (`studio-demo-<run>`, run.mjs).
+ */
+export const STUDIO_SLUG = process.env.BOQLET_SUITE_STUDIO_SLUG ?? "studio-demo";
+export const SMALL_FIRM_SLUG = process.env.BOQLET_SUITE_SMALL_FIRM_SLUG ?? "small-firm";

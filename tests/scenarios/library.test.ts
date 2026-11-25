@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { client } from "../support/env";
-import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /**
  * F10 Library shell (FE-021): presets per kind and layer, create (empty / copy / patch), details,
@@ -28,7 +28,7 @@ const create = (u: TestUser, body: Record<string, unknown>, orgId = studioId) =>
 beforeAll(async () => {
   [olivia, ivana, marko] = await Promise.all([user("olivia"), user("ivana"), user("marko")]);
   const me = (await client(olivia.token).GET("/me")).data!;
-  studioId = me.memberships.find((m) => m.org.slug === "studio-demo")!.org.id;
+  studioId = me.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org.id;
 });
 
 describe("F10 Library shell", () => {

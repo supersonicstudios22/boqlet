@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { API_URL, client, authentication } from "../support/env";
-import { user, type TestUser } from "../support/users";
+import { STUDIO_SLUG, user, type TestUser } from "../support/users";
 
 /**
  * F10 §14 Excel templates (FE-026, the "Preset Excel templates" fake until EN-012): download a
@@ -50,7 +50,7 @@ async function upload(presetId: string, file: string) {
 beforeAll(async () => {
   ivana = await user("ivana");
   const me = (await client(ivana.token).GET("/me")).data!;
-  studioId = me.memberships.find((m) => m.org.slug === "studio-demo")!.org.id;
+  studioId = me.memberships.find((m) => m.org.slug === STUDIO_SLUG)!.org.id;
   const presets = (await client(ivana.token).GET("/orgs/{orgId}/presets", { params: { path: { orgId: studioId }, query: { kind: "rule_set", layer: "system" } } })).data!;
   asModelled = presets.find((p) => p.slug === "as-modelled")!.latestPublishedVersion!.id;
 });

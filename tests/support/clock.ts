@@ -1,4 +1,11 @@
 import { ROOT_URL } from "./env";
+import { isLocal } from "./local-stack.mjs";
+
+/**
+ * Whether the target has the test clock. The local stack runs the product image, whose database
+ * time is the real time (no `suite_clock` schema): scenarios that move time skip there.
+ */
+export const hasTestClock = !isLocal();
 
 /**
  * The test-only clock (testing.md): `POST /_test/clock` on Java (registered only by the suite
