@@ -1788,6 +1788,7 @@ paths:
     post:
       tags: [sharing]
       operationId: createShareLink
+      description: "`409 boq_archived` on an archived BoQ (restore it first); `409 public_links_off`; `409 no_run` for a pinned version without a run."
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         required: true
@@ -1801,6 +1802,7 @@ paths:
     patch:
       tags: [sharing]
       operationId: updateShareLink
+      description: "`409 boq_archived` on an archived BoQ's link (revoking it still works); `409 invalid_transition` on a revoked link."
       requestBody:
         required: true
         content:
@@ -1813,6 +1815,7 @@ paths:
                 expiresAt: { type: [string, "null"], format: date-time }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ShareLink" } } } }
+        "409": { $ref: "#/components/responses/Conflict" }
     delete:
       tags: [sharing]
       operationId: revokeShareLink

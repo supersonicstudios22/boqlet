@@ -2014,6 +2014,7 @@ export interface paths {
         };
         get: operations["listShareLinks"];
         put?: never;
+        /** @description `409 boq_archived` on an archived BoQ (restore it first); `409 public_links_off`; `409 no_run` for a pinned version without a run. */
         post: operations["createShareLink"];
         delete?: never;
         options?: never;
@@ -2036,6 +2037,7 @@ export interface paths {
         delete: operations["revokeShareLink"];
         options?: never;
         head?: never;
+        /** @description `409 boq_archived` on an archived BoQ's link (revoking it still works); `409 invalid_transition` on a revoked link. */
         patch: operations["updateShareLink"];
         trace?: never;
     };
@@ -8393,6 +8395,7 @@ export interface operations {
                     "application/json": components["schemas"]["ShareLink"];
                 };
             };
+            409: components["responses"]["Conflict"];
         };
     };
     listOrgShareLinks: {

@@ -235,3 +235,25 @@ describe("follow the latest saved version (F18 §1, F18-AC3)", () => {
     expect(pinned.revisionLabel).toBe("A");
   });
 });
+
+describe("an archived BoQ is not shared further (review A-39, ENG-024)", () => {
+  it("no new link in either mode, no edit, `share` false; its links can still be revoked (P54 Q42)", async () => {
+    const other = (await as(lead).POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: "To archive" } })).data!;
+    const create = (body: Schemas["ShareLinkCreate"]) => as(lead).POST("/boqs/{boqId}/share-links", { params: { path: { boqId: other.id } }, body });
+    const link = await create({ mode: "latest_issued", label: "before archiving" });
+    expect(link.response.status).toBe(201);
+    expect((await as(lead).POST("/boqs/{boqId}/archive", { params: { path: { boqId: other.id } } })).response.status).toBe(200);
+
+    for (const body of [{ mode: "latest_issued" }, { mode: "pinned" }] as Schemas["ShareLinkCreate"][]) {
+      const refused = await create(body);
+      expect(refused.response.status).toBe(409);
+      expect(refused.error).toMatchObject({ code: "boq_archived" });
+    }
+    const edit = await as(lead).PATCH("/share-links/{shareLinkId}", { params: { path: { shareLinkId: link.data!.id } }, body: { label: "after" } });
+    expect(edit.response.status).toBe(409);
+    expect(edit.error).toMatchObject({ code: "boq_archived" });
+    const archived = (await as(lead).GET("/boqs/{boqId}", { params: { path: { boqId: other.id } } })).data!;
+    expect(archived.currentRevision.permissions.share).toBe(false);
+    expect((await as(lead).DELETE("/share-links/{shareLinkId}", { params: { path: { shareLinkId: link.data!.id } } })).response.status).toBe(204);
+  });
+});

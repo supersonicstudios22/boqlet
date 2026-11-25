@@ -92,7 +92,7 @@ project is archived except `archive` and `revokeShares` (above; added in FE-006)
 | `approve` | Approve, request changes |
 | `confirm` | Confirm a BoQ |
 | `reopen` | Reopen a confirmed BoQ |
-| `share` | Create and edit share links |
+| `share` | Create and edit share links (`false` on an archived BoQ's revision permissions, D100) |
 | `revokeShares` | Revoke any share link of the project |
 | `seeAudit` | Project audit log |
 

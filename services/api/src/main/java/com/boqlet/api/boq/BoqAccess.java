@@ -185,6 +185,8 @@ public class BoqAccess {
         out.put("confirm", live && !inReview && allowed(base, "confirm")
                 && (scope.project().getMyRole() == ProjectRole.LEAD || requiresApproval));
         out.put("reopen", scope.bill().status() == Boq.StatusEnum.CONFIRMED && !scope.bill().archived() && allowed(base, "reopen"));
+        // An archived BoQ gets no new or edited share link (review A-39); revoking stays (`revokeShares`).
+        if (scope.bill().archived()) out.put("share", false);
         // An archived project is read-only (permissions.md, F02-AC4, TF-012): only view and seeAudit stay.
         if (scope.project().getStatus() == Project.StatusEnum.ARCHIVED) {
             out.replaceAll((key, value) -> value && (key.equals("view") || key.equals("seeAudit")));

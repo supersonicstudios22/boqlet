@@ -82,6 +82,7 @@ class ShareLinks {
     @Transactional
     ShareLinkCreated create(UUID boq, UUID actor, ShareLinkCreate request, UUID replayKey) {
         var scope = boqs.lockBill(boq, actor, "share");
+        archived(scope);
         var project = scope.project();
         UUID org = project.getOrgId();
         limits.requireFeature(org, actor, "shareLinks");
@@ -153,6 +154,7 @@ class ShareLinks {
     ShareLink update(UUID id, UUID actor, UpdateShareLinkRequest request) {
         var link = visible(id, actor);
         var project = projects.lock(link.view().getProjectId(), actor, "share");
+        archived(boqs.bill(link.view().getBoqId(), actor));
         database.queryForObject("SELECT id FROM share_links WHERE id = ? FOR NO KEY UPDATE", UUID.class, id);
         link = require(id);
         var current = link.view();
@@ -168,6 +170,16 @@ class ShareLinks {
         link = require(id);
         record(link, actor, "updated");
         return view(link, actor, project, orgAdmin(link, actor));
+    }
+
+    /**
+     * An archived BoQ is not shared further (review A-39, ENG-024): no new link, and no edit that could revive or widen
+     * one (an expiry, P54 Q46). Its existing links can still be revoked (P54 Q42).
+     */
+    private static void archived(BoqAccess.Scope scope) {
+        if (scope.bill().archived()) {
+            throw BoqAccess.failure(HttpStatus.CONFLICT, "boq_archived", "The BoQ is archived. Restore it to share it.");
+        }
     }
 
     @Transactional

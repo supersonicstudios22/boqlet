@@ -164,7 +164,8 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         </Button>
       ),
     });
-  if (can("share") && !boq.archived)
+  // `share` is false on an archived BoQ: the API decides (review A-39).
+  if (can("share"))
     actions.push({
       key: "share",
       step: "share",

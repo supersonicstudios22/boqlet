@@ -1,6 +1,6 @@
 # F18 Public share links
 
-> **Status (2026-11-22):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038).
+> **Status (2026-11-22):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39).
 > **Not built / differs:**
 > - The public sheet is a plain grouped table (no virtualisation; search only).
 > - The footer's sign-up link leads to the sign-up form only while public sign-up is open (P57); closed, the page says accounts come by invitation.
@@ -64,6 +64,8 @@ Owners and admins may revoke any link in the org (org settings › Share links l
 - The pinned run's working version is later saved: the link keeps showing that run, now
   labelled with the saved version. A "follow latest saved" link moves to each newly saved version.
 - The project is archived: links keep working (read-only data). Deleting the org ends them.
+- The BoQ is archived: its links keep working and can be revoked, but no link is created or edited
+  (`409 boq_archived`; the BoQ's `share` permission is `false`) until it is restored (review A-39, D100).
 - The BoQ uses several models: the viewer loads all of them, as in F07.
 
 ## API
