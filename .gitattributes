@@ -1,0 +1,3 @@
+
+# Review B-02: the adversarial corpus is kept byte for byte
+engine/tests/fixtures/adversarial/*.ifc -text
