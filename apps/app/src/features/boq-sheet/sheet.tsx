@@ -14,7 +14,7 @@ import { isApiError, isUnavailable } from "@/api/errors";
 import { keys as queryKeys } from "@/api/keys";
 import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
-import { useExportRun } from "@/api/hooks/exports";
+import { generateAndExport, useExportRun } from "@/api/hooks/exports";
 import { useMe, useUpdatePreferences } from "@/api/hooks/me";
 import { useLines } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
@@ -28,6 +28,8 @@ import { ModelViewer } from "@/features/viewer/model-viewer";
 import { showIn3dHref, viewerModels } from "@/features/viewer/viewer-tab";
 import { cn } from "@/lib/utils";
 import { ManualLineDialog, ReasonDialog } from "./edit-dialogs";
+import { exportChoice } from "./export-choice";
+import { ExportStaleDialog } from "./export-dialog";
 import { batchFor, effectiveLines, restoreField, takeLinesFromUndo, withChange, type CodeLists, type EditField, type SheetLine, type UndoBatch } from "./edits";
 import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
@@ -120,7 +122,8 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const searchParams = useSearchParams();
   const exporting = useExportRun(run.id);
   // F12: the run's Excel, grouped as the sheet is; a toast while the job runs, then the download.
-  const exportExcel = () => {
+  const exportLastRun = () => {
+    setStaleExport(null);
     const id = toast.loading(t("exporting"));
     exporting.mutate(
       { groupBy },
@@ -129,6 +132,28 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
         onError: (err) => toast.error(message(err), { id }),
       },
     );
+  };
+  // A-41 (DEC-38): with edits or answers waiting for the next run, ask first; the default generates, then exports.
+  const [staleExport, setStaleExport] = useState<{ pending: string[]; canGenerate: boolean } | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
+  const exportExcel = () => {
+    const choice = exportChoice(boq, run, !!frozen || readOnly);
+    if (choice.ask) setStaleExport({ pending: choice.pending, canGenerate: choice.canGenerate });
+    else exportLastRun();
+  };
+  const exportAfterGenerating = () => {
+    setStaleExport(null);
+    setRegenerating(true);
+    const id = toast.loading(t("exportStale.generating"));
+    const revisionId = boq.currentRevision.id;
+    void generateAndExport(revisionId, groupBy ?? null, () =>
+      Promise.all([queryClient.invalidateQueries({ queryKey: queryKeys.boq(boq.id) }), queryClient.invalidateQueries({ queryKey: queryKeys.runs(revisionId) })]),
+    )
+      .then((e) => toast.success(t("exported", { file: e.fileName }), { id }))
+      .catch((err: unknown) =>
+        toast.error((err as { generateFailed?: boolean }).generateFailed ? t("exportStale.generateFailed", { message: (err as Error).message }) : message(err), { id }),
+      )
+      .finally(() => setRegenerating(false));
   };
   const { org } = useOrg();
   const base = `/${org.slug}/projects/${boq.projectId}/boqs/${boq.id}`;
@@ -685,7 +710,7 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
             </Button>
           </>
         )}
-        <Button variant="outline" onClick={exportExcel} disabled={exporting.isPending} data-testid="export-xlsx">
+        <Button variant="outline" onClick={exportExcel} disabled={exporting.isPending || regenerating} data-testid="export-xlsx">
           <Download aria-hidden />
           {t("exportExcel")}
         </Button>
@@ -879,6 +904,13 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
         </div>
       )}
 
+      <ExportStaleDialog
+        pending={staleExport?.pending ?? null}
+        canGenerate={staleExport?.canGenerate ?? false}
+        onGenerate={exportAfterGenerating}
+        onLastRun={exportLastRun}
+        onClose={() => setStaleExport(null)}
+      />
       {prompt && (
         <ReasonDialog
           title={prompt.title}

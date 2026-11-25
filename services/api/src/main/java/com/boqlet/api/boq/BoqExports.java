@@ -133,9 +133,16 @@ public class BoqExports {
             metadata.put("issuedBy", by == null ? "" : by.getName());
         }
         if (note != null && !note.isBlank()) metadata.put("issueNote", note.strip());
+        // A-41 (CAS-002): the working version's current run exported while edits or answers wait for the next run
+        // says on its Cover what it leaves out.
+        if (!frozen && revision.status() != RevisionStatus.ISSUED && currentId.equals(revision.run())) {
+            var pending = boqs.pending(scope);
+            if (!pending.isEmpty()) metadata.put("pendingChanges", pending);
+        }
         OffsetDateTime time = issued == null ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : issued;
+        OffsetDateTime ran = Optional.ofNullable(run.run().getFinishedAt()).orElse(run.run().getCreatedAt());
         String file = fileName(project.getCode() == null ? project.getName() : project.getCode(), scope.bill().name(), label,
-                time.toLocalDate());
+                time.toLocalDate(), ran);
         return enqueue(project, actor, revision.id(), frozen ? "issued_boq_xlsx" : "boq_xlsx", "run", currentId,
                 file, Map.of("resultKey", run.resultKey(), "meta", metadata));
     }
@@ -248,6 +255,15 @@ public class BoqExports {
     static String fileName(String project, String boq, String label, java.time.LocalDate date) {
         return safe(project) + "_" + safe(boq) + "_Rev" + safe(label) + "_" + date + ".xlsx";
     }
+
+    /** A run's Excel also names the run, by the time it finished (UTC, `_run<HHmmss>`): two runs' files differ (A-41, CAS-027). */
+    static String fileName(String project, String boq, String label, java.time.LocalDate date, OffsetDateTime run) {
+        String name = fileName(project, boq, label, date);
+        return name.substring(0, name.length() - ".xlsx".length()) + "_run" + RUN_TIME.format(run) + ".xlsx";
+    }
+
+    private static final java.time.format.DateTimeFormatter RUN_TIME =
+            java.time.format.DateTimeFormatter.ofPattern("HHmmss").withZone(java.time.ZoneOffset.UTC);
 
     private static String safe(String value) {
         String clean = value.strip().replaceAll("[^\\p{L}\\p{N}_.-]+", "_");

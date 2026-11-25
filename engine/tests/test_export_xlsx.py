@@ -167,3 +167,22 @@ def test_the_rule_chain_reads_names_and_versions_never_a_version_id(duplex_parse
     assert a2.startswith(f"Rules: {want}  |") and "version-" not in a2
     inputs = {row[0].value: row[1].value for row in book["Inputs"].iter_rows(min_row=2) if row[0].value}
     assert inputs["Rule set chain"] == want
+
+
+def test_a_run_exported_with_changes_waiting_says_what_it_leaves_out(duplex_parsed):
+    """Review A-41 (CAS-002): the API passes the revision's pending changes when it exports the working
+    version's current run; the Cover and the BoQ header say the file is the last run, without them."""
+    result = run(duplex_parsed)
+    meta = {"boq": "Tender", "revision": "A", "status": "working", "generatedAt": "2026-11-25T10:15:00Z",
+            "classifications": [{"id": "acme-cost-codes", "name": "ACME"}]}
+    plain = export(result, meta)
+    cover = {row[0]: row[1] for row in _sheet(plain, "Cover").iter_rows(min_row=3, values_only=True) if row[0]}
+    assert "Not included" not in cover
+    assert "not included" not in _sheet(plain)["A2"].value
+
+    stale = export(result, {**meta, "pendingChanges": ["adjustments", "decisions", "inputs.ruleSet", "something.new"]})
+    cover = {row[0]: row[1] for row in _sheet(stale, "Cover").iter_rows(min_row=3, values_only=True) if row[0]}
+    assert cover["Generated"] == "2026-11-25T10:15:00Z"
+    assert cover["Not included"] == ("Changes made after this run (2026-11-25T10:15:00Z): line edits, answers, rule set, "
+                                     "something.new. Generate the BoQ again to include them.")
+    assert _sheet(stale)["A2"].value.endswith("|  Changes after this run are not included (see Cover)")

@@ -54,6 +54,33 @@ export function useExportRun(runId: string) {
   });
 }
 
+/** How long "Generate and export" waits for the run (a large federated model takes minutes). */
+const RUN_TIMEOUT_MS = 30 * 60_000;
+
+/**
+ * Review A-41 (DEC-38): "Generate and export" from the sheet. Starts a run of the working version, waits
+ * for it, then exports that run's Excel (grouped as asked, while the new run still has the grouping).
+ * `onGenerated` is told when the run is done, so the sheet can move to it. A run that fails exports nothing.
+ */
+export async function generateAndExport(revisionId: string, groupBy: string | null, onGenerated?: (run: Schemas["Run"]) => void) {
+  const started = (await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId } }, headers: idempotencyHeaders(`generateRun:${revisionId}`) })).data!;
+  const deadline = Date.now() + RUN_TIMEOUT_MS;
+  let run = started.run;
+  while (run.status === "queued" || run.status === "running") {
+    if (Date.now() > deadline) throw new Error("generating timed out");
+    await new Promise((r) => setTimeout(r, POLL_MS));
+    run = (await api.GET("/runs/{runId}", { params: { path: { runId: run.id } } })).data!;
+  }
+  onGenerated?.(run);
+  if (run.status !== "complete" && run.status !== "needs_input") {
+    // `generateFailed`: the sheet says the run failed, with its message, rather than an export error.
+    throw Object.assign(new Error(run.error?.message ?? run.status), { code: run.error?.code ?? "run_failed", generateFailed: true });
+  }
+  const group = groupBy && (run.classifications ?? []).some((c) => c.id === groupBy) ? groupBy : null;
+  const job = (await api.POST("/runs/{runId}/exports", { params: { path: { runId: run.id } }, body: { format: "xlsx", ...(group ? { groupBy: group } : {}) }, headers: idempotencyHeaders(`exportRun:${run.id}`, group) })).data!;
+  return downloadWhenDone(job);
+}
+
 /** F08 §7: a change report's Excel, downloaded when it is written. */
 export function useExportDiff(diffId: string | undefined) {
   return useMutation({

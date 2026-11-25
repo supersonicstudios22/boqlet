@@ -66,6 +66,24 @@ def to_confirm_note(c: dict) -> str:
     return "To confirm: " + "; ".join(parts)
 
 
+# What `BoqRevision.pendingChanges` names (BoqInputs.changes in the API), in the workbook's words.
+PENDING_WORDS = {
+    "inputs.models": "models", "inputs.ruleSet": "rule set", "inputs.classifications": "classifications",
+    "inputs.dictionaries": "dictionaries", "inputs.federation": "federation settings",
+    "inputs.resolution": "resolution settings", "decisions": "answers", "adjustments": "line edits",
+}
+
+
+def pending_note(meta: dict) -> str | None:
+    """Review A-41 (CAS-002): the Cover's note when the run is exported with changes waiting for the next run."""
+    pending = [str(key) for key in meta.get("pendingChanges") or []]
+    if not pending:
+        return None
+    when = f" ({meta['generatedAt']})" if meta.get("generatedAt") else ""
+    return (f"Changes made after this run{when}: {', '.join(PENDING_WORDS.get(key, key) for key in pending)}. "
+            "Generate the BoQ again to include them.")
+
+
 def _row(ws, row, values, font=NORMAL, fill=None, wrap_cols=(), formula_cols=()):
     for i, v in enumerate(values, 1):
         x = ws.cell(row=row, column=i, value=v)
@@ -169,9 +187,11 @@ def export(result: dict, meta: dict) -> bytes:
     ws["A1"] = f"Bill of Quantities - {title}" + (f" ({label})" if label else "") + (" (WORKING)" if working else "")
     ws["A1"].font = TITLE
     rule_meta = result["ruleSet"].get("meta") or {}
+    left_out = pending_note(meta)
     ws["A2"] = (f"Rules: {rule_meta.get('chainLabel') or result['ruleSet']['name']}  |  "
                 f"Grouping: {systems[0]['name'] if systems else 'none'}  |  Status: {result['status']}  |  "
-                f"Generated {meta.get('generatedAt', datetime.now().isoformat(timespec='seconds'))}")
+                f"Generated {meta.get('generatedAt', datetime.now().isoformat(timespec='seconds'))}"
+                + ("  |  Changes after this run are not included (see Cover)" if left_out else ""))
     ws["A2"].font = SMALL
     ws["A3"] = "Enter rates in the yellow column. Amounts and totals are formulas. Yellow rows are flagged: quantity to be confirmed."
     ws["A3"].font = SMALL
@@ -268,6 +288,7 @@ def export(result: dict, meta: dict) -> bytes:
             ("Project", meta.get("project")), ("Bill", meta.get("boq")), ("Version", label),
             ("Status", "WORKING" if working else status), ("Model", meta.get("modelName")),
             ("Grouping", systems[0]["name"] if systems else None), ("Generated", meta.get("generatedAt")),
+            ("Not included", left_out),
             ("Saved by", meta.get("issuedBy")), ("Saved at", meta.get("issuedAt")), ("Note", meta.get("issueNote")),
             ("Locale", meta.get("locale")), ("Number format", _number_format(meta["numberFormat"])
              if meta.get("numberFormat") else None),

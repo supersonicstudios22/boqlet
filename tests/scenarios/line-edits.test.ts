@@ -3,6 +3,7 @@ import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
+import { xlsxRows } from "../support/xlsx";
 
 /**
  * F06 §6–7 line edits and manual lines (FE-011) on the Duplex: every kind of edit and a manual line
@@ -233,4 +234,41 @@ describe("a reorder of a line that is gone (BR-09, TF-052)", () => {
     expect(questions!.map((q) => q.id)).toContain("orphan:tf052-moved");
     await api.DELETE("/overrides/{overrideId}", { params: { path: { overrideId: (await api.GET("/boqs/{boqId}/overrides", { params: { path: { boqId: boq.id } } })).data!.find((o) => o.lineKey === "tf052-moved")!.id } } });
   }, 240_000);
+});
+
+describe("the Excel of a run while an edit waits for the next run (review A-41, CAS-002)", () => {
+  async function exported(api: Api, runId: string) {
+    const { data: job } = await api.POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx" } });
+    const deadline = Date.now() + 60_000;
+    let done = job!;
+    while (done.status === "queued" || done.status === "running") {
+      if (Date.now() > deadline) throw new Error("export did not finish");
+      await new Promise((r) => setTimeout(r, 250));
+      done = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job!.id } } })).data!;
+    }
+    expect(done.status).toBe("succeeded");
+    const exportId = (done.output as { exportId: string }).exportId;
+    const meta = (await api.GET("/exports/{exportId}", { params: { path: { exportId } } })).data!;
+    const cover = Object.fromEntries((await xlsxRows(owner, exportId, "Cover")).filter((r) => r[0]).map((r) => [r[0], r[1]]));
+    return { meta, cover, boqRows: await xlsxRows(owner, exportId, "BoQ") };
+  }
+
+  it("the last run's Excel keeps its number and says what it leaves out; after generating, the new run's Excel has the edit and another name", async () => {
+    const api = client(owner.token);
+    const { run, lines: current } = await generate(api);
+    const line = current.find((l) => l.quantity !== null && l.quantity !== 123.45 && !l.overridden && !l.excluded)!;
+    expect((await setOverride(api, { lineKey: line.key, quantity: 123.45, reason: "verify CAS-002" })).response.status).toBe(200);
+    expect(await pendingChanges(api)).toEqual(["adjustments"]);
+
+    const last = await exported(api, run.id);
+    expect(last.boqRows.find((r) => r[8] === line.key)![3]).toBe(line.quantity);
+    expect(String(last.cover["Not included"])).toMatch(/^Changes made after this run \(.+\): line edits\. Generate the BoQ again to include them\.$/);
+    expect(last.meta.fileName).toMatch(/_run\d{6}\.xlsx$/);
+
+    const { run: next } = await generate(api);
+    const fresh = await exported(api, next.id);
+    expect(fresh.boqRows.find((r) => r[8] === line.key)![3]).toBe(123.45);
+    expect(fresh.cover["Not included"]).toBeUndefined();
+    expect(fresh.meta.fileName).not.toBe(last.meta.fileName);
+  }, 300_000);
 });

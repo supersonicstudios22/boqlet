@@ -189,7 +189,18 @@
     "resize": "Resize the sheet and the model",
     "exportExcel": "Excel",
     "exporting": "Preparing the Excel…",
-    "exported": "Downloaded {file}"
+    "exported": "Downloaded {file}",
+    "exportStale": {
+      "title": "The last run doesn't include your latest changes",
+      "body": "Changed since the last run: {what}. The sheet shows these changes, but the Excel is written from a run.",
+      "choose": "Generate the BoQ again and export the new run, or export the last run as it is: its cover then says what it leaves out.",
+      "cannotGenerate": "Only someone who can edit this BoQ can generate it again. The last run's cover says what it leaves out.",
+      "generate": "Generate and export",
+      "lastRun": "Export the last run",
+      "cancel": "Cancel",
+      "generating": "Generating the BoQ, then writing the Excel…",
+      "generateFailed": "Generating failed, so nothing was exported: {message}"
+    }
   },
   "setup": {
     "readOnly": "These inputs can't be changed: only a lead or estimator edits the working version of an active BoQ.",

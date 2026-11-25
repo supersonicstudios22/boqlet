@@ -1,6 +1,6 @@
 # F12 Exports
 
-> **Status (2026-11-22):** Built. Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
+> **Status (2026-11-25):** Built. The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
 > **Not built / differs:**
 > - Workbooks are checked with openpyxl only; never opened by hand in Excel or LibreOffice (F12-AC1).
 
@@ -29,7 +29,17 @@
   (302 to a signed URL). Small CSVs stream directly.
 - Every export records `Export {id, kind, subjectId, fileName, storageKey, createdBy, createdAt}`
   and an audit event. Downloads of saved-version exports are audited too (`export.downloaded`).
-- File names: `{projectCode or name}_{boqName}_Rev{label}_{yyyy-mm-dd}.xlsx`, sanitised.
+- File names: `{projectCode or name}_{boqName}_Rev{label}_{yyyy-mm-dd}_run{HHmmss}.xlsx`, sanitised;
+  `HHmmss` is when the run finished (UTC), so two runs' files never share a name (A-41, CAS-027).
+  The change report keeps `..._{yyyy-mm-dd}_changes.xlsx`.
+- **The sheet's Excel and pending inputs** (A-41, DEC-38): the sheet shows the run with the edits and
+  answers saved since, but a workbook is always written from a run (only the engine computes). When the
+  working version has pending changes, the Excel button asks: **Generate and export** (the default for
+  someone who can edit the BoQ: a new run, then its Excel) or **Export the last run**. The last run's
+  workbook then has a cover row "Not included" ("Changes made after this run (time): line edits,
+  answers. Generate the BoQ again to include them.") and a note in the BoQ sheet's header line; the API
+  passes the revision's `pendingChanges` to the export job as `meta.pendingChanges`. Nothing is
+  regenerated without asking.
 - Locale: number formats and date formats from the project locale. Column headers are
   translated through the export's message catalogue (English in v1, P07).
 - Units: as in the run (metric or imperial per project).
