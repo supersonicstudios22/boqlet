@@ -89,7 +89,7 @@ mvn -B -ntp -f services/api/pom.xml verify
 | `BOQLET_NATIVE_RESILIENCE=1` | `jobsSurviveTheWorkerAndTheDatabaseGoingAway`: the worker killed mid-parse for 25 s, then the database restarted mid-parse; each job ends with at most 2 attempts (TF-186). About 1.5 min. CI sets it |
 | `BOQLET_TEST_TIME_FACTOR` | A number from 1 to 10 (default 1; CI sets 2): every timeout of the shared suites (`tests/vitest.config.ts`), the browser suite (`playwright.java.config.ts`) and `NativeWorkerTest`'s waits is multiplied by it, and the browser suite's overall limit is 5 min + 2 min per spec file, times it (review B-08) |
 | `BOQLET_BROWSER_PERF=1` | The browser suite runs its `@perf` tests (left out otherwise) on `next build` + `next start` (`.next-java-perf`) instead of `next dev`; with `BOQLET_BROWSER_SMOKE_FILTER=@perf` only them (the nightly job; budgets in [../architecture/nfr.md](../architecture/nfr.md)) |
-| `BOQLET_API_PERF=1` | `apiPerformanceAgainstJava`: `tests/perf/api.test.ts` plus 50k-line ingestion; results appended to `PERF_OUT=<file>`. Not in CI |
+| `BOQLET_API_PERF=1` | `apiPerformanceAgainstJava`: `tests/perf/api.test.ts` plus 50k-line ingestion; results appended to `PERF_OUT=<file>`. Nightly (`nightly.yml`), not a deploy gate |
 
 **Load tolerance** (review B-08, DEC-07). A shared-suite or browser test that fails **only by its timeout** is
 tried once more; any other failure fails at once (Vitest's `retry.condition` on its timeout message; in the
@@ -146,13 +146,20 @@ Results go into [../architecture/nfr.md](../architecture/nfr.md). Never load-tes
 | `rollback` | builds this revision's API image and the previous release's (`git describe --tags --match 'v*' HEAD^`), migrates a fresh database with the first and starts the second on it (`scripts/ci-rollback-check.sh`) | yes |
 | `contract` | `api:lint`, `api:check`, `codegen` + `git diff --exit-code packages/types/schema` | yes |
 | `typecheck` | `typecheck`, `lint`, `test:app`, `build:app`, `bundle:check` | yes |
-| `engine` | `test:engine` (result invariants strict, review B-01); then the review's independent checks on six small public samples (S01–S05, S09, fetched SHA-checked by `docs/review/tools/fetch-samples.sh --only=…` and cached): `verify-quantities --strict` (`engine/tests/independent/verify_quantities.py`) and `compare-baseline --layer engine --only S01-default … S09-default` against `docs/review/baseline/` (review B-04) | yes |
-| `local` | `local:up` + `local:check` (the Docker stack) | no |
-| `deploy` | On a push to `main` after the five gates: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
+| `engine` | on Python 3.10, 3.12 (the engine image's) and 3.13, in parallel (review B-09): `test:engine` (result invariants strict, review B-01); then the review's independent checks on six small public samples (S01–S05, S09, fetched SHA-checked by `docs/review/tools/fetch-samples.sh --only=…` and cached): `verify-quantities --strict` (`engine/tests/independent/verify_quantities.py`) and `compare-baseline --layer engine --only S01-default … S09-default` against `docs/review/baseline/` (review B-04) | yes |
+| `audit` | `npm audit --omit=dev` and `pip-audit` on the engine's runtime requirements (`engine/requirements.txt` above its `# dev` line, resolved as pip would today): a known vulnerability in what ships fails the job (review B-09) | yes |
+| `local` | `local:up` + `local:check` (the Docker stack) | yes (since review B-09) |
+| `deploy` | On a push to `main` after every job above: images to the pilot ([../operations/auth-and-deploys.md](../operations/auth-and-deploys.md)) | — |
 
-| `nightly` (`.github/workflows/nightly.yml`, 02:17 UTC and on demand) | the browser suite's `@perf` tests (`e2e-java/perf.spec.ts`, review B-07) against Java on a production build of the app (`BOQLET_BROWSER_PERF=1`, `BOQLET_BROWSER_SMOKE_FILTER=@perf`): the uncached change report (F08-AC4, ≤ 3 s), the first row of a 4,000-line sheet (≤ 4 s) and the longest task while typing in its search (≤ 250 ms), each the median of 3 (regression gates; B-18/B-19 tighten them to 2 s and 100 ms); the `[perf]` lines go to the job summary. The 4,000 lines are the Duplex run's lines repeated by the harness's `/_test/runs/{id}/inflate` | no |
+Every action is pinned by its commit SHA (the release in a comment). Dependabot (`.github/dependabot.yml`) opens
+weekly PRs for npm, pip (`engine/`), Maven (`services/api/`) and the actions, minor and patch grouped per
+ecosystem; they run CI like any PR, and merging one deploys, so the owner reviews each. CodeQL
+(`.github/workflows/codeql.yml`: TypeScript, Java without a build, Python, the workflows) runs on pushes and PRs to
+`main` and weekly; its findings go to the Security tab and the PR, and it is not a deploy gate.
 
-Not in CI: the API performance suite, engine timing, the corpus run, the review samples beyond S01–S05 and
+| `nightly` (`.github/workflows/nightly.yml`, 02:17 UTC and on demand) | **API**: `NativeWorkerTest#apiPerformanceAgainstJava` (`BOQLET_API_PERF=1`, review B-09): `tests/perf/api.test.ts` (CRUD p95 ≤ 300 ms, a 500-line page p95 ≤ 500 ms, ten in flight) and 50,000-line run ingestion ≤ 10 s; the `PERF_OUT` lines go to the job summary. **UI**: the browser suite's `@perf` tests (`e2e-java/perf.spec.ts`, review B-07) against Java on a production build of the app (`BOQLET_BROWSER_PERF=1`, `BOQLET_BROWSER_SMOKE_FILTER=@perf`): the uncached change report (F08-AC4, ≤ 3 s), the first row of a 4,000-line sheet (≤ 4 s) and the longest task while typing in its search (≤ 250 ms), each the median of 3 (regression gates; B-18/B-19 tighten them to 2 s and 100 ms); the `[perf]` lines go to the job summary. The 4,000 lines are the Duplex run's lines repeated by the harness's `/_test/runs/{id}/inflate` | no |
+
+Not in CI: engine timing, the corpus run, the review samples beyond S01–S05 and
 S09 (the full compare-baseline takes about 50 minutes), other browsers,
 Python or Java linters. There is no separate "core only" build job; the pricing
 boundary is guarded by the ArchUnit `CoreArchitectureTest`, the BR-41 lint rule, the

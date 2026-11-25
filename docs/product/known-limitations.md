@@ -179,7 +179,8 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   `NativeAuthTest`, `NativeWorkerTest`, `BackupRestoreTest`, `ErrorResponsesTest`), with a few unit
   tests (`JobDispatcherTest`, `ParseJobErrorsTest`, `RequestSizeFilterTest`, `HealthTimeoutTest`,
   `AlertMonitorTest`) and the ArchUnit `CoreArchitectureTest`.
-- The API performance suite runs by hand (`PERF_OUT`), not in CI (TS-006). The 20 k-line lines page
+- The API performance suite runs nightly since review B-09 (`.github/workflows/nightly.yml`, not a deploy
+  gate; its budgets are not yet proven on a GitHub runner, TS-006). The 20 k-line lines page
   under 20 clients met p95 ≤ 500 ms at the API (122 ms) but was measured from a client only on a
   laptop through Docker Desktop (679 ms); a check from a Linux client is still to do (TF-179).
 - Workbooks are checked with openpyxl only; opening them in Excel and LibreOffice by hand is still to do.
