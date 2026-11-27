@@ -119,6 +119,7 @@
   },
   "sheet": {
     "empty": "Generate the BoQ to see its lines.",
+    "generatingFirst": "Generating… lines appear when the run finishes.",
     "elements": "Elements",
     "measured": "Measured",
     "lines": "Lines",

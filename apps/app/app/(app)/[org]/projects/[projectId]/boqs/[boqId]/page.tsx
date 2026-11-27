@@ -3,10 +3,9 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useBoqFormat } from "@/i18n/boq-format";
-import { useBoq, useRuns, type Run } from "@/api/hooks/boqs";
-import { DimensionRule } from "@/components/dimension-rule";
+import { useBoq, useRuns } from "@/api/hooks/boqs";
 import { BoqHeader } from "@/features/boqs/boq-header";
 import { BoqPresenceProvider, PresenceAvatars } from "@/features/boqs/presence";
 import { WorkspaceSlotsProvider } from "@/features/boqs/workspace-slots";
@@ -19,6 +18,8 @@ import { SetupTab } from "@/features/boqs/setup-tab";
 import { ChangesTab } from "@/features/changes/changes-tab";
 import { LogTab } from "@/features/boq-sheet/log-tab";
 import { Sheet } from "@/features/boq-sheet/sheet";
+import { SheetPlaceholder } from "@/features/boq-sheet/first-run";
+import { headerState } from "@/features/boqs/run-state";
 import { useOrg } from "@/features/orgs/org-context";
 import { QuestionsTab } from "@/features/questions/questions-tab";
 import { useOpenQuestions } from "@/features/questions/use-open-questions";
@@ -143,7 +144,13 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
       </div>
       {moduleTab && <moduleTab.Panel boqId={boqId} projectId={project.id} runId={current?.id ?? null} />}
       {tab === "review" && <ReviewTab boq={boq.data} runs={runs.data} base={base} />}
-      {tab === "sheet" && (current ? <Sheet key={`${current.id}|${viewing?.id ?? ""}`} run={current} boq={boq.data} readOnly={!!viewing} {...(viewing ? { frozen: { overrides: viewing.frozen?.adjustments?.overrides ?? [], manualItems: viewing.frozen?.adjustments?.manualItems ?? [] } } : {})} /> : <RunFigures run={current} />)}
+      {tab === "sheet" &&
+        (current ? (
+          <Sheet key={`${current.id}|${viewing?.id ?? ""}`} run={current} boq={boq.data} readOnly={!!viewing} {...(viewing ? { frozen: { overrides: viewing.frozen?.adjustments?.overrides ?? [], manualItems: viewing.frozen?.adjustments?.manualItems ?? [] } } : {})} />
+        ) : (
+          // No finished run yet: the first run's skeleton while it works, else what to do (review C-05).
+          <SheetPlaceholder generating={headerState(boq.data, runs.data).kind === "active"} />
+        ))}
       {tab === "viewer" && <ViewerTab run={current} base={base} />}
       {tab === "changes" && <ChangesTab boq={boq.data} runs={runs.data} base={base} />}
       {tab === "log" && <LogTab key={current?.id ?? "none"} run={current} />}
@@ -154,40 +161,5 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
     </div>
     </WorkspaceSlotsProvider>
     </BoqPresenceProvider>
-  );
-}
-
-/** Before the first run: what to do; the sheet appears once a run is complete. */
-function RunFigures({ run }: { run: Run | undefined }) {
-  const t = useTranslations("boqs.sheet");
-  const format = useFormatter();
-  if (!run?.stats) {
-    return (
-      <div className="flex flex-col gap-3">
-        <p className="text-muted-foreground">{t("empty")}</p>
-        <DimensionRule className="max-w-48" />
-      </div>
-    );
-  }
-  const s = run.stats;
-  const figures: [string, string][] = [
-    [t("lines"), format.number(s.lines ?? 0)],
-    [t("flagged"), format.number(s.flaggedLines ?? 0)],
-    [t("elements"), format.number(s.elements ?? 0)],
-    [t("measured"), format.number(s.measuredElements ?? 0)],
-    [t("questions"), format.number(s.questions ?? 0)],
-    [t("blocking"), format.number(s.blockingQuestions ?? 0)],
-    [t("warnings"), format.number(s.warnings ?? 0)],
-    [t("duration"), t("seconds", { s: format.number((s.durationMs ?? 0) / 1000, { maximumFractionDigits: 1 }) })],
-  ];
-  return (
-    <dl className="grid max-w-3xl grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-6 gap-y-4" data-testid="run-figures">
-      {figures.map(([label, value]) => (
-        <div key={label} className="flex flex-col">
-          <dt className="label-caps text-muted-foreground">{label}</dt>
-          <dd className="text-title tabular-nums">{value}</dd>
-        </div>
-      ))}
-    </dl>
   );
 }
