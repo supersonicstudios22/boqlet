@@ -16,7 +16,7 @@ import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
 import { generateAndExport, useExportRun } from "@/api/hooks/exports";
 import { useMe, useUpdatePreferences } from "@/api/hooks/me";
-import { SERVER_GROUPED_ABOVE, useLines, useLineTotal, useWarnings } from "@/api/hooks/sheet";
+import { SERVER_GROUPED_ABOVE, useLines, useLineTotal, usePresetVersion, useWarnings } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ import { LargeSheet } from "./large-sheet";
 import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
 import { SystemRulesHint } from "@/features/setup/system-rules-hint";
-import { buildRows, facets, filterLines, linesInGroup, nextSort, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SheetSort, type SortColumn, type SourceFilter, shownDescription } from "./model";
+import { buildRows, codeSystemOf, facets, filterLines, GROUP_RULE, GROUP_STOREY, isBuiltInGrouping, linesInGroup, MANUAL_LINES, nextSort, SEVERAL_STOREYS, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SheetSort, type SortColumn, type SourceFilter, shownDescription } from "./model";
 import { columnTrack, DENSITIES, fitWidth, readColumnWidths, rowHeight, saveColumnWidths, clampWidth, selectedRowHeight, type ColumnWidths, type Density } from "./sheet-layout";
 import { StatusMark } from "./status-mark";
 import { useCodeLists, useCodeListSeparators } from "./use-code-lists";
@@ -112,6 +112,10 @@ interface ColumnMeta {
 
 interface GroupLabels {
   unclassified: string;
+  /** The built-in sections (review C-07). */
+  noStorey: string;
+  severalStoreys: string;
+  manualLines: string;
   lines: (count: number) => string;
   addLine: (name: string) => string;
 }
@@ -229,7 +233,20 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const systems = useMemo(() => run.classifications ?? [], [run.classifications]);
   const systemNames = useMemo(() => new Map(systems.map((s) => [s.id, s.name])), [systems]);
   const modelNames = useMemo(() => new Map((run.models ?? []).map((m) => [m.id, m.fileName])), [run.models]);
-  const [groupBy, setGroupBy] = useState<string | null>(systems[0]?.id ?? null);
+  // "Group by": a classification, or by storey or "measured as" (review C-07, DEC-58). Without a classification the
+  // sheet opens by storey when its lines have storeys, so it reads in sections rather than as one flat list.
+  const [groupChoice, setGroupChoice] = useState<string | null | undefined>(undefined);
+  const hasStoreys = useMemo(() => (lines.data ?? []).some((l) => l.location?.storey || l.location?.storeys?.length), [lines.data]);
+  const groupBy = groupChoice !== undefined ? groupChoice : (systems[0]?.id ?? (hasStoreys ? GROUP_STOREY : null));
+  // Codes, item texts and position numbers come from a classification: the grouping one, or the first under a built-in grouping.
+  const codeSystem = codeSystemOf(groupBy, systems);
+  // Code moves (drag onto a group, a group's "Add line") only while grouping by a classification: a storey is no code.
+  const moveSystem = isBuiltInGrouping(groupBy) ? null : groupBy;
+  const ruleSet = usePresetVersion(groupBy === GROUP_RULE ? run.snapshotVersions?.ruleSetVersionId : undefined);
+  const ruleLabels = useMemo(() => {
+    const doc = (ruleSet.data?.flattened ?? ruleSet.data?.doc) as { items?: { id: string; label?: string }[]; derived?: { id: string; label?: string }[] } | undefined;
+    return new Map([...(doc?.items ?? []), ...(doc?.derived ?? [])].flatMap((r) => (r.label ? [[r.id, r.label] as const] : [])));
+  }, [ruleSet.data]);
   const [filters, setFilters] = useState<SheetFilters>({});
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   // Review C-06 (DEC-46): a header sorts the lines inside their groups; the sheet's own order is the default.
@@ -317,10 +334,10 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   }, [byKey]);
   // F06 §13: numbers follow what the sheet shows, so they renumber at once as lines are edited.
   const separators = useCodeListSeparators(run);
-  const positions = useMemo(() => positionNumbers(all, groupBy, groupBy ? separators.get(groupBy) : undefined), [all, groupBy, separators]);
+  const positions = useMemo(() => positionNumbers(all, codeSystem, codeSystem ? separators.get(codeSystem) : undefined), [all, codeSystem, separators]);
   const options = useMemo(() => facets(all), [all]);
-  const filtered = useMemo(() => filterLines(all, filters, groupBy), [all, filters, groupBy]);
-  const groups = useMemo(() => topGroups(all, groupBy), [all, groupBy]);
+  const filtered = useMemo(() => filterLines(all, filters, codeSystem), [all, filters, codeSystem]);
+  const groups = useMemo(() => topGroups(all, codeSystem), [all, codeSystem]);
   const models3d = useMemo(() => viewerModels(run), [run]);
   // The viewer colours "edited" from the sheet's current edits (F07 §5).
   const linkLines = useMemo(() => all.map((l) => ({ ...l, edited: !!l.edit })), [all]);
@@ -356,7 +373,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
-  const rows = useMemo(() => buildRows(filtered, groupBy, collapsed, sort), [filtered, groupBy, collapsed, sort]);
+  const rows = useMemo(() => buildRows(filtered, groupBy, collapsed, sort, { system: codeSystem, ruleLabels }), [filtered, groupBy, collapsed, sort, codeSystem, ruleLabels]);
   const filtering = filtered.length !== all.length;
   // One formatter for every cell (the rule set's rounding is already applied by the engine), in the
   // firm's number format and the project's locale (F15 §6, §11, TF-021).
@@ -377,21 +394,21 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       col("status", t("col.source"), { width: "1.125rem", srHeader: true, cellClass: "justify-center px-0", cell: (l) => <StatusMark source={l.source} toConfirm={l.toConfirm} /> }),
       // The Item (code) column only while grouping by a classification: empty otherwise, it took room
       // from Quantity on narrow screens (TF-171).
-      ...(groupBy
+      ...(codeSystem
         ? [
             col("item", t("col.item"), {
               width: "8rem",
               optional: true,
               editable: "item",
               sort: "item",
-              cell: (l) => l.codes[groupBy]?.code,
-              engine: (l) => (l.edit?.override.codes?.[groupBy] ? engine(l, "codes", l.edit.engine.codes[groupBy] ?? te("noCode")) : undefined),
+              cell: (l) => l.codes[codeSystem]?.code,
+              engine: (l) => (l.edit?.override.codes?.[codeSystem] ? engine(l, "codes", l.edit.engine.codes[codeSystem] ?? te("noCode")) : undefined),
             }),
           ]
         : []),
       // The item text of the Group-by system when its code has one (P14, F06 §2); an edited description wins.
       // Beside the model the description gives way first, so Quantity stays in view (TF-107).
-      col("description", t("col.description"), { width: split && hasModels ? "minmax(10rem, 1fr)" : "minmax(16rem, 1fr)", editable: "description", sort: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
+      col("description", t("col.description"), { width: split && hasModels ? "minmax(10rem, 1fr)" : "minmax(16rem, 1fr)", editable: "description", sort: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, codeSystem)} {badges[l.key]}</> : shownDescription(l, codeSystem)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
       col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", sort: "unit", cell: (l) => unitLabel(l.unit), engine: (l) => engine(l, "unit", unitLabel(l.edit?.engine.unit ?? "")) }),
       col("quantity", t("col.quantity"), {
         width: "8rem",
@@ -406,9 +423,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),
       col("notes", t("col.notes"), { width: "12rem", optional: true, cell: (l) => l.notes.join(" ") }),
       // One column per extra classification (F06 §2), off by default.
-      ...systems.filter((s) => s.id !== groupBy).map((s) => col(`code:${s.id}`, s.name, { width: "8rem", optional: true, cell: (l) => l.codes[s.id]?.code })),
+      ...systems.filter((s) => s.id !== codeSystem).map((s) => col(`code:${s.id}`, s.name, { width: "8rem", optional: true, cell: (l) => l.codes[s.id]?.code })),
     ];
-  }, [groupBy, systems, num, t, te, toConfirm, badges, positions, unitLabel, list, split, hasModels]);
+  }, [codeSystem, systems, num, t, te, toConfirm, badges, positions, unitLabel, list, split, hasModels]);
 
   // TanStack Table owns the columns and their visibility; the rows are the sheet's own (groups + lines).
   // It returns functions the React Compiler can't memoise, so this component is left uncompiled.
@@ -442,6 +459,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const groupLabels = useMemo<GroupLabels>(
     () => ({
       unclassified: t("unclassified"),
+      noStorey: t("noStorey"),
+      severalStoreys: t("severalStoreys"),
+      manualLines: t("manualLines"),
       lines: (count) => t("groupLines", { count }),
       addLine: (name) => te("addToGroup", { name }),
     }),
@@ -572,9 +592,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       const text = value.trim();
       if (!text || text === line.description) return;
       change(key, { description: text === line.edit?.engine.description ? undefined : text });
-    } else if (column === "item" && groupBy) {
-      if (!value || value === line.codes[groupBy]?.code) return;
-      change(key, { codes: { ...(o?.codes ?? {}), [groupBy]: value } });
+    } else if (column === "item" && codeSystem) {
+      if (!value || value === line.codes[codeSystem]?.code) return;
+      change(key, { codes: { ...(o?.codes ?? {}), [codeSystem]: value } });
     } else if (column === "unit") {
       const unit = value.trim();
       if (!unit || unit === line.unit) return;
@@ -651,14 +671,14 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
         const o = current.get(from);
         if (target.line && target.line !== from) {
           const onto = byKey.get(target.line);
-          const code = groupBy ? onto?.codes[groupBy]?.code : undefined;
-          const moves = groupBy && code && code !== line.codes[groupBy]?.code;
-          change(from, { sortAfter: target.line, ...(moves ? { codes: { ...(o?.codes ?? {}), [groupBy!]: code } } : {}) });
-        } else if (target.group && groupBy && target.group.title !== null && target.group.code !== line.codes[groupBy]?.code) {
-          change(from, { codes: { ...(o?.codes ?? {}), [groupBy]: target.group.code } });
+          const code = moveSystem ? onto?.codes[moveSystem]?.code : undefined;
+          const moves = moveSystem && code && code !== line.codes[moveSystem]?.code;
+          change(from, { sortAfter: target.line, ...(moves ? { codes: { ...(o?.codes ?? {}), [moveSystem!]: code } } : {}) });
+        } else if (target.group && moveSystem && target.group.title !== null && target.group.code !== line.codes[moveSystem]?.code) {
+          change(from, { codes: { ...(o?.codes ?? {}), [moveSystem]: target.group.code } });
         }
       },
-      addToGroup: (group) => setManualDialog({ defaults: { ...(groupBy && group.title !== null ? { codes: { [groupBy]: group.code } } : {}), ...(lastLineOf(group) ? { sortHint: lastLineOf(group) } : {}) } }),
+      addToGroup: (group) => setManualDialog({ defaults: { ...(moveSystem && group.title !== null ? { codes: { [moveSystem]: group.code } } : {}), ...(lastLineOf(group) ? { sortHint: lastLineOf(group) } : {}) } }),
       toggleGroup: (id) =>
         setCollapsed((prev) => {
           const next = new Set(prev);
@@ -734,7 +754,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               <LineEdits line={selectedLine} editable={editable} systemNames={systemNames} actions={actions} />
             </aside>
           ) : (
-            <LineDetailPanel run={run} lineKey={selectedLine.key} groupBy={groupBy} showIn3dHref={(run.snapshotVersions?.models?.length ?? 0) > 0 ? showIn3dHref(base, { line: selectedLine.key }) : undefined} modelNames={modelNames} systemNames={systemNames} onSelect={setSelected} onClose={() => setSelected(null)} className={detailClass}>
+            <LineDetailPanel run={run} lineKey={selectedLine.key} groupBy={codeSystem} showIn3dHref={(run.snapshotVersions?.models?.length ?? 0) > 0 ? showIn3dHref(base, { line: selectedLine.key }) : undefined} modelNames={modelNames} systemNames={systemNames} onSelect={setSelected} onClose={() => setSelected(null)} className={detailClass}>
               {(editable || selectedLine.edit || selectedLine.excluded) && <LineEdits line={selectedLine} editable={editable} systemNames={systemNames} actions={actions} />}
             </LineDetailPanel>
           ));
@@ -818,7 +838,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       allChecked={shownKeys.length > 0 && shownKeys.every((k) => checked.has(k))}
       onCheckAll={(on) => setChecked(on ? new Set(shownKeys) : new Set())}
       api={rowApi}
-      groupBy={groupBy}
+      groupBy={codeSystem}
       selectedGroup={selectedGroup}
       lists={lists}
       num={num}
@@ -859,12 +879,19 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
         <RovingToolbar label={t("filterBar")} className="flex flex-wrap items-center gap-2" data-testid="sheet-filter-bar">
           <label className="flex items-center gap-1.5">
             <span className="label-caps text-muted-foreground">{t("groupBy")}</span>
-            <NativeSelect value={groupBy ?? ""} onChange={(e) => setGroupBy(e.target.value || null)} className="max-w-56" data-testid="group-by">
+            <NativeSelect
+              value={groupBy ?? ""}
+              onChange={(e) => setGroupChoice(e.target.value || null)}
+              className="max-w-56"
+              data-testid="group-by"
+            >
               {systems.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
               ))}
+              <option value={GROUP_STOREY}>{t("groupStorey")}</option>
+              <option value={GROUP_RULE}>{t("groupRule")}</option>
               <option value="">{t("noGrouping")}</option>
             </NativeSelect>
           </label>
@@ -903,7 +930,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
                   </NativeSelect>
                 </label>
               )}
-              {groupBy && groups.length > 1 && (
+              {codeSystem && groups.length > 1 && (
                 <label className="flex flex-col gap-1">
                   <span className="label-caps text-muted-foreground">{t("codeGroup")}</span>
                   <NativeSelect value={filters.group ?? ""} onChange={(e) => setFilter("group", e.target.value)} data-testid="filter-group">
@@ -1159,9 +1186,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
             <BulkBar
               count={checkedKeys.length}
               lists={lists}
-              system={groupBy}
-              systemName={groupBy ? (systemNames.get(groupBy) ?? groupBy) : ""}
-              onMove={(code) => changeMany(checkedKeys, (k) => ({ codes: { ...(current.get(k)?.codes ?? {}), [groupBy!]: code } }))}
+              system={codeSystem}
+              systemName={codeSystem ? (systemNames.get(codeSystem) ?? codeSystem) : ""}
+              onMove={(code) => changeMany(checkedKeys, (k) => ({ codes: { ...(current.get(k)?.codes ?? {}), [codeSystem!]: code } }))}
               onExclude={() => exclude(checkedKeys)}
               onRestore={() => commit(new Map(checkedKeys.filter((k) => current.has(k)).map((k) => [k, null])))}
               onClear={() => setChecked(new Set())}
@@ -1605,7 +1632,21 @@ const GroupRowView = memo(function GroupRowView({
 }) {
   const unitLabel = useUnit();
   const [over, setOver] = useState(false);
-  const name = row.title === null ? labels.unclassified : `${row.code} ${row.title}`;
+  // A storey or rule section shows its name alone; the built-in extra sections and "none" are named here (C-07).
+  const name =
+    row.title === null
+      ? row.builtIn
+        ? row.id === UNCLASSIFIED
+          ? labels.noStorey
+          : row.code === SEVERAL_STOREYS
+            ? labels.severalStoreys
+            : row.code === MANUAL_LINES
+              ? labels.manualLines
+              : row.code
+        : labels.unclassified
+      : row.builtIn
+        ? row.title
+        : `${row.code} ${row.title}`;
   // The group spans the columns before Unit; the subtotal sits under Unit and Quantity when the unit is shared.
   const span = Math.max(1, unitIndex >= 0 ? unitIndex : columnCount);
   return (
@@ -1624,7 +1665,7 @@ const GroupRowView = memo(function GroupRowView({
       }}
       style={{ gridTemplateColumns: template, height, transform: `translateY(${top}px)` }}
       onDragOver={(e) => {
-        if (!editable || !e.dataTransfer.types.includes(DRAG_TYPE) || row.title === null) return;
+        if (!editable || !e.dataTransfer.types.includes(DRAG_TYPE) || row.title === null || row.builtIn) return;
         e.preventDefault();
         setOver(true);
       }}

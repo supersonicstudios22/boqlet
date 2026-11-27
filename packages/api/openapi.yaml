@@ -1553,7 +1553,7 @@ paths:
               type: object
               properties:
                 format: { type: string, enum: [xlsx], default: xlsx }
-                groupBy: { type: string, maxLength: 200, description: classification id }
+                groupBy: { type: string, maxLength: 200, description: "a classification id of the run, or `~storey` / `~rule` (sections by storey or by the rule that measured the line, review C-07); Ref and the position numbers stay those of the first classification. Default: the first classification" }
       responses:
         "202": { $ref: "#/components/responses/JobAccepted" }
 

@@ -7938,7 +7938,7 @@ export interface operations {
                      * @enum {string}
                      */
                     format?: "xlsx";
-                    /** @description classification id */
+                    /** @description a classification id of the run, or `~storey` / `~rule` (sections by storey or by the rule that measured the line, review C-07); Ref and the position numbers stay those of the first classification. Default: the first classification */
                     groupBy?: string;
                 };
             };

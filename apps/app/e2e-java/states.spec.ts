@@ -44,7 +44,8 @@ test("TF-104 and TF-103: double-click a quantity of a line not selected; pick a 
   await page.keyboard.press("Escape");
 
   // The Item picker (only while grouping by a classification).
-  if ((await page.getByTestId("group-by").inputValue()) === "") test.skip(true, "the sample BoQ has no classification");
+  // Without a classification there is no Item column (the sheet may still group by storey, review C-07).
+  if ((await page.locator('[data-testid="sheet-line"] [data-column="item"]').count()) === 0) test.skip(true, "the sample BoQ has no classification");
   const mid = page.locator('[data-testid="sheet-line"][data-source="measured"]').nth(5);
   const key = (await mid.getAttribute("data-key"))!;
   await mid.locator('[data-column="item"]').dblclick();

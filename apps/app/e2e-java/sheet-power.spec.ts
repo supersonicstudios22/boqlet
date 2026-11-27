@@ -6,6 +6,8 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
  * - C-06: a header sorts the lines inside their groups (`aria-sort`), the density switch changes the row height and is
  *   the user's preference, "Wrap text" clamps descriptions at three lines with the rows still virtualised, a dragged
  *   column width stays for the BoQ.
+ * - C-07: a BoQ without a classification opens grouped by storey, with subtotals; "Measured as" groups by rule; the
+ *   sheet's Excel asks for the same grouping.
  */
 
 test.describe.configure({ timeout: 360_000 });
@@ -125,3 +127,47 @@ test("@c2-sheet C-06: sort inside groups, density, wrap text, column widths", as
   await expect(page.locator("[data-testid=sheet-line] [data-column=description] > span.line-clamp-3").first()).toBeVisible();
   await context.close();
 });
+
+test("@c2-grouping C-07: without a classification the sheet groups by storey or by rule, and the Excel follows", async ({ browser }) => {
+  const sample = await sampleBoq("Gus Grouper");
+  const { owner, url } = sample;
+  // The BoQ without its classification, generated again: the case C-07 is about.
+  await apiAs(owner, "PATCH", `/revisions/${sample.boq.currentRevision.id}`, { inputs: { classificationVersionIds: [] } });
+  await apiAs(owner, "POST", `/revisions/${sample.boq.currentRevision.id}/runs`, {});
+  const boq = await waitFor("the run without a classification", async () => {
+    const b = await apiAs<Boq & { currentRevision: { pendingChanges: string[] } }>(owner, "GET", `/boqs/${sample.boq.id}`);
+    const status = b.currentRevision.currentRun?.status;
+    return b.currentRevision.currentRun?.id !== sample.boq.currentRevision.currentRun?.id && (status === "complete" || status === "needs_input") ? b : undefined;
+  });
+  const run = await apiAs<{ classifications?: unknown[] }>(owner, "GET", `/runs/${boq.currentRevision.currentRun!.id}`);
+  expect(run.classifications ?? []).toEqual([]);
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(context, owner);
+  const page = await context.newPage();
+  await openSheet(page, url);
+  const groupBy = page.getByTestId("group-by");
+  await expect(groupBy).toHaveValue("~storey");
+  const lines = (await apiAs<{ items: { location?: { storey?: string; storeys?: string[] }; quantity: number | null; unit: string }[] }>(owner, "GET", `/runs/${boq.currentRevision.currentRun!.id}/lines?limit=20000`)).items;
+  // A line's storey section (the sheet's `groupPath`): its storey, or its only one of several.
+  const storeyOf = (l: (typeof lines)[number]) => l.location?.storey ?? (l.location?.storeys?.length === 1 ? l.location.storeys[0] : undefined);
+  const storeys = [...new Set(lines.flatMap((l) => (storeyOf(l) ? [storeyOf(l)!] : [])))];
+  const groups = page.getByTestId("sheet-group");
+  await expect.poll(async () => (await groups.allInnerTexts()).filter((text) => storeys.some((s) => text.startsWith(s))).length).toBe(storeys.length);
+  // A storey's subtotal: its lines' count, and the sum when they share a unit (BR-63).
+  const first = storeys[0]!;
+  const mine = lines.filter((l) => storeyOf(l) === first);
+  const heading = groups.and(page.locator(`[data-group=${JSON.stringify(first)}]`));
+  await expect(heading).toContainText(String(mine.length));
+  // "Measured as": one section per rule; the Item column is not there without a classification.
+  await groupBy.selectOption("~rule");
+  await expect.poll(() => groups.count()).toBeGreaterThan(1);
+  expect(await page.locator("[role=columnheader][data-header=item]").count()).toBe(0);
+  // The sheet's Excel asks for the grouping on screen.
+  const sent = page.waitForRequest((r) => r.method() === "POST" && /\/runs\/[^/]+\/exports$/.test(r.url()));
+  await page.getByTestId("export-xlsx").click();
+  const choice = page.getByTestId("export-last-run");
+  if (await choice.isVisible().catch(() => false)) await choice.click();
+  expect(JSON.parse((await sent).postData() ?? "{}")).toMatchObject({ groupBy: "~rule" });
+  await context.close();
+});
+

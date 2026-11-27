@@ -19,11 +19,12 @@ FIRST = 6
 COLS = {"ref": "A", "description": "B", "unit": "C", "quantity": "D"}
 
 
-def annotate(wb, boq_id, primary, rows):
+def annotate(wb, boq_id, primary, rows, grouping=None):
     ws = wb["BoQ"]
     ws.cell(row=FIRST - 1, column=KEY_COL, value="Line key")
     snap = wb.create_sheet("_boqlet")
-    snap.append(["boqId", boq_id, "primary", primary or ""])
+    # `grouping`: a built-in grouping (by storey or rule, review C-07), whose section rows carry no code.
+    snap.append(["boqId", boq_id, "primary", primary or "", *(["grouping", grouping] if grouping else [])])
     snap.append(["key", "ref", "description", "unit", "quantity", "top"])
     unlocked = Protection(locked=False)
     for row, key, top in rows:
@@ -123,11 +124,14 @@ def _read(wb, info, report):
         report["problems"].append({"row": 0, "message": "This workbook wasn't exported from boqlet (its BoQ sheet or line keys are missing)."})
         return report
     snap = wb["_boqlet"]
-    head = next(snap.iter_rows(min_row=1, max_row=1, max_col=4, values_only=True), [None] * 4)
+    head = next(snap.iter_rows(min_row=1, max_row=1, max_col=6, values_only=True), [None] * 6)
     if head[0] != "boqId" or str(head[1] or "") != info["boqId"]:
         report["problems"].append({"sheet": "BoQ", "row": 0, "message": "This workbook was exported from another BoQ."})
         return report
     primary = head[3] or info.get("primary")
+    # Exported grouped by storey or rule (review C-07): a row without a key, unit and quantity is a section
+    # heading, and a section is no code, so only a changed Ref moves a line.
+    built_in = head[4] == "grouping" and bool(head[5])
     ws = wb["BoQ"]
     if any(sheet.max_row is None or sheet.max_row > 250_000 for sheet in (ws, snap)):
         report["problems"].append({"sheet": "BoQ", "row": 0, "message": "The workbook exceeds the maximum row count."})
@@ -173,7 +177,9 @@ def _read(wb, info, report):
                 continue
             ref_s = str(ref or "").strip()
             if qty in (None, "") and not unit:
-                if (ref_s, desc_s) in headings or (known is not None and ref_s in known):
+                if built_in and not ref_s:
+                    heading = ""
+                elif (ref_s, desc_s) in headings or (known is not None and ref_s in known):
                     heading = ref_s
                 else:
                     _problem(report, r, COLS["unit"], "A new row needs a unit (and a quantity, or leave that empty to confirm later).")

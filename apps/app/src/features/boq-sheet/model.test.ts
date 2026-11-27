@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { RunLine } from "@/api/hooks/sheet";
-import { buildRows, compareLines, countsBySource, nextSort, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, subtotal, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
+import { buildRows, codeSystemOf, compareLines, countsBySource, GROUP_RULE, GROUP_STOREY, groupPath, MANUAL_LINES, nextSort, SEVERAL_STOREYS, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, subtotal, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
 
 let n = 0;
 function line(path: [string, string][] | null, fields: Partial<RunLine> = {}): RunLine {
@@ -222,5 +222,50 @@ describe("sorting the sheet (review C-06)", () => {
     expect(nextSort(asc, "quantity")).toEqual({ column: "quantity", dir: "desc" });
     expect(nextSort({ column: "quantity", dir: "desc" }, "quantity")).toBeNull();
     expect(nextSort({ column: "quantity", dir: "desc" }, "unit")).toEqual({ column: "unit", dir: "asc" });
+  });
+});
+
+describe("grouping without a classification (review C-07)", () => {
+  const unclassified = [
+    line(null, { ruleId: "walls", location: { storey: "Level 10" }, quantity: 4 }),
+    line(null, { ruleId: "slabs", location: { storey: "Level 2" }, quantity: 6 }),
+    line(null, { ruleId: "walls", location: { storey: "Level 2" }, quantity: 1.5 }),
+    line(null, { ruleId: "stairs", location: { storeys: ["Level 2", "Level 10"] }, unit: "nr", quantity: 1 }),
+    line(null, { ruleId: "boq.hoarding", ruleKind: "manual", unit: "m", quantity: 42 }),
+    line(null, { ruleId: "slabs", location: { storeys: ["Level 1/2"] }, quantity: 2 }),
+  ];
+  const labels = new Map([["walls", "Walls"], ["slabs", "Floor slabs"]]);
+  const groupsOf = (rows: ReturnType<typeof buildRows>) => rows.filter((r): r is GroupRow => r.kind === "group");
+
+  it("groups by storey in natural order, several storeys next to last, no storey last, with BR-63 subtotals", () => {
+    const groups = groupsOf(buildRows(unclassified, GROUP_STOREY));
+    expect(groups.map((g) => g.id)).toEqual(["Level 1/2", "Level 2", "Level 10", SEVERAL_STOREYS, UNCLASSIFIED]);
+    expect(groups.every((g) => g.builtIn && g.depth === 0)).toBe(true);
+    const level2 = groups.find((g) => g.id === "Level 2")!;
+    expect([level2.lineCount, level2.unit, level2.quantity]).toEqual([2, "m2", 7.5]);
+    expect(groups.find((g) => g.id === SEVERAL_STOREYS)!.title).toBeNull();
+    expect(linesInGroup(unclassified, GROUP_STOREY, "Level 1/2")).toEqual([unclassified[5]!.key]);
+    expect(linesInGroup(unclassified, GROUP_STOREY, UNCLASSIFIED)).toEqual([unclassified[4]!.key]);
+  });
+
+  it("groups by the rule that measured the line, in the rule set's order, lines added by hand last", () => {
+    const groups = groupsOf(buildRows(unclassified, GROUP_RULE, new Set(), null, { ruleLabels: labels }));
+    expect(groups.map((g) => [g.code, g.title])).toEqual([["walls", "Walls"], ["slabs", "Floor slabs"], ["stairs", "stairs"], [MANUAL_LINES, null]]);
+    expect(groups[0]!.quantity).toBe(5.5);
+  });
+
+  it("is a view: every line once, the same quantities whatever the grouping (rule 6)", () => {
+    const keysOf = (rows: ReturnType<typeof buildRows>) => rows.flatMap((r) => (r.kind === "line" ? [r.id] : [])).sort();
+    const all = unclassified.map((l) => l.key).sort();
+    expect(keysOf(buildRows(unclassified, GROUP_STOREY))).toEqual(all);
+    expect(keysOf(buildRows(unclassified, GROUP_RULE))).toEqual(all);
+    expect(keysOf(buildRows(unclassified, null))).toEqual(all);
+  });
+
+  it("shows codes of the first classification under a built-in grouping", () => {
+    expect(codeSystemOf(GROUP_STOREY, [{ id: "acme" }, { id: "other" }])).toBe("acme");
+    expect(codeSystemOf(GROUP_RULE, [])).toBeNull();
+    expect(codeSystemOf("other", [{ id: "acme" }])).toBe("other");
+    expect(groupPath(lines[0]!, "acme").map((p) => p.code)).toEqual(["2", "2.5"]);
   });
 });

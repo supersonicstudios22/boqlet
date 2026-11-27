@@ -97,7 +97,7 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   TF-095): the sheet shows the current run and saved versions.
 - The sheet loads every line and groups in the browser up to 20,000 lines; above that it opens
   grouped on the server, read-only (no inline edits, moves, manual lines or the shared 3D filter
-  there yet; the Changes tab and the Excel edits import still load every line; review B-19, N-40).
+  there yet, nor grouping by storey or "measured as" (C-07, N-44); the Changes tab and the Excel edits import still load every line; review B-19, N-40).
   The viewer has no merged-mesh
   picking above 200k elements; "Show in 3D" from a question carries at most 300 GlobalIds; the
   shared filter bar lacks IFC class, type, material and "changed since".

@@ -38,8 +38,10 @@ export interface GroupRow {
   id: string;
   depth: number;
   code: string;
-  /** null for the "Unclassified" group (the UI names it). */
+  /** null for the "Unclassified" / "No storey" group and the built-in extra sections (the UI names them). */
   title: string | null;
+  /** A storey or rule section (review C-07): it has no code of its own to show or move lines to. */
+  builtIn?: boolean;
   lineCount: number;
   /** Set when every line under the group has the same unit. */
   unit: string | null;
@@ -55,6 +57,45 @@ export interface LineRow {
 export type Row = GroupRow | LineRow;
 
 export const UNCLASSIFIED = "~unclassified";
+
+/**
+ * Built-in groupings (review C-07, DEC-58): by storey and by the rule that measured the line ("measured as"), so a
+ * BoQ without a classification still reads in sections. A view only (rule 6); the Excel's `groupBy` takes the same
+ * values (`export_xlsx.py`). They start with "~", which no classification id the app offers does.
+ */
+export const GROUP_STOREY = "~storey";
+export const GROUP_RULE = "~rule";
+export type BuiltInGrouping = typeof GROUP_STOREY | typeof GROUP_RULE;
+export const isBuiltInGrouping = (grouping: string | null | undefined): grouping is BuiltInGrouping => grouping === GROUP_STOREY || grouping === GROUP_RULE;
+/** The built-in sections besides storeys and rules: a line on several storeys, a line added by hand. */
+export const SEVERAL_STOREYS = "~several";
+export const MANUAL_LINES = "~manual";
+
+/** The code system a grouping shows codes and item texts of: the grouping one, or the first one under a built-in grouping. */
+export function codeSystemOf(grouping: string | null, systems: readonly { id: string }[]): string | null {
+  return isBuiltInGrouping(grouping) ? (systems[0]?.id ?? null) : grouping;
+}
+
+type Segment = { code: string; title: string | null };
+
+/**
+ * The sections a line goes under (the Excel's `section_path`): its code path in the grouping classification, or one
+ * storey or rule section; empty for the "none" section (Unclassified, or No storey).
+ */
+export function groupPath(l: Pick<SheetLine, "codes" | "location" | "ruleId" | "ruleKind">, grouping: string | null, ruleLabels?: ReadonlyMap<string, string>): Segment[] {
+  if (!grouping) return [];
+  if (grouping === GROUP_STOREY) {
+    const storeys = l.location?.storeys ?? [];
+    const storey = l.location?.storey ?? (storeys.length === 1 ? storeys[0] : undefined);
+    if (storey) return [{ code: storey, title: storey }];
+    return storeys.length ? [{ code: SEVERAL_STOREYS, title: null }] : [];
+  }
+  if (grouping === GROUP_RULE) {
+    if (l.ruleKind === "manual") return [{ code: MANUAL_LINES, title: null }];
+    return [{ code: l.ruleId, title: ruleLabels?.get(l.ruleId) ?? l.ruleId }];
+  }
+  return (l.codes[grouping]?.path ?? []).map((p) => ({ code: p.code, title: p.title }));
+}
 
 /**
  * What the Description column shows (F06 §2, P14): the line's item text in the Group-by system when its
@@ -86,8 +127,10 @@ export function linesInGroup(lines: readonly SheetLine[], system: string | null,
   if (!system) return [];
   return lines
     .filter((l) => {
-      const path = (l.codes[system]?.path ?? []).map((p) => p.code);
+      const path = groupPath(l, system).map((p) => p.code);
       if (groupId === UNCLASSIFIED) return path.length === 0;
+      // A storey or rule section is one level, and its name may hold a "/".
+      if (isBuiltInGrouping(system)) return path[0] === groupId;
       const id = groupId.split("/");
       return id.every((code, i) => path[i] === code);
     })
@@ -121,6 +164,8 @@ export function facets(lines: SheetLine[]) {
 }
 
 interface Node {
+  /** Creation order: rule sections keep the rule set's order (the order their lines come in). */
+  seq: number;
   id: string;
   code: string;
   title: string | null;
@@ -130,7 +175,7 @@ interface Node {
   members: SheetLine[];
 }
 
-const node = (id: string, code: string, title: string | null): Node => ({ id, code, title, children: new Map(), lines: [], members: [] });
+const node = (id: string, code: string, title: string | null, seq = 0): Node => ({ seq, id, code, title, children: new Map(), lines: [], members: [] });
 
 /**
  * A group's subtotal (BR-63, the same definition as the grouped `/lines` view and the Excel): the count of
@@ -147,6 +192,12 @@ export function subtotal(lines: readonly { unit: string; quantity: number | null
   return { count: included.length, unit, quantity };
 }
 const byCode = (a: Node, b: Node) => (a.id === UNCLASSIFIED ? 1 : b.id === UNCLASSIFIED ? -1 : a.code.localeCompare(b.code, undefined, { numeric: true }));
+/** Built-in sections: storeys in natural order, rules in the order they come; the extra sections next to last. */
+const byBuiltIn = (grouping: BuiltInGrouping) => (a: Node, b: Node) => {
+  const rank = (n: Node) => (n.id === UNCLASSIFIED ? 2 : n.code.startsWith("~") ? 1 : 0);
+  if (rank(a) !== rank(b)) return rank(a) - rank(b);
+  return grouping === GROUP_RULE ? a.seq - b.seq : a.code.localeCompare(b.code, undefined, { numeric: true });
+};
 
 /** The columns a header click sorts by (review C-06, DEC-46). */
 export type SortColumn = "item" | "description" | "unit" | "quantity" | "storey" | "family";
@@ -207,12 +258,21 @@ function sectionOrder(lines: SheetLine[], sort: SheetSort | null, system: string
  * (one level per path segment), each with its line count and, when the unit is shared, the sum.
  * A sort orders the lines inside each group; the groups keep their code order (review C-06).
  */
-export function buildRows(lines: SheetLine[], system: string | null, collapsed: ReadonlySet<string> = new Set(), sort: SheetSort | null = null): Row[] {
-  if (!system) return sectionOrder(lines, sort, system).map((line) => ({ kind: "line", id: line.key, depth: 0, line }));
+export function buildRows(
+  lines: SheetLine[],
+  grouping: string | null,
+  collapsed: ReadonlySet<string> = new Set(),
+  sort: SheetSort | null = null,
+  /** `system`: whose codes and texts the sort reads (default: the grouping one); `ruleLabels` name the rule sections. */
+  options: { system?: string | null; ruleLabels?: ReadonlyMap<string, string> } = {},
+): Row[] {
+  const system = options.system !== undefined ? options.system : isBuiltInGrouping(grouping) ? null : grouping;
+  if (!grouping) return sectionOrder(lines, sort, system).map((line) => ({ kind: "line", id: line.key, depth: 0, line }));
+  const builtIn = isBuiltInGrouping(grouping);
   const ordered = [...lines].sort((a, b) => a.sortIndex - b.sortIndex);
   const root = node("", "", null);
   for (const line of ordered) {
-    const path = line.codes[system]?.path ?? [];
+    const path = groupPath(line, grouping, options.ruleLabels);
     const chain: Node[] = [root];
     let at = root;
     if (path.length === 0) {
@@ -225,7 +285,7 @@ export function buildRows(lines: SheetLine[], system: string | null, collapsed: 
       for (const seg of path) {
         id = id ? `${id}/${seg.code}` : seg.code;
         let next = at.children.get(seg.code);
-        if (!next) at.children.set(seg.code, (next = node(id, seg.code, seg.title)));
+        if (!next) at.children.set(seg.code, (next = node(id, seg.code, seg.title, at.children.size)));
         at = next;
         chain.push(at);
       }
@@ -236,10 +296,10 @@ export function buildRows(lines: SheetLine[], system: string | null, collapsed: 
   }
   const rows: Row[] = [];
   const walk = (n: Node, depth: number) => {
-    for (const child of [...n.children.values()].sort(byCode)) {
+    for (const child of [...n.children.values()].sort(builtIn ? byBuiltIn(grouping) : byCode)) {
       const total = subtotal(child.members);
       const isCollapsed = collapsed.has(child.id);
-      rows.push({ kind: "group", id: child.id, depth, code: child.code, title: child.title, lineCount: total.count, unit: total.unit, quantity: total.quantity, collapsed: isCollapsed });
+      rows.push({ kind: "group", id: child.id, depth, code: child.code, title: child.title, lineCount: total.count, unit: total.unit, quantity: total.quantity, collapsed: isCollapsed, ...(builtIn ? { builtIn: true } : {}) });
       if (isCollapsed) continue;
       for (const line of sectionOrder(child.lines, sort, system)) rows.push({ kind: "line", id: line.key, depth: depth + 1, line });
       walk(child, depth + 1);

@@ -141,20 +141,56 @@ def _number_format(fmt: dict) -> str:
     return f"{sample} (decimal {SEPARATORS.get(decimal, repr(decimal))}, thousands {SEPARATORS.get(thousands, repr(thousands))})"
 
 
-class _Group:
-    """A section of the BoQ sheet: one level of the grouping code's path."""
+# Built-in groupings (review C-07, DEC-58): a view of the lines without a classification, so a BoQ with no code
+# list still reads in sections. The values can't be classification ids the app offers (they start with "~").
+GROUP_STOREY, GROUP_RULE = "~storey", "~rule"
+BUILT_IN = {GROUP_STOREY: "Storey", GROUP_RULE: "Measured as"}
+# Sections a built-in grouping adds besides storeys and rules; "~" is the "none" section (Unclassified, No storey).
+SEVERAL_STOREYS, MANUAL_LINES = "~several", "~manual"
 
-    def __init__(self, code: str, title: str):
-        self.code, self.title, self.children, self.lines = code, title, {}, []
+
+class _Group:
+    """A section of the BoQ sheet: one level of the grouping code's path, or a storey or a rule."""
+
+    def __init__(self, code: str, title: str, seq: int = 0):
+        self.code, self.title, self.seq, self.children, self.lines = code, title, seq, {}, []
 
     def child(self, code: str, title: str) -> _Group:
-        return self.children.setdefault(code, _Group(code, title))
+        return self.children.setdefault(code, _Group(code, title, len(self.children)))
 
     def all_lines(self) -> list:
         return [*self.lines, *(line for child in self.children.values() for line in child.all_lines())]
 
-    def sorted_children(self) -> list:
-        return sorted(self.children.values(), key=lambda g: (g.code == "~", _natural(g.code)))
+    def sorted_children(self, grouping: str | None = None) -> list:
+        """Codes and storeys in natural order; rules in the order their lines come (the rule set's order);
+        the built-in extra sections ("Several storeys", "Added by hand") next to last, the "none" section last."""
+        def key(g):
+            special = g.code.startswith("~")
+            return (g.code == "~", special, g.seq if grouping == GROUP_RULE else 0, _natural(g.code))
+        return sorted(self.children.values(), key=key)
+
+
+def section_path(line: dict, grouping: str | None, primary: str | None, rule_labels: dict) -> list[dict]:
+    """The sections a line goes under: its code path in the grouping classification, or one storey or rule
+    section for a built-in grouping (the sheet's `groupPath`, `features/boq-sheet/model.ts`). Empty: the
+    "none" section."""
+    if grouping == GROUP_STOREY:
+        location = line.get("location") or {}
+        storeys = location.get("storeys") or []
+        storey = location.get("storey") or (storeys[0] if len(storeys) == 1 else None)
+        if storey:
+            return [{"code": str(storey), "title": str(storey)}]
+        return [{"code": SEVERAL_STOREYS, "title": "Several storeys"}] if storeys else []
+    if grouping == GROUP_RULE:
+        if line.get("ruleKind") == "manual":
+            return [{"code": MANUAL_LINES, "title": "Added by hand"}]
+        return [{"code": line["ruleId"], "title": rule_labels.get(line["ruleId"]) or line["ruleId"]}]
+    c = line["codes"].get(primary) if primary else None
+    return [{"code": str(step["code"]), "title": step["title"]} for step in c["path"]] if c and c.get("path") else []
+
+
+def _rule_labels(rule_set: dict) -> dict:
+    return {rule["id"]: rule.get("label") for kind in ("items", "derived") for rule in rule_set.get(kind) or [] if rule.get("id")}
 
 
 def subtotal(lines) -> dict:
@@ -179,9 +215,12 @@ def export(result: dict, meta: dict) -> bytes:
     wb = Workbook()
     systems = meta.get("classifications", [])          # [{id, name}]
     group_by = meta.get("groupBy")
-    if group_by:
+    grouping = group_by if group_by in BUILT_IN else None
+    if group_by and not grouping:
         systems = sorted(systems, key=lambda system: system["id"] != group_by)
+    # Ref and the item texts always come from a classification: the grouping one, else the first (C-07).
     primary = systems[0]["id"] if systems else None
+    grouping_name = BUILT_IN[grouping] if grouping else (systems[0]["name"] if systems else None)
     lines = result["lines"]
     if order := meta.get("lineOrder"):
         # The sheet's order (F06 §13, BR-28): reorders and placed manual lines live in the backend's
@@ -202,7 +241,7 @@ def export(result: dict, meta: dict) -> bytes:
     rule_meta = result["ruleSet"].get("meta") or {}
     left_out = pending_note(meta)
     ws["A2"] = (f"Rules: {rule_meta.get('chainLabel') or result['ruleSet']['name']}  |  "
-                f"Grouping: {systems[0]['name'] if systems else 'none'}  |  Status: {result['status']}  |  "
+                f"Grouping: {grouping_name or 'none'}  |  Status: {result['status']}  |  "
                 f"Generated {meta.get('generatedAt', datetime.now().isoformat(timespec='seconds'))}"
                 + ("  |  Changes after this run are not included (see Cover)" if left_out else ""))
     ws["A2"].font = SMALL
@@ -217,14 +256,16 @@ def export(result: dict, meta: dict) -> bytes:
             [10, 70, 7, 12, 11, 14, 10, 50])
     ws.freeze_panes = "A6"
     # Groups nest by the grouping code's path, every level, in the sheet's numeric order (F06 §3, TF-054).
+    # A built-in grouping (C-07) puts each line under its storey or its rule, one level.
     root = _Group("", "")
+    rule_labels = _rule_labels(result.get("ruleSet") or {}) if grouping == GROUP_RULE else {}
+    none_title = "No storey" if grouping == GROUP_STOREY else "Unclassified"
     for l in lines:
         if l.get("excluded"):
             continue
-        c = l["codes"].get(primary) if primary else None
         node = root
-        for step in (c["path"] if c and c.get("path") else [{"code": "~", "title": "Unclassified"}]):
-            node = node.child(str(step["code"]), step["title"])
+        for step in section_path(l, grouping, primary, rule_labels) or [{"code": "~", "title": none_title}]:
+            node = node.child(step["code"], step["title"])
         node.lines.append(l)
     roundtrip_rows = []
     position_numbers = meta.get("positionNumbers") or {}
@@ -260,15 +301,17 @@ def export(result: dict, meta: dict) -> bytes:
     def write_group(group, r, depth):
         """A section's heading, its lines, its sub-sections and its subtotal. SUBTOTAL skips the nested
         subtotals, so every level sums its lines once; the quantity only when the unit is shared, as the sheet."""
-        _row(ws, r, [group.code if group.code != "~" else "", group.title, "", "", "", "", "", ""], BOLD, SEC_FILL)
+        # A built-in section has no code of its own: its Ref stays empty (the lines keep theirs).
+        _row(ws, r, [group.code if group.code != "~" and not grouping else "", group.title, "", "", "", "", "", ""], BOLD, SEC_FILL)
         ws.cell(row=r, column=2).alignment = Alignment(indent=depth)
         r += 1
         first = r
         for l in group.lines:
-            # The section a line was exported under: what the edits import compares a moved row with.
-            write_line(r, l, group.code if group.code != "~" else "")
+            # The section a line was exported under: what the edits import compares a moved row with. Under a built-in
+            # grouping there is none (a storey is no code), so only a changed Ref moves a line.
+            write_line(r, l, group.code if group.code != "~" and not grouping else "")
             r += 1
-        for child in group.sorted_children():
+        for child in group.sorted_children(grouping):
             r = write_group(child, r, depth + 1)
         members = group.all_lines()
         total = subtotal(members)
@@ -285,13 +328,13 @@ def export(result: dict, meta: dict) -> bytes:
         return r + 2
 
     r = 6
-    for group in root.sorted_children():
+    for group in root.sorted_children(grouping):
         r = write_group(group, r, 0)
     _row(ws, r, ["", "TOTAL", "", "", "", f"=SUBTOTAL(9,F6:F{max(r - 1, 6)})", "", ""],
          Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
     if meta.get("boqId"):
-        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows)
+        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows, grouping)
 
     if meta.get("project") or meta.get("boq") or label or meta.get("watermark"):
         cover = wb.create_sheet("Cover", 0)
@@ -302,7 +345,7 @@ def export(result: dict, meta: dict) -> bytes:
         details = [
             ("Project", meta.get("project")), ("Bill", meta.get("boq")), ("Version", label),
             ("Status", "WORKING" if working else status), ("Model", meta.get("modelName")),
-            ("Grouping", systems[0]["name"] if systems else None), ("Generated", meta.get("generatedAt")),
+            ("Grouping", grouping_name), ("Generated", meta.get("generatedAt")),
             ("Not included", left_out),
             ("Saved by", meta.get("issuedBy")), ("Saved at", meta.get("issuedAt")), ("Note", meta.get("issueNote")),
             ("Locale", meta.get("locale")), ("Number format", _number_format(meta["numberFormat"])

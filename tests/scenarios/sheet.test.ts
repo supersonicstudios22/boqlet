@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { API_URL, authentication, client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
+import { xlsxRows } from "../support/xlsx";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /** F06 sheet data (FE-009): lines, one line's detail, warnings and the log of a Duplex run. */
@@ -303,6 +304,36 @@ describe("run export (F12, FE-017)", () => {
     expect(download.status).toBe(302);
     const bytes = new Uint8Array(await (await fetch(download.headers.get("location")!)).arrayBuffer());
     expect(String.fromCharCode(bytes[0]!, bytes[1]!)).toBe("PK");
+  });
+
+  it("groups the Excel by storey without a classification (review C-07): storey sections, Ref and numbers unchanged", async () => {
+    const api = client(owner.token);
+    const { data: job, response } = await api.POST("/runs/{runId}/exports", { params: { path: { runId: run.id } }, body: { format: "xlsx", groupBy: "~storey" } });
+    expect(response.status).toBe(202);
+    const deadline = Date.now() + 60_000;
+    let done = job!;
+    while (done.status === "queued" || done.status === "running") {
+      if (Date.now() > deadline) throw new Error("export did not finish");
+      await new Promise((r) => setTimeout(r, 250));
+      done = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job!.id } } })).data!;
+    }
+    expect(done.status).toBe("succeeded");
+    const rows = await xlsxRows(owner, (done.output as { exportId: string }).exportId, "BoQ");
+    expect(String(rows[1]![0])).toContain("Grouping: Storey");
+    const lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { limit: 20000 } } })).data!.items;
+    const storeys = new Set(lines.flatMap((l) => (l.location?.storey ? [l.location.storey] : [])));
+    // Section headings: no Ref, no unit, no quantity, no line key (column I).
+    const headings = rows.slice(5).filter((r) => r[1] && !r[0] && !r[2] && (r[3] === null || r[3] === "") && !r[8] && !String(r[1]).startsWith("Subtotal") && r[1] !== "TOTAL").map((r) => String(r[1]));
+    expect(headings.filter((h) => storeys.has(h)).length).toBe(storeys.size);
+    // Every line is still there with its code in Ref and its position number (column J) from the first classification.
+    const byKey = new Map(lines.map((l) => [l.key, l]));
+    const lineRows = rows.slice(5).filter((r) => r[8] && byKey.has(String(r[8])));
+    expect(lineRows.length).toBe(lines.filter((l) => !l.excluded).length);
+    for (const r of lineRows) {
+      const line = byKey.get(String(r[8]))!;
+      expect(r[0] ?? "").toBe(line.codes[SYSTEM]?.code ?? "");
+      if (line.positionNo) expect(String(r[9])).toBe(line.positionNo);
+    }
   });
 
   it("refuses a groupBy that isn't one of the run's classifications", async () => {

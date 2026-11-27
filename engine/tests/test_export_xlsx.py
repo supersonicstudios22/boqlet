@@ -212,3 +212,76 @@ def test_a_subtotal_row_counts_and_sums_only_the_lines_in_the_totals(duplex_pars
     wb = load_workbook(BytesIO(export({**result, "lines": lines}, {"classifications": [{"id": "x", "name": "X"}]})))
     row = next(r for r in wb["BoQ"].iter_rows(values_only=True) if r[1] == "Subtotal One")
     assert row[2] == "m2" and row[3] == "=SUBTOTAL(9,D7:D8)" and row[7] == "2 lines"
+
+
+def _sections(sheet):
+    """(heading, [line keys], subtotal row values) per top-level section, in sheet order."""
+    out, current = [], None
+    for r in range(6, sheet.max_row + 1):
+        values = [sheet.cell(r, c).value for c in range(1, 10)]
+        if values[8]:
+            current[1].append(values[8])
+        elif str(values[1] or "").startswith("Subtotal"):
+            current[2] = values
+        elif values[1] and values[1] != "TOTAL" and values[2] in (None, "") and values[3] in (None, ""):
+            current = [values[1], [], None, values[0]]
+            out.append(current)
+    return out
+
+
+@pytest.mark.parametrize("grouping", ["~storey", "~rule"])
+def test_a_bill_without_a_classification_groups_by_storey_or_rule_with_subtotals(duplex_parsed, grouping):
+    """Review C-07 (DEC-58): an unclassified BoQ reads in storey or "measured as" sections, each with its count and
+    (shared unit) sum as BR-63 defines it. A view only: the same lines and numbers as the flat export (rule 6)."""
+    from ifc_boq.export_xlsx import section_path
+    result = run(duplex_parsed)
+    for line in result["lines"]:
+        line["codes"] = {}
+    flat = _sheet(export(result, {"boqId": "b"}))
+    grouped = _sheet(export(result, {"boqId": "b", "groupBy": grouping}))
+    keyed = lambda s: {s.cell(r, 9).value: s.cell(r, 4).value for r in range(6, s.max_row + 1) if s.cell(r, 9).value}
+    assert keyed(grouped) == keyed(flat)
+    sections = _sections(grouped)
+    assert len(sections) > 1 and all(ref in (None, "") for *_, ref in sections)
+    by_key = {line["key"]: line for line in result["lines"]}
+    labels = {rule["id"]: rule["label"] for rule in result["ruleSet"]["items"] + (result["ruleSet"].get("derived") or [])}
+    for heading, keys, total, _ in sections:
+        lines = [by_key[k] for k in keys]
+        paths = {json.dumps(section_path(line, grouping, None, labels)) for line in lines}
+        assert len(paths) == 1, heading
+        expected = subtotal(lines)
+        assert total[7] == f"{expected['count']} line{'' if expected['count'] == 1 else 's'}"
+        assert (total[2] or None) == (expected["unit"] if expected["quantity"] is not None else None)
+    headings = [heading for heading, *_ in sections]
+    if grouping == "~rule":
+        manual_first = next(i for i, l in enumerate(result["lines"]) if l["ruleKind"] == "manual")
+        assert headings[-1] == "Added by hand" and manual_first >= 0
+        rule_order = list(dict.fromkeys(labels[l["ruleId"]] for l in result["lines"] if l["ruleKind"] != "manual"))
+        assert headings[:-1] == rule_order
+    else:
+        storeys = [h for h in headings if h not in ("Several storeys", "No storey")]
+        assert storeys and storeys == sorted(storeys, key=lambda s: [int(t) if t.isdigit() else t.lower() for t in __import__("re").split(r"(\d+)", s)])
+    assert grouped["A2"].value.split("|")[1].strip() == f"Grouping: {'Storey' if grouping == '~storey' else 'Measured as'}"
+
+
+@pytest.mark.parametrize("grouping", ["~storey", "~rule"])
+def test_an_unedited_export_grouped_by_storey_or_rule_imports_as_nothing_to_apply(duplex_parsed, grouping):
+    """The edits import reads a storey or rule section as a heading, never as a new row or a move (C-07)."""
+    from ifc_boq.sheets import boq_import
+    result = run(duplex_parsed)
+    meta = {"boqId": "b", "groupBy": grouping, "classifications": [{"id": "acme-cost-codes", "name": "ACME"}]}
+    data = export(result, meta)
+    info = {"boqId": "b", "primary": "acme-cost-codes", "lines": result["lines"]}
+    assert boq_import.read(data, info) == {"overrides": [], "manualItems": [], "problems": []}
+    # Ref still carries the line's code in the first classification, and changing it still moves the line.
+    from openpyxl import load_workbook
+    wb = load_workbook(BytesIO(data))
+    ws = wb["BoQ"]
+    row = next(r for r in range(6, ws.max_row + 1) if ws.cell(r, 9).value and ws.cell(r, 1).value)
+    key = ws.cell(row, 9).value
+    assert ws.cell(row, 1).value == next(l for l in result["lines"] if l["key"] == key)["codes"]["acme-cost-codes"]["code"]
+    ws.cell(row, 1).value = "99"
+    out = BytesIO()
+    wb.save(out)
+    report = boq_import.read(out.getvalue(), info)
+    assert [o["edit"] for o in report["overrides"]] == [{"lineKey": key, "codes": {"acme-cost-codes": "99"}}]
