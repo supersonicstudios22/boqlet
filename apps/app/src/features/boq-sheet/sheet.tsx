@@ -69,6 +69,12 @@ function useWide(): boolean {
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
+/** The selected row: its description wraps to two lines (review C-03). */
+const SELECTED_ROW = 52;
+/** The sheet's share of the width beside the model on a first visit (%): the model opens narrow (review C-03). */
+const DEFAULT_SPLIT = 68;
+/** The line detail drawer's width (px): default, least and most. */
+const DRAWER = { initial: 440, min: 320, max: 960 } as const;
 /** Room under the last row while the bulk bar floats over the grid's foot, so it never hides a line (review C-01). */
 const BULK_SPACE = 64;
 const SOURCES: SourceFilter[] = ["measured", "derived", "manual", "flagged", "edited", "excluded"];
@@ -244,8 +250,21 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   // F07 §9: on screens 1280 px and wider the sheet and the model open side by side (resizable, collapsible).
   const hasModels = (run.snapshotVersions?.models?.length ?? 0) > 0;
   const wide = useWide();
-  const [split, setSplit] = useState(() => typeof window !== "undefined" && window.matchMedia(WIDE).matches);
-  const [sheetWidth, setSheetWidth] = useState(55);
+  // "Model open" and the sheet's share of the width are the user's (server-side preferences, review C-03): the same
+  // in every browser. Until they choose, the model opens on screens 1280 px and wider, narrow.
+  const preferences = me.data?.preferences;
+  const [splitChoice, setSplitChoice] = useState<boolean | null>(null);
+  const split = splitChoice ?? preferences?.sheetModelOpen ?? (typeof window !== "undefined" && window.matchMedia(WIDE).matches);
+  const setSplit = (open: boolean) => {
+    setSplitChoice(open);
+    savePreferences.mutate({ sheetModelOpen: open });
+  };
+  const [widthChoice, setWidthChoice] = useState<number | null>(null);
+  const sheetWidth = widthChoice ?? preferences?.sheetSplit ?? DEFAULT_SPLIT;
+  const saveSheetWidth = (width: number) => savePreferences.mutate({ sheetSplit: Math.round(width) });
+  // The line detail is a drawer over the model, or beside the grid without it (review C-03).
+  const [drawerWidth, setDrawerWidth] = useState<number>(DRAWER.initial);
+  const drawer = useRef<HTMLDivElement>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [modelSelection, setModelSelection] = useState<{ elements: string[]; lines: string[] }>({ elements: [], lines: [] });
   const splitBox = useRef<HTMLDivElement>(null);
@@ -276,10 +295,27 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     const box = splitBox.current;
     if (!box) return;
     e.preventDefault();
+    let last: number | null = null;
     const move = (ev: PointerEvent) => {
       const r = box.getBoundingClientRect();
-      setSheetWidth(Math.min(75, Math.max(30, ((ev.clientX - r.left) / r.width) * 100)));
+      last = Math.min(75, Math.max(30, ((ev.clientX - r.left) / r.width) * 100));
+      setWidthChoice(last);
     };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (last !== null) saveSheetWidth(last);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+  /** Drags the drawer's left edge: as wide as the person wants, within the pane it covers. */
+  const startDrawerResize = (e: React.PointerEvent) => {
+    const el = drawer.current;
+    if (!el) return;
+    e.preventDefault();
+    const right = el.getBoundingClientRect().right;
+    const move = (ev: PointerEvent) => setDrawerWidth(Math.round(Math.min(DRAWER.max, Math.max(DRAWER.min, right - ev.clientX))));
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
@@ -302,7 +338,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     const col = (id: string, header: string, meta: Omit<ColumnMeta, "id">): ColumnDef<SheetLine> => ({ id, header, meta: { id, ...meta }, enableHiding: !!meta.optional });
     const engine = (l: SheetLine, field: EditField, text: string) => (l.edit?.fields.includes(field) ? te("engineHover", { value: text }) : undefined);
     return [
-      col("positionNo", t("col.positionNo"), { width: "5.5rem", cell: (l) => <span className="tabular-nums" data-testid="position-no">{positions.get(l.key) ?? ""}</span> }),
+      col("positionNo", t("col.positionNo"), { width: "5rem", cell: (l) => <span className="tabular-nums" data-testid="position-no">{positions.get(l.key) ?? ""}</span> }),
       // The status gutter (review C-02, DEC-47): the line's source as a mark next to its number, always shown, so
       // derived, manual and to-confirm lines stay marked beside the model and on narrow screens.
       col("status", t("col.source"), { width: "1.125rem", srHeader: true, cellClass: "justify-center px-0", cell: (l) => <StatusMark source={l.source} toConfirm={l.toConfirm} /> }),
@@ -662,6 +698,8 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               {(editable || selectedLine.edit || selectedLine.excluded) && <LineEdits line={selectedLine} editable={editable} systemNames={systemNames} actions={actions} />}
             </LineDetailPanel>
           ));
+  const modelPane = split && hasModels;
+  const detail = renderDetail("w-full border-l-0 pl-0 lg:w-full");
   const warningList = warnings.data ?? [];
   const notInModelsCollapsed = me.data?.preferences?.notInModelsCollapsed ?? false;
   const setNotInModelsCollapsed = (notInModelsCollapsed: boolean) => savePreferences.mutate({ notInModelsCollapsed });
@@ -849,7 +887,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               <Download aria-hidden />
               {t("exportExcel")}
             </Button>
-            <Button variant="outline" aria-pressed={split && hasModels} onClick={() => setSplit((s) => !s)} disabled={!hasModels} title={hasModels ? t("modelToggleHint") : t("modelNone")} data-testid="toggle-model">
+            <Button variant="outline" aria-pressed={split && hasModels} onClick={() => setSplit(!split)} disabled={!hasModels} title={hasModels ? t("modelToggleHint") : t("modelNone")} data-testid="toggle-model">
               <Box aria-hidden />
               {t("model3d")}
             </Button>
@@ -941,11 +979,11 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       </p>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        {split && hasModels ? (
-          <div ref={splitBox} className="flex min-h-0 flex-1" data-testid="sheet-split">
-            <div className="flex min-h-0 min-w-0 shrink-0 flex-col" style={{ width: `${sheetWidth}%` }}>
-              {grid}
-            </div>
+        <div ref={splitBox} className="flex min-h-0 flex-1" data-testid={modelPane ? "sheet-split" : undefined}>
+          <div className="flex min-h-0 min-w-0 flex-col" style={modelPane ? { width: `${sheetWidth}%`, flexShrink: 0 } : { flex: "1 1 0%" }}>
+            {grid}
+          </div>
+          {modelPane && (
             <div
               role="separator"
               aria-orientation="vertical"
@@ -959,35 +997,67 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               onKeyDown={(e) => {
                 if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
                   e.preventDefault();
-                  setSheetWidth((w) => Math.min(75, Math.max(30, w + (e.key === "ArrowLeft" ? -5 : 5))));
+                  const next = Math.min(75, Math.max(30, sheetWidth + (e.key === "ArrowLeft" ? -5 : 5)));
+                  setWidthChoice(next);
+                  saveSheetWidth(next);
                 }
               }}
               data-testid="split-handle"
             />
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto">
-              {/* The line's detail first, in view; the model under it (TF-107). */}
-              {renderDetail("border-l-0 pl-0 lg:w-full")}
-              <ModelViewer
-                key={run.id}
-                stacked
-                models={models3d}
-                runId={run.id}
-                lines={linkLines}
-                systems={systems}
-                focusLine={selected}
-                focusKeys={selectedGroup ? linesInGroup(filtered, groupBy, selectedGroup) : null}
-                scope={filtering ? filtered.map((l) => l.key) : null}
-                onOpenLine={setSelected}
-                onSelectionChange={setModelSelection}
-              />
+          )}
+          {(modelPane || detail) && (
+            // The model, and the line detail as a drawer over it: no third column, so the grid keeps its width (C-03).
+            <div className="relative min-h-0 min-w-0" style={modelPane ? { flex: "1 1 0%" } : { flex: `0 0 min(${drawerWidth}px, 45%)` }} data-testid="sheet-side">
+              {modelPane && (
+                <div className="absolute inset-0 overflow-y-auto">
+                  <ModelViewer
+                    key={run.id}
+                    stacked
+                    models={models3d}
+                    runId={run.id}
+                    lines={linkLines}
+                    systems={systems}
+                    focusLine={selected}
+                    focusKeys={selectedGroup ? linesInGroup(filtered, groupBy, selectedGroup) : null}
+                    scope={filtering ? filtered.map((l) => l.key) : null}
+                    onOpenLine={setSelected}
+                    onSelectionChange={setModelSelection}
+                  />
+                </div>
+              )}
+              {detail && (
+                <div
+                  ref={drawer}
+                  className={cn("absolute inset-y-0 right-0 z-10 flex max-w-full bg-background", modelPane && "shadow-lg")}
+                  style={{ width: modelPane ? `min(${drawerWidth}px, 100%)` : "100%" }}
+                  data-testid="detail-drawer"
+                >
+                  <div
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label={t("resizeDetail")}
+                    aria-valuenow={drawerWidth}
+                    aria-valuemin={DRAWER.min}
+                    aria-valuemax={DRAWER.max}
+                    tabIndex={0}
+                    className="w-1.5 shrink-0 cursor-col-resize bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:outline-none"
+                    onPointerDown={startDrawerResize}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                        e.preventDefault();
+                        setDrawerWidth((w) => Math.min(DRAWER.max, Math.max(DRAWER.min, w + (e.key === "ArrowLeft" ? 40 : -40))));
+                      }
+                    }}
+                    data-testid="detail-handle"
+                  />
+                  <div className="min-w-0 flex-1 overflow-y-auto py-1 pr-1 pl-4" data-testid="detail-scroll">
+                    {detail}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col">{grid}</div>
-            {renderDetail("max-h-[50%] overflow-y-auto lg:max-h-none")}
-          </div>
-        )}
+          )}
+        </div>
         {showBulk && (
           <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex justify-center">
             <BulkBar
@@ -1162,7 +1232,14 @@ function SheetGrid({
   const scroller = gridRef ?? ownScroller;
   // Like TanStack Table, the virtualizer returns functions the React Compiler can't memoise.
   // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => scroller.current, estimateSize: () => ROW, overscan: 12, paddingEnd: endSpace });
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scroller.current,
+    // The selected line is taller: its description wraps to two lines (review C-03).
+    estimateSize: (i) => (rows[i]?.kind === "line" && rows[i]!.id === selected ? SELECTED_ROW : ROW),
+    overscan: 12,
+    paddingEnd: endSpace,
+  });
   const lineIndexes = useMemo(() => rows.flatMap((r, i) => (r.kind === "line" ? [i] : [])), [rows]);
   const lead = editable ? "2rem " : "";
   const template = useMemo(() => lead + columns.map((c) => c.width).join(" "), [columns, lead]);
@@ -1173,6 +1250,10 @@ function SheetGrid({
     return list ? [...list.values()].map((c) => ({ value: c.code, label: c.code, hint: c.title })) : [];
   }, [groupBy, lists]);
 
+  // The selected row changes height (two lines): the virtualizer measures the rows again.
+  useEffect(() => {
+    virtualizer.measure();
+  }, [selected, virtualizer]);
   // Keep the selected line in view (also when it was chosen elsewhere: the viewer, `?line=`).
   const selectedIndex = selected ? rows.findIndex((r) => r.id === selected) : -1;
   useEffect(() => {
@@ -1438,7 +1519,7 @@ const LineRowView = memo(function LineRowView({
       )}
       title={editingBy}
       data-editing-by={editingBy}
-      style={{ gridTemplateColumns: template, height: ROW, transform: `translateY(${top}px)` }}
+      style={{ gridTemplateColumns: template, height: selected ? SELECTED_ROW : ROW, transform: `translateY(${top}px)` }}
       // A click selects the line, which opens its detail and narrows the grid. On a line not selected yet
       // that waits out the double-click time, so the second click of a double-click lands on the same cell
       // and edits it (TF-104); the cell is the one the first click was on.
@@ -1526,7 +1607,10 @@ const LineRowView = memo(function LineRowView({
             aria-selected={c.editable ? active : undefined}
             data-column={c.id}
           >
-            <span className="truncate" title={c.id === "description" ? String(c.cell(line) ?? "") : undefined}>{c.cell(line)}</span>
+            {/* The selected line's description wraps to two lines, so it can be read without the detail (review C-03). */}
+            <span className={selected && c.id === "description" ? "line-clamp-2 whitespace-normal break-words" : "truncate"} title={c.id === "description" ? String(c.cell(line) ?? "") : undefined}>
+              {c.cell(line)}
+            </span>
             {c.id === "description" && line.pending && <span className="label-caps ml-2 shrink-0 not-italic text-muted-foreground">{pendingLabel}</span>}
           </div>
         );

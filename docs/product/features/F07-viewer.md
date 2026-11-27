@@ -49,7 +49,11 @@ which lines it feeds. Spot what is not measured.
 
 9. **Editing with the model** (P25). The 3D view is part of the work, not a separate tab:
    - On screens 1280 px and wider, the BoQ workspace opens **sheet and model side by side**
-     (resizable; the model can be collapsed). Selection is shared both ways.
+     (resizable; the model can be collapsed). Selection is shared both ways. On a first visit
+     the model opens narrow (the sheet takes 68 %); whether it is open and the sheet's share of
+     the width are the user's preferences, kept on the server (`sheetModelOpen`, `sheetSplit`,
+     review C-03), so they are the same in every browser. A line's detail opens as a resizable
+     drawer over the model, never as a third column.
    - **One filter bar drives both**: storey, model, IFC class, type, material (dictionary
      term), code group, source, edited, excluded, changed since a revision. Filtering narrows
      the sheet's lines and shows only their elements in the model (others ghosted).

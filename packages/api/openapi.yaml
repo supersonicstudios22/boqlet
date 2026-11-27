@@ -2909,6 +2909,8 @@ components:
       additionalProperties: false
       properties:
         notInModelsCollapsed: { type: boolean, description: "the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12)" }
+        sheetModelOpen: { type: boolean, description: "the BoQ sheet shows the model beside it (F07 §9); unset: open on screens 1280 px and wider (review C-03)" }
+        sheetSplit: { type: integer, minimum: 30, maximum: 75, description: "the sheet's share of the width beside the model, in percent (review C-03); unset: 65" }
     OrgRole: { type: string, enum: [owner, admin, library_editor, member] }
     Org:
       type: object

@@ -59,6 +59,11 @@ class MeController implements MeApi {
             throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
                     "The locale must be a language tag such as en or sr-Latn.", Map.of("field", "locale"));
         }
+        var split = request.getPreferences() == null ? null : request.getPreferences().getSheetSplit();
+        if (split != null && (split < 30 || split > 75)) {
+            throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
+                    "The sheet's share of the width is a percentage from 30 to 75.", Map.of("field", "preferences.sheetSplit"));
+        }
         // Preferences merge: a key the request leaves out keeps its stored value (TF-109).
         String preferences = request.getPreferences() == null ? null : json.valueToTree(request.getPreferences()).toString();
         database.update("""
@@ -111,6 +116,12 @@ class MeController implements MeApi {
         var preferences = new UserPreferences();
         if (stored != null && stored.path("notInModelsCollapsed").isBoolean()) {
             preferences.notInModelsCollapsed(stored.path("notInModelsCollapsed").asBoolean());
+        }
+        if (stored != null && stored.path("sheetModelOpen").isBoolean()) {
+            preferences.sheetModelOpen(stored.path("sheetModelOpen").asBoolean());
+        }
+        if (stored != null && stored.path("sheetSplit").isInt()) {
+            preferences.sheetSplit(stored.path("sheetSplit").asInt());
         }
         return preferences;
     }

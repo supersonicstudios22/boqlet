@@ -3046,6 +3046,10 @@ export interface components {
         UserPreferences: {
             /** @description the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12) */
             notInModelsCollapsed?: boolean;
+            /** @description the BoQ sheet shows the model beside it (F07 §9); unset: open on screens 1280 px and wider (review C-03) */
+            sheetModelOpen?: boolean;
+            /** @description the sheet's share of the width beside the model, in percent (review C-03); unset: 65 */
+            sheetSplit?: number;
         };
         /** @enum {string} */
         OrgRole: "owner" | "admin" | "library_editor" | "member";

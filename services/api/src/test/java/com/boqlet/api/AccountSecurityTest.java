@@ -261,6 +261,13 @@ class AccountSecurityTest {
         http.perform(patchMe(session, "{\"name\":\"Renamed Person\"}")).andExpect(status().isOk());
         http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.notInModelsCollapsed").value(true));
         http.perform(patchMe(session, "{\"preferences\":{\"somethingElse\":1}}")).andExpect(status().isBadRequest());
+        // Review C-03: the sheet's model pane and its width follow the user too; a share outside 30–75 % is refused.
+        http.perform(patchMe(session, "{\"preferences\":{\"sheetModelOpen\":false,\"sheetSplit\":70}}")).andExpect(status().isOk());
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.sheetModelOpen").value(false))
+                .andExpect(jsonPath("$.preferences.sheetSplit").value(70)).andExpect(jsonPath("$.preferences.notInModelsCollapsed").value(true));
+        http.perform(patchMe(session, "{\"preferences\":{\"sheetSplit\":90}}")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("invalid_body"));
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.sheetSplit").value(70));
     }
 
     @Test

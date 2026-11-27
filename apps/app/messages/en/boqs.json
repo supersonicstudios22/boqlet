@@ -191,6 +191,7 @@
     "selectTheseLines": "Select these lines",
     "onlyTheseLines": "Only these lines",
     "resize": "Resize the sheet and the model",
+    "resizeDetail": "Resize the line detail",
     "exportExcel": "Excel",
     "exporting": "Preparing the Excel…",
     "exported": "Downloaded {file}",

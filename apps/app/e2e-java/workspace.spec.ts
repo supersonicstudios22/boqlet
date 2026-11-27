@@ -3,6 +3,8 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
 
 /**
  * Smoke against Java: the BoQ workspace's layout and keyboard (review WP-C1).
+ * - C-03: the line detail lies over the model as a drawer: Description keeps ≥ 320 px at 1440 px, the page stays the
+ *   viewport's height; "Model open" and the split are the user's preferences, the same in a fresh browser.
  * - C-02: beside the model, at 1440 and 1024 px, every derived, manual and to-confirm line shows its status mark.
  * - C-01: at 1440×900 the sheet fills the screen: one scroll container (the grid), ≥ 20 rows in view with the
  *   "not in the models" notice collapsed, the toolbar in its fixed order, no layout shift when a line is ticked.
@@ -152,3 +154,58 @@ for (const [width, height] of [
     await context.close();
   });
 }
+
+test("@c1-drawer C-03: the line detail is a drawer over the model; descriptions keep their width; the model pane follows the user", async ({ browser }) => {
+  const { owner, url } = await sampleBoq("Dora Drawer");
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(context, owner);
+  const page = await context.newPage();
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("sheet-grid")).toBeVisible({ timeout: 60_000 });
+  // A first visit at 1440 px: the model is open beside the sheet, narrow.
+  await expect(page.getByTestId("sheet-split")).toBeVisible();
+  const gridBefore = await page.getByTestId("sheet-grid").boundingBox();
+
+  // Opening a line: the detail lies over the model, the grid keeps its width, the page stays the viewport's height.
+  await page.locator('[data-testid="sheet-line"][data-source="measured"]').nth(2).click();
+  await expect(page.getByTestId("line-detail")).toBeVisible();
+  await expect(page.getByTestId("detail-drawer")).toBeVisible();
+  expect((await page.getByTestId("sheet-grid").boundingBox())?.width).toBe(gridBefore?.width);
+  const r = await page.evaluate(() => {
+    const d = document.querySelector('[data-testid="sheet-line"][aria-selected="true"] [data-column=description]')!.getBoundingClientRect();
+    const drawer = document.querySelector("[data-testid=detail-drawer]")!.getBoundingClientRect();
+    const side = document.querySelector("[data-testid=sheet-side]")!.getBoundingClientRect();
+    return { description: d.width, page: document.scrollingElement!.scrollHeight, vh: innerHeight, inside: drawer.left >= side.left - 0.5 && drawer.right <= side.right + 0.5 };
+  });
+  expect(r.description).toBeGreaterThanOrEqual(320);
+  expect(r.page).toBeLessThanOrEqual(r.vh);
+  expect(r.inside).toBe(true);
+
+  // The drawer is resizable by keyboard; the sheet/model separator too, and the split is remembered.
+  const handle = page.getByTestId("detail-handle");
+  const before = Number(await handle.getAttribute("aria-valuenow"));
+  await handle.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(handle).toHaveAttribute("aria-valuenow", String(before + 40));
+  await page.getByTestId("split-handle").focus();
+  await page.keyboard.press("ArrowLeft");
+  const split = await page.getByTestId("split-handle").getAttribute("aria-valuenow");
+
+  // "Model" off follows the user to a fresh browser, and so does the split once it is on again.
+  await page.getByTestId("toggle-model").click();
+  await expect(page.getByTestId("sheet-split")).toHaveCount(0);
+  await expect.poll(async () => (await apiAs<{ preferences: { sheetModelOpen?: boolean; sheetSplit?: number } }>(owner, "GET", "/me")).preferences).toEqual(
+    expect.objectContaining({ sheetModelOpen: false, sheetSplit: Number(split) }),
+  );
+  const fresh = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(fresh, owner);
+  const page2 = await fresh.newPage();
+  await page2.goto(url, { waitUntil: "domcontentloaded" });
+  await expect(page2.getByTestId("sheet-grid")).toBeVisible({ timeout: 60_000 });
+  await expect(page2.getByTestId("toggle-model")).toHaveAttribute("aria-pressed", "false");
+  await expect(page2.getByTestId("sheet-split")).toHaveCount(0);
+  await page2.getByTestId("toggle-model").click();
+  await expect(page2.getByTestId("split-handle")).toHaveAttribute("aria-valuenow", split!);
+  await fresh.close();
+  await context.close();
+});
