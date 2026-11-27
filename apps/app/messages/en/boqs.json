@@ -200,6 +200,10 @@
       "cancel": "Cancel",
       "generating": "Generating the BoQ, then writing the Excel…",
       "generateFailed": "Generating failed, so nothing was exported: {message}"
+    },
+    "large": {
+      "note": "This BoQ has {count, number} lines, so it opens grouped: open a group to see its lines and a line to see how it is calculated. Lines can't be edited in this view yet.",
+      "more": "Show more lines"
     }
   },
   "setup": {

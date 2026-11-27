@@ -16,7 +16,7 @@ import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
 import { generateAndExport, useExportRun } from "@/api/hooks/exports";
 import { useMe, useUpdatePreferences } from "@/api/hooks/me";
-import { useLines } from "@/api/hooks/sheet";
+import { SERVER_GROUPED_ABOVE, useLines, useLineTotal } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { ManualLineDialog, ReasonDialog } from "./edit-dialogs";
 import { exportChoice } from "./export-choice";
 import { ExportStaleDialog } from "./export-dialog";
 import { batchFor, effectiveLines, restoreField, takeLinesFromUndo, withChange, type CodeLists, type EditField, type SheetLine, type UndoBatch } from "./edits";
+import { LargeSheet } from "./large-sheet";
 import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
 import { SystemRulesHint } from "@/features/setup/system-rules-hint";
@@ -110,7 +111,26 @@ type Prompt = { title: string; summary: string; initial?: string; apply: (reason
  * scroll re-renders neither the toolbar nor the rows already on screen (`LineRowView` is memoised
  * and gets only stable props).
  */
-export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: Boq; readOnly?: boolean; frozen?: { overrides?: LineOverride[]; manualItems?: ManualItemRecord[] } }) {
+type SheetProps = { run: Run; boq: Boq; readOnly?: boolean; frozen?: { overrides?: LineOverride[]; manualItems?: ManualItemRecord[] } };
+
+/**
+ * The BoQ sheet: every line in the browser up to `SERVER_GROUPED_ABOVE` lines (F06 §1); above that, grouped on the
+ * server and loaded a group at a time (`LargeSheet`, review B-19), so a very large BoQ never downloads at once.
+ */
+export function Sheet(props: SheetProps) {
+  const t = useTranslations("boqs.sheet");
+  const { org } = useOrg();
+  const total = useLineTotal(props.run.id);
+  if (total.data === undefined) return <p className="text-muted-foreground" aria-busy="true">{t("loading")}</p>;
+  if (total.data > SERVER_GROUPED_ABOVE) {
+    const base = `/${org.slug}/projects/${props.boq.projectId}/boqs/${props.boq.id}`;
+    const hasModels = (props.run.snapshotVersions?.models?.length ?? 0) > 0;
+    return <LargeSheet run={props.run} total={total.data} showIn3d={hasModels ? (key) => showIn3dHref(base, { line: key }) : undefined} />;
+  }
+  return <FullSheet {...props} />;
+}
+
+function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.sheet");
   const te = useTranslations("boqs.edits");

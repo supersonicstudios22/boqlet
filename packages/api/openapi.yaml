@@ -1461,7 +1461,7 @@ paths:
         - { name: limit, in: query, schema: { type: integer, default: 5000, maximum: 20000 } }
         - { name: groupBy, in: query, description: classification id, schema: { type: string } }
         - { name: level, in: query, schema: { type: integer } }
-        - { name: groupPath, in: query, description: "code path prefix, e.g. 2/2.5", schema: { type: string } }
+        - { name: groupPath, in: query, description: "code path prefix, e.g. 2/2.5; empty: the lines without a code in the system (review B-19)", schema: { type: string } }
         - { name: source, in: query, schema: { type: string, enum: [measured, derived, manual, flagged, overridden] } }
         - { name: storey, in: query, schema: { type: string } }
         - { name: family, in: query, schema: { type: string } }

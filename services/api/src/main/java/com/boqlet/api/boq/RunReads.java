@@ -102,12 +102,14 @@ class RunReads {
             if (level < 1 || level > 50) throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "Invalid grouping level.");
             args.addValue("system", system).addValue("depth", level);
             groups = groups(named, filter.toString(), args);
-            if (path == null || path.isEmpty()) return new LinesPage(List.of()).groups(groups).total(total).nextCursor(null);
-            args.addValue("path", path).addValue("pathDepth", path.split("/", -1).length);
+            // No groupPath: the groups only. An empty one: the lines without a code in the system (the
+            // "Unclassified" group, whose path is empty), review B-19.
+            if (path == null) return new LinesPage(List.of()).groups(groups).total(total).nextCursor(null);
+            args.addValue("path", path).addValue("pathDepth", path.isEmpty() ? level : path.split("/", -1).length);
             filter.append(" ").append("""
-                    AND (SELECT string_agg(part.value->>'code', '/' ORDER BY part.ordinality)
+                    AND coalesce((SELECT string_agg(part.value->>'code', '/' ORDER BY part.ordinality)
                          FROM jsonb_array_elements(l.line->'codes'->CAST(:system AS text)->'path') WITH ORDINALITY part
-                         WHERE part.ordinality <= :pathDepth) = :path
+                         WHERE part.ordinality <= :pathDepth), '') = :path
                     """);
         }
         var numbers = positions.numbers(id, system != null ? system : primary(run));
@@ -136,6 +138,11 @@ class RunReads {
      * {@code filter} is the {@code FROM run_lines l WHERE ...} part; {@code args} carry {@code system} and {@code depth}.
      */
     static List<LineGroup> groups(NamedParameterJdbcTemplate named, String filter, MapSqlParameterSource args) {
+        // Each line is read from its stored JSON once (jsonb_to_record): reading `l.line->...` five times per line
+        // decompressed the whole line five times, 3.7 s for 25,000 lines (review B-19).
+        String from = filter.replaceFirst(" FROM run_lines l WHERE ",
+                " FROM run_lines l CROSS JOIN LATERAL jsonb_to_record(l.line) AS r(codes jsonb, unit text, quantity numeric, excluded boolean) WHERE ");
+        if (from.equals(filter)) throw new IllegalArgumentException("Unexpected line filter: " + filter);
         String sql = """
                 SELECT grp.path, max(grp.code) AS code, max(grp.title) AS title,
                     count(*) FILTER (WHERE NOT grp.excluded) AS count,
@@ -145,16 +152,13 @@ class RunReads {
                          THEN sum(grp.quantity) FILTER (WHERE NOT grp.excluded) END AS quantity
                 FROM (
                     SELECT coalesce((SELECT string_agg(part.value->>'code','/' ORDER BY part.ordinality)
-                               FROM jsonb_array_elements(l.line->'codes'->CAST(:system AS text)->'path') WITH ORDINALITY part
+                               FROM jsonb_array_elements(x.path) WITH ORDINALITY part
                                WHERE part.ordinality <= :depth), '') AS path,
-                        l.line->'codes'->CAST(:system AS text)->'path'->(LEAST(:depth,
-                            jsonb_array_length(l.line->'codes'->CAST(:system AS text)->'path')) - 1)->>'code' AS code,
-                        l.line->'codes'->CAST(:system AS text)->'path'->(LEAST(:depth,
-                            jsonb_array_length(l.line->'codes'->CAST(:system AS text)->'path')) - 1)->>'title' AS title,
-                        l.line->>'unit' AS unit,
-                        coalesce((l.line->>'excluded')::boolean, false) AS excluded,
-                        (l.line->>'quantity')::numeric AS quantity
-                """ + filter + ") grp GROUP BY grp.path ORDER BY grp.path";
+                        x.path->(LEAST(:depth, jsonb_array_length(x.path)) - 1)->>'code' AS code,
+                        x.path->(LEAST(:depth, jsonb_array_length(x.path)) - 1)->>'title' AS title,
+                        x.unit, x.excluded, x.quantity
+                    FROM (SELECT r.codes->CAST(:system AS text)->'path' AS path, r.unit, coalesce(r.excluded, false) AS excluded, r.quantity
+                """ + from + ") x) grp GROUP BY grp.path ORDER BY grp.path";
         return named.query(sql, args, (row, index) -> new LineGroup(row.getString("path"),
                 Objects.toString(row.getString("title"), ""), row.getInt("count")).code(Objects.toString(row.getString("code"), ""))
                 .unit(row.getString("unit")).quantity(row.getBigDecimal("quantity")));

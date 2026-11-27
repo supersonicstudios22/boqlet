@@ -7700,7 +7700,7 @@ export interface operations {
                 /** @description classification id */
                 groupBy?: string;
                 level?: number;
-                /** @description code path prefix, e.g. 2/2.5 */
+                /** @description code path prefix, e.g. 2/2.5; empty: the lines without a code in the system (review B-19) */
                 groupPath?: string;
                 source?: "measured" | "derived" | "manual" | "flagged" | "overridden";
                 storey?: string;

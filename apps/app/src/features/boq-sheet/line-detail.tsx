@@ -39,6 +39,7 @@ export function LineDetailPanel({
   onClose,
   children,
   className,
+  describe,
 }: {
   run: Run;
   lineKey: string;
@@ -53,12 +54,14 @@ export function LineDetailPanel({
   /** The line's edits and actions (F06 §6), above its explanation. */
   children?: React.ReactNode;
   className?: string;
+  /** Descriptions of other lines (a step's source line), when the caller has them: the large-BoQ view, which never loads every line (review B-19). */
+  describe?: (key: string) => string | undefined;
 }) {
   const t = useTranslations("boqs.detail");
   const tl = useTranslations("library");
   const { org } = useOrg();
   const detail = useLine(run.id, lineKey);
-  const lines = useLines(run.id);
+  const lines = useLines(describe ? undefined : run.id);
   const descriptions = useMemo(() => new Map((lines.data ?? []).map((l) => [l.key, l.description])), [lines.data]);
   const ruleSet = usePresetVersion(run.snapshotVersions?.ruleSetVersionId);
   const slots = useMemo(() => {
@@ -89,7 +92,7 @@ export function LineDetailPanel({
       )}
       {!detail.data && !detail.isError && <LoadingLines />}
       {detail.data && (
-        <LineDetailBody line={detail.data} groupBy={groupBy} slots={slots} lex={lex} libraryHref={libraryHref} modelNames={modelNames} systemNames={systemNames} describe={(key) => descriptions.get(key)} onSelect={onSelect} />
+        <LineDetailBody line={detail.data} groupBy={groupBy} slots={slots} lex={lex} libraryHref={libraryHref} modelNames={modelNames} systemNames={systemNames} describe={describe ?? ((key) => descriptions.get(key))} onSelect={onSelect} />
       )}
     </aside>
   );

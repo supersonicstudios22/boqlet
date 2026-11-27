@@ -18,7 +18,8 @@ import { API, APP, apiAs, createOrg, inflateRun, newPerson, useSession, waitFor,
 // Not serial: each budget is measured even when another is over (a failure restarts the worker, which sets up again).
 test.describe.configure({ timeout: 900_000 });
 
-const BUDGET = { changeReportMs: 3_000, firstRowMs: 4_000, searchLongestTaskMs: 250 };
+const BUDGET = { changeReportMs: 3_000, firstRowMs: 4_000, searchLongestTaskMs: 250, largeFirstRowsMs: 2_000 };
+const LARGE = 25_000;
 const LINES = 4_000;
 
 type Boq = { id: string; currentRevision: { id: string; currentRun?: { id: string; status: string } } };
@@ -141,5 +142,35 @@ test.describe("a 4,000-line BoQ", () => {
     }
     report(`search, longest task while typing, ${LINES} lines`, longest, BUDGET.searchLongestTaskMs);
     expect(median(longest)).toBeLessThanOrEqual(BUDGET.searchLongestTaskMs);
+  });
+});
+
+test.describe("a 25,000-line BoQ (review B-19)", () => {
+  test.beforeAll(async () => {
+    const run = await generate();
+    expect((await inflateRun(run, LARGE)).lines).toBe(LARGE);
+  });
+
+  test("opens grouped on the server with its groups collapsed, the first rows visible <= 2 s (median of 3) @perf", async ({ page }) => {
+    await useSession(page.context(), owner);
+    const open = async () => {
+      const started = Date.now();
+      await page.goto(url, { waitUntil: "commit" });
+      await expect(page.getByTestId("sheet-group").first()).toBeVisible({ timeout: 120_000 });
+      return Date.now() - started;
+    };
+    await open(); // warms the server's caches, not counted
+    const times: number[] = [];
+    for (let i = 0; i < 3; i++) times.push(await open());
+    report(`first rows, ${LARGE} lines (server-grouped)`, times, BUDGET.largeFirstRowsMs);
+    await expect(page.getByTestId("large-sheet")).toHaveAttribute("data-total", String(LARGE));
+    await expect(page.locator('[data-testid="sheet-group"][data-open="true"]')).toHaveCount(0);
+    await expect(page.getByTestId("sheet-line")).toHaveCount(0);
+    // A group opens on its own lines, a page at a time.
+    await page.getByTestId("sheet-group-toggle").first().click();
+    await expect(page.getByTestId("sheet-line").first()).toBeVisible({ timeout: 60_000 });
+    await page.getByTestId("sheet-line").first().click();
+    await expect(page.getByTestId("line-detail")).toBeVisible({ timeout: 60_000 });
+    expect(median(times)).toBeLessThanOrEqual(BUDGET.largeFirstRowsMs);
   });
 });

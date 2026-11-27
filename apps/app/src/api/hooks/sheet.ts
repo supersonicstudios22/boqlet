@@ -31,6 +31,55 @@ export function useLines(runId: string | undefined) {
   });
 }
 
+/**
+ * Above this many lines the sheet opens grouped on the server (F06 edge cases, review B-19): group rows with their
+ * subtotals (BR-63), and a group's lines only when it is opened, page by page.
+ */
+export const SERVER_GROUPED_ABOVE = 20_000;
+const GROUP_PAGE = 500;
+
+export type LineGroup = Schemas["LineGroup"];
+
+/** How many lines a run has, from a one-line page (the sheet decides how to open it). */
+export function useLineTotal(runId: string | undefined) {
+  return useQuery({
+    queryKey: [...keys.lines(runId ?? "none"), "total"],
+    enabled: !!runId,
+    ...FOREVER,
+    queryFn: async () => (await api.GET("/runs/{runId}/lines", { params: { path: { runId: runId! }, query: { limit: 1 } } })).data!.total ?? 0,
+  });
+}
+
+/** A run's top-level groups in `system`, with their counts and subtotals (server-side, review B-19). */
+export function useLineGroups(runId: string, system: string | null) {
+  return useQuery({
+    queryKey: [...keys.lines(runId), "groups", system ?? ""],
+    enabled: !!system,
+    ...FOREVER,
+    queryFn: async () => (await api.GET("/runs/{runId}/lines", { params: { path: { runId }, query: { groupBy: system!, level: 1 } } })).data!.groups ?? [],
+  });
+}
+
+/** One group's lines (or, without a system, all lines), a page at a time. */
+export function useLinePages(runId: string, system: string | null, groupPath: string | null, enabled = true) {
+  return useInfiniteQuery({
+    queryKey: [...keys.lines(runId), "pages", system ?? "", groupPath ?? ""],
+    enabled,
+    ...FOREVER,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page: Schemas["LinesPage"]) => page.nextCursor ?? undefined,
+    queryFn: async ({ pageParam }) =>
+      (
+        await api.GET("/runs/{runId}/lines", {
+          params: {
+            path: { runId },
+            query: { limit: GROUP_PAGE, ...(pageParam ? { cursor: pageParam } : {}), ...(system && groupPath !== null ? { groupBy: system, level: 1, groupPath } : {}) },
+          },
+        })
+      ).data!,
+  });
+}
+
 export function useLine(runId: string | undefined, key: string | null) {
   return useQuery({
     queryKey: keys.line(runId ?? "none", key ?? ""),

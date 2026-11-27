@@ -109,6 +109,11 @@ describe("lines (F06 §1)", () => {
     const inGroup = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { groupBy: SYSTEM, level: 1, groupPath: group.path } } })).data!;
     expect(inGroup.items.length).toBe(group.lineCount);
     expect(inGroup.items.every((l) => l.codes[SYSTEM]!.path[0]!.code === group.path)).toBe(true);
+    // Review B-19: an empty groupPath lists the lines without a code in the system (the Unclassified group).
+    const unclassified = grouped.groups!.find((g) => g.path === "");
+    const loose = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { groupBy: SYSTEM, level: 1, groupPath: "" } } })).data!;
+    expect(loose.items.length).toBe(unclassified?.lineCount ?? 0);
+    expect(loose.items.every((l) => (l.codes[SYSTEM]?.path.length ?? 0) === 0)).toBe(true);
     // BR-63: the sum of the measured lines when the unit is shared; no sum (not 0) when none is measured.
     for (const g of grouped.groups!) {
       if (!g.unit) continue;
