@@ -260,6 +260,7 @@ item. The package's PROGRESS.md row points here.
 | DEC-121 | WP-B4 B-16 | **The "declined" variant, with a finding for the owner: the Java test harness signs in through the OIDC filter.** No owner confirmation is recorded (DEC-62), so the path stays, labelled rollback only, and `OidcConfigurationTest` boots its real decoder. `ApiFoundationTest.Tokens` and `SuiteSupport` reach `IdentityFilter` with a stub `JwtDecoder`, so removing the path first needs that harness on native sign-in (N-32). | The entry check's rule; recorded as D110. |
 | DEC-122 | WP-B4 B-17 | **design-system.md lists what `apps/app/src` has, built or not built, and the unused shadcn `ui/select.tsx` is deleted.** Selects are native (`native-select.tsx`) and nothing imported the shadcn one; "note it" would keep a component the doc then has to explain. The favicon is still missing (N-35). | The code wins (CLAUDE.md). |
 | DEC-123 | WP-B5 B-18 | **The list's trace is a summary in the same `RunLine` shape (formula, source line, per element guid, quantity and model; params `{}`; no steps), full with `include=trace`; the 15 % target is read on the wire.** The item offers "a compact array or a separate stream" for the viewer's ids; keeping the schema means no app type or viewer change, and Java's own readers (exports, shares) keep full lines. S08: 927 KB full, 317 KB as summaries (34 %: each element's guid, quantity and model remain), 17.9 KB gzipped (1.9 %). Going under 15 % uncompressed needs a new element shape in the contract (N-37). WP-B5 was split: B-19 (L) and B-20 (M) went to WP-B5b, as section 6.1 step 5 allows. | The acceptance names gzip with the payload; the change is visible to API clients only as a smaller trace, documented on the operation. |
+| DEC-124 | WP-B6 B-22, B-23 | **WP-B6 keeps B-24; B-22 and B-23 move to WP-B6b; B-23's 60 % target needs the kernel too.** On this machine S06's geometry kernel alone (`ifcopenshell.geom.iterator`, 12 threads) iterates its 968 shapes in 25.6 s of the parse's 38.5 s, and the Python post-processing already runs while the kernel works, so making it parallel (B-23's process pool) can bring S06 to about 26 s + 3 s (≈ 75 %), not 60 %. B-23's one clear single-thread win landed here (mass properties once per mesh: 968 calls instead of 1,760). B-22 (meshes streamed out of memory) is a large change to every stage that reads `self.meshes` (rooms, contact faces, intersections, openings, overlaps, the viewer export) and needs its own session. B-23 depends on B-22, so both moved. | Section 6.1 step 5; the measurements are in PROGRESS.md. |
 
 ### 3.5 Spec-issue findings: which doc changes and how
 
@@ -995,7 +996,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Tests:** `NativeAuthTest`.
 - **Effort:** S · **Depends on:** — · **Risk:** none.
 
-#### B-22 · Parse memory bounded: meshes streamed to the sidecar, `too_complex` before OOM  (WP-B6)
+#### B-22 · Parse memory bounded: meshes streamed to the sidecar, `too_complex` before OOM  (WP-B6b)
 - **Sources:** ENG-025 · FM-82
 - **Problem:** `parse.py:372` keeps every trimesh until the end; S07 (13.6 MB) peaks at 1.6 GB; pilot limits 4 GB queue / 2 GB interactive / 1.5 GB http.
 - **Why it matters:** larger Revit IFC4 models can OOM-kill the worker without a clear error.
@@ -1005,7 +1006,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Tests:** memory test (tracemalloc/RSS) on S07.
 - **Effort:** L · **Depends on:** — · **Risk:** later stages that need meshes (federation overlaps, viewer export) must read the sidecar.
 
-#### B-23 · Parse CPU: volume once, vectorised hull, cached property reads, parallel post-processing  (WP-B6)
+#### B-23 · Parse CPU: volume once, vectorised hull, cached property reads, parallel post-processing  (WP-B6b)
 - **Sources:** ENG-026 · FM-82
 - **Problem:** S06 profile: `run_geometry` 83.5 s of 106.6; trimesh mass properties 13.7 s, `fix_winding` 13 s, `oriented_box` 14.8 s (pure-Python hull 5.4 s), `pset_dict` 7 s; target ≤ 5 min for medium models (measured 9 min NBU MEP).
 - **Why it matters:** O1 "in minutes"; processing minutes are billed.
@@ -1013,6 +1014,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Files:** `engine/ifc_boq/parse.py:334-386`, `engine/ifc_boq/geometry.py`.
 - **Acceptance:** S06 parse ≤ 60 % of today on the same machine; baseline numbers unchanged within 1e-6.
 - **Tests:** `test_mesh_repair.py`, compare-baseline.
+- **Split (2026-11-27):** WP-B6 did the first part (trimesh's mass properties once per mesh, commit 643e625); the process pool and the S06 target are WP-B6b's (DEC-124).
 - **Effort:** M · **Depends on:** B-22 · **Risk:** process-pool memory on 2-CPU pilot — cap workers.
 
 #### B-24 · Spatial index for the overlap check  (WP-B6)
@@ -2448,7 +2450,7 @@ means compare-baseline must report 0 differences.
 - **Expected baseline changes:** stack layer: `lines.json.gz` shape changes (no traces in the list). Update `compare_baseline.py` to fetch traces through `/lines/by-key` (or the new include parameter) **in the same commit** so lines compare as before; after that, 0 differences. Engine layer: none.
 
 #### WP-B6 · Parse performance
-- **Items:** B-22, B-23, B-24
+- **Items:** B-24 (the memory and CPU items were split to WP-B6b, DEC-124)
 - **Requires:** WP-A8
 - **Touches:** `engine/ifc_boq/parse.py`, `geometry.py`, `worker.py`, `federation.py`, `engine/requirements.txt`, `engine/tests/test_pilot_capacity.py`.
 - **Entry check:** standard; record S06/S07 parse seconds and peak MB from a quiet run (meta.json) as the "before".
@@ -2463,9 +2465,6 @@ means compare-baseline must report 0 differences.
 - **Exit check:** standard; `BOQLET_BROWSER_SMOKE=1` run passes with the new specs (inside B-08's per-spec budget); the outcome coverage map in `docs/testing/README.md` names them.
 - **Expected baseline changes:** none.
 
-### Phase C packages
-
-
 #### WP-B5b · Server-side grouping and no N+1 queries (split from WP-B5)
 - **Items:** B-19, B-20 (their text is in section 4)
 - **Requires:** WP-B2, WP-B4, WP-B5
@@ -2473,6 +2472,17 @@ means compare-baseline must report 0 differences.
 - **Entry check:** standard; `npm run local:up`.
 - **Exit check:** standard (Java changed); B-07 perf spec within budget, its first-row gate tightened to 2 s when B-19 meets it; the query-count test of B-20.
 - **Expected baseline changes:** none (the stack layer fetches full lines with `include=trace`, WP-B5).
+#### WP-B6b · Parse memory and CPU (split from WP-B6)
+- **Items:** B-22, B-23 (the CPU item's first part landed in WP-B6; their text is in section 4)
+- **Requires:** WP-A8, WP-B6
+- **Touches:** `engine/ifc_boq/parse.py`, `geometry.py`, `worker.py`, `federation.py`, `engine/tests/test_pilot_capacity.py`.
+- **Entry check:** standard; record S06/S07 parse seconds and peak MB from a quiet run as the "before" (WP-B6: S06 38.5 s / 565 MB, S07 37.3 s / 1,595 MB, run 20261127-103744).
+- **Exit check:** standard; B-22's peak memory target met; B-23's S06 time against the kernel's own time (DEC-124: on the owner's machine the geometry kernel alone iterates S06 in 25.6 s, so ≤ 60 % of 38.5 s needs the kernel faster too).
+- **Expected baseline changes:** none within 1e-6; record timings and memory before/after in PROGRESS.md.
+
+### Phase C packages
+
+
 #### WP-C1 · BoQ workspace layout and keyboard
 - **Items:** C-01, C-02, C-03, C-04, C-05
 - **Requires:** —
@@ -2653,7 +2663,7 @@ means compare-baseline must report 0 differences.
 
 #### WP-D11 · Engine measuring depth II
 - **Items:** D-42, D-43, D-44, D-45, D-46
-- **Requires:** WP-B6, WP-D1
+- **Requires:** WP-B6b, WP-D1
 - **Touches:** `engine/ifc_boq/measure.py`, `geometry.py`, `parse.py`, `worker.py`, `data/families.json`, `data/quantity_sources.json`, `presets/rules/as-modelled.json`, `packages/types/src`, models feature (IDS).
 - **Entry check:** standard.
 - **Exit check:** standard (types); `test_duplex.py` green (update `HAND_BOQ` only with hand-derived reasons).
