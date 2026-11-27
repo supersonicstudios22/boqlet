@@ -420,9 +420,12 @@ class Parser:
                 fc = np.array(sh.geometry.faces, dtype=int).reshape(-1, 3)
                 if len(fc):
                     m = trimesh.Trimesh(v, fc, process=True)
-                    raw = abs(float(m.volume))
+                    raw = 0.0
                     fixed = False
                     if not m.is_winding_consistent:
+                        # Only a repaired mesh reports its volume before repair; the plain signed-volume sum is
+                        # enough for that, so trimesh's mass properties run once per mesh, after repair (B-23).
+                        raw = abs(geometry.signed_volume(m))
                         fix_winding(m)
                         fixed = True
                     info = dict(hasBody=True, meshRef=sh.guid, bboxMin=vec(v.min(0)), bboxMax=vec(v.max(0)),

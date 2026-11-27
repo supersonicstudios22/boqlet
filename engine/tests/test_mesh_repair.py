@@ -48,3 +48,19 @@ def test_fix_winding_turns_each_body_outward():
     pair.faces = faces
     fix_winding(pair)
     assert abs(pair.volume - 2.0) < 1e-9
+
+
+def test_signed_volume_is_trimesh_volume_without_mass_properties():
+    """Review B-23: the volume a repaired mesh reports before repair comes from the plain tetrahedra sum."""
+    import trimesh as _trimesh
+
+    from ifc_boq.geometry import signed_volume
+
+    box = _trimesh.creation.box(extents=(2.0, 3.0, 0.25))
+    box.apply_translation((1000.0, -250.0, 3.0))           # away from the origin, as georeferenced models are
+    assert abs(signed_volume(box) - box.volume) < 1e-9 * box.volume
+    flipped = _trimesh.Trimesh(box.vertices, box.faces[:, ::-1], process=False)
+    assert abs(signed_volume(flipped) + box.volume) < 1e-9 * box.volume
+    sphere = _trimesh.creation.icosphere(subdivisions=3, radius=0.7)
+    assert abs(signed_volume(sphere) - sphere.volume) < 1e-9 * sphere.volume
+    assert signed_volume(_trimesh.Trimesh()) == 0.0

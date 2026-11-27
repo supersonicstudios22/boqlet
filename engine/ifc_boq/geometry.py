@@ -211,6 +211,15 @@ def shared_volume(a: trimesh.Trimesh, b: trimesh.Trimesh) -> float | None:
         return None
 
 
+def signed_volume(m: trimesh.Trimesh) -> float:
+    """The mesh's signed volume (sum of the triangles' tetrahedra from the origin, divided by 6), the volume
+    trimesh's mass properties give, without their inertia and centre (review B-23)."""
+    t = np.asarray(m.triangles, dtype=np.float64)
+    if len(t) == 0:
+        return 0.0
+    return float(np.einsum("ij,ij->i", t[:, 0], np.cross(t[:, 1], t[:, 2])).sum() / 6.0)
+
+
 def components(n: int, edges: np.ndarray) -> np.ndarray:
     """Connected components of an undirected graph on nodes 0..n-1: a label per node, the smallest
     node of its component. Vectorised union-find (hook roots, then compress), so large meshes cost a
