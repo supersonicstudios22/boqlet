@@ -46,7 +46,8 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    because every line carries the filled text of each of its codes. Long item texts wrap,
    clamped to three lines in the row and shown in full in the line detail.
 3. **Subtotals:** per group, the count of lines and (only when all lines in a group share one
-   unit) the sum of quantities. No money in the sheet: prices live only in the optional pricing
+   unit and at least one is measured) the sum of quantities; excluded lines are out of both
+   (BR-63). No money in the sheet: prices live only in the optional pricing
    module's own Pricing tab (P32, F20).
 4. **Filters:** source (measured, derived, manual, flagged, overridden), storey, family, model,
    text search over description and code. Filters never change the data, and the header shows

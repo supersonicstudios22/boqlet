@@ -3872,10 +3872,11 @@ export interface components {
             path: string;
             code?: string;
             title: string;
+            /** @description Lines in the group's totals: excluded lines are not counted (BR-63) */
             lineCount: number;
-            /** @description Set when all lines share one unit */
+            /** @description Set when all lines in the totals share one unit (BR-63) */
             unit?: string | null;
-            /** @description Sum when unit is set */
+            /** @description Sum of the measured lines when unit is set; null when none is measured (BR-63) */
             quantity?: number | null;
         };
         LinesPage: {

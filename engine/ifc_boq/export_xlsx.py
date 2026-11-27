@@ -157,6 +157,18 @@ class _Group:
         return sorted(self.children.values(), key=lambda g: (g.code == "~", _natural(g.code)))
 
 
+def subtotal(lines) -> dict:
+    """A group's subtotal (BR-63, the same definition as the sheet and the grouped `/lines` view): the count
+    of the lines in the totals, their unit when they share one, and the sum of their quantities when they
+    share a unit and at least one is measured. Excluded lines are out of all three. The workbook writes the
+    sum as a SUBTOTAL formula over the same lines; this is its value. Vectors: `fixtures/subtotals.json`."""
+    included = [line for line in lines if not line.get("excluded")]
+    units = {line["unit"] for line in included}
+    unit = next(iter(units)) if len(units) == 1 else None
+    measured = [line["quantity"] for line in included if line["quantity"] is not None]
+    return {"count": len(included), "unit": unit, "quantity": sum(measured) if unit is not None and measured else None}
+
+
 def _description(line, primary):
     if "description" in line.get("overridden", {}).get("fields", []):
         return line["description"]
@@ -259,10 +271,12 @@ def export(result: dict, meta: dict) -> bytes:
         for child in group.sorted_children():
             r = write_group(child, r, depth + 1)
         members = group.all_lines()
-        units = {l["unit"] for l in members}
-        shared = next(iter(units)) if len(units) == 1 and any(l["quantity"] is not None for l in members) else None
+        total = subtotal(members)
+        # The unit only beside a sum: with nothing measured the cell would label an empty quantity.
+        shared = total["unit"] if total["quantity"] is not None else None
+        count = total["count"]
         _row(ws, r, ["", f"Subtotal {group.title}", shared or "", f"=SUBTOTAL(9,D{first}:D{r - 1})" if shared else "", "",
-                     f"=SUBTOTAL(9,F{first}:F{r - 1})", "", f"{len(members)} line{'' if len(members) == 1 else 's'}"],
+                     f"=SUBTOTAL(9,F{first}:F{r - 1})", "", f"{count} line{'' if count == 1 else 's'}"],
              BOLD, SUB_FILL, formula_cols=(4, 6))
         ws.cell(row=r, column=2).alignment = Alignment(indent=depth)
         if shared:

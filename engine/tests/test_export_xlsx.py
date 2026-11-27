@@ -1,10 +1,13 @@
 """The BoQ workbook follows the sheet's line order (TF-049, F06-AC3, BR-28)."""
+import json
 from io import BytesIO
+from pathlib import Path
 
+import pytest
 from openpyxl import load_workbook
 from test_duplex import run
 
-from ifc_boq.export_xlsx import export
+from ifc_boq.export_xlsx import export, subtotal
 
 
 def _rows(workbook_bytes):
@@ -186,3 +189,26 @@ def test_a_run_exported_with_changes_waiting_says_what_it_leaves_out(duplex_pars
     assert cover["Not included"] == ("Changes made after this run (2026-11-25T10:15:00Z): line edits, answers, rule set, "
                                      "something.new. Generate the BoQ again to include them.")
     assert _sheet(stale)["A2"].value.endswith("|  Changes after this run are not included (see Cover)")
+
+
+_VECTORS = json.loads((Path(__file__).resolve().parents[2] / "fixtures" / "subtotals.json").read_text("utf-8"))["vectors"]
+
+
+@pytest.mark.parametrize("vector", _VECTORS, ids=[v["name"] for v in _VECTORS])
+def test_a_group_subtotal_matches_the_shared_vectors(vector):
+    """BR-63: the sheet (Vitest) and the grouped /lines view (JUnit) run the same vectors."""
+    got = subtotal(vector["lines"])
+    want = vector["expected"]
+    assert (got["count"], got["unit"]) == (want["count"], want["unit"])
+    assert got["quantity"] == (None if want["quantity"] is None else pytest.approx(want["quantity"]))
+
+
+def test_a_subtotal_row_counts_and_sums_only_the_lines_in_the_totals(duplex_parsed):
+    result = run(duplex_parsed)
+    lines = [line for line in result["lines"] if line["unit"] == "m2"][:3]
+    for line in lines:
+        line["codes"] = {"x": {"system": "x", "code": "1", "title": "One", "path": [{"code": "1", "title": "One"}]}}
+    lines[1]["excluded"] = True
+    wb = load_workbook(BytesIO(export({**result, "lines": lines}, {"classifications": [{"id": "x", "name": "X"}]})))
+    row = next(r for r in wb["BoQ"].iter_rows(values_only=True) if r[1] == "Subtotal One")
+    assert row[2] == "m2" and row[3] == "=SUBTOTAL(9,D7:D8)" and row[7] == "2 lines"

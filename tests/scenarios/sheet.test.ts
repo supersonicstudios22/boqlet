@@ -88,7 +88,13 @@ describe("lines (F06 §1)", () => {
     const inGroup = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { groupBy: SYSTEM, level: 1, groupPath: group.path } } })).data!;
     expect(inGroup.items.length).toBe(group.lineCount);
     expect(inGroup.items.every((l) => l.codes[SYSTEM]!.path[0]!.code === group.path)).toBe(true);
-    for (const g of grouped.groups!) if (g.unit) expect(g.quantity).toBeCloseTo(lines.filter((l) => (l.codes[SYSTEM]?.path[0]?.code ?? "") === g.path).reduce((s, l) => s + (l.quantity ?? 0), 0), 6);
+    // BR-63: the sum of the measured lines when the unit is shared; no sum (not 0) when none is measured.
+    for (const g of grouped.groups!) {
+      if (!g.unit) continue;
+      const measured = lines.filter((l) => (l.codes[SYSTEM]?.path[0]?.code ?? "") === g.path && !l.excluded && l.quantity !== null);
+      if (measured.length === 0) expect(g.quantity).toBeNull();
+      else expect(g.quantity).toBeCloseTo(measured.reduce((s, l) => s + l.quantity!, 0), 6);
+    }
   });
 });
 

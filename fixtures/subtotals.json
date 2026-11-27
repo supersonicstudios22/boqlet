@@ -1,0 +1,50 @@
+{
+  "$comment": "Shared test vectors for a group subtotal (BR-63), read by the sheet (Vitest), the grouped /lines view (JUnit) and the Excel writer (pytest). Each vector is one group's lines; expected is its count of lines, its shared unit and its sum. Excluded lines are out of the count, the unit and the sum; the sum is null when no line in the totals has a quantity, or when the lines do not share one unit.",
+  "vectors": [
+    {
+      "name": "one unit, every line measured",
+      "lines": [{ "unit": "m2", "quantity": 1.5 }, { "unit": "m2", "quantity": 2.25 }],
+      "expected": { "count": 2, "unit": "m2", "quantity": 3.75 }
+    },
+    {
+      "name": "mixed units have no sum",
+      "lines": [{ "unit": "m2", "quantity": 4 }, { "unit": "m3", "quantity": 2 }],
+      "expected": { "count": 2, "unit": null, "quantity": null }
+    },
+    {
+      "name": "a line to confirm adds nothing, the measured ones still sum",
+      "lines": [{ "unit": "m3", "quantity": null }, { "unit": "m3", "quantity": 0.75 }],
+      "expected": { "count": 2, "unit": "m3", "quantity": 0.75 }
+    },
+    {
+      "name": "no line measured is no sum, not zero",
+      "lines": [{ "unit": "item", "quantity": null }, { "unit": "item", "quantity": null }],
+      "expected": { "count": 2, "unit": "item", "quantity": null }
+    },
+    {
+      "name": "an excluded line is out of the count and the sum",
+      "lines": [{ "unit": "m2", "quantity": 4 }, { "unit": "m2", "quantity": 6, "excluded": true }, { "unit": "m2", "quantity": 1 }],
+      "expected": { "count": 2, "unit": "m2", "quantity": 5 }
+    },
+    {
+      "name": "an excluded line's unit does not break a shared unit",
+      "lines": [{ "unit": "m2", "quantity": 3 }, { "unit": "m3", "quantity": 9, "excluded": true }],
+      "expected": { "count": 1, "unit": "m2", "quantity": 3 }
+    },
+    {
+      "name": "only the excluded line was measured",
+      "lines": [{ "unit": "m", "quantity": null }, { "unit": "m", "quantity": 12, "excluded": true }],
+      "expected": { "count": 1, "unit": "m", "quantity": null }
+    },
+    {
+      "name": "every line excluded",
+      "lines": [{ "unit": "m2", "quantity": 2, "excluded": true }],
+      "expected": { "count": 0, "unit": null, "quantity": null }
+    },
+    {
+      "name": "a measured zero is a sum of zero",
+      "lines": [{ "unit": "kg", "quantity": 0 }, { "unit": "kg", "quantity": null }],
+      "expected": { "count": 2, "unit": "kg", "quantity": 0 }
+    }
+  ]
+}

@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { RunLine } from "@/api/hooks/sheet";
-import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
+import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, subtotal, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
 
 let n = 0;
 function line(path: [string, string][] | null, fields: Partial<RunLine> = {}): RunLine {
@@ -67,6 +69,26 @@ describe("buildRows (F06 §1, §3)", () => {
   });
 });
 
+describe("subtotal (BR-63)", () => {
+  type Vector = { name: string; lines: { unit: string; quantity: number | null; excluded?: boolean }[]; expected: { count: number; unit: string | null; quantity: number | null } };
+  const { vectors } = JSON.parse(readFileSync(path.resolve(__dirname, "../../../../../fixtures/subtotals.json"), "utf8")) as { vectors: Vector[] };
+
+  it.each(vectors.map((v) => [v.name, v] as const))("%s (shared vectors, also run by Java and the Excel writer)", (_, v) => {
+    const got = subtotal(v.lines);
+    expect({ count: got.count, unit: got.unit }).toEqual({ count: v.expected.count, unit: v.expected.unit });
+    if (v.expected.quantity === null) expect(got.quantity).toBeNull();
+    else expect(got.quantity).toBeCloseTo(v.expected.quantity, 9);
+  });
+
+  it("a group row shows the same subtotal", () => {
+    for (const v of vectors) {
+      const rows = buildRows(v.lines.map((l) => line([["1", "Group"]], l)), "acme");
+      expect(rows[0]).toMatchObject({ kind: "group", lineCount: v.expected.count, unit: v.expected.unit });
+      expect((rows[0] as GroupRow).quantity === null).toBe(v.expected.quantity === null);
+    }
+  });
+});
+
 describe("filterLines (F06 §4)", () => {
   it("filters by source, storey and text over description and codes", () => {
     expect(filterLines(lines, { source: "derived" })).toHaveLength(1);
@@ -92,10 +114,10 @@ describe("edits in the sheet (F06 §6)", () => {
   const b = { ...line([["9", "Preliminaries"]], { quantity: 6 }), excluded: true, edit: { override: { id: "o", boqId: "b", lineKey: "x", createdAt: "" }, fields: ["excluded" as const], engine: { quantity: 6, description: "", unit: "m2", codes: {} } } };
   const c = { ...line([["9", "Preliminaries"]], { quantity: 1 }), sortAfter: null };
 
-  it("keeps an excluded line listed but out of the subtotal, and orders a section by its edits", () => {
+  it("keeps an excluded line listed but out of the subtotal and its count, and orders a section by its edits", () => {
     const rows = buildRows([a, b, c], "acme");
     const group = rows[0] as GroupRow;
-    expect(group).toMatchObject({ lineCount: 3, quantity: 5 });
+    expect(group).toMatchObject({ lineCount: 2, quantity: 5 });
     expect(rows.slice(1).map((r) => r.id)).toEqual([c.key, a.key, b.key]);
   });
 

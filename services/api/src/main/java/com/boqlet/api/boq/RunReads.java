@@ -82,7 +82,7 @@ class RunReads {
         if (system != null && level != null) {
             if (level < 1 || level > 50) throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_parameter", "Invalid grouping level.");
             args.addValue("system", system).addValue("depth", level);
-            groups = groups(filter.toString(), args);
+            groups = groups(named, filter.toString(), args);
             if (path == null || path.isEmpty()) return new LinesPage(List.of()).groups(groups).total(total).nextCursor(null);
             args.addValue("path", path).addValue("pathDepth", path.split("/", -1).length);
             filter.append(" ").append("""
@@ -108,11 +108,21 @@ class RunReads {
         return page;
     }
 
-    private List<LineGroup> groups(String filter, MapSqlParameterSource args) {
+    /**
+     * Group subtotals for {@code /lines?groupBy} (BR-63, the same definition as the sheet and the Excel): the
+     * count of the lines in the totals, their unit when they share one, and the sum of their quantities when
+     * they share a unit and at least one is measured, else null. Excluded lines are out of all three; a group
+     * whose lines are all excluded still lists, with a count of 0. Vectors: {@code fixtures/subtotals.json}.
+     * {@code filter} is the {@code FROM run_lines l WHERE ...} part; {@code args} carry {@code system} and {@code depth}.
+     */
+    static List<LineGroup> groups(NamedParameterJdbcTemplate named, String filter, MapSqlParameterSource args) {
         String sql = """
-                SELECT grp.path, max(grp.code) AS code, max(grp.title) AS title, count(*) AS count,
-                    CASE WHEN count(DISTINCT unit) = 1 THEN min(unit) END AS unit,
-                    CASE WHEN count(DISTINCT unit) = 1 THEN sum(quantity) END AS quantity
+                SELECT grp.path, max(grp.code) AS code, max(grp.title) AS title,
+                    count(*) FILTER (WHERE NOT grp.excluded) AS count,
+                    CASE WHEN count(DISTINCT grp.unit) FILTER (WHERE NOT grp.excluded) = 1
+                         THEN min(grp.unit) FILTER (WHERE NOT grp.excluded) END AS unit,
+                    CASE WHEN count(DISTINCT grp.unit) FILTER (WHERE NOT grp.excluded) = 1
+                         THEN sum(grp.quantity) FILTER (WHERE NOT grp.excluded) END AS quantity
                 FROM (
                     SELECT coalesce((SELECT string_agg(part.value->>'code','/' ORDER BY part.ordinality)
                                FROM jsonb_array_elements(l.line->'codes'->CAST(:system AS text)->'path') WITH ORDINALITY part
@@ -122,8 +132,8 @@ class RunReads {
                         l.line->'codes'->CAST(:system AS text)->'path'->(LEAST(:depth,
                             jsonb_array_length(l.line->'codes'->CAST(:system AS text)->'path')) - 1)->>'title' AS title,
                         l.line->>'unit' AS unit,
-                        CASE WHEN coalesce((l.line->>'excluded')::boolean, false) THEN 0
-                             ELSE coalesce((l.line->>'quantity')::numeric, 0) END AS quantity
+                        coalesce((l.line->>'excluded')::boolean, false) AS excluded,
+                        (l.line->>'quantity')::numeric AS quantity
                 """ + filter + ") grp GROUP BY grp.path ORDER BY grp.path";
         return named.query(sql, args, (row, index) -> new LineGroup(row.getString("path"),
                 Objects.toString(row.getString("title"), ""), row.getInt("count")).code(Objects.toString(row.getString("code"), ""))

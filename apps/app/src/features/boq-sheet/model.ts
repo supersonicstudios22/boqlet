@@ -126,14 +126,26 @@ interface Node {
   title: string | null;
   children: Map<string, Node>;
   lines: SheetLine[];
-  count: number;
-  units: Set<string>;
-  sum: number;
-  /** Lines with a quantity (flagged lines have none). */
-  measured: number;
+  /** The lines in the group's totals: its own and its subgroups', without excluded lines. */
+  members: SheetLine[];
 }
 
-const node = (id: string, code: string, title: string | null): Node => ({ id, code, title, children: new Map(), lines: [], count: 0, units: new Set(), sum: 0, measured: 0 });
+const node = (id: string, code: string, title: string | null): Node => ({ id, code, title, children: new Map(), lines: [], members: [] });
+
+/**
+ * A group's subtotal (BR-63, the same definition as the grouped `/lines` view and the Excel): the count of
+ * the lines in the totals, their unit when they share one, and the sum of their quantities when they share
+ * a unit and at least one is measured. Excluded lines are out of all three; a group with nothing measured
+ * has no sum, because "0" would read as a quantity. Vectors: `fixtures/subtotals.json`.
+ */
+export function subtotal(lines: readonly { unit: string; quantity: number | null; excluded?: boolean }[]) {
+  const included = lines.filter((l) => !l.excluded);
+  const units = new Set(included.map((l) => l.unit));
+  const unit = units.size === 1 ? [...units][0]! : null;
+  const measured = included.filter((l) => l.quantity !== null);
+  const quantity = unit !== null && measured.length > 0 ? measured.reduce((sum, l) => sum + l.quantity!, 0) : null;
+  return { count: included.length, unit, quantity };
+}
 const byCode = (a: Node, b: Node) => (a.id === UNCLASSIFIED ? 1 : b.id === UNCLASSIFIED ? -1 : a.code.localeCompare(b.code, undefined, { numeric: true }));
 
 /**
@@ -164,22 +176,15 @@ export function buildRows(lines: SheetLine[], system: string | null, collapsed: 
       }
     }
     at.lines.push(line);
-    for (const n of chain) {
-      n.count += 1;
-      // An excluded line stays listed but is out of the totals (F06 §6).
-      if (line.excluded) continue;
-      n.units.add(line.unit);
-      n.sum += line.quantity ?? 0;
-      if (line.quantity !== null) n.measured += 1;
-    }
+    // An excluded line stays listed but is out of the subtotal's count, unit and sum (F06 §6, BR-63).
+    if (!line.excluded) for (const n of chain) n.members.push(line);
   }
   const rows: Row[] = [];
   const walk = (n: Node, depth: number) => {
     for (const child of [...n.children.values()].sort(byCode)) {
-      const shared = child.units.size === 1 ? [...child.units][0]! : null;
-      // No sum when the group's lines are all still to confirm: "0" would read as a quantity.
+      const total = subtotal(child.members);
       const isCollapsed = collapsed.has(child.id);
-      rows.push({ kind: "group", id: child.id, depth, code: child.code, title: child.title, lineCount: child.count, unit: shared, quantity: shared && child.measured > 0 ? child.sum : null, collapsed: isCollapsed });
+      rows.push({ kind: "group", id: child.id, depth, code: child.code, title: child.title, lineCount: total.count, unit: total.unit, quantity: total.quantity, collapsed: isCollapsed });
       if (isCollapsed) continue;
       for (const line of orderSection(child.lines)) rows.push({ kind: "line", id: line.key, depth: depth + 1, line });
       walk(child, depth + 1);

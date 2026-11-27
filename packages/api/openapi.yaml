@@ -3690,9 +3690,9 @@ components:
         path: { type: string, description: "code path joined by '/'" }
         code: { type: string }
         title: { type: string }
-        lineCount: { type: integer }
-        unit: { type: [string, "null"], description: Set when all lines share one unit }
-        quantity: { type: [number, "null"], description: Sum when unit is set }
+        lineCount: { type: integer, description: "Lines in the group's totals: excluded lines are not counted (BR-63)" }
+        unit: { type: [string, "null"], description: "Set when all lines in the totals share one unit (BR-63)" }
+        quantity: { type: [number, "null"], description: "Sum of the measured lines when unit is set; null when none is measured (BR-63)" }
     LinesPage:
       type: object
       required: [items]
