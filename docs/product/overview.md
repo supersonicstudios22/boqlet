@@ -54,9 +54,9 @@ These outcomes are the yardstick for every feature and test. The test plans map 
 
 | Id | Outcome | Features | State |
 |---|---|---|---|
-| **O1** | **From IFC models to a measured, coded BoQ in minutes**: several discipline models per project, federated into one BoQ, nothing counted twice | F03, F04 | Built. Not built: coordinate alignment |
+| **O1** | **From IFC models to a measured, coded BoQ in minutes**: several discipline models per project, federated into one BoQ, nothing counted twice | F03, F04 | Capability built; accuracy not yet validated against a professional BoQ (review B-17, PRD-007; validation is D-01). Not built: coordinate alignment |
 | **O2** | **Measure the firm's own way**: rule sets, classifications with item numbers and item texts, and dictionaries as versioned presets; a setup wizard for the first ones | F10, F16 | Built. Gaps: wizard simplified, no per-project default-preset pickers, scope rules not editable |
-| **O3** | **Trust every number**: each line explains itself ("How it is calculated", formula, parameters, element shares), and line ↔ elements link both ways in the 3D viewer | F06, F07 | Built |
+| **O3** | **Trust every number**: each line explains itself ("How it is calculated", formula, parameters, element shares), and line ↔ elements link both ways in the 3D viewer | F06, F07 | Capability built; accuracy not yet validated against a professional BoQ (review B-17, PRD-007) |
 | **O4** | **Nothing silently dropped**: everything the engine can't decide becomes a question; answers are kept and carried across versions and BoQs; work not in the models is flagged as the user's to add | F05, F06 | Built. Gap: no AI name suggestions; unknown local-language names are the main source of questions |
 | **O5** | **Keep up with design changes**: a new model version re-runs with earlier answers and edits, and a change report shows what changed, line by line | F08 | Built |
 | **O6** | **Edit, version and confirm**: full line editing with live co-editing, locked saved versions, optional review and approval, confirm and reopen, audit log | F06, F09 | Built |

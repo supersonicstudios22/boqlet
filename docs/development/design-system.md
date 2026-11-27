@@ -42,23 +42,27 @@ variables; no colour, size or font is hard-coded in a component.
 Built in `apps/app/src/components`. There is no Storybook or component gallery: a component is
 documented by its doc comment and seen in the screens that use it.
 
-Start from the shadcn/ui set (Button, Input, Select, Combobox/Command, Dialog, Sheet, Popover,
-Tabs, Table, Tooltip, Toast/Sonner, Dropdown Menu, Breadcrumb, Badge, Progress, Skeleton,
-Checkbox, Radio Group, Switch, Resizable panels), restyled to the tokens above. Product
-components: App shell (top bar, org switcher, left nav, project sub-nav), Page header with status badge
-and actions, Tabs (URL-bound), Data table (virtualised, sticky header, grouping rows with
-subtotals, column chooser, keyboard navigation), Detail side panel (resizable), Status badges
-(source, version, BoQ, job; module badges use the same component), Progress (job stages), Empty state,
-Error state, Skeletons, Toasts, Dialog / Confirm (with "type to confirm" variant), Limit dialog,
-Form fields (text, number with unit, decimal money, select, combobox with search, term picker
-with hierarchy, code picker for code lists, date-time with timezone, markdown editor light),
-File dropzone with upload progress, Selector builder (IFC class / family / term / property /
-storey; shared by scope rules and Library), Readable formula display, Diff cells (before →
-after, Δ, Δ%), Comparison cell (rate, amount, flags), Notification bell + list, Avatar /
-user chip, Breadcrumbs, Keyboard shortcut hint, Wizard step frame (F16: one question, example,
-suggested answer, live preview), Shared filter bar (sheet + 3D, F07 §9), Inline editable cell
-with edit marker and restore (F06 §6), "How it is calculated" step list (F06 §5), Session
-takeover screen (F01 §10).
+What exists today (checked against the code in review B-17, UX-047); "not built" means no shared
+component: a screen that needs one uses a native element or its own markup.
+
+**shadcn/ui primitives** (`components/ui`, restyled to the tokens above): built: Alert dialog, Badge,
+Button, Dialog, Dropdown menu, Input, Label, Separator, Skeleton, Toasts (Sonner), Table. Selects are
+native (`components/native-select.tsx`; the unused shadcn Select was removed). Not built: Combobox /
+Command, Sheet, Popover, Tabs (each screen has its URL-bound tab bar), Tooltip, Breadcrumb, Progress,
+Checkbox, Radio group, Switch (native inputs), Resizable panels.
+
+**Product components.** Built: App shell (top bar with org switcher, notifications bell, theme switch
+and user menu; left nav; project sub-nav), Data table (the BoQ sheet: virtualised, sticky header,
+grouping rows with subtotals, column chooser, keyboard navigation), Line detail panel (not resizable),
+Status badges (source, version, BoQ, job), Dialog / Confirm (`components/confirm-dialog.tsx`), Limit
+dialog, Error and not-found views, Notification bell and list, Presence avatars, Term picker (names,
+questions), Code picker (classifications), File drop (code-list import, the sheet), Selector fields of
+scope rules and the Library, Readable formula display, Diff cells (before → after, Δ, Δ%, change
+report), Inline edit with edit marker and restore (F06 §6), "How it is calculated" step list (F06 §5),
+Shared filter (sheet + 3D, F07 §9), the setup wizard's step frame (F16), Session takeover screen
+(F01 §10). Not built: Progress with job stages, a shared Empty state, Form fields for decimal money,
+date-time with timezone and a light markdown editor, Keyboard shortcut hints, Breadcrumbs, a resizable
+detail panel, Comparison cell (rate, amount, flags; pricing module, not built).
 
 ## Accessibility
 

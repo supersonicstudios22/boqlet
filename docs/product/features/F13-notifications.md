@@ -1,8 +1,8 @@
 # F13 Notifications
 
-> **Status (2026-11-21):** Built (core kinds). In-app bell with live updates over SSE, and email through an SMTP outbox (`services/api/src/main/java/com/boqlet/api/realtime`, `mail/EmailDelivery.java`; MailHog locally).
+> **Status (2026-11-27):** Built (core kinds). In-app bell with live updates over SSE, and email through an SMTP outbox (`services/api/src/main/java/com/boqlet/api/realtime`, `mail/EmailDelivery.java`; MailHog locally).
 > **Not built / differs:**
-> - Emails are plain text, in English and Serbian (`EmailDelivery`), while the UI ships only English.
+> - Emails are plain text (`EmailDelivery`).
 > - The `model_version.ready` email after more than 2 minutes of parsing: not verified.
 > - Pricing-module kinds don't exist (P48).
 
@@ -47,6 +47,10 @@
 - Notification rows: `{kind, params, entity, url}`. The frontend renders the text from i18n
   messages by `kind` with `params` (P07, P35). The backend never stores rendered text except in
   sent emails, which are rendered in the recipient's language.
+- **Email language** (DEC-69, review B-17, FM-49): an email follows its recipient's UI locale (the
+  user's `locale`; an invitation, which has no user yet, the org's default language). While the UI
+  ships only English, emails are English; the Serbian templates stay for when an `sr` UI ships
+  (D-08), and a locale set to `sr` already gets them.
 - Emails are rendered by the backend from templates per kind and language, with one clear call
   to action linking into the app. Sent through an email provider adapter (decision in 07-backend).
 - **Batching:** several `offer_request.offer_submitted` within 10 minutes merge into one bell item.

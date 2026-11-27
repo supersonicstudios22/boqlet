@@ -1,10 +1,9 @@
 # F18 Public share links
 
-> **Status (2026-11-22):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39).
+> **Status (2026-11-27):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39).
 > **Not built / differs:**
 > - The public sheet is a plain grouped table (no virtualisation; search only).
 > - The footer's sign-up link leads to the sign-up form only while public sign-up is open (P57); closed, the page says accounts come by invitation.
-> - The rate limit defaults to 300 requests per minute per address and token on each instance, with at most 50 tokens per address a minute (`BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`; `429` with `Retry-After`, TF-087), not 60.
 
 ## Purpose
 
@@ -54,7 +53,10 @@ Owners and admins may revoke any link in the org (org settings › Share links l
 
 - Token: 32 random bytes, base64url, stored only as a hash. The link is the only secret, as
   with any "anyone with the link" share. Users are told so in the dialog.
-- Public endpoints are read-only, rate-limited per token and IP, and return `404` for unknown,
+- Public endpoints are read-only, rate-limited per token and IP (300 requests a minute per address
+  and token on each instance, at most 50 tokens per address a minute;
+  `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`, `429` with `Retry-After`, TF-087; DEC-67: one share view
+  makes several calls, so the earlier 60 was too low; review B-17, FM-68), and return `404` for unknown,
   expired or revoked tokens and when `publicLinksAllowed` is off.
 - Pages carry `noindex, nofollow` and `Referrer-Policy: no-referrer`.
 - Geometry and Excel files are served through short-lived signed URLs issued per request.

@@ -273,6 +273,6 @@ decorative (`aria-hidden`) and never carry information.
 
 ## Still to supply (owner)
 
-- The **boqlet wordmark** as SVG (light and dark), and a favicon.
+- A **favicon**. (The wordmark is the owner's SVG and animation in `docs/brand/`, P56.)
 - Optionally, the poster artwork as SVG for sign-in and onboarding; until then the frontend
   composes the shapes in code from the palette.

@@ -1,8 +1,7 @@
 # F04 BoQs and runs
 
-> **Status (2026-11-22):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built. A second Generate with changed inputs runs beside the active run, and the newest finished run becomes current (TF-094). An unanswered federation overlap keeps the run in needs input (federation settings `overlapBlocking`, default on; review A-19, D87).
+> **Status (2026-11-27):** Built. BoQs, inputs, runs as jobs, needs-input state, run history and comparison are built. A second Generate with changed inputs runs beside the active run, and the newest finished run becomes current (TF-094). An unanswered federation overlap keeps the run in needs input (federation settings `overlapBlocking`, default on; review A-19, D87).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
-> - "Generate a BoQ" is offered on the model version page, not in the ready notification (not re-verified).
 > - An earlier run can't be opened read-only (FE-048, deferred): see [known limitations](../known-limitations.md).
 
 ## Purpose
@@ -26,8 +25,9 @@ run. The result is either complete or needs input.
 1. **Create BoQ:** name (required), description. Creates the working version (a `draft` revision) with inputs
    prefilled from project defaults and every model's latest `ready` version (each model can be
    unticked). Checks `maxModelsPerBoq`.
-   **From a model:** when a model version becomes ready, its page and the notification offer
-   "Generate a BoQ": a short dialog with the project's presets preselected and pickers to
+   **From a model:** when a model version becomes ready, its notification opens the version's
+   page, which offers "Generate a BoQ" as its primary action (DEC-68: one click more than a button
+   in the notification, accepted as built; review B-17, FM-23): a short dialog with the project's presets preselected and pickers to
    choose others (rule set, classifications) before the first run. Presets are chosen per
    BoQ, never per upload: parsing a model doesn't depend on them.
 2. **Setup panel** (revision inputs; editable only in `draft`):

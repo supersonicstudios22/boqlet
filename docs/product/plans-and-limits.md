@@ -52,8 +52,10 @@ Definitions:
   org doesn't exist yet); moving an org to another plan does.
 
 - **Active project**: status `active`. Archived projects stay readable and don't count.
-- **Processing minute**: wall-clock minutes of parse, run and preview jobs, summed per calendar
-  month (UTC). Export and diff jobs are not counted.
+- **Processing minute**: the engine's processing time of parse, run and preview jobs (the job's
+  `durationMs`, with a retried job's earlier attempts), summed per calendar month (UTC); time a job
+  waits in the queue is not counted
+  (DEC-66, review B-17, FM-57). Export and diff jobs are not counted.
 - A **limit check** happens before the action. Over a limit the API answers
   `402 Payment Required` with `{"code":"limit_reached","limit":"activeProjects","current":1,"max":1}`.
 - Exceeding `processingMinutesPerMonth` blocks new parse/run/preview jobs, never reading,
