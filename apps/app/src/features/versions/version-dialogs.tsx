@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { Boq } from "@/api/hooks/boqs";
 import { useManualItems } from "@/api/hooks/edits";
-import { useProjectMembers } from "@/api/hooks/projects";
 import { useMe } from "@/api/hooks/me";
-import { useConfirmBoq, useRequestChanges, useSaveVersion, useSubmitForReview } from "@/api/hooks/versions";
+import { useConfirmBoq, useRequestChanges, useReviewerCandidates, useSaveVersion, useSubmitForReview } from "@/api/hooks/versions";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Field } from "@/components/field";
 import { Button } from "@/components/ui/button";
@@ -117,13 +116,12 @@ export function SaveVersionDialog({ boq, mode, open, onOpenChange, base, approva
   );
 }
 
-/** Submit for review (F09 §4): reviewers among the project's leads and approvers, a message, the tick. */
+/** Submit for review (F09 §4): reviewers among the people the API accepts (leads and approvers by effective role, B-14), a message, the tick. */
 export function SubmitDialog({ boq, open, onOpenChange, base }: { boq: Boq; open: boolean; onOpenChange: (v: boolean) => void; base: string }) {
   const t = useTranslations("boqs.versions.dialog");
   const message = useErrorMessage();
   const me = useMe();
-  const members = useProjectMembers(boq.projectId);
-  const candidates = (members.data ?? []).filter((m) => m.role === "lead" || m.role === "approver");
+  const candidates = useReviewerCandidates(boq.currentRevision.id, open).data ?? [];
   const [reviewers, setReviewers] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [ticked, setTicked] = useState(false);

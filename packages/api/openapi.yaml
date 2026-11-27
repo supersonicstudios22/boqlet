@@ -887,7 +887,7 @@ paths:
                           unit: { type: [string, "null"] }
                           quantity: { type: [number, "null"] }
                       filled: { type: string, maxLength: 20000 }
-                      filledFrom: { type: string, maxLength: 10000, description: The template `filled` was filled from, when it differs (a draft being typed) }
+                      filledFrom: { type: string, maxLength: 10000, description: "The template `filled` was filled from, when it differs (a draft being typed)" }
       responses:
         "200": { description: "One result per item, in order", content: { application/json: { schema: { $ref: "#/components/schemas/ItemTextSamples" } } } }
   /presets/rename-param:
@@ -1244,6 +1244,18 @@ paths:
                   job: { $ref: "#/components/schemas/Job" }
         "402": { $ref: "#/components/responses/LimitReached" }
         "409": { $ref: "#/components/responses/Conflict" }
+  /revisions/{revisionId}/reviewer-candidates:
+    parameters: [{ $ref: "#/components/parameters/RevisionId" }]
+    get:
+      tags: [boqs]
+      operationId: listReviewerCandidates
+      summary: Who may be chosen as a reviewer of this version (review B-14)
+      description: >-
+        The people `submitRevision` accepts as reviewers: everyone whose effective project role is lead or approver,
+        org owners and admins included (they act as lead, also when they are not project members). `role` is the
+        effective role.
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ProjectMember" } } } } }
   /revisions/{revisionId}/submit:
     parameters: [{ $ref: "#/components/parameters/RevisionId" }]
     post:

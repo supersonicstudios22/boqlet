@@ -140,14 +140,13 @@ public class Boqs {
         if (reviewers.isEmpty() || reviewers.stream().anyMatch(Objects::isNull)) {
             throw BoqAccess.failure(HttpStatus.BAD_REQUEST, "invalid_body", "Choose reviewers.");
         }
+        // The same list the picker shows (review B-14).
+        var candidates = new HashSet<UUID>();
+        for (var candidate : projects.reviewerCandidates(scope.project().getId())) candidates.add(candidate.getUser().getId());
         for (UUID reviewer : reviewers) {
-            try {
-                var role = projects.require(scope.project().getId(), reviewer).getMyRole();
-                if (role == ProjectRole.LEAD || role == ProjectRole.APPROVER) continue;
-            } catch (ApiException error) {
-                if (error.status() != HttpStatus.NOT_FOUND) throw error;
+            if (!candidates.contains(reviewer)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_reviewer", "Choose project leads or approvers.", Map.of("userId", reviewer));
             }
-            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_reviewer", "Choose project leads or approvers.", Map.of("userId", reviewer));
         }
         ready(scope);
         String membership = "{" + reviewers.stream().map(UUID::toString).reduce((first, second) -> first + "," + second).orElse("") + "}";
@@ -285,6 +284,12 @@ public class Boqs {
                 if (!actor.equals(reviewer)) notify(scope, reviewer, "revision.review_withdrawn", null, "review", actor, Map.of());
             }
         }
+    }
+
+    /** The reviewer picker's choices (review B-14): anyone who can see the version may ask. */
+    public List<ProjectMember> reviewerCandidates(UUID id, UUID actor) {
+        var scope = access.revision(id, actor);
+        return projects.reviewerCandidates(scope.project().getId());
     }
 
     private BoqRevision revision(UUID id, UUID actor) {

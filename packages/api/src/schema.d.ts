@@ -1285,6 +1285,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/revisions/{revisionId}/reviewer-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revisionId: components["parameters"]["RevisionId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Who may be chosen as a reviewer of this version (review B-14)
+         * @description The people `submitRevision` accepts as reviewers: everyone whose effective project role is lead or approver, org owners and admins included (they act as lead, also when they are not project members). `role` is the effective role.
+         */
+        get: operations["listReviewerCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/revisions/{revisionId}/submit": {
         parameters: {
             query?: never;
@@ -6551,7 +6573,7 @@ export interface operations {
                             quantity?: number | null;
                         };
                         filled?: string;
-                        /** @description The template `filled` was filled from */
+                        /** @description The template `filled` was filled from, when it differs (a draft being typed) */
                         filledFrom?: string;
                     }[];
                 };
@@ -7217,6 +7239,28 @@ export interface operations {
             };
             402: components["responses"]["LimitReached"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    listReviewerCandidates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revisionId: components["parameters"]["RevisionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMember"][];
+                };
+            };
         };
     };
     submitRevision: {

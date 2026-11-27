@@ -19,6 +19,8 @@ type Api = ReturnType<typeof client>;
 type Role = "owner" | "admin" | "lead" | "estimator" | "approver" | "viewer" | "stranger";
 
 const people = {} as Record<Role, TestUser>;
+/** An org admin who is not a member of the project (review B-14). */
+let outsideAdmin: TestUser;
 let orgId: string;
 let projectId: string;
 let codes: string;
@@ -73,18 +75,40 @@ beforeAll(async () => {
   await setPlan(people.owner, orgId, billing.plans!.find((p) => (p.entitlements.seats ?? 99) >= 6 && p.entitlements.shareLinks !== false)!.id);
   const { data: project } = await api().POST("/orgs/{orgId}/projects", { params: { path: { orgId } }, body: { name: "Duplex" } });
   projectId = project!.id;
-  await member("admin", "admin", "lead");
+  // An org admin listed as an estimator still acts as lead (DEC-27, review B-14).
+  await member("admin", "admin", "estimator");
   await member("lead", "member", "lead");
   await member("estimator", "member", "estimator");
   await member("approver", "member", "approver");
   await member("viewer", "member", "viewer");
   people.stranger = await signUp("Stan Stranger", uniqueEmail("roles-stranger"));
+  const outsideEmail = uniqueEmail("roles-outside-admin");
+  expect((await api().POST("/orgs/{orgId}/invitations", { params: { path: { orgId } }, body: { email: outsideEmail, role: "admin" } })).response.status).toBe(201);
+  outsideAdmin = await signUp("Ada Outside", outsideEmail);
+  expect((await client(outsideAdmin.token).POST("/invitations/{token}/accept", { params: { path: { token: await invitationToken(outsideEmail) } } })).response.status).toBe(200);
   const { data: model } = await api().POST("/projects/{projectId}/models", { params: { path: { projectId } }, body: { name: "Architecture", discipline: "architecture" } });
   const version = await uploadVersion(people.owner, model!.id, await duplexBytes(), "Duplex_A.ifc");
   expect((await waitForVersion(people.owner, version.id)).status).toBe("ready");
   const { data: presets } = await api().GET("/orgs/{orgId}/presets", { params: { path: { orgId }, query: { kind: "classification" } } });
   codes = presets!.find((p) => p.slug === "acme-cost-codes")!.latestPublishedVersion!.id;
 }, 420_000);
+
+describe("B-14: the reviewer picker offers whom the API accepts (ENG-016, DEC-27)", () => {
+  it("lists leads and approvers by effective role, org admins in the project as estimators or not in it at all", async () => {
+    const boq = (await api().POST("/projects/{projectId}/boqs", { params: { path: { projectId } }, body: { name: slug("Reviewers"), inputs: { classificationVersionIds: [codes] } } })).data!;
+    const revisionId = boq.currentRevision.id;
+    const { data, response } = await as("estimator").GET("/revisions/{revisionId}/reviewer-candidates", { params: { path: { revisionId } } });
+    expect(response.status).toBe(200);
+    const byId = new Map(data!.map((c) => [c.user.id, c.role]));
+    expect(byId.get(people.admin.id)).toBe("lead");
+    expect(byId.get(outsideAdmin.id)).toBe("lead");
+    expect(byId.get(people.owner.id)).toBe("lead");
+    expect(byId.get(people.lead.id)).toBe("lead");
+    expect(byId.get(people.approver.id)).toBe("approver");
+    for (const role of ["estimator", "viewer", "stranger"] as const) expect(byId.has(people[role].id)).toBe(false);
+    expect((await as("stranger").GET("/revisions/{revisionId}/reviewer-candidates", { params: { path: { revisionId } } })).response.status).toBe(404);
+  });
+});
 
 describe("BR-20: a saved version refuses every write, for every role (TF-010)", () => {
   let saved: Schemas["BoqRevision"];

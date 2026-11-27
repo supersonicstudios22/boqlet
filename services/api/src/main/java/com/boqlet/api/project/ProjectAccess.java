@@ -126,6 +126,24 @@ public class ProjectAccess {
         role(project, "editPresets");
     }
 
+    /**
+     * Who may review a version of this project (review B-14): every org member whose effective project role is
+     * lead or approver, as {@code READ} computes it (org owners and admins act as lead, members or not). The
+     * submit check and the reviewer picker both use this; {@code role} is the effective role, by name.
+     */
+    public List<com.boqlet.contract.model.ProjectMember> reviewerCandidates(UUID project) {
+        return database.query("""
+                SELECT u.*, CASE WHEN m.role IN ('owner', 'admin') THEN 'lead' ELSE pm.role END AS effective_role
+                FROM projects p JOIN memberships m ON m.org_id = p.org_id JOIN users u ON u.id = m.user_id
+                LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = m.user_id
+                WHERE p.id = ? AND u.deleted_at IS NULL
+                  AND (m.role IN ('owner', 'admin') OR pm.role IN ('lead', 'approver'))
+                ORDER BY u.name, u.id
+                """, (row, index) -> new com.boqlet.contract.model.ProjectMember(
+                        com.boqlet.api.identity.IdentityService.mapUser(row, index),
+                        ProjectRole.fromValue(row.getString("effective_role"))), project);
+    }
+
     public void role(Project project, String action) {
         var allowed = ACTIONS.get(action);
         if (!allowed.contains(project.getMyRole())) {

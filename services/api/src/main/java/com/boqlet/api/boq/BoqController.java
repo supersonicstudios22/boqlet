@@ -59,6 +59,11 @@ class BoqController implements BoqsApi {
     }
 
     @Override
+    public ResponseEntity<List<ProjectMember>> listReviewerCandidates(UUID id) {
+        return ResponseEntity.ok(boqs.reviewerCandidates(id, actor()));
+    }
+
+    @Override
     public ResponseEntity<BoqRevision> submitRevision(UUID id, SubmitRevisionRequest request) {
         return ResponseEntity.ok(boqs.submit(id, actor(), request));
     }

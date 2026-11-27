@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { idempotencyHeaders } from "@/api/idempotency";
@@ -34,6 +34,18 @@ export interface SaveInput {
 
 export function useSaveVersion(revisionId: string, boqId: string, projectId: string) {
   return useVersionAction(boqId, projectId, async (body: SaveInput) => (await api.POST("/revisions/{revisionId}/issue", { params: { path: { revisionId } }, body, headers: idempotencyHeaders(`issueRevision:${revisionId}`, body) })).data!);
+}
+
+/**
+ * Who the submit dialog offers as reviewers: the people the API accepts (review B-14), by their effective
+ * role, org owners and admins included whether or not they are project members.
+ */
+export function useReviewerCandidates(revisionId: string, enabled = true) {
+  return useQuery({
+    queryKey: keys.reviewerCandidates(revisionId),
+    enabled,
+    queryFn: async () => (await api.GET("/revisions/{revisionId}/reviewer-candidates", { params: { path: { revisionId } } })).data!,
+  });
 }
 
 export function useSubmitForReview(revisionId: string, boqId: string, projectId: string) {

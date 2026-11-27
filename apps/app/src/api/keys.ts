@@ -9,6 +9,7 @@ export const keys = {
   org: (orgId: string) => ["org", orgId] as const,
   orgs: () => ["orgs"] as const,
   members: (orgId: string) => ["members", orgId] as const,
+  reviewerCandidates: (revisionId: string) => ["reviewer-candidates", revisionId] as const,
   project: (projectId: string) => ["project", projectId] as const,
   projects: (orgId?: string) => (orgId ? (["projects", orgId] as const) : (["projects"] as const)),
   models: (projectId: string) => ["models", projectId] as const,

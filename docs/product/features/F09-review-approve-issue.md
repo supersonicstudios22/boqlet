@@ -45,7 +45,9 @@ active.
    (F11).
 4. **Approval (optional)**, org setting `approvalRequired` (owner, admin; default off; plan
    feature `approvalWorkflow`):
-   - "Save version" becomes **Submit for review**: pick reviewers (leads and approvers), message.
+   - "Save version" becomes **Submit for review**: pick reviewers (leads and approvers by effective
+     role, so org owners and admins too, project members or not; the picker lists exactly whom the API
+     accepts, `GET /revisions/{id}/reviewer-candidates`, review B-14), message.
      Revision → `in_review`; reviewers notified.
    - **Review screen:** the sheet read-only, the change report against the last saved version
      first, the questions summary, every line edit with its reason, manual lines, warnings.
