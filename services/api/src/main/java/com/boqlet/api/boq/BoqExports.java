@@ -61,11 +61,16 @@ public class BoqExports {
      */
     static final Set<String> BUILT_IN_GROUPINGS = Set.of("~storey", "~rule");
 
+    /** A built-in grouping; null (a run without a classification) is none. `Set.of` refuses null lookups. */
+    static boolean builtIn(String group) {
+        return group != null && BUILT_IN_GROUPINGS.contains(group);
+    }
+
     @Transactional
     public Job startRun(UUID runId, UUID actor, String groupBy) {
         var run = runs.visible(runId, actor);
         var systems = run.run().getClassifications() == null ? List.<PublicShareSystemsInner>of() : run.run().getClassifications();
-        if (groupBy != null && !BUILT_IN_GROUPINGS.contains(groupBy) && systems.stream().noneMatch(system -> groupBy.equals(system.getId()))) {
+        if (groupBy != null && !builtIn(groupBy) && systems.stream().noneMatch(system -> groupBy.equals(system.getId()))) {
             throw new com.boqlet.api.http.ApiException(HttpStatus.BAD_REQUEST, "invalid_body",
                     "groupBy is not a classification of this run, ~storey or ~rule.", Map.of("groupBy", groupBy));
         }
@@ -127,7 +132,7 @@ public class BoqExports {
         if (group != null) metadata.put("groupBy", group);
         metadata.put("classifications", run.run().getClassifications() == null ? List.of() : run.run().getClassifications());
         // Grouped by storey or rule (review C-07), a view: Ref and the numbers stay those of the first classification.
-        metadata.put("positionNumbers", positions(currentId, BUILT_IN_GROUPINGS.contains(group) ? primary(run) : group));
+        metadata.put("positionNumbers", positions(currentId, builtIn(group) ? primary(run) : group));
         // The sheet's order, with reorders and placed manual lines (F06-AC3, BR-28; TF-049).
         metadata.put("lineOrder", database.queryForList("SELECT line_key FROM run_lines WHERE run_id = ? ORDER BY sort_index",
                 String.class, currentId));
