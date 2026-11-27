@@ -261,6 +261,7 @@ item. The package's PROGRESS.md row points here.
 | DEC-122 | WP-B4 B-17 | **design-system.md lists what `apps/app/src` has, built or not built, and the unused shadcn `ui/select.tsx` is deleted.** Selects are native (`native-select.tsx`) and nothing imported the shadcn one; "note it" would keep a component the doc then has to explain. The favicon is still missing (N-35). | The code wins (CLAUDE.md). |
 | DEC-123 | WP-B5 B-18 | **The list's trace is a summary in the same `RunLine` shape (formula, source line, per element guid, quantity and model; params `{}`; no steps), full with `include=trace`; the 15 % target is read on the wire.** The item offers "a compact array or a separate stream" for the viewer's ids; keeping the schema means no app type or viewer change, and Java's own readers (exports, shares) keep full lines. S08: 927 KB full, 317 KB as summaries (34 %: each element's guid, quantity and model remain), 17.9 KB gzipped (1.9 %). Going under 15 % uncompressed needs a new element shape in the contract (N-37). WP-B5 was split: B-19 (L) and B-20 (M) went to WP-B5b, as section 6.1 step 5 allows. | The acceptance names gzip with the payload; the change is visible to API clients only as a smaller trace, documented on the operation. |
 | DEC-124 | WP-B6 B-22, B-23 | **WP-B6 keeps B-24; B-22 and B-23 move to WP-B6b; B-23's 60 % target needs the kernel too.** On this machine S06's geometry kernel alone (`ifcopenshell.geom.iterator`, 12 threads) iterates its 968 shapes in 25.6 s of the parse's 38.5 s, and the Python post-processing already runs while the kernel works, so making it parallel (B-23's process pool) can bring S06 to about 26 s + 3 s (≈ 75 %), not 60 %. B-23's one clear single-thread win landed here (mass properties once per mesh: 968 calls instead of 1,760). B-22 (meshes streamed out of memory) is a large change to every stage that reads `self.meshes` (rooms, contact faces, intersections, openings, overlaps, the viewer export) and needs its own session. B-23 depends on B-22, so both moved. | Section 6.1 step 5; the measurements are in PROGRESS.md. |
+| DEC-125 | WP-B5b B-19 | **B-19 moves to WP-B5c; WP-B5b closes with B-20.** Server grouping and windowing changes how the sheet holds its lines: client-side grouping, virtualisation, line edits, co-editing, position numbers, filters and the viewer's scope all read the full list today, so windowed data reaches each of them (the item's own risk). It needs its own session with the perf spec and the browser smoke around it; B-20 (backend only) was finished first and verified. | Section 6.1 step 5. |
 
 ### 3.5 Spec-issue findings: which doc changes and how
 
@@ -966,7 +967,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Tests:** contract test for the new shape; B-07 perf spec.
 - **Effort:** M · **Depends on:** B-07 · **Risk:** the viewer needs element ids per line — provide them compactly.
 
-#### B-19 · Server-side grouping and windowing above a threshold  (WP-B5b)
+#### B-19 · Server-side grouping and windowing above a threshold  (WP-B5c)
 - **Sources:** FM-29
 - **Problem:** the sheet groups in the browser; Java supports `groupBy`/`level` but no client uses it.
 - **Why it matters:** F06 promises server grouping above 20,000 lines.
@@ -2466,12 +2467,20 @@ means compare-baseline must report 0 differences.
 - **Expected baseline changes:** none.
 
 #### WP-B5b · Server-side grouping and no N+1 queries (split from WP-B5)
-- **Items:** B-19, B-20 (their text is in section 4)
+- **Items:** B-20 (the grouping and windowing item was split to WP-B5c, DEC-125; its text is in section 4)
 - **Requires:** WP-B2, WP-B4, WP-B5
 - **Touches:** `services/api/.../boq/RunReads.java`, `BoqAccess.java`, `Boqs.java`, a migration if a cached column is added, `apps/app/src/api/hooks/sheet.ts`, `apps/app/src/features/boq-sheet/*`, `tests/scenarios/sheet.test.ts`, `apps/app/e2e-java/perf.spec.ts`.
 - **Entry check:** standard; `npm run local:up`.
 - **Exit check:** standard (Java changed); B-07 perf spec within budget, its first-row gate tightened to 2 s when B-19 meets it; the query-count test of B-20.
 - **Expected baseline changes:** none (the stack layer fetches full lines with `include=trace`, WP-B5).
+#### WP-B5c · Server-side grouping and windowing (split from WP-B5b)
+- **Items:** B-19 (its text is in section 4)
+- **Requires:** WP-B5b
+- **Touches:** `apps/app/src/api/hooks/sheet.ts`, `apps/app/src/features/boq-sheet/*` (sheet, model, positions, edits, co-editing), `services/api/.../boq/RunReads.java`, `tests/scenarios/sheet.test.ts`, `apps/app/e2e-java/perf.spec.ts`.
+- **Entry check:** standard; `npm run local:up`; the B-07 perf spec within its gates.
+- **Exit check:** standard (contract and Java if they change); a 25,000-line BoQ (the harness's `/_test/runs/{id}/inflate`) opens with groups collapsed and the first rows < 2 s; the perf spec's first-row gate tightened to 2 s; edits and co-editing on a windowed sheet keep working (browser smoke).
+- **Expected baseline changes:** none.
+
 #### WP-B6b · Parse memory and CPU (split from WP-B6)
 - **Items:** B-22, B-23 (the CPU item's first part landed in WP-B6; their text is in section 4)
 - **Requires:** WP-A8, WP-B6
