@@ -8,6 +8,7 @@ export const keys = {
   plans: () => ["plans"] as const,
   org: (orgId: string) => ["org", orgId] as const,
   orgs: () => ["orgs"] as const,
+  search: (orgId: string, q: string) => ["search", orgId, q] as const,
   members: (orgId: string) => ["members", orgId] as const,
   reviewerCandidates: (revisionId: string) => ["reviewer-candidates", revisionId] as const,
   project: (projectId: string) => ["project", projectId] as const,

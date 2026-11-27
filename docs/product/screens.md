@@ -70,9 +70,11 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S38 | (pricing module) BoQ workspace `?tab=pricing` | lead, estimator, approver | estimate lines, sources, totals | fill remembered, pick a price, type, export |
 | S36 | `/admin` (overview, funnel, orgs, orgs/[id], users, plans, plans/[id], plans/new, settings, vendors, health) | platform admin | `/admin/*` | notes, tags, plan change, trial, overrides, suspend, end session; create, edit and delete plans with their effect previewed; currency and public sign-up (P57) |
 
-Global chrome (all `/{org}` routes): top bar with org switcher, notifications bell, theme switch,
-user menu. A global search (projects, BoQs, later elements) is specified but **not built** (FE-034;
-review B-17, UX-047). Left nav: Dashboard, Projects, Library, Settings.
+Global chrome (all `/{org}` routes): top bar with org switcher, a search field that opens the
+**command palette** (⌘K / Ctrl+K: projects, BoQs, models and presets by name, only those the person
+can open; the page's actions such as "Generate again", "Export Excel", "Go to the questions"; the
+settings pages; review C-09, D118), notifications bell, theme switch, user menu. Searching inside
+models (elements) is not built. Left nav: Dashboard, Projects, Library, Settings.
 Inside a project: a project sub-nav: Overview, Models, BoQs, Decisions, Library, Activity,
 Settings. Modules add entries through the extension points (pricing: "Offers" in the project,
 "Vendors" and "Pricebooks" in the org nav). The vendor area (`/vendor`, pricing module) has its

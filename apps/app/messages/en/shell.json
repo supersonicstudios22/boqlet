@@ -20,5 +20,46 @@
     "signOut": "Sign out",
     "account": "Account",
     "admin": "Platform admin"
+  },
+  "palette": {
+    "open": "Search or jump to…",
+    "title": "Search and commands",
+    "description": "Find a project, BoQ, model, preset or page, or run an action here. {key} opens this from anywhere.",
+    "placeholder": "Projects, BoQs, models, presets, pages, actions…",
+    "results": "Results",
+    "inProject": "in {project}",
+    "archived": "archived",
+    "empty": "Nothing matches “{q}”.",
+    "searching": "Searching…",
+    "error": "The search didn't answer. Pages and actions still work.",
+    "groups": {
+      "actions": "Here",
+      "project": "Projects",
+      "boq": "BoQs",
+      "model": "Models",
+      "preset": "Library",
+      "pages": "Pages"
+    },
+    "presetKinds": {
+      "rule_set": "Rule set",
+      "classification": "Classification",
+      "dictionary": "Dictionary",
+      "federation": "Federation settings",
+      "resolution": "Resolution settings"
+    },
+    "pages": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "newProject": "New project",
+      "library": "Library",
+      "general": "Settings: general",
+      "members": "Settings: members",
+      "billing": "Settings: billing",
+      "usage": "Settings: usage",
+      "shares": "Settings: share links",
+      "audit": "Settings: audit log",
+      "account": "Your account",
+      "notifications": "Notifications"
+    }
   }
 }

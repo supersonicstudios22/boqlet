@@ -19,14 +19,22 @@ import static com.boqlet.contract.model.ProjectRole.*;
 
 @Service
 public class ProjectAccess {
-    private static final String READ = """
-            SELECT p.*, CASE WHEN m.role IN ('owner', 'admin') THEN 'lead' ELSE pm.role END AS effective_role,
-                   coalesce((SELECT max(a.created_at) FROM audit_events a WHERE a.project_id = p.id), p.updated_at) AS activity
+    /** The projects one user may open (one parameter: the user): owners and admins every one of their orgs', others theirs. */
+    private static final String VISIBLE = """
             FROM projects p JOIN orgs o ON o.id = p.org_id
             JOIN memberships m ON m.org_id = p.org_id AND m.user_id = ?
             LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = m.user_id
             WHERE o.status <> 'deleting' AND (m.role IN ('owner', 'admin') OR pm.role IS NOT NULL)
             """;
+    private static final String READ = """
+            SELECT p.*, CASE WHEN m.role IN ('owner', 'admin') THEN 'lead' ELSE pm.role END AS effective_role,
+                   coalesce((SELECT max(a.created_at) FROM audit_events a WHERE a.project_id = p.id), p.updated_at) AS activity
+            """ + VISIBLE;
+    /**
+     * The same projects as `require` and `list` see, as a subquery of ids and names for other readers (the org search,
+     * review C-09): parameters the user, then the org. One condition, so a search can't show more than a list.
+     */
+    public static final String VISIBLE_IN_ORG = "SELECT p.id, p.name, p.status " + VISIBLE + " AND p.org_id = ?";
 
     /**
      * What an archived project still allows (permissions.md, P54): reading, unarchiving it (`archive`, Q53) and

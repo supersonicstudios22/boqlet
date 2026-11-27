@@ -76,7 +76,8 @@ public class PresetCatalog {
         return heads(" AND p.id = ?", id).stream().findFirst().orElseThrow(PresetCatalog::missing);
     }
 
-    List<Head> visibleHeads(UUID org, UUID project) {
+    /** The presets the org's Library lists (system and org presets, and a project's own with `project`). */
+    public List<Head> visibleHeads(UUID org, UUID project) {
         return heads("""
                  AND (p.layer = 'system' OR (p.org_id = ? AND (p.project_id IS NULL OR p.project_id = ?)))
                  ORDER BY p.layer, lower(p.name), p.id

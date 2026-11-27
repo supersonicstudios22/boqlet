@@ -19,7 +19,7 @@ export function takeGridFocusRequest(): boolean {
 }
 
 /** The keys the workspace knows, in the order the help lists them (catalogue keys under `boqs.shortcuts.keys`). */
-const KEYS = ["search", "lines", "cells", "edit", "tick", "tickAll", "undo", "close", "goSheet", "goQuestions", "help"] as const;
+const KEYS = ["search", "palette", "lines", "cells", "edit", "tick", "tickAll", "undo", "close", "goSheet", "goQuestions", "help"] as const;
 
 /** Typing in a field or working in a dialog: the workspace's letter keys stay out of the way. */
 function typing(target: EventTarget | null): boolean {

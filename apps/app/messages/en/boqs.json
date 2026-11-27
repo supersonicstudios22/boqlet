@@ -244,6 +244,10 @@
         "key": "/",
         "does": "Search the lines"
       },
+      "palette": {
+        "key": "Ctrl+K or ⌘K",
+        "does": "Find a project, BoQ, model or page, or run an action (anywhere in the app)"
+      },
       "lines": {
         "key": "↑ ↓",
         "does": "Move between lines and group headings (in the sheet)"
@@ -838,5 +842,8 @@
       "excluded": "excluded",
       "order": "order"
     }
+  },
+  "palette": {
+    "goQuestions": "Go to the questions"
   }
 }

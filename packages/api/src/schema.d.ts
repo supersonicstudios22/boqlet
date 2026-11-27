@@ -241,6 +241,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orgs/{orgId}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: components["parameters"]["OrgId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Projects, BoQs, models and presets of this org whose name contains the text (review C-09)
+         * @description For the command palette (⌘K / Ctrl+K). Only what the caller can open: projects they are a member of (owners and admins: every project), the BoQs and models of those projects, and the library presets the org's Library lists (system and org presets). Archived BoQs and models are left out; an archived project is listed with `archived: true`. Case-insensitive; names that start with the text come first, then by name. At most `limit` hits per kind. Another org's names never appear (an org the caller isn't in: 404).
+         */
+        get: operations["searchOrg"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orgs/{orgId}/audit": {
         parameters: {
             query?: never;
@@ -3042,6 +3064,22 @@ export interface components {
                 };
             };
         };
+        SearchResults: {
+            items: components["schemas"]["SearchHit"][];
+        };
+        /** @description One thing the palette can open; `projectId` / `projectName` for a BoQ or model, `presetKind` for a preset. */
+        SearchHit: {
+            /** @enum {string} */
+            kind: "project" | "boq" | "model" | "preset";
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            projectId?: string;
+            projectName?: string;
+            presetKind?: components["schemas"]["PresetKind"];
+            archived?: boolean;
+        };
         /** @description The signed-in user's interface preferences, kept on the server so they follow the user to every browser (F06-AC8, Q55). */
         UserPreferences: {
             /** @description the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12) */
@@ -5277,6 +5315,34 @@ export interface operations {
                     "application/json": components["schemas"]["AttentionItem"][];
                 };
             };
+        };
+    };
+    searchOrg: {
+        parameters: {
+            query: {
+                q: string;
+                /** @description hits per kind */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                orgId: components["parameters"]["OrgId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResults"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
         };
     };
     listOrgAudit: {

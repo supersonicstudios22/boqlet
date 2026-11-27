@@ -270,6 +270,25 @@ paths:
       summary: The "Needs you" list for the current user in this org
       responses:
         "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/AttentionItem" } } } } }
+  /orgs/{orgId}/search:
+    parameters: [{ $ref: "#/components/parameters/OrgId" }]
+    get:
+      tags: [orgs]
+      operationId: searchOrg
+      summary: Projects, BoQs, models and presets of this org whose name contains the text (review C-09)
+      description: >-
+        For the command palette (⌘K / Ctrl+K). Only what the caller can open: projects they are a member of (owners
+        and admins: every project), the BoQs and models of those projects, and the library presets the org's
+        Library lists (system and org presets). Archived BoQs and models are left out; an archived project is
+        listed with `archived: true`. Case-insensitive; names that start with the text come first, then by name.
+        At most `limit` hits per kind. Another org's names never appear (an org the caller isn't in: 404).
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 200 } }
+        - { name: limit, in: query, description: hits per kind, schema: { type: integer, default: 8, minimum: 1, maximum: 50 } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/SearchResults" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
   /orgs/{orgId}/audit:
     parameters: [{ $ref: "#/components/parameters/OrgId" }]
     get:
@@ -2903,6 +2922,23 @@ components:
           type: object
           description: Fields added by installed modules under their key (e.g. `pricing`); empty when none are installed (P36).
           additionalProperties: { type: object, additionalProperties: true }
+    SearchResults:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/SearchHit" } }
+    SearchHit:
+      type: object
+      description: One thing the palette can open; `projectId` / `projectName` for a BoQ or model, `presetKind` for a preset.
+      required: [kind, id, name]
+      properties:
+        kind: { type: string, enum: [project, boq, model, preset] }
+        id: { type: string, format: uuid }
+        name: { type: string }
+        projectId: { type: string, format: uuid }
+        projectName: { type: string }
+        presetKind: { $ref: "#/components/schemas/PresetKind" }
+        archived: { type: boolean }
     UserPreferences:
       type: object
       description: The signed-in user's interface preferences, kept on the server so they follow the user to every browser (F06-AC8, Q55).

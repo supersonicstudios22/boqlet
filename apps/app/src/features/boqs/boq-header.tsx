@@ -31,6 +31,8 @@ import { SERVER_GROUPED_ABOVE, useLines } from "@/api/hooks/sheet";
 import { notAppliedEdits } from "./pending";
 import { PendingBanner } from "./pending-banner";
 import { useRefocusWhenLost } from "@/lib/focus";
+import { useRouter } from "next/navigation";
+import { useRegisterCommands } from "@/features/command-palette/commands";
 
 export function Tag({ children, filled, className, ...rest }: { children: React.ReactNode; filled?: boolean; className?: string; "data-testid"?: string }) {
   return (
@@ -97,6 +99,15 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
   const { blocking } = useOpenQuestions(revision.currentRun?.id);
   const next = nextStep(boq, state, can, blocking);
   const variant = (step: NextStep) => (next === step ? "default" : "outline");
+  // The command palette's actions in a BoQ (review C-09): generate, and the questions.
+  const router = useRouter();
+  useRegisterCommands("boq-header", [
+    ...(can("editBoqs") && state.kind !== "active" && state.kind !== "failed"
+      ? [{ id: "generate", label: state.kind === "none" ? t("actions.generate") : t("actions.regenerate"), run: () => generate.mutate() }]
+      : []),
+    ...(state.kind === "failed" && can("editBoqs") ? [{ id: "retry", label: t("actions.retry"), run: () => generate.mutate() }] : []),
+    { id: "questions", label: t("palette.goQuestions"), run: () => router.push(`${base}?tab=questions`) },
+  ]);
   const saveStep = can("submit") ? "submit" : "save";
   // The header's actions in their usual order; the primary is moved to the front when rendered.
   const actions: { key: string; step: NextStep; node: React.ReactNode }[] = [];

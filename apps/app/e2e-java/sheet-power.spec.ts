@@ -10,6 +10,8 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
  *   sheet's Excel asks for the same grouping.
  * - C-08: after an edit one banner names what is waiting for a run, says why Save version waits, and "Apply now"
  *   generates; afterwards it is gone.
+ * - C-09: Ctrl+K opens the command palette anywhere; it finds a BoQ by name in another project and opens it, and
+ *   lists the BoQ page's own actions. (Who sees which names: the isolation scenario.)
  */
 
 test.describe.configure({ timeout: 360_000 });
@@ -207,5 +209,42 @@ test("@c2-pending C-08: an edit shows one banner naming what waits; Apply now ge
   const after = await apiAs<{ currentRevision: { pendingChanges: string[]; currentRun?: { id: string } } }>(owner, "GET", `/boqs/${boq.id}`);
   expect(after.currentRevision.pendingChanges).toEqual([]);
   expect(after.currentRevision.currentRun?.id).not.toBe(boq.currentRevision.currentRun?.id);
+  await context.close();
+});
+
+test("@c2-palette C-09: Ctrl+K finds a BoQ across projects and opens it; the page's actions are listed", async ({ browser }) => {
+  const { owner, url, orgId } = await sampleBoq("Pia Palette");
+  const tower = await apiAs<{ id: string }>(owner, "POST", `/orgs/${orgId}/projects`, { name: "Harbour Tower" });
+  const tender = await apiAs<{ id: string }>(owner, "POST", `/projects/${tower.id}/boqs`, { name: "Tower tender" });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(context, owner);
+  const page = await context.newPage();
+  await openSheet(page, url);
+
+  // In a BoQ: its actions come first ("Here").
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("palette");
+  await expect(palette).toBeVisible();
+  await expect(page.getByTestId("palette-input")).toBeFocused();
+  await page.getByTestId("palette-input").fill("excel");
+  await expect(page.locator('[data-testid="palette-option"][data-kind="actions"]').first()).toContainText("Excel");
+  await page.keyboard.press("Escape");
+  await expect(palette).toBeHidden();
+
+  // From the top bar's field: a BoQ of another project, named with its project; Enter opens it.
+  await page.getByTestId("palette-open").click();
+  await page.getByTestId("palette-input").fill("tower t");
+  const hit = page.locator(`[data-testid="palette-option"][data-id="boq:${tender.id}"]`);
+  await expect(hit).toContainText("Tower tender");
+  await expect(hit).toContainText("Harbour Tower");
+  await expect(page.getByTestId("palette-input")).toHaveAttribute("aria-activedescendant", (await hit.getAttribute("id"))!);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(new RegExp(`/projects/${tower.id}/boqs/${tender.id}`));
+
+  // Pages too, by keyboard: Ctrl+K, "members", Enter.
+  await page.keyboard.press("Control+k");
+  await page.getByTestId("palette-input").fill("members");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/settings\/members$/);
   await context.close();
 });

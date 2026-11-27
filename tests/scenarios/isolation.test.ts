@@ -41,6 +41,7 @@ describe("BR-50: another org's people see nothing of it", () => {
       api.GET("/orgs/{orgId}/attention", { params: { path: { orgId } } }),
       api.GET("/orgs/{orgId}/audit", { params: { path: { orgId } } }),
       api.GET("/orgs/{orgId}/entitlements", { params: { path: { orgId } } }),
+      api.GET("/orgs/{orgId}/search", { params: { path: { orgId }, query: { q: "Private" } } }),
       api.GET("/projects/{projectId}", { params: { path: { projectId } } }),
       api.GET("/projects/{projectId}/boqs", { params: { path: { projectId } } }),
       api.GET("/boqs/{boqId}", { params: { path: { boqId } } }),
@@ -51,6 +52,45 @@ describe("BR-50: another org's people see nothing of it", () => {
       api.POST("/boqs/{boqId}/overrides", { params: { path: { boqId } }, body: { lineKey: "x", excluded: true, reason: "no" } }),
     ];
     for (const res of await Promise.all(calls)) expect({ url: res.response.url, status: res.response.status }).toEqual({ url: res.response.url, status: 404 });
+  });
+});
+
+describe("the command palette's search finds only what the caller can open (review C-09)", () => {
+  it("the owner finds the project, its BoQ and model; a member outside the project and another org's people find none of them", async () => {
+    const own = client(owner.token);
+    const search = async (token: string, org: string, q: string) => {
+      const res = await client(token).GET("/orgs/{orgId}/search", { params: { path: { orgId: org }, query: { q } } });
+      expect(res.response.status).toBe(200);
+      return res.data!.items;
+    };
+    // Case-insensitive, by name; a BoQ and a model name their project.
+    const mine = await search(owner.token, orgId, "priv");
+    expect(mine.filter((h) => h.kind === "project").map((h) => h.id)).toContain(projectId);
+    expect(mine.find((h) => h.kind === "boq" && h.id === boqId)).toMatchObject({ name: "Private BoQ", projectId, projectName: "Private" });
+    expect((await search(owner.token, orgId, "ARCH")).find((h) => h.kind === "model" && h.id === modelId)).toMatchObject({ projectId });
+    // Library presets the org lists come too (system presets here).
+    expect((await search(owner.token, orgId, "a")).some((h) => h.kind === "preset")).toBe(true);
+
+    // An org member who isn't on the project: not its name, nor its BoQ's or model's.
+    const email = uniqueEmail("iso-searcher");
+    await own.POST("/orgs/{orgId}/invitations", { params: { path: { orgId } }, body: { email, role: "member" } });
+    const member = await signUp("Iso Searcher", email);
+    await client(member.token).POST("/invitations/{token}/accept", { params: { path: { token: await invitationToken(email) } } });
+    const theirs = await search(member.token, orgId, "priv");
+    expect(theirs.filter((h) => h.kind !== "preset")).toEqual([]);
+    expect((await search(member.token, orgId, "arch")).filter((h) => h.kind === "model")).toEqual([]);
+    // Added to the project, they find it.
+    await own.POST("/projects/{projectId}/members", { params: { path: { projectId } }, body: { userId: (await client(member.token).GET("/me")).data!.user.id, role: "viewer" } });
+    expect((await search(member.token, orgId, "priv")).map((h) => h.id)).toEqual(expect.arrayContaining([projectId, boqId]));
+
+    // Someone else's org of their own: the same words find nothing of this one.
+    const outsider = await signUp("Iso Outsider", uniqueEmail("iso-outsider"));
+    const { data: other } = await client(outsider.token).POST("/orgs", { body: { name: "Iso Search Firm", slug: slug("iso-q") } });
+    const foreign = await search(outsider.token, other!.id, "priv");
+    expect(foreign.map((h) => h.id)).not.toEqual(expect.arrayContaining([projectId]));
+    expect(foreign.filter((h) => h.kind !== "preset")).toEqual([]);
+    // An empty search is refused.
+    expect((await own.GET("/orgs/{orgId}/search", { params: { path: { orgId }, query: { q: "   " } } })).response.status).toBe(400);
   });
 });
 

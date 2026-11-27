@@ -20,9 +20,11 @@ class OrgController implements OrgsApi {
     private final AuditReader audit;
     private final Attention attention;
     private final Idempotency idempotency;
+    private final com.boqlet.api.project.OrgSearch search;
 
     OrgController(OrgAccess access, Orgs orgs, Invitations invitations, AuditReader audit, Attention attention,
-                  Idempotency idempotency) {
+                  Idempotency idempotency, com.boqlet.api.project.OrgSearch search) {
+        this.search = search;
         this.access = access;
         this.orgs = orgs;
         this.invitations = invitations;
@@ -39,6 +41,12 @@ class OrgController implements OrgsApi {
     @Override
     public ResponseEntity<Org> createOrg(OrgCreate request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orgs.create(actor(), request));
+    }
+
+    /** The command palette's search (review C-09): only names the caller can open. */
+    @Override
+    public ResponseEntity<SearchResults> searchOrg(String q, UUID org, Integer limit) {
+        return ResponseEntity.ok(search.search(org, actor(), q, limit));
     }
 
     @Override

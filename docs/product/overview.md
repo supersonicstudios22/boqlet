@@ -147,7 +147,7 @@ Planned in the specs but **not built**:
 | Pricing module (vendors, pricebooks, estimates, offer requests) | P32–P36, F11, F17, F20 | Deferred (P48). Only `openapi-pricing.yaml` and the core's extension points exist; `packages/pricing-ui` does not exist |
 | AI name suggestions; coordinate alignment between models | v1 scope "out" | Settings type exists for AI; federation assumes shared coordinates and warns |
 | Languages other than English | P07, F15 | Infrastructure only; engine log texts are still English strings. The org's number and date formats apply everywhere (TF-021); imperial output is deferred (EN-imperial) |
-| Global search; opening an earlier run read-only | FE-034, F04 §5 (FE-048) | Deferred in the test campaign ([known-limitations.md](known-limitations.md)) |
+| Opening an earlier run read-only; searching elements and line texts (the ⌘K palette searches names, review C-09) | F04 §5 (FE-048), FE-034 | Deferred ([known-limitations.md](known-limitations.md)) |
 | Admin MFA, revenue, email and webhook health | F19 | Health says "not tracked yet" for webhook failures and bounces; every admin read is audited (P54 Q59) |
 | Separate staging environment | P51 | A future todo |
 | Success measures "instrumented from day one" | below | Partly: usage events per job, and the admin funnel (setup → model → BoQ → saved → shared, with median hours) |

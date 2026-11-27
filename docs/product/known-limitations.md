@@ -93,7 +93,8 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
 - No default-preset pickers in project creation or settings (F02).
 - A project's unit system (metric/imperial, F02, F15 §7) is stored but has no effect yet: the engine
   outputs metric (EN-imperial, deferred in the test campaign as TF-050).
-- No global search (FE-034, TF-016); an earlier run can't be opened read-only (FE-048, F04 §5,
+- The command palette (⌘K, review C-09) searches names of projects, BoQs, models and presets, not
+  elements, line texts or codes; an earlier run can't be opened read-only (FE-048, F04 §5,
   TF-095): the sheet shows the current run and saved versions.
 - The sheet loads every line and groups in the browser up to 20,000 lines; above that it opens
   grouped on the server, read-only (no inline edits, moves, manual lines or the shared 3D filter

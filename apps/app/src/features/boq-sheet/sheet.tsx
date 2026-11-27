@@ -54,6 +54,7 @@ import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { keepEdit, takeKeptEdits } from "./kept-edits";
 import { useRefocusWhenLost } from "@/lib/focus";
+import { useRegisterCommands } from "@/features/command-palette/commands";
 
 /** Screens where the sheet has room for every default column and opens the model beside it (F07 §9). */
 const WIDE = "(min-width: 1280px)";
@@ -741,6 +742,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   // An edit the API didn't answer is shown as not saved (below), not as an error.
   const editError = (editLines.error && !isUnavailable(editLines.error) ? editLines.error : null) ?? saveManual.error ?? removeManual.error;
   const retrying = editLines.isPending && editLines.failureCount > 0;
+
+  // The command palette's action on the sheet (review C-09): its Excel, asking first when inputs wait (A-41).
+  useRegisterCommands("sheet", [{ id: "export", label: t("exportExcel"), disabledReason: exporting.isPending || regenerating ? t("exporting") : undefined, run: exportExcel }]);
 
   if (lines.isError) return <InlineError error={lines.error} onRetry={() => lines.refetch()} />;
   if (!lines.data) return <p className="text-muted-foreground" aria-busy="true">{t("loading")}</p>;
