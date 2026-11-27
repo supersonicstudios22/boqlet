@@ -8,6 +8,8 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
  *   column width stays for the BoQ.
  * - C-07: a BoQ without a classification opens grouped by storey, with subtotals; "Measured as" groups by rule; the
  *   sheet's Excel asks for the same grouping.
+ * - C-08: after an edit one banner names what is waiting for a run, says why Save version waits, and "Apply now"
+ *   generates; afterwards it is gone.
  */
 
 test.describe.configure({ timeout: 360_000 });
@@ -171,3 +173,39 @@ test("@c2-grouping C-07: without a classification the sheet groups by storey or 
   await context.close();
 });
 
+test("@c2-pending C-08: an edit shows one banner naming what waits; Apply now generates and it goes", async ({ browser }) => {
+  const { owner, boq, url } = await sampleBoq("Paula Pending");
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(context, owner);
+  const page = await context.newPage();
+  await openSheet(page, url);
+
+  // Edit a measured line's quantity, with its reason.
+  const line = page.locator('[data-testid="sheet-line"][data-source="measured"]').first();
+  const key = (await line.getAttribute("data-key"))!;
+  await line.click();
+  await line.locator('[data-column="quantity"]').dblclick();
+  await page.getByTestId("cell-editor").fill("123.45");
+  await page.keyboard.press("Enter");
+  await page.getByTestId("reason-input").fill("Measured on site");
+  await page.getByTestId("reason-confirm").click();
+  await expect(page.locator(`[data-testid="sheet-line"][data-key="${key}"]`)).toHaveAttribute("data-edited", /quantity/);
+
+  // One banner: "1 edit not applied yet.", the list on expand, Save version's reason beside it.
+  const banner = page.getByTestId("pending-banner");
+  await expect(banner).toHaveAttribute("data-edits", "1");
+  await expect(page.getByTestId("pending-summary")).toHaveText(/^1 edit.* not applied yet\.$/);
+  await expect(page.getByTestId("pending-save-waits")).toBeVisible();
+  await expect(page.getByTestId("save-version").or(page.getByTestId("submit-for-review")).first()).toBeDisabled();
+  await page.getByTestId("pending-toggle").click();
+  await expect(page.getByTestId("pending-list")).toContainText("(quantity)");
+
+  // Apply now: a run, then nothing waits and Save version can be used.
+  await page.getByTestId("pending-apply").click();
+  await expect(banner).toHaveCount(0, { timeout: 120_000 });
+  await expect(page.getByTestId("boq-header")).not.toHaveAttribute("data-state", "active", { timeout: 120_000 });
+  const after = await apiAs<{ currentRevision: { pendingChanges: string[]; currentRun?: { id: string } } }>(owner, "GET", `/boqs/${boq.id}`);
+  expect(after.currentRevision.pendingChanges).toEqual([]);
+  expect(after.currentRevision.currentRun?.id).not.toBe(boq.currentRevision.currentRun?.id);
+  await context.close();
+});

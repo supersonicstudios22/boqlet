@@ -811,5 +811,32 @@
     "editing": "{name} is editing a line",
     "viewing": "{name} has this BoQ open",
     "marker": "{name} is editing this line"
+  },
+  "pending": {
+    "summary": "{what} not applied yet.",
+    "edits": "{count, plural, one {# edit} other {# edits}}",
+    "someEdits": "line edits",
+    "answers": "{count, plural, one {# answer} other {# answers}}",
+    "apply": "Apply now (generate again)",
+    "show": "What's waiting",
+    "hide": "Hide",
+    "saveWaits": "Save version waits until they are applied.",
+    "more": "and {count} more",
+    "answersLine": "{count, plural, one {# answer} other {# answers}} to questions",
+    "inputsLine": "Changed inputs: {what}",
+    "kinds": {
+      "changed": "Edited: {line}",
+      "restored": "Edit undone: {line}",
+      "added": "Added: {line}",
+      "removed": "Removed: {line}"
+    },
+    "fields": {
+      "quantity": "quantity",
+      "description": "description",
+      "unit": "unit",
+      "codes": "code",
+      "excluded": "excluded",
+      "order": "order"
+    }
   }
 }

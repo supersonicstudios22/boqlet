@@ -45,8 +45,9 @@ are stored once per project and applied to every run, every BoQ and every new mo
    `{decisions: [{questionId, kind, answer, note?}]}` (one or many). With `?dryRun=true` the
    response lists revisions that would go back to draft (BR-23). The UI shows that warning
    only when the list is non-empty.
-3. **Not auto-regenerated.** After answering, the header shows "N answers not applied yet –
-   Regenerate". Regenerate is one click and fast. (Auto-regenerate after a pause of inactivity
+3. **Not auto-regenerated.** After answering, the header's pending banner counts the answers
+   with any edits not applied yet ("1 edit and 2 answers not applied yet." · Apply now; review
+   C-08, F06 §6). Applying is one click and fast. (Auto-regenerate after a pause of inactivity
    can be added later behind a user setting.)
 4. **Suggestion:** if the question carries `suggestion`, it is preselected and marked
    "suggested"; a click on the preselected answer accepts it (writes the decision; Q60, P54).

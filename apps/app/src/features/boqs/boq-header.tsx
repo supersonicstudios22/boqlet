@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Check, Ellipsis } from "lucide-react";
 import { Fragment, useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useGenerate, type Boq, type Run } from "@/api/hooks/boqs";
@@ -26,6 +26,10 @@ import { NewPresetVersions } from "./new-preset-versions";
 import { ReopenBoqDialog } from "./reopen-boq-dialog";
 import { ShareDialog } from "@/features/shares/share-dialog";
 import { headerState, nextStep, saveBlockedReason, type NextStep } from "./run-state";
+import { useManualItems, useOverrides } from "@/api/hooks/edits";
+import { SERVER_GROUPED_ABOVE, useLines } from "@/api/hooks/sheet";
+import { notAppliedEdits } from "./pending";
+import { PendingBanner } from "./pending-banner";
 import { useRefocusWhenLost } from "@/lib/focus";
 
 export function Tag({ children, filled, className, ...rest }: { children: React.ReactNode; filled?: boolean; className?: string; "data-testid"?: string }) {
@@ -43,7 +47,6 @@ export function Tag({ children, filled, className, ...rest }: { children: React.
  */
 export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq; runs: Run[] | undefined; base: string; canArchive: boolean; approval: boolean }) {
   const t = useTranslations("boqs");
-  const format = useFormatter();
   const relative = useRelativeTime();
   const message = useErrorMessage();
   const client = useQueryClient();
@@ -81,7 +84,15 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
   const answersPending = revision.pendingChanges.includes("decisions");
   const questions = useQuestions(answersPending ? revision.currentRun?.id : undefined);
   const notApplied = answersPending ? counts(questions.data ?? []).notApplied : 0;
-  const otherPending = revision.pendingChanges.filter((k) => k !== "decisions" || notApplied === 0);
+  // Review C-08: the line edits and manual lines the run doesn't have, counted from the run's lines (the same cached
+  // query as the sheet's; not for a server-grouped BoQ, which never loads every line: then they are named, not counted).
+  const editsChanged = revision.pendingChanges.includes("adjustments");
+  const countable = editsChanged && (revision.currentRun?.stats?.lines ?? 0) <= SERVER_GROUPED_ABOVE;
+  const runLines = useLines(countable ? revision.currentRun?.id : undefined);
+  const overrides = useOverrides(boq.id);
+  const manualItems = useManualItems(boq.id);
+  const pendingEdits = countable && runLines.data && overrides.data && manualItems.data ? notAppliedEdits(runLines.data, overrides.data, manualItems.data) : null;
+  const otherPending = revision.pendingChanges.filter((k) => k !== "decisions" && k !== "adjustments");
   // P55: one primary, on the BoQ's next step; every other action is secondary.
   const { blocking } = useOpenQuestions(revision.currentRun?.id);
   const next = nextStep(boq, state, can, blocking);
@@ -259,24 +270,17 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
             {state.current && <p className="text-muted-foreground">{t("run.lastGood")}</p>}
           </div>
         )}
-        {notApplied > 0 && revision.currentRun && (
-          <p className="flex flex-wrap items-center gap-x-3 border-l-2 border-[var(--status-attention)] pl-3" role="status" data-testid="answers-pending">
-            <span>{t("run.answersPending", { count: notApplied })}</span>
-            {can("editBoqs") && state.kind !== "active" && (
-              <button type="button" className="text-link hover:underline" onClick={() => generate.mutate()} disabled={generate.isPending} data-testid="answers-regenerate">
-                {t("actions.regenerate")}
-              </button>
-            )}
-          </p>
-        )}
-        {otherPending.length > 0 && revision.currentRun && (
-          <p className="border-l-2 border-[var(--status-attention)] pl-3" role="status" data-testid="pending-changes">
-            {t("run.pending", { what: format.list(otherPending.map((k) => {
-              // Catalogue keys can't contain dots ("inputs.ruleSet" → "inputs_ruleSet").
-              const key = `run.pendingItems.${k.replaceAll(".", "_")}`;
-              return t.has(key) ? t(key) : k;
-            }), { type: "unit" }) })}
-          </p>
+        {revision.currentRun && revision.status !== "issued" && (
+          <PendingBanner
+            edits={pendingEdits}
+            answers={notApplied}
+            inputs={otherPending}
+            editsChanged={editsChanged}
+            canApply={can("editBoqs") && state.kind !== "active" && !boq.archived}
+            applying={generate.isPending}
+            onApply={() => generate.mutate()}
+            saveWaits={blocked === "pending" && (can("saveVersion") || can("submit"))}
+          />
         )}
         <ReviewStrip boq={boq} base={base} compact />
         <NewModelVersions boq={boq} base={base} />
