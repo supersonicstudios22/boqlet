@@ -106,6 +106,19 @@ class LibraryController implements LibraryApi {
     }
 
     @Override
+    public ResponseEntity<ItemTextSamples> sampleItemTexts(SampleItemTextsRequest request) {
+        // A page of codes is one call, made again as an item text is typed: a bucket of its own (review B-13).
+        rates.take("rpc-text:" + actor(), 240, Duration.ofMinutes(1));
+        return ResponseEntity.ok(library.sampleItemTexts(request));
+    }
+
+    @Override
+    public ResponseEntity<ParamRename> renamePresetParam(RenamePresetParamRequest request) {
+        rpcActor();
+        return ResponseEntity.ok(library.renameParam(request));
+    }
+
+    @Override
     public ResponseEntity<Job> previewPreset(UUID preset, PreviewPresetRequest request, UUID idempotencyKey) {
         UUID actor = actor();
         return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,

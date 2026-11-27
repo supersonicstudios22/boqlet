@@ -183,7 +183,8 @@ provider sessions are also revoked through `ProviderSessionRevocations` when con
   invitation mail: invitations and resends together, 20 an hour per org
   (`BOQLET_INVITATIONS_PER_HOUR`, `http/RateLimits` over `native_auth_limits`; `429 rate_limited`
   with `Retry-After`, TF-043), and engine rpc calls from the library (check, template export and
-  import, code-list read and build): 60 a minute per user (`library/LibraryController`). **Planned,
+  import, code-list read and build, slot rename): 60 a minute per user (`library/LibraryController`);
+  item-text samples, one call per page of codes, have their own 240 a minute per user. **Planned,
   not implemented:** the model names rpc, vendor offer submissions (module). Uploads are bounded by plan limits.
 - Text input (TF-176, `http/TextInput`): no string in a request body may hold NUL or an unpaired
   surrogate; names and labels (`name`, `label`, `deviceLabel`) also refuse control characters and

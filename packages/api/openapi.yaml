@@ -854,6 +854,64 @@ paths:
                 parentVersionIds: { type: array, maxItems: 50, items: { type: string, format: uuid } }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CheckResponse" } } } }
+  /presets/item-texts/sample:
+    post:
+      tags: [library]
+      operationId: sampleItemTexts
+      summary: Item texts filled by the engine for the Library's "Reads as" and samples, without a preview run (rpc, review B-13)
+      description: >-
+        Each template is split into text and blanks the way a run fills it, with the engine's number format.
+        A blank gets a value from `filled` (a text the engine filled in a preview, read back against the
+        template), else from `line` (a preview line's keys, unit and quantity); with neither, blanks stay as
+        written. One call answers a page of codes; 240 calls a minute per user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    required: [template]
+                    properties:
+                      template: { type: string, maxLength: 10000 }
+                      line:
+                        type: object
+                        properties:
+                          keys: { type: object, additionalProperties: true }
+                          unit: { type: [string, "null"] }
+                          quantity: { type: [number, "null"] }
+                      filled: { type: string, maxLength: 20000 }
+                      filledFrom: { type: string, maxLength: 10000, description: The template `filled` was filled from, when it differs (a draft being typed) }
+      responses:
+        "200": { description: "One result per item, in order", content: { application/json: { schema: { $ref: "#/components/schemas/ItemTextSamples" } } } }
+  /presets/rename-param:
+    post:
+      tags: [library]
+      operationId: renamePresetParam
+      summary: Rename a rule set's slot everywhere, parsed by the engine (rpc, review B-13)
+      description: >-
+        Renames the slot's key in `params`, every `{ "param": from }` and every `p.<from>` in the expressions and
+        in the templates' blanks. Expressions are parsed as the engine parses them, so string literals and labels
+        are never changed. Nothing is saved.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [doc, from, to]
+              properties:
+                doc: { description: The rule set document }
+                from: { type: string, pattern: "^[A-Za-z_][A-Za-z0-9_]*$", maxLength: 100 }
+                to: { type: string, pattern: "^[A-Za-z_][A-Za-z0-9_]*$", maxLength: 100 }
+      responses:
+        "200": { description: The renamed document, content: { application/json: { schema: { $ref: "#/components/schemas/ParamRename" } } } }
   /presets/{presetId}/preview:
     parameters: [{ $ref: "#/components/parameters/PresetId" }]
     post:
@@ -3332,6 +3390,31 @@ components:
         ok: { type: boolean }
         problems: { type: array, items: { type: string } }
         flattened: { description: Flattened RuleSet for rule sets }
+    ItemTextPiece:
+      type: object
+      description: Plain `text`, or a `blank` as written with its plain field `name` and the engine's `value` when it has them
+      properties:
+        text: { type: string }
+        blank: { type: string }
+        name: { type: string }
+        value: { type: string }
+    ItemTextSample:
+      type: object
+      required: [pieces, text]
+      properties:
+        pieces: { type: array, items: { $ref: "#/components/schemas/ItemTextPiece" } }
+        text: { type: string, description: The filled text; blanks without a value as written }
+    ItemTextSamples:
+      type: object
+      required: [results]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/ItemTextSample" } }
+    ParamRename:
+      type: object
+      required: [doc, changes]
+      properties:
+        doc: { description: The rule set document with the slot renamed }
+        changes: { type: integer, description: Places renamed }
     PresetUsage:
       type: object
       required: [projectId, projectName, boqId, boqName, revisionId, revisionLabel, revisionStatus, presetVersionNumber]

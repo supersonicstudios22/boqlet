@@ -932,6 +932,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/presets/item-texts/sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Item texts filled by the engine for the Library's "Reads as" and samples, without a preview run (rpc, review B-13)
+         * @description Each template is split into text and blanks the way a run fills it, with the engine's number format. A blank gets a value from `filled` (a text the engine filled in a preview, read back against the template), else from `line` (a preview line's keys, unit and quantity); with neither, blanks stay as written. One call answers a page of codes; 240 calls a minute per user.
+         */
+        post: operations["sampleItemTexts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/rename-param": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rename a rule set's slot everywhere, parsed by the engine (rpc, review B-13)
+         * @description Renames the slot's key in `params`, every `{ "param": from }` and every `p.<from>` in the expressions and in the templates' blanks. Expressions are parsed as the engine parses them, so string literals and labels are never changed. Nothing is saved.
+         */
+        post: operations["renamePresetParam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/presets/{presetId}/preview": {
         parameters: {
             query?: never;
@@ -3514,6 +3554,27 @@ export interface components {
             problems: string[];
             /** @description Flattened RuleSet for rule sets */
             flattened?: unknown;
+        };
+        /** @description Plain `text`, or a `blank` as written with its plain field `name` and the engine's `value` when it has them */
+        ItemTextPiece: {
+            text?: string;
+            blank?: string;
+            name?: string;
+            value?: string;
+        };
+        ItemTextSample: {
+            pieces: components["schemas"]["ItemTextPiece"][];
+            /** @description The filled text; blanks without a value as written */
+            text: string;
+        };
+        ItemTextSamples: {
+            results: components["schemas"]["ItemTextSample"][];
+        };
+        ParamRename: {
+            /** @description The rule set document with the slot renamed */
+            doc: unknown;
+            /** @description Places renamed */
+            changes: number;
         };
         PresetUsage: {
             /** Format: uuid */
@@ -6466,6 +6527,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CheckResponse"];
+                };
+            };
+        };
+    };
+    sampleItemTexts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    items: {
+                        template: string;
+                        line?: {
+                            keys?: {
+                                [key: string]: unknown;
+                            };
+                            unit?: string | null;
+                            quantity?: number | null;
+                        };
+                        filled?: string;
+                        /** @description The template `filled` was filled from */
+                        filledFrom?: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description One result per item, in order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemTextSamples"];
+                };
+            };
+        };
+    };
+    renamePresetParam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description The rule set document */
+                    doc: unknown;
+                    from: string;
+                    to: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The renamed document */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParamRename"];
                 };
             };
         };

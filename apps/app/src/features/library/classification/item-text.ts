@@ -1,10 +1,8 @@
 /**
  * Item texts (F10 §13, P14, BR-11): a code's `description` is the written description of the BoQ
  * item that is priced, a template with blanks (`{thickness}`, `{thickness*1000}`, `{expr: …}`, the
- * same syntax as a rule's line text). The engine fills them (BR-01); here they are only read back:
- * as pieces (plain text and blanks), and as a sample filled by plain substitution from one line of
- * the preview, as the engine fills plain blanks (`engine/ifc_boq/classify.py`). Expressions are never evaluated: they
- * stay as written.
+ * same syntax as a rule's line text). The engine fills them (BR-01), in a run and for the editor's
+ * "Reads as" and samples too (`useItemTextSample`, review B-13): nothing here splits or fills a template.
  */
 import type { ClassificationMap } from "@ifc-boq/types";
 import type { PreviewResult } from "@/api/hooks/library";
@@ -20,89 +18,11 @@ export type PreviewLine = PreviewResult["lines"][number] & { codes?: Record<stri
 /** The names an item text's insert buttons offer: the values a line can carry, its unit and quantity. */
 export const ITEM_TEXT_NAMES: readonly string[] = [...LINE_SPLITS, "unit", "quantity"];
 
-/** A piece of an item text: plain text, or a blank (as written, braces included). */
-export type ItemTextPiece =
-  | { text: string }
-  | {
-      /** The blank as written, e.g. `{thickness}` or `{expr: …}`. */
-      blank: string;
-      /** For a plain `{name}`: the name. Expressions have none (the engine fills them). */
-      name?: string;
-      /** The sample line's value for the name, when it has one. */
-      value?: string;
-    };
-
-const BLANK = /\{([^{}]*)\}/g;
-const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
-/** A line's value for a plain blank: its line keys, then its unit and quantity (as the engine fills them). */
-export function lineValue(line: PreviewLine, name: string): string | undefined {
-  const keyed = (line.keys as Record<string, unknown> | undefined)?.[name];
-  if (keyed !== undefined && keyed !== null && keyed !== "" && typeof keyed !== "object") return String(keyed);
-  if (name === "unit" && line.unit) return line.unit;
-  if (name === "quantity" && line.quantity !== null && line.quantity !== undefined) return String(line.quantity);
-  return undefined;
-}
-
 /** The item text the engine filled for `code` in a line of the preview, when the line got that code (TF-136). */
 export function engineText(line: PreviewLine, systemId: string, code: string): string | undefined {
   const c = line.codes?.[systemId];
   return c && c.code === code && typeof c.text === "string" ? c.text : undefined;
 }
-
-/**
- * What the engine put in each blank of `template` (by the blank as written), read back from the text
- * it filled; null when the text doesn't follow the template (it was edited since the preview). Nothing
- * is evaluated: the values are the engine's.
- */
-export function blankValuesFrom(template: string, filled: string): Map<string, string> | null {
-  const blanks: string[] = [];
-  let pattern = "";
-  let last = 0;
-  for (const m of template.matchAll(BLANK)) {
-    pattern += escape(template.slice(last, m.index)) + "([\\s\\S]*?)";
-    blanks.push(m[0]);
-    last = m.index + m[0].length;
-  }
-  pattern += escape(template.slice(last));
-  const hit = new RegExp(`^${pattern}$`).exec(filled);
-  if (!hit) return null;
-  const out = new Map<string, string>();
-  blanks.forEach((b, i) => {
-    if (!out.has(b)) out.set(b, hit[i + 1]!);
-  });
-  return out;
-}
-
-const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-/**
- * The template as pieces; with a line, plain blanks carry that line's values. `filled` (from
- * `blankValuesFrom`) gives the engine's value of any blank, expressions too, and wins.
- */
-export function itemTextPieces(template: string, line?: PreviewLine | null, filled?: ReadonlyMap<string, string> | null): ItemTextPiece[] {
-  const out: ItemTextPiece[] = [];
-  let last = 0;
-  for (const m of template.matchAll(BLANK)) {
-    if (m.index > last) out.push({ text: template.slice(last, m.index) });
-    const inner = m[1]!.trim();
-    const name = NAME.test(inner) ? inner : undefined;
-    const value = filled?.get(m[0]) ?? (name && line ? lineValue(line, name) : undefined);
-    out.push({ blank: m[0], ...(name ? { name } : {}), ...(value !== undefined ? { value } : {}) });
-    last = m.index + m[0].length;
-  }
-  if (last < template.length) out.push({ text: template.slice(last) });
-  return out;
-}
-
-/** The template filled with a line's values; blanks it has no value for, and expressions, stay as written. */
-export const fillItemText = (template: string, line: PreviewLine): string =>
-  itemTextPieces(template, line)
-    .map((p) => ("text" in p ? p.text : (p.value ?? p.blank)))
-    .join("");
-
-/** The plain names an item text uses. */
-export const itemTextNames = (template: string): string[] => [...new Set(itemTextPieces(template).flatMap((p) => ("name" in p && p.name ? [p.name] : [])))];
 
 /**
  * Put `{name}` in place of the selection (or at the cursor), with a space before it when it would

@@ -211,6 +211,13 @@ plain-language "story" helpers (`lib/readable.ts`, `dictionary/dict-story.tsx`,
 `classification/class-story.tsx`) and uses the API for drafts (autosaved, ETag), publish,
 versions, where used and preview.
 
+The editors keep no copy of engine text or expression logic (rule 4, review B-13): an item text's
+"Reads as" and its samples come from `POST /presets/item-texts/sample` (rpc `item-text-sample`; the
+engine splits the template and fills it with its own number format, without a preview run;
+`api/hooks/item-texts.ts` debounces typing and sends a page's requests as one call), and renaming a
+rule set's slot is `POST /presets/rename-param` (rpc `rename-param`; expressions are parsed, so a
+string literal is never changed).
+
 ## Performance budgets
 
 - Initial JS for `/{org}` ≤ 250 KB gzip. Viewer, Library editors and the comparison grid are

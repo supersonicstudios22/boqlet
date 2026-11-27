@@ -210,6 +210,17 @@ public class Library {
         return check(request.getKind(), document(request.getDoc().orElse(null)), parent);
     }
 
+    /** "Reads as" and samples for item texts, filled by the engine (review B-13); nothing is read or saved. */
+    ItemTextSamples sampleItemTexts(SampleItemTextsRequest request) {
+        return worker.rpc("item-text-sample", Map.of("items", request.getItems()), ItemTextSamples.class);
+    }
+
+    /** A rule set's slot renamed by the engine, which parses the expressions (review B-13); nothing is saved. */
+    ParamRename renameParam(RenamePresetParamRequest request) {
+        return worker.rpc("rename-param", Map.of("doc", document(request.getDoc().orElse(null)),
+                "from", request.getFrom(), "to", request.getTo()), ParamRename.class);
+    }
+
     @Transactional
     public PresetVersion save(UUID id, UUID actor, SaveDraftRequest request, String ifMatch) {
         var head = editable(id, actor);

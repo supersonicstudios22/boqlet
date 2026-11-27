@@ -6,13 +6,16 @@ from contextlib import contextmanager
 from threading import BoundedSemaphore
 
 from . import codelist_import, presets
-from .expr import syntax_problem
+from . import templates as item_texts
+from .expr import Expr, syntax_problem
 from .pipeline import names_in_model
 from .storage import Storage, read_json_gzip
 from .worker import validate
 
 TEMPLATE_OPERATIONS = {"template-export", "template-import"}
-OPERATIONS = {"check", "names", "codelist-read", "codelist-build", "expr-check"} | TEMPLATE_OPERATIONS
+OPERATIONS = {"check", "names", "codelist-read", "codelist-build", "expr-check", "item-text-sample",
+              "rename-param"} | TEMPLATE_OPERATIONS
+ITEM_TEXT_SAMPLES_MAX = 500  # one Library page of codes (review B-13)
 # A user's workbook may take a few hundred MB while it is read (TF-039 caps one at 64 MB expanded, about
 # 500 MB in memory at worst), so the rpc engine reads at most this many at once (TF-187).
 WORKBOOK_READ_SLOTS = 2
@@ -83,4 +86,15 @@ def call(op: str, request: dict, storage: Storage) -> dict:
         expr = request["expr"]
         problem = syntax_problem(expr)
         return {"ok": problem is None, "problems": [problem] if problem else [], "readable": expr}
+    if op == "item-text-sample":
+        # The Library's "Reads as" and samples: the engine's own filling and number format (review B-13).
+        items = request.get("items") or []
+        if len(items) > ITEM_TEXT_SAMPLES_MAX:
+            raise ValueError(f"At most {ITEM_TEXT_SAMPLES_MAX} item texts at once")
+        evaluator = Expr()
+        return {"results": [item_texts.sample(str(item.get("template", "")), evaluator, item.get("line"),
+                                              item.get("filled"), item.get("filledFrom")) for item in items]}
+    if op == "rename-param":
+        doc, changes = item_texts.rename_param(request["doc"], request["from"], request["to"])
+        return {"doc": doc, "changes": changes}
     raise ValueError("Unknown RPC operation")

@@ -155,6 +155,8 @@ RPC always goes over HTTP, also when jobs use the queue transport.
 | `template-export` | `{kind, doc, library}` | xlsx bytes (base64) | `sheets/templates.py` (EN-012) |
 | `template-import` | `{kind, doc, file}` | `TemplateImportResult` (openapi) | `sheets/templates.py` (EN-012) |
 | `expr-check` | `{expr, context: "line" \| "element" \| "building"}` | `{ok, problems, readable}` | `expr.py` parser |
+| `item-text-sample` | `{items: [{template, line?, filled?, filledFrom?}]}` (at most 500) | `ItemTextSamples` (openapi) | `templates.sample` (review B-13) |
+| `rename-param` | `{doc, from, to}` | `ParamRename` (openapi) | `templates.rename_param` (review B-13) |
 
 ## Transports
 

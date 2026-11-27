@@ -40,24 +40,7 @@ export function put<T extends object, K extends keyof T>(obj: T, key: K, value: 
   return out;
 }
 
-/**
- * Rename a slot everywhere in a rule set: its key in `params` (order kept), every `{ "param": from }`
- * (bound fields, `dependsOn`) and every `p.from` in formulas and templates.
- */
-export function renameParam<T extends object>(doc: T, from: string, to: string): T {
-  const re = new RegExp(`\\bp\\.${from}\\b`, "g");
-  const walk = (x: unknown): unknown =>
-    typeof x === "string"
-      ? x.replace(re, `p.${to}`)
-      : Array.isArray(x)
-        ? x.map(walk)
-        : x && typeof x === "object"
-          ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, k === "param" && v === from ? to : walk(v)]))
-          : x;
-  const out = walk(doc) as T & { params?: Record<string, unknown> };
-  if (out.params) out.params = Object.fromEntries(Object.entries(out.params).map(([k, v]) => [k === from ? to : k, v]));
-  return out;
-}
+/* A slot rename goes through the engine, which parses the expressions: `renamePresetParam` (review B-13). */
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

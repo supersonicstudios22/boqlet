@@ -323,6 +323,7 @@
     "selectOne": "Select a question on the left, or add one.",
     "nameInvalid": "Letters, digits and _ only, not starting with a digit.",
     "nameTaken": "“{name}” is already a question.",
+    "renameFailed": "The name could not be changed. Try again.",
     "deleteConfirm": "“{question}” is used by {items}. Those items will report a missing value. Delete anyway?",
     "wordedByParent": "Worded by the rule set this one is based on ({parent}); only the answer can change here.",
     "changeHere": "Change the question in this set",

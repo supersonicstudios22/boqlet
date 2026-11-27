@@ -4,6 +4,7 @@
  */
 export const keys = {
   me: () => ["me"] as const,
+  itemTextSample: (request: string) => ["item-text-sample", request] as const,
   plans: () => ["plans"] as const,
   org: (orgId: string) => ["org", orgId] as const,
   orgs: () => ["orgs"] as const,

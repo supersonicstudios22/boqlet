@@ -227,3 +227,31 @@ describe("A-45 one explicit default per preset kind", () => {
     expect((await newProject("P4")).defaults.ruleSetVersionId).toBe(asModelled);
   });
 });
+
+describe("B-13 the Library editors go through the engine", () => {
+  it("fills a page of item texts with the engine's format, without a preview run", async () => {
+    const res = await client(marko.token).POST("/presets/item-texts/sample", {
+      body: {
+        items: [
+          { template: "Wall {thickness*1000} mm {material}" },
+          { template: "Wall {thickness*1000} mm, {quantity} {unit}", line: { keys: { thickness: 0.2 }, unit: "m2", quantity: 12.34567 } },
+        ],
+      },
+    });
+    expect(res.response.status).toBe(200);
+    const [words, filled] = res.data!.results;
+    expect(words!.pieces).toEqual([{ text: "Wall " }, { blank: "{thickness*1000}" }, { text: " mm " }, { blank: "{material}", name: "material" }]);
+    expect(filled!.text).toBe("Wall 200 mm, 12.346 m2");
+  });
+
+  it("renames a slot in expressions and blanks but never inside a string literal", async () => {
+    const doc = { params: { a: { type: "number", value: 1 } }, rules: [{ id: "r", quantity: 'IF(name = "a", p.a, 0)', description: "Wall {p.a} {\"p.a\"}" }] };
+    const res = await client(ivana.token).POST("/presets/rename-param", { body: { doc, from: "a", to: "depth" } });
+    expect(res.response.status).toBe(200);
+    const out = res.data!.doc as typeof doc & { params: Record<string, unknown> };
+    expect(out.rules[0]!.quantity).toBe('IF(name = "a", p.depth, 0)');
+    expect(out.rules[0]!.description).toBe('Wall {p.depth} {"p.a"}');
+    expect(Object.keys(out.params)).toEqual(["depth"]);
+    expect(res.data!.changes).toBe(3);
+  });
+});

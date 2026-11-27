@@ -15,7 +15,8 @@ import { useTranslations } from "next-intl";
 import type { OurRuleType, Param, RuleSection, RuleSet } from "@ifc-boq/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { isPatch, move, put, removeAt, renameChoiceOption, renameParam, replaceAt, slug, uniqueId } from "../shared/doc";
+import { renamePresetParam } from "@/api/hooks/item-texts";
+import { isPatch, move, put, removeAt, renameChoiceOption, replaceAt, slug, uniqueId } from "../shared/doc";
 import { ExprInput, Field, LazyText, Num, RowList, Section, Select, Text, TextArea, ToggleChips, linkButton, matches, useFmtParam, type RowInfo } from "../shared/fields";
 import { effectiveSections, questionStatus, type OwnParams, type QuestionStatus, type Slots } from "./model";
 import { NavLink } from "./nav";
@@ -151,8 +152,14 @@ function QuestionForm({ name, doc, onChange, parent, slots, sections, usage, rul
     if (!NAME.test(to)) return setNameError(t("nameInvalid"));
     if (slots[to]) return setNameError(t("nameTaken", { name: to }));
     setNameError(null);
-    onChange(renameParam(doc, name, to));
-    onSelect(to);
+    // The engine parses every expression, so "a" in a string literal stays (review B-13, FM-42).
+    renamePresetParam(doc, name, to).then(
+      (renamed) => {
+        onChange(renamed);
+        onSelect(to);
+      },
+      () => setNameError(t("renameFailed")),
+    );
   };
   const changeType = (type: Param["type"]) => {
     const keep = { label: p.label, question: p.question, section: p.section, help: p.help, example: p.example, dependsOn: p.dependsOn };

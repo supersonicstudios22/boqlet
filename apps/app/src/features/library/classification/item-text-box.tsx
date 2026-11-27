@@ -4,14 +4,15 @@
  * The item text of a code (F10 §13): the Code list tab's box under each code (typed, with values
  * inserted by a click, read back in words and, with a preview, as a sample), and the sample under
  * a row of the Codes per line tab. Ported from the rule-set editor's line text (item-forms.tsx
- * `DescriptionEditor`). Nothing is evaluated here: the engine fills the blanks (BR-01).
+ * `DescriptionEditor`). Nothing is evaluated or split here: the engine fills the blanks (BR-01, review B-13).
  */
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { textareaClass } from "../shared/fields";
 import { useVocab } from "../shared/use-vocab";
-import { blankValuesFrom, engineText, ITEM_TEXT_NAMES, insertBlank, itemTextPieces, type PreviewLine } from "./item-text";
+import { useItemTextSample } from "@/api/hooks/item-texts";
+import { engineText, ITEM_TEXT_NAMES, insertBlank, type PreviewLine } from "./item-text";
 import { useCodes } from "./nav";
 
 /** The words for a name an item text can use. */
@@ -21,35 +22,33 @@ function useNameLabel() {
   return (name: string) => (name === "unit" || name === "quantity" ? t(`names.${name}`) : vocab.nameLabel(name));
 }
 
-/**
- * The engine's value of each blank for `code` in a preview line (TF-136): read back from the item text
- * the engine filled, against the saved template or the one being typed. Null without one.
- */
-function useFilled(code: string, line: PreviewLine | null | undefined, ...templates: (string | undefined)[]) {
+/** The item text the engine filled for `code` in a preview line (TF-136), if any. */
+function useFilled(code: string, line: PreviewLine | null | undefined) {
   const { systemId } = useCodes();
-  const text = line && systemId ? engineText(line, systemId, code) : undefined;
-  if (!text) return null;
-  for (const template of templates) {
-    const values = template ? blankValuesFrom(template, text) : null;
-    if (values) return values;
-  }
-  return null;
+  return line && systemId ? engineText(line, systemId, code) : undefined;
 }
 
 /**
- * An item text in words, in quotes. Without a line, each plain blank reads as its name; with one,
- * as the engine filled it (`filled`, TF-136) or else that line's value (a blank the line has no value
- * for stays as written, as in a run). Expressions stay as written unless the engine filled them.
+ * An item text in words, in quotes, as the engine splits and fills it. Without a line, each plain blank
+ * reads as its name; with one, as the engine filled it in the preview (`filled`, from the template
+ * `filledFrom`) or else from that line's values (a blank the line has no value for stays as written, as
+ * in a run). Until the engine answers, the text reads as typed.
  */
-export function ItemTextWords({ template, line, filled }: { template: string; line?: PreviewLine | null; filled?: ReadonlyMap<string, string> | null }) {
+export function ItemTextWords({ template, line, filled, filledFrom }: { template: string; line?: PreviewLine | null; filled?: string; filledFrom?: string }) {
   const t = useTranslations("classificationEditor.itemText");
   const label = useNameLabel();
+  const { data } = useItemTextSample({
+    template,
+    ...(line ? { line: { keys: (line.keys ?? {}) as Record<string, unknown>, unit: line.unit ?? null, quantity: line.quantity ?? null } } : {}),
+    ...(filled ? { filled, ...(filledFrom && filledFrom !== template ? { filledFrom } : {}) } : {}),
+  });
+  const pieces = data?.pieces ?? [{ text: template }];
   return (
     <span>
       {t.rich("quoted", {
         q: () =>
-          itemTextPieces(template, line, filled).map((p, i) =>
-            "text" in p ? (
+          pieces.map((p, i) =>
+            p.blank === undefined ? (
               <span key={i}>{p.text}</span>
             ) : p.value !== undefined ? (
               <span key={i} className="text-link" title={p.name && label(p.name)}>
@@ -94,7 +93,7 @@ export function ItemTextBox({ code, value, onCommit, active, onActivate, sample 
   const label = useNameLabel();
   const area = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState(value ?? "");
-  const filled = useFilled(code, sample?.line, value, draft);
+  const filled = useFilled(code, sample?.line);
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
     setSeen(value);
@@ -155,7 +154,7 @@ export function ItemTextBox({ code, value, onCommit, active, onActivate, sample 
           </span>
           {sample && (
             <span data-testid="item-text-sample">
-              {t("sample", { item: sample.item })} <ItemTextWords template={draft} line={sample.line} filled={filled} />
+              {t("sample", { item: sample.item })} <ItemTextWords template={draft} line={sample.line} filled={filled} filledFrom={value} />
             </span>
           )}
         </div>
@@ -172,7 +171,7 @@ export function LineSample({ code, line }: { code: string | null | undefined; li
   const t = useTranslations("classificationEditor.itemText");
   const { texts } = useCodes();
   const template = code ? texts.get(code) : undefined;
-  const filled = useFilled(code ?? "", line, template);
+  const filled = useFilled(code ?? "", line);
   if (!code || !template) return null;
   return (
     <span className="text-muted-foreground" data-testid="line-sample-text" data-code={code}>
