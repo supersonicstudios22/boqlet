@@ -57,15 +57,16 @@ class RunReads {
     /**
      * A line with its trace summarised (review B-18): the formula and source line, every element as its guid,
      * quantity and model (what the sheet's filters and the viewer use), no params, names, notes, decisions or
-     * steps. The whole trace is one {@code /lines/by-key} call away. Still a valid {@code RunLine}.
+     * steps. The whole trace is one {@code /lines/by-key} call away. Still a valid {@code RunLine}. No {@code ?}
+     * operator: JDBC reads it as a parameter ({@code jsonb_exists} instead).
      */
     static final String SUMMARY = """
             jsonb_set(p.line, '{trace}', jsonb_build_object(
                 'formula', coalesce(p.line->'trace'->'formula', '""'::jsonb), 'params', '{}'::jsonb,
                 'elements', coalesce((SELECT jsonb_agg(jsonb_build_object('guid', e->'guid', 'quantity', e->'quantity')
-                        || CASE WHEN e ? 'model' THEN jsonb_build_object('model', e->'model') ELSE '{}'::jsonb END ORDER BY n)
+                        || CASE WHEN jsonb_exists(e, 'model') THEN jsonb_build_object('model', e->'model') ELSE '{}'::jsonb END ORDER BY n)
                     FROM jsonb_array_elements(p.line->'trace'->'elements') WITH ORDINALITY x(e, n)), '[]'::jsonb))
-                || CASE WHEN p.line->'trace' ? 'sourceLine' THEN jsonb_build_object('sourceLine', p.line->'trace'->'sourceLine')
+                || CASE WHEN jsonb_exists(p.line->'trace', 'sourceLine') THEN jsonb_build_object('sourceLine', p.line->'trace'->'sourceLine')
                         ELSE '{}'::jsonb END)::text""";
 
     private LinesPage lines(UUID id, UUID actor, String cursor, int limit, String system, Integer level, String path,
