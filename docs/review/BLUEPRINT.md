@@ -2745,9 +2745,9 @@ means compare-baseline must report 0 differences.
 
 #### WP-E1 · Consolidate the new items; settle the open decisions
 - **Items:** E-01
-- **Requires:** — (runs last on purpose: take it only when every package before it in this order is `done` or `blocked`; it is listed last for that reason, not because of an item dependency)
+- **Requires:** — (runs last on purpose: take it only when no package before it in this order can still be taken, i.e. each is `done`, `blocked`, or `todo` with a prerequisite that is `blocked` (directly or through another such package); it is listed last for that reason, not because of an item dependency)
 - **Touches:** `docs/review/BLUEPRINT.md`, `docs/review/PROGRESS.md`, `docs/decisions.md`, `docs/product/known-limitations.md`, `docs/changelog.md`.
-- **Entry check:** every package before WP-E1 is `done` or `blocked`. No stack or baseline run needed. No questions to the owner: every decision is the session's own (E-01 part 1).
+- **Entry check:** no package before WP-E1 can still be taken (each is `done`, `blocked`, or `todo` behind a `blocked` prerequisite). Part 1 treats every such blocked or stuck package as an open decision: decide what unblocks it, or record what is missing (an input only the owner has, such as D-01's reference BoQs) and plan the rest of it as E items. No stack or baseline run needed. No questions to the owner: every decision is the session's own (E-01 part 1).
 - **Exit check:** `docs/review/tools/check-blueprint.py` OK; every N row in PROGRESS.md has a final status; the new packages WP-E2… are in section 5 and PROGRESS.md.
 - **Expected baseline changes:** none (no code).
 

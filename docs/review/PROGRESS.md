@@ -126,7 +126,7 @@ State after WP-B6b (2026-11-27, no baseline change; Phase B done): `compare-base
 | WP-D14 | Platform operations | todo | WP-D3, WP-D4 | D-56, D-57, D-58, D-59 |  |  |  |  |
 | WP-D15 | Pricing module I: rate library, pricebooks and estimates | todo | WP-C5, WP-D14 | D-60, D-61 |  |  |  |  |
 | WP-D16 | Pricing module II: vendors and offer requests | todo | WP-D15 | D-62, D-63 |
-| WP-E1 | Consolidate the new items; settle the open decisions | todo | — (last: every earlier package done or blocked) | E-01 | | | | Decides every open decision itself (no questions to the owner), then turns every open N row into E items and packages WP-E2… (added 2026-11-27, owner's decision) |  |  |  |  |
+| WP-E1 | Consolidate the new items; settle the open decisions | todo | — (last: when no earlier package can be taken: done, blocked, or behind a blocked one) | E-01 | | | | Decides every open decision itself (no questions to the owner), then turns every open N row into E items and packages WP-E2… (added 2026-11-27, owner's decision) |  |  |  |  |
 
 ## Baseline differences log
 
