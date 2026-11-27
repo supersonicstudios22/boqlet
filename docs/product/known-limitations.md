@@ -167,8 +167,11 @@ Details and the outcome coverage map: [../testing/README.md](../testing/README.m
   Since review B-06/B-07 (2026-11-25) it also sweeps 38 screens with axe (serious and critical
   violations beyond `e2e-java/axe-known.json` fail it; one known: the dictionary editor's scroll region,
   C-56), checks 12 core screens in the pseudo-locale `en-XA`, and measures UI budgets nightly
-  (`perf.spec.ts`). Not covered in a browser yet: the Library editors' editing, the viewer beyond the
-  no-WebGL fallback, notifications, the admin console and most of the setup wizard (review WP-B2b, B-06b).
+  (`perf.spec.ts`). Since review B-06b (2026-11-27, `areas.spec.ts`) it also covers notifications, the
+  viewer with WebGL, two Library editor paths (item-text "Reads as", a slot rename), the admin console
+  (overview, an org, a note) and the wizard off its suggested answers. Still not in a browser: the
+  Library's dictionary and resolution editors, preview runs from the editors, the admin plan editor
+  and overrides, the wizard's items and names steps with real answers.
 - Untested in the suites: signed-URL lifetimes,
   `PATCH /manual-items/{id}`, project member GET/PATCH, the billing webhook; two `it.todo` (24 h
   `awaiting_upload` expiry, a successful parse retry). The plan limits, rate limits,

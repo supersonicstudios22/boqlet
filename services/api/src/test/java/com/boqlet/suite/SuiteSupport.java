@@ -213,6 +213,16 @@ public class SuiteSupport {
             return Map.of("updated", updated);
         }
 
+        /**
+         * Makes a person a platform admin, as `npm run local:admin` does (`users.platform_role`), for the admin
+         * console's browser spec (review B-06b): `{userId}`.
+         */
+        @PostMapping("/platform-admin")
+        Map<String, Object> platformAdmin(@RequestBody Map<String, Object> body) {
+            UUID user = UUID.fromString(String.valueOf(body.get("userId")));
+            return Map.of("updated", database.update("UPDATE users SET platform_role = 'admin' WHERE id = ?", user));
+        }
+
         /** Opens or closes public sign-up (P57), as the platform admin's setting does: `{open}`. */
         @PostMapping("/public-sign-up")
         Map<String, Object> publicSignUp(@RequestBody Map<String, Object> body) {
