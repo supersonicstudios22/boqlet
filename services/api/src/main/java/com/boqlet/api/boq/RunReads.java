@@ -117,8 +117,12 @@ class RunReads {
         // A stored view needs no parsing; without one (or for callers in Java) the line is read as before.
         String columns = !fullTrace ? SUMMARY + " AS line, NULL AS view"
                 : written ? "CASE WHEN p.view IS NULL THEN p.line::text END AS line, p.view" : "p.line::text AS line, NULL AS view";
-        var items = named.query("SELECT " + columns + ", p.sort_index FROM run_lines p WHERE p.run_id = :run AND p.sort_index IN"
-                        + " (SELECT l.sort_index" + filter + " ORDER BY l.sort_index LIMIT :count OFFSET :offset) ORDER BY p.sort_index",
+        // The page's positions are chosen once (MATERIALIZED), then joined: written as `sort_index IN (subquery ... LIMIT)`,
+        // PostgreSQL could run the subquery again for every line of the run, over a minute for a group of a
+        // 25,000-line run (review B-19).
+        var items = named.query("WITH page AS MATERIALIZED (SELECT l.sort_index" + filter + " ORDER BY l.sort_index LIMIT :count OFFSET :offset)"
+                        + " SELECT " + columns + ", p.sort_index FROM page JOIN run_lines p ON p.run_id = :run AND p.sort_index = page.sort_index"
+                        + " ORDER BY p.sort_index",
                 args, (row, index) -> {
                     int sortIndex = row.getInt("sort_index");
                     return views.line(row.getString("view"), row.getString("line"), sortIndex,

@@ -166,9 +166,14 @@ test.describe("a 25,000-line BoQ (review B-19)", () => {
     await expect(page.getByTestId("large-sheet")).toHaveAttribute("data-total", String(LARGE));
     await expect(page.locator('[data-testid="sheet-group"][data-open="true"]')).toHaveCount(0);
     await expect(page.getByTestId("sheet-line")).toHaveCount(0);
-    // A group opens on its own lines, a page at a time.
+    // A group opens on its own lines, a page at a time. (Diagnosis, review B-19: if its request is still unanswered
+    // after 10 s, the database's busy sessions are printed.)
+    const watch = setTimeout(async () => {
+      const busy = await fetch(`${API}/_test/db-activity`).then((r) => r.text()).catch((e) => String(e));
+      console.log(`[diagnose] group lines unanswered after 10 s; database: ${busy}`);
+    }, 10_000);
     await page.getByTestId("sheet-group-toggle").first().click();
-    await expect(page.getByTestId("sheet-line").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("sheet-line").first()).toBeVisible({ timeout: 60_000 }).finally(() => clearTimeout(watch));
     await page.getByTestId("sheet-line").first().click();
     await expect(page.getByTestId("line-detail")).toBeVisible({ timeout: 60_000 });
     expect(median(times)).toBeLessThanOrEqual(BUDGET.largeFirstRowsMs);

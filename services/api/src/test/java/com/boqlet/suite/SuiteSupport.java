@@ -213,6 +213,16 @@ public class SuiteSupport {
             return Map.of("updated", updated);
         }
 
+        /** The database sessions that are not idle, with what they wait on (diagnosing a request that hangs). */
+        @GetMapping("/db-activity")
+        java.util.List<Map<String, Object>> dbActivity() {
+            return database.queryForList("""
+                    SELECT pid, state, wait_event_type, wait_event, now() - query_start AS running, left(query, 300) AS query,
+                           pg_blocking_pids(pid) AS blocked_by
+                    FROM pg_stat_activity WHERE datname = current_database() AND state <> 'idle' AND pid <> pg_backend_pid()
+                    """).stream().map(row -> { var m = new java.util.LinkedHashMap<String, Object>(row); m.replaceAll((k, v) -> String.valueOf(v)); return (Map<String, Object>) m; }).toList();
+        }
+
         /**
          * Makes a person a platform admin, as `npm run local:admin` does (`users.platform_role`), for the admin
          * console's browser spec (review B-06b): `{userId}`.

@@ -12,6 +12,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLineGroups, useLinePages, type LineGroup, type RunLine } from "@/api/hooks/sheet";
 import type { Run } from "@/api/hooks/boqs";
+import { InlineError } from "@/components/errors/inline-error";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -79,6 +80,7 @@ function Groups({ run, system, ...rest }: RowProps & { system: string }) {
   const t = useTranslations("boqs.sheet");
   const groups = useLineGroups(run.id, system);
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  if (groups.isError) return <InlineError error={groups.error} onRetry={() => groups.refetch()} />;
   if (!groups.data) return <p className="text-muted-foreground" aria-busy="true">{t("loading")}</p>;
   return (
     <ul className="flex flex-col divide-y divide-border border-y border-border" aria-label={t("tableLabel")}>
@@ -130,6 +132,7 @@ function Lines({ run, system, path, onSelect, selected, remember }: RowProps & {
   const pages = useLinePages(run.id, system, path);
   const lines = useMemo(() => (pages.data?.pages ?? []).flatMap((p) => p.items), [pages.data]);
   useEffect(() => remember(lines), [lines, remember]);
+  if (pages.isError && !pages.data) return <InlineError error={pages.error} onRetry={() => pages.refetch()} />;
   if (!pages.data) return <p className="py-2 text-muted-foreground" aria-busy="true">{t("loading")}</p>;
   return (
     <div className="flex flex-col gap-2 pb-3">
