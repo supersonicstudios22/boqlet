@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** <b>Rollback only</b> (review B-16): ends Keycloak sessions for the legacy OIDC path ({@code OidcConfiguration}). */
 @Component
 class ProviderSessionRevocations {
     private static final Logger LOG = LoggerFactory.getLogger(ProviderSessionRevocations.class);

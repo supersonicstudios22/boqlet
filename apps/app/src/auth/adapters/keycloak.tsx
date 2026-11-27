@@ -1,5 +1,10 @@
 "use client";
 
+/*
+ * Rollback only (P50, review B-16): the legacy Keycloak sign-in, used only when NEXT_PUBLIC_AUTH_ADAPTER=keycloak.
+ * The app signs in natively (`native.tsx`); this adapter stays until the owner confirms the OIDC path's removal.
+ */
+
 import Keycloak from "keycloak-js";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";

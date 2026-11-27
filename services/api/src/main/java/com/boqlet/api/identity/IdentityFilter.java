@@ -14,6 +14,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * <b>Rollback only</b> (review B-16): signs in a request carrying a provider token (the legacy OIDC path, see
+ * {@code OidcConfiguration}). The pilot signs in with {@code NativeIdentityFilter}; the Java tests use this filter
+ * with stub tokens.
+ */
 public final class IdentityFilter extends OncePerRequestFilter {
     private final IdentityService identities;
     private final Sessions sessions;

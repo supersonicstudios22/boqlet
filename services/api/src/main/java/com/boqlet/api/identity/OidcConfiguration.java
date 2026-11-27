@@ -11,6 +11,13 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
+/**
+ * <b>Rollback only</b> (P50, review B-16, DEC-62): the legacy Keycloak/OIDC sign-in, active only when
+ * {@code BOQLET_OIDC_ISSUER} is set. Native sign-in ({@code NativeIdentityFilter}) is the live path on the pilot;
+ * this one stays until the owner confirms its removal. {@code OidcConfigurationTest} boots this decoder; the Java
+ * test harness ({@code ApiFoundationTest.Tokens}, {@code SuiteSupport}) signs in through {@code IdentityFilter}
+ * with a stub decoder, so removing the path means moving that harness to native sign-in first.
+ */
 @Configuration
 class OidcConfiguration {
     @Bean

@@ -49,6 +49,7 @@ services:
     mem_limit: 1g
 
   identity:
+    # Rollback only (P50, review B-16): legacy Keycloak sign-in, not started unless --profile legacy-identity.
     <<: *service
     profiles: [legacy-identity]
     image: quay.io/keycloak/keycloak:26.8.2
