@@ -1,6 +1,6 @@
 # F06 BoQ sheet
 
-> **Status (2026-11-22):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built. Keyboard editing: the selected line has an active cell (ArrowLeft/Right), F2 or Enter edits it (TF-159); the grid is one Tab stop (TF-161). Numbers follow the org's format (TF-021). An edit refused because the session ended or the API was unreachable is kept and offered again (TF-146, TF-183). The "not in the models" notice's collapse is a per-user server preference (P54 Q55, TF-109). A line with a quantity that some elements did not feed, or that rests on an open contradiction, shows "To confirm" with the reason ("2 of 3 elements measured") and is found by the "to confirm" filter (review WP-A2, A-05; `toConfirm` on the line, contract change C20). "How it is calculated" names the decisions a step's elements rest on, with who answered and when ("Per Ana's decision of 23 Nov 2026: the value measured from the geometry"; A-06, C21); the run counts every decision it used. The workspace fills the screen on the Sheet tab (review WP-C1, C-01): the project's name and sections on one line, the BoQ's name, state, run figures and actions on one line, the "not in the models" counts and the run's warnings at the end of the tabs row, one filter bar (Group by, a Filters popover whose choices show as removable chips, search) and the actions in a fixed order (Undo · Add line · Excel · Model · Columns, one "⋯" menu below 1280 px); the grid takes the rest of the height and is the page's one scroll container (≥ 20 rows at 1440×900); the bulk bar floats over the grid's foot.
+> **Status (2026-11-22):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built. Keyboard editing: the selected line has an active cell (ArrowLeft/Right), F2 or Enter edits it (TF-159); the grid is one Tab stop (TF-161). Numbers follow the org's format (TF-021). An edit refused because the session ended or the API was unreachable is kept and offered again (TF-146, TF-183). The "not in the models" notice's collapse is a per-user server preference (P54 Q55, TF-109). A line with a quantity that some elements did not feed, or that rests on an open contradiction, shows "To confirm" with the reason ("2 of 3 elements measured") and is found by the "to confirm" filter (review WP-A2, A-05; `toConfirm` on the line, contract change C20). "How it is calculated" names the decisions a step's elements rest on, with who answered and when ("Per Ana's decision of 23 Nov 2026: the value measured from the geometry"; A-06, C21); the run counts every decision it used. The workspace fills the screen on the Sheet tab (review WP-C1, C-01): the project's name and sections on one line, the BoQ's name, state, run figures and actions on one line, the "not in the models" counts and the run's warnings at the end of the tabs row, one filter bar (Group by, a Filters popover whose choices show as removable chips, search) and the actions in a fixed order (Undo · Add line · Excel · Model · Columns, one "⋯" menu below 1280 px); the grid takes the rest of the height and is the page's one scroll container (≥ 20 rows at 1440×900); the bulk bar floats over the grid's foot. A status gutter next to No. marks derived, manual and to-confirm lines whatever the width or the 3D pane (C-02; the Source column is gone).
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Above 20,000 lines the sheet opens grouped on the server (review B-19, `features/boq-sheet/large-sheet.tsx`): the groups of the "Group by" system collapsed with their subtotals, a group's lines loaded 500 at a time, a line's detail as usual. That view is read-only for now (no inline edits, moves, manual lines or the shared filter with the 3D view), and the Changes and Exports tabs still load every line (N-40).
 > - The three-line clamp for item texts is not built (rows are one line).
@@ -20,11 +20,11 @@ regenerations and new model versions, and are always visible as edits (BR-09).
 │ Tabs: Sheet | Questions (7) | Viewer | … | Versions (+ module tabs)   ⓘ 120 measured · 8 derived · …  │
 ├──────────────────────────────────────────────────────────────┬─────────────────────────────────────┤
 │ Group by [ACME ▾] [Filters ▾] (Source: derived ×) [search…]   Undo · Add line · Excel · Model · Columns │
-│ No.      Item   Description                   Unit    Qty      Source  Storey   │ Line detail      │
+│ No.    ▪ Item   Description                   Unit    Qty      Storey           │ Line detail      │
 │ ▸ 2 Superstructure                                             subtotal …       │ formula          │
 │   2.5  External walls                                                            │ params           │
 │     2.5.1  Cavity wall, brick on block 290    m²     412.60   measured  L1      │ elements (n)     │
-│     2.5.2  Formwork to walls                  m²     825.20   derived           │ codes per system │
+│     2.5.2 D Formwork to walls                 m²     825.20                     │ codes per system │
 │ ▸ 9 Preliminaries                                                                │ notes, override  │
 │     9.1    Site setup                         item     1      manual             │ [Show in 3D]     │
 └──────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
@@ -36,8 +36,13 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    `overridden`. The sheet groups client-side by the chosen system's `codes[system].path`
    (paging with server-side grouping only when lines > 20,000, see NFR). Lines without a code
    in the chosen system go to an "Unclassified" group at the end. They are never hidden (BR-03).
-2. **Columns:** No. (position number, §13), Item (code in the "Group by" system), Description, Unit, Quantity, Source, Storey, Family, Tags, Notes,
-   and one column per extra classification (toggleable). Units are displayed with superscripts
+2. **Columns:** No. (position number, §13), the status gutter, Item (code in the "Group by" system), Description, Unit, Quantity, Storey, Family, Tags, Notes,
+   and one column per extra classification (toggleable). The **status gutter** (review C-02, D112) is an 18 px
+   column next to No. that marks a line's source and is always shown: a blue outlined "D" for derived, a
+   yellow "M" for manual, an orange "!" for to confirm (with the reason, e.g. "2 of 3 elements measured"),
+   nothing for measured; each mark is named by its word for screen readers and on hover. When room is short,
+   Storey is hidden first (beside the model), and below 1280 px Item too, so No., the gutter, Description,
+   Unit and Quantity stay; a column the person switched on or off keeps their choice. Units are displayed with superscripts
    (m² m³), and numbers use the project locale and the rule set's rounding (already applied by
    the engine). Quantity of flagged lines shows "—" with the reason.
    **Description** shows the line's **item text** in the "Group by" system

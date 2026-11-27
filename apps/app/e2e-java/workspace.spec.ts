@@ -3,6 +3,7 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
 
 /**
  * Smoke against Java: the BoQ workspace's layout and keyboard (review WP-C1).
+ * - C-02: beside the model, at 1440 and 1024 px, every derived, manual and to-confirm line shows its status mark.
  * - C-01: at 1440×900 the sheet fills the screen: one scroll container (the grid), ≥ 20 rows in view with the
  *   "not in the models" notice collapsed, the toolbar in its fixed order, no layout shift when a line is ticked.
  */
@@ -105,3 +106,49 @@ test("@c1-layout C-01: the sheet fills the screen at 1440×900, one scroll conta
   expect(await grid.boundingBox()).toEqual(before);
   await context.close();
 });
+
+/** Every derived, manual and to-confirm line on screen shows its mark, inside the grid's visible width. */
+async function marksInView(page: Page) {
+  return page.evaluate(() => {
+    const grid = document.querySelector("[data-testid=sheet-grid]")!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>("[data-testid=sheet-line]")].flatMap((row) => {
+      const mark = row.querySelector<HTMLElement>("[data-testid=status-mark]");
+      const box = mark?.getBoundingClientRect();
+      const needs = row.dataset.source !== "measured";
+      return needs || mark ? [{ key: row.dataset.key, source: row.dataset.source, mark: mark?.dataset.mark ?? null, label: mark?.getAttribute("aria-label") ?? null, inView: !!box && box.left >= grid.left && box.right <= grid.right }] : [];
+    });
+  });
+}
+
+for (const [width, height] of [
+  [1440, 900],
+  [1024, 768],
+] as const) {
+  test(`@c1-gutter C-02: with the model open at ${width} px every derived, manual and to-confirm line shows its mark`, async ({ browser }) => {
+    const { owner, url } = await sampleBoq(`Greta Gutter ${width}`);
+    const context = await browser.newContext({ viewport: { width, height } });
+    await useSession(context, owner);
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await expect(page.getByTestId("sheet-grid")).toBeVisible({ timeout: 60_000 });
+    // The model beside the sheet: the button at 1280 px and wider, the "⋯" menu below.
+    if (!(await page.getByTestId("sheet-split").count())) {
+      if (await page.getByTestId("toggle-model").isVisible()) await page.getByTestId("toggle-model").click();
+      else {
+        await page.getByTestId("sheet-more").click();
+        await page.getByTestId("more-toggle-model").click();
+        await page.keyboard.press("Escape");
+      }
+    }
+    await expect(page.getByTestId("sheet-split")).toBeVisible();
+    await expect(page.locator("[data-testid=sheet-grid] [data-column=source]")).toHaveCount(0);
+    const marks = await marksInView(page);
+    expect(marks.filter((m) => m.mark).length).toBeGreaterThan(0);
+    for (const m of marks) {
+      expect(m.mark, `line ${m.key} (${m.source})`).not.toBeNull();
+      expect(m.inView, `line ${m.key}'s mark in view`).toBe(true);
+      expect(m.label, `line ${m.key}'s mark is named`).toBeTruthy();
+    }
+    await context.close();
+  });
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, ChevronDown, ChevronRight, Columns3, Download, Ellipsis, GripVertical, ListFilter, Plus, Undo2, X } from "lucide-react";
@@ -38,7 +38,7 @@ import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
 import { SystemRulesHint } from "@/features/setup/system-rules-hint";
 import { buildRows, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SourceFilter, shownDescription } from "./model";
-import { SourceTag } from "./source-tag";
+import { StatusMark } from "./status-mark";
 import { useCodeLists, useCodeListSeparators } from "./use-code-lists";
 import { positionNumbers } from "./positions";
 import { NotInModelsBar, NotInModelsPanel } from "./not-in-models";
@@ -50,6 +50,22 @@ import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
 import { keepEdit, takeKeptEdits } from "./kept-edits";
 import { useRefocusWhenLost } from "@/lib/focus";
+
+/** Screens where the sheet has room for every default column and opens the model beside it (F07 §9). */
+const WIDE = "(min-width: 1280px)";
+
+/** Whether the screen is at least 1280 px wide, following resizes. */
+function useWide(): boolean {
+  return useSyncExternalStore(
+    (change) => {
+      const query = window.matchMedia(WIDE);
+      query.addEventListener("change", change);
+      return () => query.removeEventListener("change", change);
+    },
+    () => window.matchMedia(WIDE).matches,
+    () => true,
+  );
+}
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
@@ -76,6 +92,10 @@ interface ColumnMeta {
   cell: (line: SheetLine) => React.ReactNode;
   /** The engine's value, shown on hover over an edited cell. */
   engine?: (line: SheetLine) => string | undefined;
+  /** The header's text is for screen readers only (the status gutter). */
+  srHeader?: boolean;
+  /** Replaces the cell's usual padding and alignment. */
+  cellClass?: string;
 }
 
 interface GroupLabels {
@@ -223,7 +243,8 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   }, [undoStack]);
   // F07 §9: on screens 1280 px and wider the sheet and the model open side by side (resizable, collapsible).
   const hasModels = (run.snapshotVersions?.models?.length ?? 0) > 0;
-  const [split, setSplit] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches);
+  const wide = useWide();
+  const [split, setSplit] = useState(() => typeof window !== "undefined" && window.matchMedia(WIDE).matches);
   const [sheetWidth, setSheetWidth] = useState(55);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [modelSelection, setModelSelection] = useState<{ elements: string[]; lines: string[] }>({ elements: [], lines: [] });
@@ -282,12 +303,16 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     const engine = (l: SheetLine, field: EditField, text: string) => (l.edit?.fields.includes(field) ? te("engineHover", { value: text }) : undefined);
     return [
       col("positionNo", t("col.positionNo"), { width: "5.5rem", cell: (l) => <span className="tabular-nums" data-testid="position-no">{positions.get(l.key) ?? ""}</span> }),
+      // The status gutter (review C-02, DEC-47): the line's source as a mark next to its number, always shown, so
+      // derived, manual and to-confirm lines stay marked beside the model and on narrow screens.
+      col("status", t("col.source"), { width: "1.125rem", srHeader: true, cellClass: "justify-center px-0", cell: (l) => <StatusMark source={l.source} toConfirm={l.toConfirm} /> }),
       // The Item (code) column only while grouping by a classification: empty otherwise, it took room
       // from Quantity on narrow screens (TF-171).
       ...(groupBy
         ? [
             col("item", t("col.item"), {
               width: "8rem",
+              optional: true,
               editable: "item",
               cell: (l) => l.codes[groupBy]?.code,
               engine: (l) => (l.edit?.override.codes?.[groupBy] ? engine(l, "codes", l.edit.engine.codes[groupBy] ?? te("noCode")) : undefined),
@@ -305,7 +330,6 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
         cell: (l) => (l.quantity === null ? <span title={l.notes[0] ?? toConfirm}>—</span> : num(l.quantity)),
         engine: (l) => engine(l, "quantity", l.edit?.engine.quantity === null || l.edit?.engine.quantity === undefined ? toConfirm : num(l.edit.engine.quantity)),
       }),
-      col("source", t("col.source"), { width: "7.5rem", optional: true, cell: (l) => <SourceTag source={l.source} toConfirm={l.toConfirm} /> }),
       col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
       col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => (l.family && t.has(`families.${l.family}`) ? t(`families.${l.family}`) : l.family) }),
       col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),
@@ -322,7 +346,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     data: [] as SheetLine[],
     columns,
     // Beside the model, Source is off unless the person switched it on (TF-107): Quantity stays in view.
-    state: { columnVisibility: { ...Object.fromEntries(systems.map((s) => [`code:${s.id}`, false])), ...(split && hasModels && !("source" in visibility) ? { source: false } : {}), ...visibility } },
+    // When room is short Storey goes first (beside the model), and below 1280 px Item too; No., the status gutter,
+    // Description, Unit and Quantity stay (review C-02). A column the person switched on or off keeps their choice.
+    state: { columnVisibility: { ...Object.fromEntries(systems.map((s) => [`code:${s.id}`, false])), ...((split && hasModels) || !wide ? { storey: false } : {}), ...(!wide ? { item: false } : {}), ...visibility } },
     onColumnVisibilityChange: setVisibility,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -1217,8 +1243,8 @@ function SheetGrid({
           </div>
         )}
         {columns.map((c) => (
-          <div key={c.id} role="columnheader" className={cn("label-caps flex items-center truncate px-2 text-muted-foreground", c.align === "right" && "justify-end")}>
-            {headers.get(c.id)}
+          <div key={c.id} role="columnheader" className={cn("label-caps flex items-center truncate px-2 text-muted-foreground", c.align === "right" && "justify-end", c.cellClass)}>
+            {c.srHeader ? <span className="sr-only">{headers.get(c.id)}</span> : headers.get(c.id)}
           </div>
         ))}
       </div>
@@ -1491,7 +1517,7 @@ const LineRowView = memo(function LineRowView({
           <div
             key={c.id}
             role="gridcell"
-            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-1 after:right-1 after:size-1.5 after:rounded-full after:bg-change")}
+            className={cn("relative flex items-center truncate px-2", c.align === "right" && "justify-end tabular-nums", c.cellClass, active && "outline-2 -outline-offset-2 outline-[var(--link)]", edited && "after:absolute after:top-1 after:right-1 after:size-1.5 after:rounded-full after:bg-change")}
             style={c.id === "description" ? { paddingLeft: `${0.5 + depth}rem` } : undefined}
             title={edited ? c.engine?.(line) : undefined}
             data-editable-column={canEdit ? c.editable : undefined}
