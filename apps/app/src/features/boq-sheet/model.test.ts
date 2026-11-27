@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { RunLine } from "@/api/hooks/sheet";
-import { buildRows, countsBySource, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, subtotal, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
+import { buildRows, compareLines, countsBySource, nextSort, displayUnit, facets, filterLines, linesInGroup, shownSource, stepDecisions, subtotal, topGroups, UNCLASSIFIED, type GroupRow } from "./model";
 
 let n = 0;
 function line(path: [string, string][] | null, fields: Partial<RunLine> = {}): RunLine {
@@ -185,5 +185,42 @@ describe("decisions on a calculation step (review A-06)", () => {
     const thickness = { questionId: "contradiction:thickness:IfcWall:Party", answer: "geometry" };
     const out = stepDecisions([{ guid: "a", decisions: [volume, thickness] }, { guid: "b", decisions: [thickness] }, { guid: "c" }]);
     expect(out).toEqual([{ ...volume, count: 1 }, { ...thickness, count: 2 }]);
+  });
+});
+
+describe("sorting the sheet (review C-06)", () => {
+  const keysOf = (rows: ReturnType<typeof buildRows>) => rows.filter((r) => r.kind === "line").map((r) => r.id);
+
+  it("sorts by quantity inside each group, the groups keeping their code order", () => {
+    const rows = buildRows(lines, "acme", new Set(), { column: "quantity", dir: "desc" });
+    expect(rows.filter((r) => r.kind === "group").map((r) => r.id)).toEqual(buildRows(lines, "acme").filter((r) => r.kind === "group").map((r) => r.id));
+    // 2 / 2.5 holds lines 0 (10) and 4 (2.5): biggest first.
+    const walls = rows.findIndex((r) => r.id === "2/2.5");
+    expect([rows[walls + 1]!.id, rows[walls + 2]!.id]).toEqual([lines[0]!.key, lines[4]!.key]);
+    const asc = buildRows(lines, "acme", new Set(), { column: "quantity", dir: "asc" });
+    const at = asc.findIndex((r) => r.id === "2/2.5");
+    expect([asc[at + 1]!.id, asc[at + 2]!.id]).toEqual([lines[4]!.key, lines[0]!.key]);
+  });
+
+  it("sorts a flat sheet, lines without a value last in both directions, ties in the sheet's order", () => {
+    const flat = [line(null, { quantity: 3 }), line(null, { quantity: null }), line(null, { quantity: 7 }), line(null, { quantity: 3 })];
+    expect(keysOf(buildRows(flat, null, new Set(), { column: "quantity", dir: "desc" }))).toEqual([flat[2]!.key, flat[0]!.key, flat[3]!.key, flat[1]!.key]);
+    expect(keysOf(buildRows(flat, null, new Set(), { column: "quantity", dir: "asc" }))).toEqual([flat[0]!.key, flat[3]!.key, flat[2]!.key, flat[1]!.key]);
+  });
+
+  it("compares text naturally and ignoring case, codes by the Group-by system", () => {
+    const a = line([["2.10", "B"]], { description: "beta" });
+    const b = line([["2.9", "A"]], { description: "Alpha" });
+    expect([a, b].sort(compareLines({ column: "description", dir: "asc" }, "acme")).map((l) => l.key)).toEqual([b.key, a.key]);
+    expect([a, b].sort(compareLines({ column: "item", dir: "asc" }, "acme")).map((l) => l.key)).toEqual([b.key, a.key]);
+    expect([a, b].sort(compareLines({ column: "item", dir: "desc" }, "acme")).map((l) => l.key)).toEqual([a.key, b.key]);
+  });
+
+  it("cycles a header: ascending, descending, then the sheet's own order", () => {
+    const asc = nextSort(null, "quantity");
+    expect(asc).toEqual({ column: "quantity", dir: "asc" });
+    expect(nextSort(asc, "quantity")).toEqual({ column: "quantity", dir: "desc" });
+    expect(nextSort({ column: "quantity", dir: "desc" }, "quantity")).toBeNull();
+    expect(nextSort({ column: "quantity", dir: "desc" }, "unit")).toEqual({ column: "unit", dir: "asc" });
   });
 });

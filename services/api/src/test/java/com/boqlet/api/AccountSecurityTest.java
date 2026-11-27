@@ -268,6 +268,12 @@ class AccountSecurityTest {
         http.perform(patchMe(session, "{\"preferences\":{\"sheetSplit\":90}}")).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("invalid_body"));
         http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.sheetSplit").value(70));
+        // Review C-06: the sheet's density and "Wrap text" are the user's as well; an unknown density is refused.
+        http.perform(patchMe(session, "{\"preferences\":{\"sheetDensity\":\"compact\",\"sheetWrapText\":true}}")).andExpect(status().isOk());
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.sheetDensity").value("compact"))
+                .andExpect(jsonPath("$.preferences.sheetWrapText").value(true)).andExpect(jsonPath("$.preferences.sheetSplit").value(70));
+        http.perform(patchMe(session, "{\"preferences\":{\"sheetDensity\":\"huge\"}}")).andExpect(status().isBadRequest());
+        http.perform(get("/api/v1/me").cookie(session)).andExpect(jsonPath("$.preferences.sheetDensity").value("compact"));
     }
 
     @Test

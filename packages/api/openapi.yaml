@@ -2911,6 +2911,8 @@ components:
         notInModelsCollapsed: { type: boolean, description: "the BoQ sheet's 'not in the models' notice is collapsed to its counts line (F06 §12)" }
         sheetModelOpen: { type: boolean, description: "the BoQ sheet shows the model beside it (F07 §9); unset: open on screens 1280 px and wider (review C-03)" }
         sheetSplit: { type: integer, minimum: 30, maximum: 75, description: "the sheet's share of the width beside the model, in percent (review C-03); unset: 65" }
+        sheetDensity: { type: string, enum: [compact, default, comfortable], description: "the BoQ sheet's row height: 28, 32 or 36 px (design guidelines, review C-06); unset: default" }
+        sheetWrapText: { type: boolean, description: "the BoQ sheet's descriptions wrap to at most three lines instead of one (F06 §2, review C-06); unset: one line" }
     OrgRole: { type: string, enum: [owner, admin, library_editor, member] }
     Org:
       type: object

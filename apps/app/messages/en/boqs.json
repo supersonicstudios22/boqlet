@@ -146,6 +146,22 @@
     "filtered": "Filtered: {shown} of {total} lines",
     "clearFilters": "Clear filters",
     "columns": "Columns",
+    "density": {
+      "label": "Row height",
+      "compact": "Compact",
+      "default": "Default",
+      "comfortable": "Comfortable"
+    },
+    "wrapText": "Wrap text (up to three lines)",
+    "resetWidths": "Reset column widths",
+    "resizeColumn": "Drag to resize {name}; double-click to fit",
+    "sortBy": "Sort by {name}",
+    "sort": {
+      "label": "Sort",
+      "none": "Sheet order",
+      "asc": "{name}, ascending",
+      "desc": "{name}, descending"
+    },
     "moreActions": "More sheet actions",
     "noMatches": "No line matches these filters.",
     "groupLines": "{count, plural, one {# line} other {# lines}}",

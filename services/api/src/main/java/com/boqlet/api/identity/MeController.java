@@ -123,6 +123,16 @@ class MeController implements MeApi {
         if (stored != null && stored.path("sheetSplit").isInt()) {
             preferences.sheetSplit(stored.path("sheetSplit").asInt());
         }
+        if (stored != null && stored.path("sheetDensity").isTextual()) {
+            try {
+                preferences.sheetDensity(UserPreferences.SheetDensityEnum.fromValue(stored.path("sheetDensity").asText()));
+            } catch (IllegalArgumentException unknown) {
+                // A value the contract no longer has is left out, as an unknown key is.
+            }
+        }
+        if (stored != null && stored.path("sheetWrapText").isBoolean()) {
+            preferences.sheetWrapText(stored.path("sheetWrapText").asBoolean());
+        }
         return preferences;
     }
 

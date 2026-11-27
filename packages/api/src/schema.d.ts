@@ -3050,6 +3050,13 @@ export interface components {
             sheetModelOpen?: boolean;
             /** @description the sheet's share of the width beside the model, in percent (review C-03); unset: 65 */
             sheetSplit?: number;
+            /**
+             * @description the BoQ sheet's row height: 28, 32 or 36 px (design guidelines, review C-06); unset: default
+             * @enum {string}
+             */
+            sheetDensity?: "compact" | "default" | "comfortable";
+            /** @description the BoQ sheet's descriptions wrap to at most three lines instead of one (F06 §2, review C-06); unset: one line */
+            sheetWrapText?: boolean;
         };
         /** @enum {string} */
         OrgRole: "owner" | "admin" | "library_editor" | "member";

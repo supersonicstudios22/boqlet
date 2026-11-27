@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Box, ChevronDown, ChevronRight, Columns3, Download, Ellipsis, GripVertical, ListFilter, Plus, Undo2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Box, ChevronDown, ChevronRight, Columns3, Download, Ellipsis, GripVertical, ListFilter, Plus, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
@@ -20,7 +20,7 @@ import { SERVER_GROUPED_ABOVE, useLines, useLineTotal, useWarnings } from "@/api
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { InTabsRow } from "@/features/boqs/workspace-slots";
 import { SHEET_GRID_ID, takeGridFocusRequest } from "@/features/boqs/workspace-shortcuts";
@@ -40,7 +40,8 @@ import { LargeSheet } from "./large-sheet";
 import { LineDetailPanel } from "./line-detail";
 import { LineEdits, type LineActions } from "./line-edits";
 import { SystemRulesHint } from "@/features/setup/system-rules-hint";
-import { buildRows, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SourceFilter, shownDescription } from "./model";
+import { buildRows, facets, filterLines, linesInGroup, nextSort, topGroups, UNCLASSIFIED, type GroupRow, type Row, type SheetFilters, type SheetSort, type SortColumn, type SourceFilter, shownDescription } from "./model";
+import { columnTrack, DENSITIES, fitWidth, readColumnWidths, rowHeight, saveColumnWidths, clampWidth, selectedRowHeight, type ColumnWidths, type Density } from "./sheet-layout";
 import { StatusMark } from "./status-mark";
 import { useCodeLists, useCodeListSeparators } from "./use-code-lists";
 import { positionNumbers } from "./positions";
@@ -70,10 +71,10 @@ function useWide(): boolean {
   );
 }
 
-/** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
-const ROW = 32;
-/** The selected row: its description wraps to two lines (review C-03). */
-const SELECTED_ROW = 52;
+/**
+ * Row heights follow the density switch (review C-06: 28 / 32 / 36 px, `sheet-layout.ts`); rows are virtualised at that
+ * fixed height (architecture.md performance budget) unless "Wrap text" is on, when the virtualiser measures each row.
+ */
 /** The sheet's share of the width beside the model on a first visit (%): the model opens narrow (review C-03). */
 const DEFAULT_SPLIT = 68;
 /** The line detail drawer's width (px): default, least and most. */
@@ -105,6 +106,8 @@ interface ColumnMeta {
   srHeader?: boolean;
   /** Replaces the cell's usual padding and alignment. */
   cellClass?: string;
+  /** A header click sorts the lines by this (review C-06). */
+  sort?: SortColumn;
 }
 
 interface GroupLabels {
@@ -229,6 +232,21 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const [groupBy, setGroupBy] = useState<string | null>(systems[0]?.id ?? null);
   const [filters, setFilters] = useState<SheetFilters>({});
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  // Review C-06 (DEC-46): a header sorts the lines inside their groups; the sheet's own order is the default.
+  const [sort, setSort] = useState<SheetSort | null>(null);
+  // Column widths are per BoQ in this browser (dragged or auto-fitted); density and "Wrap text" are the user's.
+  const [widths, setWidths] = useState<ColumnWidths>(() => (typeof window === "undefined" ? {} : readColumnWidths(boq.id)));
+  const resizeColumn = useCallback(
+    (id: string, width: number | null, save: boolean) =>
+      setWidths((w) => {
+        const next = { ...w };
+        if (width === null) delete next[id];
+        else next[id] = clampWidth(width);
+        if (save) saveColumnWidths(boq.id, next);
+        return next;
+      }),
+    [boq.id],
+  );
   // "Open in the sheet" from the viewer (F07 §4) arrives as `?line=`.
   const [selected, setSelected] = useState<string | null>(() => searchParams.get("line"));
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
@@ -265,6 +283,18 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const [widthChoice, setWidthChoice] = useState<number | null>(null);
   const sheetWidth = widthChoice ?? preferences?.sheetSplit ?? DEFAULT_SPLIT;
   const saveSheetWidth = (width: number) => savePreferences.mutate({ sheetSplit: Math.round(width) });
+  const [densityChoice, setDensityChoice] = useState<Density | null>(null);
+  const density: Density = densityChoice ?? preferences?.sheetDensity ?? "default";
+  const setDensity = (d: Density) => {
+    setDensityChoice(d);
+    savePreferences.mutate({ sheetDensity: d });
+  };
+  const [wrapChoice, setWrapChoice] = useState<boolean | null>(null);
+  const wrap = wrapChoice ?? preferences?.sheetWrapText ?? false;
+  const setWrap = (on: boolean) => {
+    setWrapChoice(on);
+    savePreferences.mutate({ sheetWrapText: on });
+  };
   // The line detail is a drawer over the model, or beside the grid without it (review C-03).
   const [drawerWidth, setDrawerWidth] = useState<number>(DRAWER.initial);
   const drawer = useRef<HTMLDivElement>(null);
@@ -326,7 +356,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
-  const rows = useMemo(() => buildRows(filtered, groupBy, collapsed), [filtered, groupBy, collapsed]);
+  const rows = useMemo(() => buildRows(filtered, groupBy, collapsed, sort), [filtered, groupBy, collapsed, sort]);
   const filtering = filtered.length !== all.length;
   // One formatter for every cell (the rule set's rounding is already applied by the engine), in the
   // firm's number format and the project's locale (F15 §6, §11, TF-021).
@@ -353,6 +383,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               width: "8rem",
               optional: true,
               editable: "item",
+              sort: "item",
               cell: (l) => l.codes[groupBy]?.code,
               engine: (l) => (l.edit?.override.codes?.[groupBy] ? engine(l, "codes", l.edit.engine.codes[groupBy] ?? te("noCode")) : undefined),
             }),
@@ -360,17 +391,18 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
         : []),
       // The item text of the Group-by system when its code has one (P14, F06 §2); an edited description wins.
       // Beside the model the description gives way first, so Quantity stays in view (TF-107).
-      col("description", t("col.description"), { width: split && hasModels ? "minmax(10rem, 1fr)" : "minmax(16rem, 1fr)", editable: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
-      col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", cell: (l) => unitLabel(l.unit), engine: (l) => engine(l, "unit", unitLabel(l.edit?.engine.unit ?? "")) }),
+      col("description", t("col.description"), { width: split && hasModels ? "minmax(10rem, 1fr)" : "minmax(16rem, 1fr)", editable: "description", sort: "description", cell: (l) => (badges[l.key] ? <>{shownDescription(l, groupBy)} {badges[l.key]}</> : shownDescription(l, groupBy)), engine: (l) => engine(l, "description", l.edit?.engine.description ?? "") }),
+      col("unit", t("col.unit"), { width: "4.5rem", editable: "unit", sort: "unit", cell: (l) => unitLabel(l.unit), engine: (l) => engine(l, "unit", unitLabel(l.edit?.engine.unit ?? "")) }),
       col("quantity", t("col.quantity"), {
         width: "8rem",
         align: "right",
         editable: "quantity",
+        sort: "quantity",
         cell: (l) => (l.quantity === null ? <span title={l.notes[0] ?? toConfirm}>—</span> : num(l.quantity)),
         engine: (l) => engine(l, "quantity", l.edit?.engine.quantity === null || l.edit?.engine.quantity === undefined ? toConfirm : num(l.edit.engine.quantity)),
       }),
-      col("storey", t("col.storey"), { width: "8rem", optional: true, cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
-      col("family", t("col.family"), { width: "7rem", optional: true, cell: (l) => (l.family && t.has(`families.${l.family}`) ? t(`families.${l.family}`) : l.family) }),
+      col("storey", t("col.storey"), { width: "8rem", optional: true, sort: "storey", cell: (l) => l.location?.storey ?? (l.location?.storeys ? list(l.location.storeys) : undefined) }),
+      col("family", t("col.family"), { width: "7rem", optional: true, sort: "family", cell: (l) => (l.family && t.has(`families.${l.family}`) ? t(`families.${l.family}`) : l.family) }),
       col("tags", t("col.tags"), { width: "8rem", optional: true, cell: (l) => list(l.tags) }),
       col("notes", t("col.notes"), { width: "12rem", optional: true, cell: (l) => l.notes.join(" ") }),
       // One column per extra classification (F06 §2), off by default.
@@ -397,11 +429,16 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
     .join("|");
   // Stable while the visible columns don't change, so the memoised rows don't re-render.
   const visibleMetas = useMemo(
-    () => visibleIds.split("|").map((id) => columns.find((c) => c.id === id)!.meta as ColumnMeta),
-    [visibleIds, columns],
+    () =>
+      visibleIds.split("|").map((id) => {
+        const meta = columns.find((c) => c.id === id)!.meta as ColumnMeta;
+        return widths[id] === undefined ? meta : { ...meta, width: columnTrack(id, meta.width, widths) };
+      }),
+    [visibleIds, columns, widths],
   );
   const headers = useMemo(() => new Map(columns.map((c) => [c.id!, String(c.header)])), [columns]);
 
+  const sortLabels = useMemo(() => ({ resize: (name: string) => t("resizeColumn", { name }), sortBy: (name: string) => t("sortBy", { name }) }), [t]);
   const groupLabels = useMemo<GroupLabels>(
     () => ({
       unclassified: t("unclassified"),
@@ -725,6 +762,49 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
         {String(c.columnDef.header)}
       </DropdownMenuCheckboxItem>
     ));
+  // The layout choices under the columns (review C-06): density, "Wrap text", and putting the widths back.
+  const sortable = visibleMetas.filter((c) => c.sort);
+  const layoutItems = (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger data-testid="sort-menu">{t("sort.label")}</DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuRadioGroup value={sort ? `${sort.column}:${sort.dir}` : ""} onValueChange={(v) => setSort(v ? { column: (v as string).split(":")[0] as SortColumn, dir: (v as string).split(":")[1] as SheetSort["dir"] } : null)}>
+            <DropdownMenuRadioItem value="">{t("sort.none")}</DropdownMenuRadioItem>
+            {sortable.flatMap((c) =>
+              (["asc", "desc"] as const).map((dir) => (
+                <DropdownMenuRadioItem key={`${c.id}:${dir}`} value={`${c.sort}:${dir}`} data-testid={`sort-${c.id}-${dir}`}>
+                  {t(`sort.${dir}`, { name: headers.get(c.id) ?? c.id })}
+                </DropdownMenuRadioItem>
+              )),
+            )}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+      <DropdownMenuSeparator />
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>{t("density.label")}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={density} onValueChange={(v) => setDensity(v as Density)}>
+          {DENSITIES.map((d) => (
+            <DropdownMenuRadioItem key={d} value={d} data-testid={`density-${d}`}>
+              {t(`density.${d}`)}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuGroup>
+      <DropdownMenuSeparator />
+      <DropdownMenuCheckboxItem checked={wrap} onCheckedChange={(v) => setWrap(!!v)} data-testid="wrap-text">
+        {t("wrapText")}
+      </DropdownMenuCheckboxItem>
+      <DropdownMenuItem onClick={() => {
+          setWidths({});
+          saveColumnWidths(boq.id, {});
+        }} disabled={Object.keys(widths).length === 0} data-testid="reset-widths">
+        {t("resetWidths")}
+      </DropdownMenuItem>
+    </>
+  );
   const grid = (
     <SheetGrid
       rows={rows}
@@ -754,6 +834,13 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       onEditActive={editActive}
       gridRef={gridRef}
       endSpace={showBulk ? BULK_SPACE : 0}
+      rowHeight={rowHeight(density)}
+      selectedHeight={selectedRowHeight(density)}
+      wrap={wrap}
+      sort={sort}
+      onSort={(column) => setSort((s) => nextSort(s, column))}
+      sortLabels={sortLabels}
+      onResize={resizeColumn}
     />
   );
   return (
@@ -901,7 +988,10 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
                 <Columns3 aria-hidden />
                 {t("columns")}
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">{columnItems}</DropdownMenuContent>
+              <DropdownMenuContent align="end">
+                {columnItems}
+                {layoutItems}
+              </DropdownMenuContent>
             </DropdownMenu>
           </div>
           <DropdownMenu>
@@ -935,6 +1025,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
                 <DropdownMenuLabel>{t("columns")}</DropdownMenuLabel>
                 {columnItems}
               </DropdownMenuGroup>
+              {layoutItems}
             </DropdownMenuContent>
           </DropdownMenu>
         </RovingToolbar>
@@ -1225,6 +1316,13 @@ function SheetGrid({
   onEditActive,
   gridRef,
   endSpace = 0,
+  rowHeight: ROW,
+  selectedHeight,
+  wrap,
+  sort,
+  onSort,
+  sortLabels,
+  onResize,
 }: {
   rows: Row[];
   columns: ColumnMeta[];
@@ -1257,6 +1355,16 @@ function SheetGrid({
   gridRef?: RefObject<HTMLDivElement | null>;
   /** Extra room under the last row (px), while something floats over the grid's foot. */
   endSpace?: number;
+  /** The density's row height and the selected row's (review C-06). */
+  rowHeight: number;
+  selectedHeight: number;
+  /** "Wrap text": descriptions clamp at three lines and the virtualiser measures each row. */
+  wrap: boolean;
+  sort: SheetSort | null;
+  onSort: (column: SortColumn) => void;
+  sortLabels: { resize: (name: string) => string; sortBy: (name: string) => string };
+  /** A column's new width (null: back to its default); `save` once the drag ends. */
+  onResize: (id: string, width: number | null, save: boolean) => void;
 }) {
   const ownScroller = useRef<HTMLDivElement>(null);
   const scroller = gridRef ?? ownScroller;
@@ -1265,8 +1373,9 @@ function SheetGrid({
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scroller.current,
-    // The selected line is taller: its description wraps to two lines (review C-03).
-    estimateSize: (i) => (rows[i]?.kind === "line" && rows[i]!.id === selected ? SELECTED_ROW : ROW),
+    // The selected line is taller: its description wraps to two lines (review C-03). With "Wrap text" each row is
+    // measured as it renders (`measureElement`); the estimate only places the rows not drawn yet.
+    estimateSize: (i) => (rows[i]?.kind === "line" && (wrap || rows[i]!.id === selected) ? selectedHeight : ROW),
     overscan: 12,
     paddingEnd: endSpace,
   });
@@ -1284,10 +1393,39 @@ function SheetGrid({
   useEffect(() => {
     if (takeGridFocusRequest()) scroller.current?.focus();
   }, [scroller]);
-  // The selected row changes height (two lines): the virtualizer measures the rows again.
+  // The selected row changes height (two lines), or the density or wrapping did: the virtualizer measures the rows again.
   useEffect(() => {
     virtualizer.measure();
-  }, [selected, virtualizer]);
+  }, [selected, virtualizer, ROW, wrap]);
+  const measureRow = wrap ? virtualizer.measureElement : undefined;
+  /** Drags a column's right edge; a double-click fits it to the widest cell on screen (review C-06). */
+  const startColumnResize = (e: React.PointerEvent, id: string) => {
+    const cell = (e.currentTarget as HTMLElement).closest<HTMLElement>("[role=columnheader]");
+    if (!cell) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const left = cell.getBoundingClientRect().left;
+    let last: number | null = null;
+    const move = (ev: PointerEvent) => {
+      last = ev.clientX - left;
+      onResize(id, last, false);
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (last !== null) onResize(id, last, true);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+  const fitColumn = (id: string) => {
+    const box = scroller.current;
+    if (!box) return;
+    // The content's own width: each cell's first child (the text), not the cell, which is as wide as the column.
+    const selector = `[data-column="${CSS.escape(id)}"] > :first-child, [data-header="${CSS.escape(id)}"] > :first-child`;
+    const contents = [...box.querySelectorAll<HTMLElement>(selector)].map((el) => el.scrollWidth);
+    onResize(id, fitWidth(contents, 24), true);
+  };
   // Keep the selected line in view (also when it was chosen elsewhere: the viewer, `?line=`).
   const selectedIndex = selected ? rows.findIndex((r) => r.id === selected) : -1;
   useEffect(() => {
@@ -1352,24 +1490,55 @@ function SheetGrid({
       data-rows={rows.length}
       data-lines={lineIndexes.length}
     >
-      <div role="row" className="sticky top-0 z-10 grid min-w-fit border-b border-border bg-background" style={{ gridTemplateColumns: template, height: ROW }}>
+      <div role="row" className="sticky top-0 z-10 grid min-w-fit border-b border-border bg-background" style={{ gridTemplateColumns: template, height: ROW }} data-row-height={ROW}>
         {editable && (
           <div role="columnheader" className="flex items-center justify-center">
             <input type="checkbox" tabIndex={-1} aria-label={checkAllLabel} aria-keyshortcuts="Control+A" checked={allChecked} onChange={(e) => onCheckAll(e.target.checked)} className="accent-[var(--link)]" data-testid="check-all" />
           </div>
         )}
-        {columns.map((c) => (
-          <div key={c.id} role="columnheader" className={cn("label-caps flex items-center truncate px-2 text-muted-foreground", c.align === "right" && "justify-end", c.cellClass)}>
-            {c.srHeader ? <span className="sr-only">{headers.get(c.id)}</span> : headers.get(c.id)}
-          </div>
-        ))}
+        {columns.map((c) => {
+          const name = headers.get(c.id) ?? c.id;
+          const dir = c.sort && sort?.column === c.sort ? sort.dir : null;
+          return (
+            <div
+              key={c.id}
+              role="columnheader"
+              aria-sort={c.sort ? (dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none") : undefined}
+              className={cn("label-caps relative flex min-w-0 items-center px-2 text-muted-foreground", c.align === "right" && "justify-end", c.cellClass)}
+              data-header={c.id}
+            >
+              {c.srHeader ? (
+                <span className="sr-only">{name}</span>
+              ) : c.sort ? (
+                // The grid is one Tab stop (TF-161): a click sorts; by keyboard the same choice is in the Columns menu.
+                <button type="button" tabIndex={-1} className={cn("flex min-w-0 items-center gap-1 uppercase hover:text-foreground", dir && "text-foreground")} onClick={() => onSort(c.sort!)} title={sortLabels.sortBy(name)} data-testid={`sort-${c.id}`}>
+                  <span className="truncate">{name}</span>
+                  {dir === "asc" ? <ArrowUp aria-hidden className="size-3 shrink-0" /> : dir === "desc" ? <ArrowDown aria-hidden className="size-3 shrink-0" /> : null}
+                </button>
+              ) : (
+                <span className="truncate">{name}</span>
+              )}
+              {!c.srHeader && (
+                <span
+                  aria-hidden
+                  title={sortLabels.resize(name)}
+                  className="absolute inset-y-1 -right-1 z-10 w-2 cursor-col-resize border-x-[3px] border-transparent bg-clip-content hover:bg-[var(--link)]"
+                  onPointerDown={(e) => startColumnResize(e, c.id)}
+                  onDoubleClick={() => fitColumn(c.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  data-testid={`resize-${c.id}`}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
       {rows.length === 0 && <p className="p-4 text-muted-foreground">{emptyText}</p>}
       <div className="relative min-w-fit" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((v) => {
           const row = rows[v.index]!;
           return row.kind === "group" ? (
-            <GroupRowView key={`g:${row.id}`} row={row} selected={selectedGroup === row.id} top={v.start} index={v.index} template={template} lead={editable} unitIndex={unitIndex} quantityIndex={quantityIndex} columnCount={columns.length} api={api} editable={editable} num={num} labels={labels} />
+            <GroupRowView key={`g:${row.id}`} row={row} selected={selectedGroup === row.id} top={v.start} index={v.index} height={ROW} measureRef={measureRow} template={template} lead={editable} unitIndex={unitIndex} quantityIndex={quantityIndex} columnCount={columns.length} api={api} editable={editable} num={num} labels={labels} />
           ) : (
             <LineRowView
               key={`l:${row.id}`}
@@ -1377,6 +1546,9 @@ function SheetGrid({
               depth={row.depth}
               top={v.start}
               index={v.index}
+              height={row.id === selected ? selectedHeight : ROW}
+              wrap={wrap}
+              measureRef={measureRow}
               template={template}
               columns={columns}
               selected={row.id === selected}
@@ -1401,6 +1573,8 @@ const GroupRowView = memo(function GroupRowView({
   selected,
   top,
   index,
+  height,
+  measureRef,
   template,
   lead,
   unitIndex,
@@ -1416,6 +1590,9 @@ const GroupRowView = memo(function GroupRowView({
   selected: boolean;
   top: number;
   index: number;
+  height: number;
+  /** "Wrap text": the virtualiser measures the row. */
+  measureRef?: (el: Element | null) => void;
   template: string;
   lead: boolean;
   unitIndex: number;
@@ -1433,6 +1610,8 @@ const GroupRowView = memo(function GroupRowView({
   const span = Math.max(1, unitIndex >= 0 ? unitIndex : columnCount);
   return (
     <div
+      ref={measureRef}
+      data-index={index}
       role="row"
       aria-rowindex={index + 2}
       aria-level={row.depth + 1}
@@ -1443,7 +1622,7 @@ const GroupRowView = memo(function GroupRowView({
         // The name toggles the group; the rest of the row selects it.
         if (!(e.target as HTMLElement).closest("button")) api.selectGroup(row.id);
       }}
-      style={{ gridTemplateColumns: template, height: ROW, transform: `translateY(${top}px)` }}
+      style={{ gridTemplateColumns: template, height, transform: `translateY(${top}px)` }}
       onDragOver={(e) => {
         if (!editable || !e.dataTransfer.types.includes(DRAG_TYPE) || row.title === null) return;
         e.preventDefault();
@@ -1499,6 +1678,9 @@ const LineRowView = memo(function LineRowView({
   depth,
   top,
   index,
+  height,
+  wrap,
+  measureRef,
   template,
   columns,
   selected,
@@ -1515,6 +1697,10 @@ const LineRowView = memo(function LineRowView({
   depth: number;
   top: number;
   index: number;
+  /** The row's height; with "Wrap text" its least height, the virtualiser measuring the rest. */
+  height: number;
+  wrap: boolean;
+  measureRef?: (el: Element | null) => void;
   template: string;
   columns: ColumnMeta[];
   selected: boolean;
@@ -1539,6 +1725,8 @@ const LineRowView = memo(function LineRowView({
   }, []);
   return (
     <div
+      ref={measureRef}
+      data-index={index}
       role="row"
       aria-rowindex={index + 2}
       aria-level={depth + 1}
@@ -1554,7 +1742,7 @@ const LineRowView = memo(function LineRowView({
       )}
       title={editingBy}
       data-editing-by={editingBy}
-      style={{ gridTemplateColumns: template, height: selected ? SELECTED_ROW : ROW, transform: `translateY(${top}px)` }}
+      style={{ gridTemplateColumns: template, ...(wrap ? { minHeight: height } : { height }), transform: `translateY(${top}px)` }}
       // A click selects the line, which opens its detail and narrows the grid. On a line not selected yet
       // that waits out the double-click time, so the second click of a double-click lands on the same cell
       // and edits it (TF-104); the cell is the one the first click was on.
@@ -1642,8 +1830,9 @@ const LineRowView = memo(function LineRowView({
             aria-selected={c.editable ? active : undefined}
             data-column={c.id}
           >
-            {/* The selected line's description wraps to two lines, so it can be read without the detail (review C-03). */}
-            <span className={selected && c.id === "description" ? "line-clamp-2 whitespace-normal break-words" : "truncate"} title={c.id === "description" ? String(c.cell(line) ?? "") : undefined}>
+            {/* The selected line's description wraps to two lines, so it can be read without the detail (review C-03); with
+                "Wrap text" every description wraps to at most three (F06 §2, review C-06). */}
+            <span className={c.id === "description" && wrap ? "line-clamp-3 whitespace-normal break-words py-1" : selected && c.id === "description" ? "line-clamp-2 whitespace-normal break-words" : "truncate"} title={c.id === "description" ? String(c.cell(line) ?? "") : undefined}>
               {c.cell(line)}
             </span>
             {c.id === "description" && line.pending && <span className="label-caps ml-2 shrink-0 not-italic text-muted-foreground">{pendingLabel}</span>}

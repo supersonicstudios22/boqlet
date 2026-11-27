@@ -148,12 +148,67 @@ export function subtotal(lines: readonly { unit: string; quantity: number | null
 }
 const byCode = (a: Node, b: Node) => (a.id === UNCLASSIFIED ? 1 : b.id === UNCLASSIFIED ? -1 : a.code.localeCompare(b.code, undefined, { numeric: true }));
 
+/** The columns a header click sorts by (review C-06, DEC-46). */
+export type SortColumn = "item" | "description" | "unit" | "quantity" | "storey" | "family";
+export interface SheetSort {
+  column: SortColumn;
+  dir: "asc" | "desc";
+}
+
+/** A header click: ascending, then descending, then the sheet's own order again. */
+export function nextSort(current: SheetSort | null, column: SortColumn): SheetSort | null {
+  if (current?.column !== column) return { column, dir: "asc" };
+  return current.dir === "asc" ? { column, dir: "desc" } : null;
+}
+
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
+function sortValue(l: SheetLine, column: SortColumn, system: string | null): string | number | undefined {
+  switch (column) {
+    case "item":
+      return system ? l.codes[system]?.code : undefined;
+    case "description":
+      return shownDescription(l, system);
+    case "unit":
+      return l.unit;
+    case "quantity":
+      return l.quantity ?? undefined;
+    case "storey":
+      return l.location?.storey ?? l.location?.storeys?.[0];
+    case "family":
+      return l.family;
+  }
+}
+
+/**
+ * The order a sorted column gives (review C-06): numbers by value, text in natural order ("2.10" after "2.9"),
+ * ignoring case; lines without a value last in both directions, so "biggest quantities first" never starts
+ * with the lines still to confirm. Equal values keep the sheet's order (the sort is stable).
+ */
+export function compareLines(sort: SheetSort, system: string | null) {
+  const sign = sort.dir === "asc" ? 1 : -1;
+  return (a: SheetLine, b: SheetLine) => {
+    const x = sortValue(a, sort.column, system);
+    const y = sortValue(b, sort.column, system);
+    if (x === undefined || x === "") return y === undefined || y === "" ? 0 : 1;
+    if (y === undefined || y === "") return -1;
+    return sign * (typeof x === "number" && typeof y === "number" ? x - y : collator.compare(String(x), String(y)));
+  };
+}
+
+/** A section's lines in the sheet's order (edits' moves applied), then by the sorted column when there is one. */
+function sectionOrder(lines: SheetLine[], sort: SheetSort | null, system: string | null): SheetLine[] {
+  const out = orderSection(lines);
+  return sort ? out.sort(compareLines(sort, system)) : out;
+}
+
 /**
  * Rows in display order. Without a system the lines are listed flat. Groups nest by the code path
  * (one level per path segment), each with its line count and, when the unit is shared, the sum.
+ * A sort orders the lines inside each group; the groups keep their code order (review C-06).
  */
-export function buildRows(lines: SheetLine[], system: string | null, collapsed: ReadonlySet<string> = new Set()): Row[] {
-  if (!system) return orderSection(lines).map((line) => ({ kind: "line", id: line.key, depth: 0, line }));
+export function buildRows(lines: SheetLine[], system: string | null, collapsed: ReadonlySet<string> = new Set(), sort: SheetSort | null = null): Row[] {
+  if (!system) return sectionOrder(lines, sort, system).map((line) => ({ kind: "line", id: line.key, depth: 0, line }));
   const ordered = [...lines].sort((a, b) => a.sortIndex - b.sortIndex);
   const root = node("", "", null);
   for (const line of ordered) {
@@ -186,7 +241,7 @@ export function buildRows(lines: SheetLine[], system: string | null, collapsed: 
       const isCollapsed = collapsed.has(child.id);
       rows.push({ kind: "group", id: child.id, depth, code: child.code, title: child.title, lineCount: total.count, unit: total.unit, quantity: total.quantity, collapsed: isCollapsed });
       if (isCollapsed) continue;
-      for (const line of orderSection(child.lines)) rows.push({ kind: "line", id: line.key, depth: depth + 1, line });
+      for (const line of sectionOrder(child.lines, sort, system)) rows.push({ kind: "line", id: line.key, depth: depth + 1, line });
       walk(child, depth + 1);
     }
   };
