@@ -107,8 +107,8 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
   their keys; TF-141). Some warnings (`rule_set`, `federation_hole`), the answer options of engine
   questions and engine line notes are English text without a code
   (`apps/app/src/i18n/engine-message.ts`). This matters once a second language is added (P07).
-- The UI ships English and the pseudo-locale only; emails are English and Serbian
-  (`mail/EmailDelivery.java`).
+- The UI ships English and the pseudo-locale only; emails follow the recipient's locale, so English
+  while the UI is, with Serbian templates kept for an `sr` UI (`mail/EmailDelivery.java`, DEC-69).
 
 **Security**
 - User regexes run on RE2 (D97): ``, `\w` and `\d` know only A-Z and 0-9, so a pattern for a
