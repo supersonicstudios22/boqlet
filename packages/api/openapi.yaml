@@ -1452,8 +1452,12 @@ paths:
       description: |
         All lines (default, for runs up to 20,000 lines) or grouped server-side when
         `groupBy` and `level` are given (large runs: group rows, then lines per group with `groupPath`).
+        Each line's `trace` is a summary unless `include=trace` (review B-18): its formula, its source line,
+        and per element only `guid`, `quantity` and `model`, without element names, notes and decisions, the
+        line's `params` (empty) and its `steps`. `GET /runs/{runId}/lines/by-key` gives one line in full.
       parameters:
         - { $ref: "#/components/parameters/Cursor" }
+        - { name: include, in: query, description: "`trace`: every line with its full trace", schema: { type: string, enum: [trace] } }
         - { name: limit, in: query, schema: { type: integer, default: 5000, maximum: 20000 } }
         - { name: groupBy, in: query, description: classification id, schema: { type: string } }
         - { name: level, in: query, schema: { type: integer } }

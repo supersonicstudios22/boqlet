@@ -1563,6 +1563,9 @@ export interface paths {
         /**
          * @description All lines (default, for runs up to 20,000 lines) or grouped server-side when
          *     `groupBy` and `level` are given (large runs: group rows, then lines per group with `groupPath`).
+         *     Each line's `trace` is a summary unless `include=trace` (review B-18): its formula, its source line,
+         *     and per element only `guid`, `quantity` and `model`, without element names, notes and decisions, the
+         *     line's `params` (empty) and its `steps`. `GET /runs/{runId}/lines/by-key` gives one line in full.
          */
         get: operations["listLines"];
         put?: never;
@@ -7691,6 +7694,8 @@ export interface operations {
         parameters: {
             query?: {
                 cursor?: components["parameters"]["Cursor"];
+                /** @description `trace`: every line with its full trace */
+                include?: "trace";
                 limit?: number;
                 /** @description classification id */
                 groupBy?: string;

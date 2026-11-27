@@ -39,6 +39,12 @@ spring:
       "[mail.smtp.writetimeout]": 5000
 server:
   forward-headers-strategy: ${BOQLET_FORWARD_HEADERS_STRATEGY:none}
+  # Review B-18: JSON and CSV over 2 KB are gzipped when the client accepts it (a BoQ's line list compresses
+  # about tenfold). Traefik on the pilot passes the encoding through.
+  compression:
+    enabled: ${BOQLET_HTTP_COMPRESSION:true}
+    mime-types: application/json,application/problem+json,text/csv
+    min-response-size: 2KB
   tomcat:
     # Read (and drop) the rest of a refused upload up to this size, so the client gets the `413 too_large`
     # instead of a reset connection (TF-071). Larger bodies are still cut off.

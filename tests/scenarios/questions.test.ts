@@ -267,7 +267,7 @@ describe("contradiction thresholds are resolution settings (review WP-A1, A-04)"
     const { data: again } = await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId: bill.currentRevision.id } } });
     const run = await finished(api, again!.run.id);
     expect(run.stats!.decisionsApplied).toBeGreaterThanOrEqual(1);
-    const lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } })).data!.items;
+    const lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { include: "trace" } } })).data!.items;
     const party = lines.find((l) => l.ruleId === "walls" && l.description.includes("Party Wall"))!;
     const named = party.trace.elements.flatMap((e) => e.decisions ?? []).find((d) => d.questionId === volume!.id);
     expect(named).toMatchObject({ answer: "geometry", by: "Thresholds Lead" });

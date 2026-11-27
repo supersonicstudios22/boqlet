@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Box, ChevronDown, ChevronRight, Columns3, Download, GripVertical, Plus, Undo2 } from "lucide-react";
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
+import { useDebounced } from "@/lib/use-debounced";
 import { SearchPicker } from "@/features/questions/search-picker";
 import { ModelViewer } from "@/features/viewer/model-viewer";
 import { showIn3dHref, viewerModels } from "@/features/viewer/viewer-tab";
@@ -219,7 +220,13 @@ export function Sheet({ run, boq, readOnly = false, frozen }: { run: Run; boq: B
   const separators = useCodeListSeparators(run);
   const positions = useMemo(() => positionNumbers(all, groupBy, groupBy ? separators.get(groupBy) : undefined), [all, groupBy, separators]);
   const options = useMemo(() => facets(all), [all]);
-  const filtered = useMemo(() => filterLines(all, filters, groupBy), [all, filters, groupBy]);
+  // Review B-18: the search box answers every key at once; the lines (and the viewer's scope) follow the
+  // text once it pauses, rendered at low priority so typing never waits for a filter of thousands of lines.
+  const typedQuery = useDebounced(filters.q, 150);
+  const otherFilters = JSON.stringify({ ...filters, q: undefined });
+  const settledFilters = useMemo(() => ({ ...(JSON.parse(otherFilters) as SheetFilters), q: typedQuery }), [otherFilters, typedQuery]);
+  const shownFilters = useDeferredValue(settledFilters);
+  const filtered = useMemo(() => filterLines(all, shownFilters, groupBy), [all, shownFilters, groupBy]);
   const groups = useMemo(() => topGroups(all, groupBy), [all, groupBy]);
   const models3d = useMemo(() => viewerModels(run), [run]);
   // The viewer colours "edited" from the sheet's current edits (F07 §5).

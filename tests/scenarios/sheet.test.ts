@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
-import { client } from "../support/env";
+import { API_URL, authentication, client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -35,7 +35,7 @@ beforeAll(async () => {
     if (Date.now() > deadline) throw new Error("run did not finish");
     await new Promise((r) => setTimeout(r, 250));
   }
-  const { data: page } = await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } });
+  const { data: page } = await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { include: "trace" } } });
   lines = page!.items;
 }, 240_000);
 
@@ -77,6 +77,27 @@ describe("lines (F06 §1)", () => {
     expect(first.nextCursor).toBeTruthy();
     const second = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { limit: 10, cursor: first.nextCursor! } } })).data!;
     expect(second.items[0]!.sortIndex).toBe(10);
+  });
+
+  it("sends each line's trace as a summary unless include=trace (review B-18)", async () => {
+    const api = client(owner.token);
+    const summary = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } })).data!.items;
+    const full = new Map(lines.map((l) => [l.key, l]));
+    expect(summary.length).toBe(lines.length);
+    for (const l of summary) {
+      const whole = full.get(l.key)!;
+      expect(l.trace.steps).toBeUndefined();
+      expect(l.trace.params).toEqual({});
+      expect(l.trace.formula).toBe(whole.trace.formula);
+      expect(l.trace.sourceLine).toBe(whole.trace.sourceLine);
+      expect(l.trace.elements).toEqual(whole.trace.elements.map((e) => ({ guid: e.guid, quantity: e.quantity, ...(e.model !== undefined ? { model: e.model } : {}) })));
+      expect({ ...l, trace: undefined }).toEqual({ ...whole, trace: undefined });
+    }
+    expect(JSON.stringify(summary).length).toBeLessThan(JSON.stringify(lines).length);
+    // The list is gzipped for a client that accepts it (review B-18).
+    const res = await fetch(`${API_URL}/runs/${run.id}/lines?include=trace`, { headers: { ...(await authentication(owner.token)), "Accept-Encoding": "gzip" } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-encoding")).toBe("gzip");
   });
 
   it("groups server-side for large runs: group rows with counts, then one group's lines (F06 edge cases)", async () => {

@@ -44,9 +44,10 @@ class RunController implements RunsApi {
     }
 
     @Override
-    public ResponseEntity<LinesPage> listLines(UUID run, String cursor, Integer limit, String groupBy, Integer level,
+    public ResponseEntity<LinesPage> listLines(UUID run, String cursor, String include, Integer limit, String groupBy, Integer level,
                                                 String groupPath, String source, String storey, String family, String model, String query) {
-        return ResponseEntity.ok(reads.written(run, actor(), cursor, limit, groupBy, level, groupPath, source, storey, family, model, query));
+        return ResponseEntity.ok(reads.written(run, actor(), cursor, limit, groupBy, level, groupPath, source, storey, family, model, query,
+                "trace".equals(include)));
     }
 
     @Override

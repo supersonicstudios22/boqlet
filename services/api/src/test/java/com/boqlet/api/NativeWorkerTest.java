@@ -765,7 +765,8 @@ class NativeWorkerTest {
         assertThat(lines.path("total").asInt()).isGreaterThan(30);
         // TF-179: a page sent from the stored views is byte for byte the page written from the lines.
         var owner = database.queryForObject("SELECT id FROM users WHERE auth_subject = 'owner'", java.util.UUID.class);
-        String sent = http.perform(auth(get(runPath + "/lines?limit=40&groupBy=" + perform(get(runPath), cookie, 200)
+        // With include=trace (the list's default trace is a summary since review B-18).
+        String sent = http.perform(auth(get(runPath + "/lines?limit=40&include=trace&groupBy=" + perform(get(runPath), cookie, 200)
                 .path("classifications").path(0).path("id").asText()), cookie)).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String written = json.writeValueAsString(readService.lines(java.util.UUID.fromString(run), owner, null, 40,

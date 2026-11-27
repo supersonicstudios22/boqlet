@@ -593,7 +593,8 @@ def stack_run(api: Api, org: dict, run_id: str, out: Path) -> None:
         meta["status"] = run.get("status")
         rid = started["run"]["id"]
         write_json_gz(out / "run.json.gz", scrub(run))
-        lines = all_pages(api, f"/runs/{rid}/lines")
+        # Full traces: the list's default trace is a summary since review B-18 (WP-B5).
+        lines = all_pages(api, f"/runs/{rid}/lines?include=trace")
         write_json_gz(out / "lines.json.gz", scrub(lines))
         write_json_gz(out / "questions.json.gz", scrub(all_pages(api, f"/runs/{rid}/questions")))
         write_json_gz(out / "warnings.json.gz", scrub(all_pages(api, f"/runs/{rid}/warnings")))

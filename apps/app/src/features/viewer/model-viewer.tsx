@@ -194,8 +194,10 @@ export function ModelViewer({
   const pickedMeshes = useMemo(() => links.meshesOf(picked), [links, picked]);
   const allLoaded = loaded.size === models.length && models.length > 0;
 
+  // One repaint per frame however many inputs change in it (review B-18: a search re-scopes the viewer as it is typed).
   useEffect(() => {
-    view.current?.paint({ colors, focus: focusMeshes, picked: pickedMeshes, scope: scopeMeshes });
+    const frame = requestAnimationFrame(() => view.current?.paint({ colors, focus: focusMeshes, picked: pickedMeshes, scope: scopeMeshes }));
+    return () => cancelAnimationFrame(frame);
   }, [colors, focusMeshes, pickedMeshes, scopeMeshes, loaded]);
 
   // Frame what "Show in 3D" asked for, once everything is in.

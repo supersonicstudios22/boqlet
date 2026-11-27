@@ -36,7 +36,7 @@ beforeAll(async () => {
   const { data: boq } = await api.POST("/projects/{projectId}/boqs", { params: { path: { projectId: project!.id } }, body: { name: "Federated", inputs: {} } });
   expect(boq!.currentRevision.inputs.models).toHaveLength(2);
   run = await generate(api, boq!.currentRevision.id);
-  lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id } } })).data!.items;
+  lines = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { include: "trace" } } })).data!.items;
   questions = (await api.GET("/runs/{runId}/questions", { params: { path: { runId: run.id } } })).data!;
 }, 600_000);
 
@@ -85,7 +85,7 @@ describe("copies of one GlobalId that disagree (review A-18)", () => {
   let projectId: string;
   let revisionId: string;
   const wallModel = async (runId: string) => {
-    const items = (await api.GET("/runs/{runId}/lines", { params: { path: { runId } } })).data!.items;
+    const items = (await api.GET("/runs/{runId}/lines", { params: { path: { runId }, query: { include: "trace" } } })).data!.items;
     return [...new Set(items.filter((l) => l.ruleKind === "item").flatMap((l) => l.trace.elements)
       .filter((e) => e.guid === WALL).map((e) => (e as { model?: string }).model))];
   };

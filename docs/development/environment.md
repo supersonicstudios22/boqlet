@@ -25,7 +25,7 @@ Full reference with what each does: [services/api/README.md](../../services/api/
 
 | Group | Variables |
 |---|---|
-| Database, server | `BOQLET_JDBC_URL`, `BOQLET_DB_USER`, `BOQLET_DB_PASSWORD`, `BOQLET_API_PORT` (8080), `BOQLET_FORWARD_HEADERS_STRATEGY` |
+| Database, server | `BOQLET_JDBC_URL`, `BOQLET_DB_USER`, `BOQLET_DB_PASSWORD`, `BOQLET_API_PORT` (8080), `BOQLET_FORWARD_HEADERS_STRATEGY`, `BOQLET_HTTP_COMPRESSION` (`true`: gzip JSON and CSV over 2 KB, review B-18) |
 | Sign-in and sessions | `BOQLET_NATIVE_AUTH` (`true` for native sign-in), `BOQLET_SECURE_COOKIE` (`false` only over plain HTTP), `BOQLET_APP_URL` (the one allowed Origin), `BOQLET_INVITATION_SECRET` (≥ 32 bytes); OIDC rollback: `BOQLET_OIDC_ISSUER`, `_AUDIENCE`, `_JWKS_URL`, `_REVOCATION_CLIENT_ID`, `_REVOCATION_CLIENT_SECRET`, `BOQLET_PILOT_EMAILS` |
 | Mail | `BOQLET_SMTP_HOST`, `_PORT` (587), `_USERNAME`, `_PASSWORD`, `_AUTH`, `_STARTTLS`, `_FROM`, `_POLL_MS` |
 | Object storage | `BOQLET_S3_BUCKET`, `BOQLET_S3_REGION`, `BOQLET_S3_ENDPOINT`, `BOQLET_S3_PUBLIC_ENDPOINT` (the address browsers use for signed URLs), plus `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
