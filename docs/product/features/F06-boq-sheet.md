@@ -1,6 +1,6 @@
 # F06 BoQ sheet
 
-> **Status (2026-11-22):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built. Keyboard editing: the selected line has an active cell (ArrowLeft/Right), F2 or Enter edits it (TF-159); the grid is one Tab stop (TF-161). Numbers follow the org's format (TF-021). An edit refused because the session ended or the API was unreachable is kept and offered again (TF-146, TF-183). The "not in the models" notice's collapse is a per-user server preference (P54 Q55, TF-109). A line with a quantity that some elements did not feed, or that rests on an open contradiction, shows "To confirm" with the reason ("2 of 3 elements measured") and is found by the "to confirm" filter (review WP-A2, A-05; `toConfirm` on the line, contract change C20). "How it is calculated" names the decisions a step's elements rest on, with who answered and when ("Per Ana's decision of 23 Nov 2026: the value measured from the geometry"; A-06, C21); the run counts every decision it used.
+> **Status (2026-11-22):** Built. Virtualised sheet, grouping, line detail and "How it is calculated", every edit kind, manual lines, undo, positions and live co-editing are built. Keyboard editing: the selected line has an active cell (ArrowLeft/Right), F2 or Enter edits it (TF-159); the grid is one Tab stop (TF-161). Numbers follow the org's format (TF-021). An edit refused because the session ended or the API was unreachable is kept and offered again (TF-146, TF-183). The "not in the models" notice's collapse is a per-user server preference (P54 Q55, TF-109). A line with a quantity that some elements did not feed, or that rests on an open contradiction, shows "To confirm" with the reason ("2 of 3 elements measured") and is found by the "to confirm" filter (review WP-A2, A-05; `toConfirm` on the line, contract change C20). "How it is calculated" names the decisions a step's elements rest on, with who answered and when ("Per Ana's decision of 23 Nov 2026: the value measured from the geometry"; A-06, C21); the run counts every decision it used. The workspace fills the screen on the Sheet tab (review WP-C1, C-01): the project's name and sections on one line, the BoQ's name, state, run figures and actions on one line, the "not in the models" counts and the run's warnings at the end of the tabs row, one filter bar (Group by, a Filters popover whose choices show as removable chips, search) and the actions in a fixed order (Undo · Add line · Excel · Model · Columns, one "⋯" menu below 1280 px); the grid takes the rest of the height and is the page's one scroll container (≥ 20 rows at 1440×900); the bulk bar floats over the grid's foot.
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Above 20,000 lines the sheet opens grouped on the server (review B-19, `features/boq-sheet/large-sheet.tsx`): the groups of the "Group by" system collapsed with their subtotals, a group's lines loaded 500 at a time, a line's detail as usual. That view is read-only for now (no inline edits, moves, manual lines or the shared filter with the 3D view), and the Changes and Exports tabs still load every line (N-40).
 > - The three-line clamp for item texts is not built (rows are one line).
@@ -17,9 +17,9 @@ regenerations and new model versions, and are always visible as edits (BR-09).
 
 ```text
 ┌ Project / BoQ name · Working (last saved B) · run 14:02 · 412 lines · 3 flagged ─ [Generate] [Save version] ┐
-│ Tabs: Sheet | Questions (7) | Viewer | Changes | Log | Setup | Exports | Versions (+ module tabs)    │
+│ Tabs: Sheet | Questions (7) | Viewer | … | Versions (+ module tabs)   ⓘ 120 measured · 8 derived · …  │
 ├──────────────────────────────────────────────────────────────┬─────────────────────────────────────┤
-│ Group by [ACME cost codes ▾]  Filter [source ▾][storey ▾][family ▾][search…]   Columns ▾          │
+│ Group by [ACME ▾] [Filters ▾] (Source: derived ×) [search…]   Undo · Add line · Excel · Model · Columns │
 │ No.      Item   Description                   Unit    Qty      Source  Storey   │ Line detail      │
 │ ▸ 2 Superstructure                                             subtotal …       │ formula          │
 │   2.5  External walls                                                            │ params           │
@@ -51,7 +51,8 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    module's own Pricing tab (P32, F20).
 4. **Filters:** source (measured, derived, manual, flagged, overridden), storey, family, model,
    text search over description and code. Filters never change the data, and the header shows
-   "Filtered: 37 of 412 lines".
+   "Filtered: 37 of 412 lines". The choices sit in a "Filters" popover; each filter in force is a
+   chip in the filter bar that removes it, so the bar keeps one row (review C-01).
 5. **Line detail panel** (`GET /runs/{runId}/lines/by-key?key=`): the item text in full,
    with the rule set's line text under it as "Measured as: Wall, Exterior - Brick on Block,
    417 mm" (so the user always sees what was measured), unit, quantity, source; the **trace**: formula in readable form (`apps/app/src/features/library/lib/readable.ts`),
@@ -99,8 +100,9 @@ regenerations and new model versions, and are always visible as edits (BR-09).
    the user clicked), notes. Saved as `ManualItem` (`POST /boqs/{boqId}/manual-items`), applied on
    the next run as an engine manual item, so it is coded, logged and exported like any line.
    Edit and delete in place.
-8. **Warnings** bar above the sheet: run warnings (e.g. models don't overlap in space, missing
-   meshes), collapsible, each with affected elements.
+8. **Warnings**: run warnings (e.g. models don't overlap in space, missing meshes), each with
+   affected elements. Closed they are one button ("2 warnings") at the end of the workspace's tabs
+   row beside the source counts; open, the list shows above the sheet (review C-01).
 9. **Log tab:** `GET /runs/{runId}/log` paged, filter by stage, level, rule, line key, element
    GlobalId (`apps/app/src/features/boq-sheet/log-tab.tsx`).
 10. **Keyboard:** arrow keys move the selection, Enter opens detail, `/` focuses search.
@@ -109,12 +111,13 @@ regenerations and new model versions, and are always visible as edits (BR-09).
     edit actions. Saved versions and confirmed BoQs are read-only for everyone (F09).
 12. **Not in the models** (P15, BR-12): the app says plainly that it measures only what the
     models contain, and that the rest is the user's to add:
-    - A notice at the top of the sheet, under the header: "This BoQ contains what the models
-      contain. Work not modelled as objects (for example earthworks, plaster, screed,
-      waterproofing, reinforcement, scaffolding, site setup) is in it only if your rule set
-      derives it or you add it. [Add line]". With the counts by source: "120 measured · 8
-      derived · 3 manual · 2 to confirm". Collapsible to the counts line per user; never
-      removed.
+    - A notice on every sheet: the counts by source ("120 measured · 8 derived · 3 manual · 2 to
+      confirm") at the end of the workspace's tabs row, with a button that opens the paragraph
+      under it: "This BoQ contains what the models contain. Work not modelled as objects (for
+      example earthworks, plaster, screed, waterproofing, reinforcement, scaffolding, site setup)
+      is in it only if your rule set derives it or you add it." Collapsible to the counts line
+      per user; never removed. "Add line" is the sheet toolbar's (review C-01: the notice no
+      longer repeats it).
     - The same paragraph is the empty state of a group with no lines and of the "Add line"
       dialog's help.
     - Saving a version asks for a confirmation (F09 §2).

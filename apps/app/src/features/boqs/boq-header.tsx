@@ -187,47 +187,61 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
       ),
     });
 
+  const actionNodes = (
+    <div className="ml-auto flex shrink-0 items-center gap-2">
+      {/* The primary comes first in the markup too, so the focus order matches what is seen. */}
+      {[...actions.filter((a) => a.step === next), ...actions.filter((a) => a.step !== next)].map((a) => (
+        <Fragment key={a.key}>{a.node}</Fragment>
+      ))}
+      {(canArchive || (can("confirm") && next !== "confirm")) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" aria-label={t("actions.more")} data-testid="boq-menu" />}>
+            <Ellipsis aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {can("confirm") && next !== "confirm" && (
+              <DropdownMenuItem onClick={() => setDialog("confirm")} data-testid="confirm-boq">
+                {t("actions.confirm")}
+              </DropdownMenuItem>
+            )}
+            {!canArchive ? null : boq.archived ? (
+              <DropdownMenuItem onClick={() => archive.mutate(false)} data-testid="restore-boq">
+                {t("actions.restore")}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => archive.mutate(true)} data-testid="archive-boq">
+                {t("actions.archive")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-4" data-testid="boq-header" data-state={state.kind}>
-      <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-title" data-testid="boq-title">
+    <div className="flex flex-col gap-2" data-testid="boq-header" data-state={state.kind}>
+      {/* One line (review C-01): name · state · the run's figures · actions. Notices follow only when there are any. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 xl:flex-nowrap">
+        <h2 className="text-title shrink-0" data-testid="boq-title">
           {boq.name}
         </h2>
-        <Tag data-testid="revision-status">
+        <Tag className="shrink-0" data-testid="revision-status">
           {revision.label} · {t(`status.${revision.status}`)}
           {lastSaved ? ` · ${t("versions.lastSaved", { label: lastSaved })}` : ""}
         </Tag>
         {boq.status === "confirmed" && <Tag filled>{t("status.confirmed")}</Tag>}
         {boq.archived && <Tag className="border-muted-foreground text-muted-foreground">{t("status.archived")}</Tag>}
-        <div className="ml-auto flex items-center gap-2">
-          {/* The primary comes first in the markup too, so the focus order matches what is seen. */}
-          {[...actions.filter((a) => a.step === next), ...actions.filter((a) => a.step !== next)].map((a) => (
-            <Fragment key={a.key}>{a.node}</Fragment>
-          ))}
-          {(canArchive || (can("confirm") && next !== "confirm")) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" aria-label={t("actions.more")} data-testid="boq-menu" />}>
-                <Ellipsis aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {can("confirm") && next !== "confirm" && (
-                  <DropdownMenuItem onClick={() => setDialog("confirm")} data-testid="confirm-boq">
-                    {t("actions.confirm")}
-                  </DropdownMenuItem>
-                )}
-                {!canArchive ? null : boq.archived ? (
-                  <DropdownMenuItem onClick={() => archive.mutate(false)} data-testid="restore-boq">
-                    {t("actions.restore")}
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => archive.mutate(true)} data-testid="archive-boq">
-                    {t("actions.archive")}
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div aria-live="polite" className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 xl:flex-1 xl:flex-nowrap" data-testid="run-state">
+          {state.kind === "none" && <p className="text-muted-foreground">{t("run.notGenerated")}</p>}
+          {state.kind === "active" && (
+            <DimensionRule progress={(progress.data?.pct ?? 0) / 100} label={stage && t.has(`run.stages.${stage}`) ? t(`run.stages.${stage}`) : t("run.waiting")} className="w-72 max-w-full" />
+          )}
+          {(state.kind === "complete" || state.kind === "needs_input" || ((state.kind === "active" || state.kind === "failed") && state.current)) && (
+            <CurrentRunSummary run={state.kind === "complete" || state.kind === "needs_input" ? state.current : state.current!} base={base} relative={relative} />
           )}
         </div>
+        {actionNodes}
       </div>
 
       {boq.archived && (
@@ -236,11 +250,7 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
         </p>
       )}
 
-      <div aria-live="polite" className="flex flex-col gap-2" data-testid="run-state">
-        {state.kind === "none" && <p className="text-muted-foreground">{t("run.notGenerated")}</p>}
-        {state.kind === "active" && (
-          <DimensionRule progress={(progress.data?.pct ?? 0) / 100} label={stage && t.has(`run.stages.${stage}`) ? t(`run.stages.${stage}`) : t("run.waiting")} className="max-w-xl" />
-        )}
+      <div aria-live="polite" className="flex flex-col gap-2 empty:hidden" data-testid="run-notices">
         {state.kind === "failed" && (
           <div className="flex flex-col gap-1 border-l-2 border-[var(--status-error)] pl-3">
             <p role="alert" className="text-error" data-testid="run-error">
@@ -248,9 +258,6 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
             </p>
             {state.current && <p className="text-muted-foreground">{t("run.lastGood")}</p>}
           </div>
-        )}
-        {(state.kind === "complete" || state.kind === "needs_input" || ((state.kind === "active" || state.kind === "failed") && state.current)) && (
-          <CurrentRunSummary run={state.kind === "complete" || state.kind === "needs_input" ? state.current : state.current!} base={base} relative={relative} />
         )}
         {notApplied > 0 && revision.currentRun && (
           <p className="flex flex-wrap items-center gap-x-3 border-l-2 border-[var(--status-attention)] pl-3" role="status" data-testid="answers-pending">
@@ -296,22 +303,23 @@ function CurrentRunSummary({ run, base, relative }: { run: Run; base: string; re
   const questions = useQuestions(run.id);
   const modelsToCheck = questions.data ? counts(questions.data).modelsToCheck : 0;
   return (
-    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1" data-testid="current-run" data-status={run.status} data-run={run.id}>
-      <span className="tabular-nums">
+    <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1 xl:flex-nowrap" data-testid="current-run" data-status={run.status} data-run={run.id}>
+      {/* On one line with the name and the actions (review C-01): the figures give way first, in full on hover. */}
+      <span className="min-w-0 truncate tabular-nums" title={t("summary", { lines: stats?.lines ?? 0, flagged: stats?.flaggedLines ?? 0, when: relative(run.finishedAt ?? run.createdAt) })}>
         {t("summary", { lines: stats?.lines ?? 0, flagged: stats?.flaggedLines ?? 0, when: relative(run.finishedAt ?? run.createdAt) })}
       </span>
       {run.status === "needs_input" ? (
-        <Link href={`${base}?tab=questions`} className="text-link hover:underline" data-testid="needs-input">
+        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="needs-input">
           {t("needsInput", { count: stats?.blockingQuestions ?? 0 })}
         </Link>
       ) : (
-        <span className="label-caps" data-testid="run-complete">
+        <span className="label-caps shrink-0" data-testid="run-complete">
           <Check aria-hidden className="mr-1 inline size-3" />
           {t("status.complete")}
         </span>
       )}
       {modelsToCheck > 0 && (
-        <Link href={`${base}?tab=questions`} className="text-link hover:underline" data-testid="models-to-check">
+        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="models-to-check">
           {t("modelsToCheck", { count: modelsToCheck })}
         </Link>
       )}

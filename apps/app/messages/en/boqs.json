@@ -133,6 +133,8 @@
     "noGrouping": "No grouping",
     "unclassified": "Unclassified",
     "filters": "Filters",
+    "filtersActive": "{count, plural, one {# filter} other {# filters}} in force",
+    "removeFilter": "Remove the filter {name}: {value}",
     "source": "Source",
     "storey": "Storey",
     "family": "Family",
@@ -143,6 +145,7 @@
     "filtered": "Filtered: {shown} of {total} lines",
     "clearFilters": "Clear filters",
     "columns": "Columns",
+    "moreActions": "More sheet actions",
     "noMatches": "No line matches these filters.",
     "groupLines": "{count, plural, one {# line} other {# lines}}",
     "col": {
@@ -183,6 +186,7 @@
     "codeGroup": "Code group",
     "model3d": "Model",
     "modelToggleHint": "Show or hide the model beside the sheet",
+    "modelNone": "This BoQ has no model to show",
     "fromModel": "{lines, plural, one {# line} other {# lines}} from {elements, plural, one {# element} other {# elements}} selected in the model",
     "selectTheseLines": "Select these lines",
     "onlyTheseLines": "Only these lines",
@@ -396,7 +400,6 @@
     "title": "Not in the models",
     "text": "This BoQ contains what the models contain. Work not modelled as objects (for example earthworks, plaster, screed, waterproofing, reinforcement, scaffolding, site setup) is in it only if your rule set derives it or you add it.",
     "counts": "{measured} measured · {derived} derived · {manual} manual · {flagged} to confirm",
-    "addLine": "Add line",
     "collapse": "Show less",
     "expand": "Show more"
   },

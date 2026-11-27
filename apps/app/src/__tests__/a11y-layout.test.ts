@@ -57,8 +57,11 @@ describe("TF-149, TF-168, TF-171, TF-172 widths", () => {
     const shell = src("src/components/shell/app-shell.tsx");
     expect(shell).toContain('className="hidden border-r border-border lg:block"');
     expect(shell).toContain("<NavMenu");
-    expect(src("src/features/projects/project-header.tsx")).toContain("flex flex-wrap gap-x-6 gap-y-2 border-b");
-    expect(src("app/(app)/[org]/projects/[projectId]/boqs/[boqId]/page.tsx")).toContain("flex flex-wrap gap-x-6 gap-y-2 border-b");
+    // The tabs wrap, and so does the row they share with the project's name or the sheet's counts (review C-01).
+    expect(src("src/features/projects/project-header.tsx")).toContain("flex flex-wrap items-end gap-x-8 gap-y-2 border-b");
+    expect(src("src/features/projects/project-header.tsx")).toContain('className="flex flex-wrap gap-x-6 gap-y-2"');
+    expect(src("app/(app)/[org]/projects/[projectId]/boqs/[boqId]/page.tsx")).toContain("flex flex-wrap items-end gap-x-6 gap-y-1 border-b");
+    expect(src("app/(app)/[org]/projects/[projectId]/boqs/[boqId]/page.tsx")).toContain('className="flex flex-wrap gap-x-6 gap-y-2"');
     expect(src("src/features/shares/public-share.tsx")).toMatch(/whitespace-normal break-words/);
     expect(src("src/features/viewer/model-viewer.tsx")).toMatch(/min-w-0 flex-1 overflow-hidden/);
   });

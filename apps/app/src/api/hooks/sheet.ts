@@ -8,6 +8,8 @@ import { keys } from "@/api/keys";
 export type RunLine = Schemas["RunLine"];
 export type LineDetail = Schemas["LineDetail"];
 export type LogEntry = Schemas["LogPage"]["items"][number];
+/** One of a run's warnings (F06 §8), as `GET /runs/{runId}/warnings` lists them. */
+export type RunWarning = NonNullable<Awaited<ReturnType<typeof fetchWarnings>>>[number];
 
 /** A finished run never changes (architecture.md, data layer rule 3). */
 const FOREVER = { staleTime: Infinity, gcTime: 10 * 60_000 };
@@ -89,12 +91,14 @@ export function useLine(runId: string | undefined, key: string | null) {
   });
 }
 
+const fetchWarnings = async (runId: string) => (await api.GET("/runs/{runId}/warnings", { params: { path: { runId } } })).data!;
+
 export function useWarnings(runId: string | undefined) {
   return useQuery({
     queryKey: keys.warnings(runId ?? "none"),
     enabled: !!runId,
     ...FOREVER,
-    queryFn: async () => (await api.GET("/runs/{runId}/warnings", { params: { path: { runId: runId! } } })).data!,
+    queryFn: () => fetchWarnings(runId!),
   });
 }
 

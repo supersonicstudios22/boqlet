@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
@@ -9,6 +9,7 @@ import { useBoq, useRuns, type Run } from "@/api/hooks/boqs";
 import { DimensionRule } from "@/components/dimension-rule";
 import { BoqHeader } from "@/features/boqs/boq-header";
 import { BoqPresenceProvider, PresenceAvatars } from "@/features/boqs/presence";
+import { WorkspaceSlotsProvider } from "@/features/boqs/workspace-slots";
 import { useRevisions } from "@/api/hooks/diffs";
 import { ReviewTab } from "@/features/versions/review-tab";
 import { VersionsTab } from "@/features/versions/versions-tab";
@@ -69,6 +70,8 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   const tab: Tab | null = moduleTab ? null : requested && (tabs as readonly string[]).includes(requested) ? requested : "sheet";
   const base = `/${org.slug}/projects/${project.id}/boqs/${boqId}`;
   const approval = org.settings?.approvalRequired === true;
+  // The end of the tabs row, which the sheet fills with its one-line bar (review C-01).
+  const [tabsEnd, setTabsEnd] = useState<HTMLDivElement | null>(null);
 
   // A failed refetch (the API restarting, TF-183) keeps the page and its unsaved edits on screen; it
   // refetches when the API answers again (the realtime provider). Only a BoQ never loaded is an error.
@@ -85,7 +88,9 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   return (
     // F06 §14: everyone with the BoQ open sees who else is in it.
     <BoqPresenceProvider boqId={boqId}>
-    <div className="flex flex-col gap-6" data-testid="boq-workspace">
+    <WorkspaceSlotsProvider value={{ tabsEnd }}>
+    {/* On the sheet the workspace fills the screen and the grid takes the rest of it (review C-01). */}
+    <div className="flex flex-col gap-6 has-[[data-workspace-fill]]:min-h-0 has-[[data-workspace-fill]]:flex-1 has-[[data-workspace-fill]]:gap-2" data-testid="boq-workspace">
       <BoqHeader boq={boq.data} runs={runs.data} base={base} canArchive={can("archive")} approval={approval} />
       {viewing && (
         <p className="flex flex-wrap items-center gap-x-3 border-l-2 border-foreground pl-3" role="status" data-testid="viewing-version" data-label={viewing.label}>
@@ -95,7 +100,8 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
           </Link>
         </p>
       )}
-      <nav aria-label={t("tabs.label")} className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border">
+      <div className="flex flex-wrap items-end gap-x-6 gap-y-1 border-b border-border">
+      <nav aria-label={t("tabs.label")} className="flex flex-wrap gap-x-6 gap-y-2">
         {tabs.map((key) => (
           <Link
             key={key}
@@ -126,10 +132,12 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
             <m.Label />
           </Link>
         ))}
-        <div className="ml-auto self-start">
+      </nav>
+        <div className="ml-auto flex min-w-0 items-center gap-3 pb-1.5">
+          <div ref={setTabsEnd} className="flex min-w-0 items-center gap-3 empty:hidden" data-testid="workspace-tabs-end" />
           <PresenceAvatars />
         </div>
-      </nav>
+      </div>
       {moduleTab && <moduleTab.Panel boqId={boqId} projectId={project.id} runId={current?.id ?? null} />}
       {tab === "review" && <ReviewTab boq={boq.data} runs={runs.data} base={base} />}
       {tab === "sheet" && (current ? <Sheet key={`${current.id}|${viewing?.id ?? ""}`} run={current} boq={boq.data} readOnly={!!viewing} {...(viewing ? { frozen: { overrides: viewing.frozen?.adjustments?.overrides ?? [], manualItems: viewing.frozen?.adjustments?.manualItems ?? [] } } : {})} /> : <RunFigures run={current} />)}
@@ -141,6 +149,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
       {tab === "exports" && <ExportsTab boq={boq.data} />}
       {tab === "versions" && <VersionsTab boq={boq.data} runs={runs.data} base={base} canCompare={tabs.includes("changes")} />}
     </div>
+    </WorkspaceSlotsProvider>
     </BoqPresenceProvider>
   );
 }

@@ -26,19 +26,16 @@ export function ProjectHeader({ org }: { org: string }) {
   const current = SECTIONS.find((s) => (s.path === "" ? pathname === base : pathname.startsWith(base + s.path)));
   usePageTitle(2, current ? t(`sections.${current.key}`) : null, project.name);
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-title" data-testid="project-title">
-          {project.name}
-        </h1>
-        {project.code && <span className="label-caps text-muted-foreground">{project.code}</span>}
-      </div>
-      {project.status === "archived" && (
-        <p className="rounded-[var(--radius)] border border-border bg-muted px-3 py-2" role="status" data-testid="archived-banner">
-          {t("archived")}
-        </p>
-      )}
-      <nav aria-label={t("nav")} className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border">
+    <div className="flex flex-col gap-3">
+      {/* One line: the project's name, then its sections over one rule (review C-01). */}
+      <div className="flex flex-wrap items-end gap-x-8 gap-y-2 border-b border-border">
+        <div className="flex items-baseline gap-3 pb-1.5">
+          <h1 className="text-title" data-testid="project-title">
+            {project.name}
+          </h1>
+          {project.code && <span className="label-caps text-muted-foreground">{project.code}</span>}
+        </div>
+        <nav aria-label={t("nav")} className="flex flex-wrap gap-x-6 gap-y-2">
         {SECTIONS.filter((s) => !s.needs || can(s.needs)).map((s) => {
           const href = base + s.path;
           const active = s.path === "" ? pathname === base : pathname.startsWith(href);
@@ -53,7 +50,13 @@ export function ProjectHeader({ org }: { org: string }) {
             </Link>
           );
         })}
-      </nav>
+        </nav>
+      </div>
+      {project.status === "archived" && (
+        <p className="rounded-[var(--radius)] border border-border bg-muted px-3 py-2" role="status" data-testid="archived-banner">
+          {t("archived")}
+        </p>
+      )}
     </div>
   );
 }

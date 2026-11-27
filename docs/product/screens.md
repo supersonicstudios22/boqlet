@@ -31,7 +31,7 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S11 | `/{org}/projects/[p]/boqs` | project roles | boqs with current revision | new BoQ |
 | S12 | `/{org}/projects/[p]/boqs/[b]` | project roles | BoQ workspace (tabs below; modules may add tabs) | generate, save version, confirm, reopen; with approval: submit, approve |
 | S12i | … `?tab=review` | project roles, while a version is in review or approved | review status, reviewers, comments | approve, request changes, comment, withdraw |
-| S12a | … `?tab=sheet` | | lines, warnings, scene | sheet + 3D side by side, shared filters, detail with "How it is calculated", inline edits, move, reorder, exclude, add line, request prices, share |
+| S12a | … `?tab=sheet` | | lines, warnings, scene | fills the screen, the grid the one scroll container (review C-01); sheet + 3D side by side, shared filters, detail with "How it is calculated", inline edits, move, reorder, exclude, add line, request prices, share |
 | S12b | … `?tab=questions` | lead, estimator, approver; viewer read-only | questions + decisions | answer, bulk, dismiss, promote |
 | S12c | … `?tab=viewer` | all | geometry, scene, coverage | select, colour modes |
 | S12d | … `?tab=changes` | lead, estimator, approver | diff | filter, export |

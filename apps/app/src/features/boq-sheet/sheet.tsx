@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { getCoreRowModel, useReactTable, type ColumnDef, type VisibilityState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Box, ChevronDown, ChevronRight, Columns3, Download, GripVertical, Plus, Undo2 } from "lucide-react";
+import { Box, ChevronDown, ChevronRight, Columns3, Download, Ellipsis, GripVertical, ListFilter, Plus, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
@@ -16,11 +16,13 @@ import { useBoqPresence } from "@/features/boqs/presence";
 import { onApiResumed, onLineEdited } from "@/realtime/boq-events";
 import { generateAndExport, useExportRun } from "@/api/hooks/exports";
 import { useMe, useUpdatePreferences } from "@/api/hooks/me";
-import { SERVER_GROUPED_ABOVE, useLines, useLineTotal } from "@/api/hooks/sheet";
+import { SERVER_GROUPED_ABOVE, useLines, useLineTotal, useWarnings } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InTabsRow } from "@/features/boqs/workspace-slots";
 import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
 import { SearchPicker } from "@/features/questions/search-picker";
@@ -39,8 +41,8 @@ import { buildRows, facets, filterLines, linesInGroup, topGroups, UNCLASSIFIED, 
 import { SourceTag } from "./source-tag";
 import { useCodeLists, useCodeListSeparators } from "./use-code-lists";
 import { positionNumbers } from "./positions";
-import { NotInModelsNotice } from "./not-in-models";
-import { WarningsBar } from "./warnings-bar";
+import { NotInModelsBar, NotInModelsPanel } from "./not-in-models";
+import { WarningsList, WarningsToggle } from "./warnings-bar";
 import { extensions } from "@/extensions";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat } from "@/i18n/boq-format";
@@ -51,6 +53,8 @@ import { useRefocusWhenLost } from "@/lib/focus";
 
 /** Fixed row height (architecture.md performance budget: virtualised rows, fixed height). */
 const ROW = 32;
+/** Room under the last row while the bulk bar floats over the grid's foot, so it never hides a line (review C-01). */
+const BULK_SPACE = 64;
 const SOURCES: SourceFilter[] = ["measured", "derived", "manual", "flagged", "edited", "excluded"];
 /** F06 §6: the last 20 edits can be undone. */
 const UNDO_DEPTH = 20;
@@ -137,6 +141,9 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   const tn = useTranslations("boqs.notInModels");
   const message = useErrorMessage();
   const lines = useLines(run.id);
+  // The run's warnings (F06 §8): one button in the tabs row, the list above the sheet while it is open (review C-01).
+  const warnings = useWarnings(run.id);
+  const [warningsOpen, setWarningsOpen] = useState(false);
   const me = useMe();
   const savePreferences = useUpdatePreferences();
   const searchParams = useSearchParams();
@@ -629,142 +636,240 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               {(editable || selectedLine.edit || selectedLine.excluded) && <LineEdits line={selectedLine} editable={editable} systemNames={systemNames} actions={actions} />}
             </LineDetailPanel>
           ));
+  const warningList = warnings.data ?? [];
+  const notInModelsCollapsed = me.data?.preferences?.notInModelsCollapsed ?? false;
+  const setNotInModelsCollapsed = (notInModelsCollapsed: boolean) => savePreferences.mutate({ notInModelsCollapsed });
+  // The filters in force, each a chip that removes it (review C-01): the bar stays one row whatever is filtered.
+  const chips: { key: keyof SheetFilters; name: string; value: string }[] = [
+    ...(filters.source ? [{ key: "source" as const, name: t("source"), value: t(`sources.${filters.source}`) }] : []),
+    ...(filters.storey ? [{ key: "storey" as const, name: t("storey"), value: filters.storey }] : []),
+    ...(filters.group ? [{ key: "group" as const, name: t("codeGroup"), value: filters.group === UNCLASSIFIED ? t("unclassified") : (groups.find((g) => g.code === filters.group)?.label ?? filters.group) }] : []),
+    ...(filters.family ? [{ key: "family" as const, name: t("family"), value: t.has(`families.${filters.family}`) ? t(`families.${filters.family}`) : filters.family }] : []),
+    ...(filters.model ? [{ key: "model" as const, name: t("model"), value: modelNames.get(filters.model) ?? filters.model.slice(0, 8) }] : []),
+    ...(filters.keys ? [{ key: "keys" as const, name: t("model3d"), value: t("onlyTheseLines") }] : []),
+  ];
+  const panelFilters = chips.filter((c) => c.key !== "keys").length;
+  const showBulk = editable && checkedKeys.length > 0;
+  const columnItems = table
+    .getAllLeafColumns()
+    .filter((c) => c.getCanHide())
+    .map((c) => (
+      <DropdownMenuCheckboxItem key={c.id} checked={c.getIsVisible()} onCheckedChange={(v) => c.toggleVisibility(!!v)} data-testid={`column-${c.id}`}>
+        {String(c.columnDef.header)}
+      </DropdownMenuCheckboxItem>
+    ));
+  const grid = (
+    <SheetGrid
+      rows={rows}
+      columns={visibleMetas}
+      headers={headers}
+      selected={selected}
+      onSelect={setSelected}
+      checked={checked}
+      editing={editing}
+      editable={editable}
+      allChecked={shownKeys.length > 0 && shownKeys.every((k) => checked.has(k))}
+      onCheckAll={(on) => setChecked(on ? new Set(shownKeys) : new Set())}
+      api={rowApi}
+      groupBy={groupBy}
+      selectedGroup={selectedGroup}
+      lists={lists}
+      num={num}
+      labels={groupLabels}
+      emptyText={filtering ? t("noMatches") : tn("text")}
+      label={t("tableLabel")}
+      checkAllLabel={te("selectAll")}
+      pendingLabel={te("pending")}
+      editingBy={markers}
+      activeColumn={editable ? shownActive : null}
+      editableColumns={editable ? editableColumns : []}
+      onActiveColumn={setActiveColumn}
+      onEditActive={editActive}
+      gridRef={gridRef}
+      endSpace={showBulk ? BULK_SPACE : 0}
+    />
+  );
   return (
-    <div className="flex flex-col gap-3" data-testid="sheet" data-editable={editable ? "true" : "false"}>
-      <WarningsBar runId={run.id} systemNames={systemNames} />
+    // `data-workspace-fill`: the workspace fills the screen and the grid takes the rest of it, the one scroll container (review C-01).
+    <div className="flex min-h-0 flex-1 flex-col gap-2" data-testid="sheet" data-editable={editable ? "true" : "false"} data-workspace-fill="">
+      <InTabsRow>
+        <WarningsToggle count={warningList.length} open={warningsOpen} onToggle={() => setWarningsOpen((o) => !o)} />
+        <NotInModelsBar lines={all} collapsed={notInModelsCollapsed} onCollapsedChange={setNotInModelsCollapsed} />
+      </InTabsRow>
+      {!notInModelsCollapsed && <NotInModelsPanel onCollapse={() => setNotInModelsCollapsed(true)} />}
+      {warningsOpen && warningList.length > 0 && <WarningsList warnings={warningList} systemNames={systemNames} />}
       <SystemRulesHint run={run} userId={me.data?.user.id} />
-      <NotInModelsNotice
-        lines={all}
-        collapsed={me.data?.preferences?.notInModelsCollapsed ?? false}
-        onCollapsedChange={(notInModelsCollapsed) => savePreferences.mutate({ notInModelsCollapsed })}
-        onAddLine={editable ? () => setManualDialog({}) : undefined}
-      />
-      <div className="flex flex-wrap items-end gap-3" data-testid="sheet-toolbar">
-        <label className="flex flex-col gap-1">
-          <span className="label-caps text-muted-foreground">{t("groupBy")}</span>
-          <NativeSelect value={groupBy ?? ""} onChange={(e) => setGroupBy(e.target.value || null)} data-testid="group-by">
-            {systems.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-            <option value="">{t("noGrouping")}</option>
-          </NativeSelect>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="label-caps text-muted-foreground">{t("source")}</span>
-          <NativeSelect value={filters.source ?? ""} onChange={(e) => setFilter("source", e.target.value as SourceFilter)} data-testid="filter-source">
-            <option value="">{t("all")}</option>
-            {SOURCES.map((s) => (
-              <option key={s} value={s}>
-                {t(`sources.${s}`)}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        {options.storeys.length > 0 && (
-          <label className="flex flex-col gap-1">
-            <span className="label-caps text-muted-foreground">{t("storey")}</span>
-            <NativeSelect value={filters.storey ?? ""} onChange={(e) => setFilter("storey", e.target.value)} data-testid="filter-storey">
-              <option value="">{t("all")}</option>
-              {options.storeys.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+      <div className="flex flex-wrap items-center gap-2" data-testid="sheet-toolbar">
+        <div className="flex flex-wrap items-center gap-2" data-testid="sheet-filter-bar">
+          <label className="flex items-center gap-1.5">
+            <span className="label-caps text-muted-foreground">{t("groupBy")}</span>
+            <NativeSelect value={groupBy ?? ""} onChange={(e) => setGroupBy(e.target.value || null)} className="max-w-56" data-testid="group-by">
+              {systems.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
               ))}
+              <option value="">{t("noGrouping")}</option>
             </NativeSelect>
           </label>
-        )}
-        {groupBy && groups.length > 1 && (
-          <label className="flex flex-col gap-1">
-            <span className="label-caps text-muted-foreground">{t("codeGroup")}</span>
-            <NativeSelect value={filters.group ?? ""} onChange={(e) => setFilter("group", e.target.value)} data-testid="filter-group">
-              <option value="">{t("all")}</option>
-              {groups.map((g) => (
-                <option key={g.code} value={g.code}>
-                  {g.code === UNCLASSIFIED ? t("unclassified") : g.label}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
-        )}
-        {options.families.length > 1 && (
-          <label className="flex flex-col gap-1">
-            <span className="label-caps text-muted-foreground">{t("family")}</span>
-            <NativeSelect value={filters.family ?? ""} onChange={(e) => setFilter("family", e.target.value)} data-testid="filter-family">
-              <option value="">{t("all")}</option>
-              {options.families.map((s) => (
-                <option key={s} value={s}>
-                  {t.has(`families.${s}`) ? t(`families.${s}`) : s}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
-        )}
-        {options.models.length > 1 && (
-          <label className="flex flex-col gap-1">
-            <span className="label-caps text-muted-foreground">{t("model")}</span>
-            <NativeSelect value={filters.model ?? ""} onChange={(e) => setFilter("model", e.target.value)} data-testid="filter-model">
-              <option value="">{t("all")}</option>
-              {options.models.map((m) => (
-                <option key={m} value={m}>
-                  {modelNames.get(m) ?? m.slice(0, 8)}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
-        )}
-        <label className="flex min-w-56 flex-1 flex-col gap-1">
-          <span className="label-caps text-muted-foreground">{t("search")}</span>
-          <Input ref={search} type="search" value={filters.q ?? ""} placeholder={t("searchHint")} onChange={(e) => setFilter("q", e.target.value)} data-testid="sheet-search" />
-        </label>
-        {editable && (
-          <>
-            <Button variant="outline" onClick={undoLast} disabled={undoStack.length === 0 || editLines.isPending} title={te("undoHint")} data-testid="undo-edit">
-              <Undo2 aria-hidden />
-              {te("undo")}
+          <Popover>
+            <PopoverTrigger render={<Button variant="outline" data-testid="sheet-filters" />}>
+              <ListFilter aria-hidden />
+              {t("filters")}
+              {panelFilters > 0 && (
+                <span className="rounded-[var(--radius)] bg-link px-1 text-on-fill tabular-nums" aria-label={t("filtersActive", { count: panelFilters })}>
+                  {panelFilters}
+                </span>
+              )}
+            </PopoverTrigger>
+            <PopoverContent className="flex w-72 flex-col gap-3" data-testid="sheet-filters-panel">
+              <label className="flex flex-col gap-1">
+                <span className="label-caps text-muted-foreground">{t("source")}</span>
+                <NativeSelect value={filters.source ?? ""} onChange={(e) => setFilter("source", e.target.value as SourceFilter)} data-testid="filter-source">
+                  <option value="">{t("all")}</option>
+                  {SOURCES.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`sources.${s}`)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+              {options.storeys.length > 0 && (
+                <label className="flex flex-col gap-1">
+                  <span className="label-caps text-muted-foreground">{t("storey")}</span>
+                  <NativeSelect value={filters.storey ?? ""} onChange={(e) => setFilter("storey", e.target.value)} data-testid="filter-storey">
+                    <option value="">{t("all")}</option>
+                    {options.storeys.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
+              {groupBy && groups.length > 1 && (
+                <label className="flex flex-col gap-1">
+                  <span className="label-caps text-muted-foreground">{t("codeGroup")}</span>
+                  <NativeSelect value={filters.group ?? ""} onChange={(e) => setFilter("group", e.target.value)} data-testid="filter-group">
+                    <option value="">{t("all")}</option>
+                    {groups.map((g) => (
+                      <option key={g.code} value={g.code}>
+                        {g.code === UNCLASSIFIED ? t("unclassified") : g.label}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
+              {options.families.length > 1 && (
+                <label className="flex flex-col gap-1">
+                  <span className="label-caps text-muted-foreground">{t("family")}</span>
+                  <NativeSelect value={filters.family ?? ""} onChange={(e) => setFilter("family", e.target.value)} data-testid="filter-family">
+                    <option value="">{t("all")}</option>
+                    {options.families.map((s) => (
+                      <option key={s} value={s}>
+                        {t.has(`families.${s}`) ? t(`families.${s}`) : s}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
+              {options.models.length > 1 && (
+                <label className="flex flex-col gap-1">
+                  <span className="label-caps text-muted-foreground">{t("model")}</span>
+                  <NativeSelect value={filters.model ?? ""} onChange={(e) => setFilter("model", e.target.value)} data-testid="filter-model">
+                    <option value="">{t("all")}</option>
+                    {options.models.map((m) => (
+                      <option key={m} value={m}>
+                        {modelNames.get(m) ?? m.slice(0, 8)}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
+            </PopoverContent>
+          </Popover>
+          {chips.map((c) => (
+            <Button key={c.key} variant="outline" size="sm" onClick={() => setFilter(c.key, "")} aria-label={t("removeFilter", { name: c.name, value: c.value })} data-testid={`filter-chip-${c.key}`}>
+              <span className="text-muted-foreground">{c.name}:</span> {c.value}
+              <X aria-hidden />
             </Button>
-            <Button variant="outline" onClick={() => setManualDialog({})} data-testid="add-line">
-              <Plus aria-hidden />
-              {te("addLine")}
+          ))}
+          {filtering && (
+            <span className="flex items-center gap-2 text-muted-foreground tabular-nums" role="status" data-testid="filtered-count">
+              {t("filtered", { shown: filtered.length, total: all.length })}
+              <button type="button" className="text-link hover:underline" onClick={() => setFilters({})} data-testid="clear-filters">
+                {t("clearFilters")}
+              </button>
+            </span>
+          )}
+        </div>
+        <Input ref={search} type="search" value={filters.q ?? ""} aria-label={t("search")} placeholder={t("searchHint")} onChange={(e) => setFilter("q", e.target.value)} className="w-56 min-w-40 flex-1 xl:max-w-80" data-testid="sheet-search" />
+        {/* Always the same actions in the same order (review C-01); below 1280 px they fold into one menu. */}
+        <div className="ml-auto flex items-center gap-2" data-testid="sheet-actions">
+          <div className="hidden items-center gap-2 xl:flex">
+            {editable && (
+              <>
+                <Button variant="outline" onClick={undoLast} disabled={undoStack.length === 0 || editLines.isPending} title={te("undoHint")} data-testid="undo-edit">
+                  <Undo2 aria-hidden />
+                  {te("undo")}
+                </Button>
+                <Button variant="outline" onClick={() => setManualDialog({})} data-testid="add-line">
+                  <Plus aria-hidden />
+                  {te("addLine")}
+                </Button>
+              </>
+            )}
+            <Button variant="outline" onClick={exportExcel} disabled={exporting.isPending || regenerating} data-testid="export-xlsx">
+              <Download aria-hidden />
+              {t("exportExcel")}
             </Button>
-          </>
-        )}
-        <Button variant="outline" onClick={exportExcel} disabled={exporting.isPending || regenerating} data-testid="export-xlsx">
-          <Download aria-hidden />
-          {t("exportExcel")}
-        </Button>
-        {hasModels && (
-          <Button variant="outline" aria-pressed={split} onClick={() => setSplit((s) => !s)} title={t("modelToggleHint")} data-testid="toggle-model">
-            <Box aria-hidden />
-            {t("model3d")}
-          </Button>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" data-testid="columns-menu" />}>
-            <Columns3 aria-hidden />
-            {t("columns")}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllLeafColumns()
-              .filter((c) => c.getCanHide())
-              .map((c) => (
-                <DropdownMenuCheckboxItem key={c.id} checked={c.getIsVisible()} onCheckedChange={(v) => c.toggleVisibility(!!v)} data-testid={`column-${c.id}`}>
-                  {String(c.columnDef.header)}
+            <Button variant="outline" aria-pressed={split && hasModels} onClick={() => setSplit((s) => !s)} disabled={!hasModels} title={hasModels ? t("modelToggleHint") : t("modelNone")} data-testid="toggle-model">
+              <Box aria-hidden />
+              {t("model3d")}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="outline" data-testid="columns-menu" />}>
+                <Columns3 aria-hidden />
+                {t("columns")}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">{columnItems}</DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="xl:hidden" aria-label={t("moreActions")} data-testid="sheet-more" />}>
+              <Ellipsis aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {editable && (
+                <>
+                  <DropdownMenuItem onClick={undoLast} disabled={undoStack.length === 0 || editLines.isPending} data-testid="more-undo">
+                    <Undo2 aria-hidden />
+                    {te("undo")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setManualDialog({})} data-testid="more-add-line">
+                    <Plus aria-hidden />
+                    {te("addLine")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem onClick={exportExcel} disabled={exporting.isPending || regenerating} data-testid="more-export-xlsx">
+                <Download aria-hidden />
+                {t("exportExcel")}
+              </DropdownMenuItem>
+              {hasModels && (
+                <DropdownMenuCheckboxItem checked={split} onCheckedChange={(v) => setSplit(!!v)} data-testid="more-toggle-model">
+                  {t("model3d")}
                 </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{t("columns")}</DropdownMenuLabel>
+                {columnItems}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      {filtering && (
-        <p className="flex items-center gap-3" role="status" data-testid="filtered-count">
-          {t("filtered", { shown: filtered.length, total: all.length })}
-          <button className="text-link hover:underline" onClick={() => setFilters({})}>
-            {t("clearFilters")}
-          </button>
-        </p>
-      )}
       {split && hasModels && modelSelection.elements.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 border-l-2 border-[var(--link)] pl-3" role="status" data-testid="model-selection">
           <span>{t("fromModel", { lines: modelSelection.lines.length, elements: modelSelection.elements.length })}</span>
@@ -779,21 +884,6 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
             </button>
           )}
         </div>
-      )}
-      {editable && checkedKeys.length > 0 && (
-        <BulkBar
-          count={checkedKeys.length}
-          lists={lists}
-          system={groupBy}
-          systemName={groupBy ? (systemNames.get(groupBy) ?? groupBy) : ""}
-          onMove={(code) => changeMany(checkedKeys, (k) => ({ codes: { ...(current.get(k)?.codes ?? {}), [groupBy!]: code } }))}
-          onExclude={() => exclude(checkedKeys)}
-          onRestore={() => commit(new Map(checkedKeys.filter((k) => current.has(k)).map((k) => [k, null])))}
-          onClear={() => setChecked(new Set())}
-          actions={extensions("sheet.selectionActions").map((a) => (
-            <a.Action key={a.id} boqId={boq.id} runId={run.id} lineKeys={checkedKeys} />
-          ))}
-        />
       )}
       {editError ? (
         <p role="alert" className="text-error" data-testid="edit-error">
@@ -819,110 +909,77 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
           </Button>
         </div>
       )}
+      {/* The ticked-lines count, read out as it changes; the bar itself floats over the grid's foot (no layout shift). */}
+      <p className="sr-only" aria-live="polite">
+        {showBulk ? te("selected", { count: checkedKeys.length }) : ""}
+      </p>
 
-      {split && hasModels ? (
-        <div ref={splitBox} className="flex items-start" data-testid="sheet-split">
-          <div className="min-w-0 shrink-0" style={{ width: `${sheetWidth}%` }}>
-            <SheetGrid
-              rows={rows}
-              columns={visibleMetas}
-              headers={headers}
-              selected={selected}
-              onSelect={setSelected}
-              checked={checked}
-              editing={editing}
-              editable={editable}
-              allChecked={shownKeys.length > 0 && shownKeys.every((k) => checked.has(k))}
-              onCheckAll={(on) => setChecked(on ? new Set(shownKeys) : new Set())}
-              api={rowApi}
-              groupBy={groupBy}
-              selectedGroup={selectedGroup}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {split && hasModels ? (
+          <div ref={splitBox} className="flex min-h-0 flex-1" data-testid="sheet-split">
+            <div className="flex min-h-0 min-w-0 shrink-0 flex-col" style={{ width: `${sheetWidth}%` }}>
+              {grid}
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label={t("resize")}
+              aria-valuenow={Math.round(sheetWidth)}
+              aria-valuemin={30}
+              aria-valuemax={75}
+              tabIndex={0}
+              className="mx-2 w-1.5 shrink-0 cursor-col-resize self-stretch bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:outline-none"
+              onPointerDown={startResize}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                  e.preventDefault();
+                  setSheetWidth((w) => Math.min(75, Math.max(30, w + (e.key === "ArrowLeft" ? -5 : 5))));
+                }
+              }}
+              data-testid="split-handle"
+            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto">
+              {/* The line's detail first, in view; the model under it (TF-107). */}
+              {renderDetail("border-l-0 pl-0 lg:w-full")}
+              <ModelViewer
+                key={run.id}
+                stacked
+                models={models3d}
+                runId={run.id}
+                lines={linkLines}
+                systems={systems}
+                focusLine={selected}
+                focusKeys={selectedGroup ? linesInGroup(filtered, groupBy, selectedGroup) : null}
+                scope={filtering ? filtered.map((l) => l.key) : null}
+                onOpenLine={setSelected}
+                onSelectionChange={setModelSelection}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">{grid}</div>
+            {renderDetail("max-h-[50%] overflow-y-auto lg:max-h-none")}
+          </div>
+        )}
+        {showBulk && (
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex justify-center">
+            <BulkBar
+              count={checkedKeys.length}
               lists={lists}
-              num={num}
-              labels={groupLabels}
-              emptyText={filtering ? t("noMatches") : tn("text")}
-              label={t("tableLabel")}
-              checkAllLabel={te("selectAll")}
-              pendingLabel={te("pending")}
-              editingBy={markers}
-              activeColumn={editable ? shownActive : null}
-              editableColumns={editable ? editableColumns : []}
-              onActiveColumn={setActiveColumn}
-              onEditActive={editActive}
-              gridRef={gridRef}
+              system={groupBy}
+              systemName={groupBy ? (systemNames.get(groupBy) ?? groupBy) : ""}
+              onMove={(code) => changeMany(checkedKeys, (k) => ({ codes: { ...(current.get(k)?.codes ?? {}), [groupBy!]: code } }))}
+              onExclude={() => exclude(checkedKeys)}
+              onRestore={() => commit(new Map(checkedKeys.filter((k) => current.has(k)).map((k) => [k, null])))}
+              onClear={() => setChecked(new Set())}
+              actions={extensions("sheet.selectionActions").map((a) => (
+                <a.Action key={a.id} boqId={boq.id} runId={run.id} lineKeys={checkedKeys} />
+              ))}
             />
           </div>
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label={t("resize")}
-            aria-valuenow={Math.round(sheetWidth)}
-            aria-valuemin={30}
-            aria-valuemax={75}
-            tabIndex={0}
-            className="mx-2 w-1.5 shrink-0 cursor-col-resize self-stretch bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:outline-none"
-            onPointerDown={startResize}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                e.preventDefault();
-                setSheetWidth((w) => Math.min(75, Math.max(30, w + (e.key === "ArrowLeft" ? -5 : 5))));
-              }
-            }}
-            data-testid="split-handle"
-          />
-          <div className="flex min-w-0 flex-1 flex-col gap-5">
-            {/* The line's detail first, in view; the model under it (TF-107). */}
-            {renderDetail("border-l-0 pl-0 lg:w-full")}
-            <ModelViewer
-              key={run.id}
-              stacked
-              models={models3d}
-              runId={run.id}
-              lines={linkLines}
-              systems={systems}
-              focusLine={selected}
-              focusKeys={selectedGroup ? linesInGroup(filtered, groupBy, selectedGroup) : null}
-              scope={filtering ? filtered.map((l) => l.key) : null}
-              onOpenLine={setSelected}
-              onSelectionChange={setModelSelection}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-5 lg:flex-row">
-          <div className="min-w-0 flex-1">
-            <SheetGrid
-              rows={rows}
-              columns={visibleMetas}
-              headers={headers}
-              selected={selected}
-              onSelect={setSelected}
-              checked={checked}
-              editing={editing}
-              editable={editable}
-              allChecked={shownKeys.length > 0 && shownKeys.every((k) => checked.has(k))}
-              onCheckAll={(on) => setChecked(on ? new Set(shownKeys) : new Set())}
-              api={rowApi}
-              groupBy={groupBy}
-              selectedGroup={selectedGroup}
-              lists={lists}
-              num={num}
-              labels={groupLabels}
-              emptyText={filtering ? t("noMatches") : tn("text")}
-              label={t("tableLabel")}
-              checkAllLabel={te("selectAll")}
-              pendingLabel={te("pending")}
-              editingBy={markers}
-              activeColumn={editable ? shownActive : null}
-              editableColumns={editable ? editableColumns : []}
-              onActiveColumn={setActiveColumn}
-              onEditActive={editActive}
-              gridRef={gridRef}
-            />
-          </div>
-          {renderDetail(undefined)}
-        </div>
-      )}
+        )}
+      </div>
 
       <ExportStaleDialog
         pending={staleExport?.pending ?? null}
@@ -974,13 +1031,13 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   );
 }
 
-/** Bulk actions on the ticked lines (F06 §6): move to a section, exclude, restore. */
+/** Bulk actions on the ticked lines (F06 §6): move to a section, exclude, restore. It floats over the foot of the grid (review C-01). */
 function BulkBar({ count, lists, system, systemName, onMove, onExclude, onRestore, onClear, actions }: { count: number; lists: CodeLists; system: string | null; systemName: string; onMove: (code: string) => void; onExclude: () => void; onRestore: () => void; onClear: () => void; actions?: ReactNode }) {
   const t = useTranslations("boqs.edits");
   const list = system ? lists.get(system) : undefined;
   const items = useMemo(() => (list ? [...list.values()].map((c) => ({ value: c.code, label: c.code, hint: c.title })) : []), [list]);
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius)] border border-border bg-muted px-3 py-2" role="region" aria-label={t("bulkLabel")} data-testid="sheet-bulk-bar">
+    <div className="pointer-events-auto flex flex-wrap items-center gap-3 rounded-[var(--radius)] border border-border bg-background px-3 py-2 shadow-lg" role="region" aria-label={t("bulkLabel")} data-testid="sheet-bulk-bar">
       <span className="tabular-nums">{t("selected", { count })}</span>
       {list && <SearchPicker items={items} value={undefined} onPick={onMove} label={t("moveTo", { system: systemName })} placeholder={t("moveTo", { system: systemName })} empty={t("noCode")} className="min-w-64" data-testid="bulk-move" />}
       <Button variant="outline" onClick={onExclude} data-testid="bulk-exclude">
@@ -1041,6 +1098,7 @@ function SheetGrid({
   onActiveColumn,
   onEditActive,
   gridRef,
+  endSpace = 0,
 }: {
   rows: Row[];
   columns: ColumnMeta[];
@@ -1071,12 +1129,14 @@ function SheetGrid({
   onEditActive: () => void;
   /** The grid element, for the sheet to give focus back to it (TF-160). */
   gridRef?: RefObject<HTMLDivElement | null>;
+  /** Extra room under the last row (px), while something floats over the grid's foot. */
+  endSpace?: number;
 }) {
   const ownScroller = useRef<HTMLDivElement>(null);
   const scroller = gridRef ?? ownScroller;
   // Like TanStack Table, the virtualizer returns functions the React Compiler can't memoise.
   // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => scroller.current, estimateSize: () => ROW, overscan: 12 });
+  const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => scroller.current, estimateSize: () => ROW, overscan: 12, paddingEnd: endSpace });
   const lineIndexes = useMemo(() => rows.flatMap((r, i) => (r.kind === "line" ? [i] : [])), [rows]);
   const lead = editable ? "2rem " : "";
   const template = useMemo(() => lead + columns.map((c) => c.width).join(" "), [columns, lead]);
@@ -1115,7 +1175,7 @@ function SheetGrid({
       aria-label={label}
       aria-rowcount={rows.length + 1}
       tabIndex={0}
-      className="relative h-[max(24rem,calc(100dvh-24rem))] overflow-auto border-y border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="relative min-h-64 flex-1 overflow-auto border-y border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onKeyDown={(e) => {
         if ((e.target as HTMLElement).closest("input")) return;
         if (e.key === "ArrowDown" || e.key === "ArrowUp") {
