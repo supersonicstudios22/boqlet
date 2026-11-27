@@ -225,9 +225,9 @@ string literal is never changed).
   (`apps/app/bundle-budgets.json`).
 - Sheet payload (review B-18): the line list carries each line's trace as a summary (its formula, its
   source line, and per element the guid, quantity and model the filters and the viewer need); the line
-  detail reads the full trace from `/lines/by-key`. The API gzips JSON. The search box answers at once;
-  the lines and the viewer's scope follow it 150 ms after typing pauses, at low priority
-  (`useDeferredValue`), and the viewer repaints once per frame.
+  detail reads the full trace from `/lines/by-key`. The API gzips JSON. The viewer repaints once per
+  frame. Typing in the search still re-renders the sheet per key (about 130 ms at 4,000 lines; a
+  debounce with `useDeferredValue` made it worse, 256 ms, and was taken out; N-37).
 - Sheet: 60 fps scroll at 20k rows (virtualised rows, fixed row height, no per-row
   subscriptions).
 - Lighthouse performance ≥ 80 on the dashboard (warm API).
