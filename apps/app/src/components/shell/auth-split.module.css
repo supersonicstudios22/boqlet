@@ -1,0 +1,66 @@
+/*
+ * The sign-in pages' poster half (auth-split.tsx, design-guidelines.md "The poster language": sign-in and
+ * sign-up get a composition beside the form). The panel is scoped `.dark`, so it is ink with paper text in
+ * both themes; in the dark theme a hairline parts it from the page. Tokens only.
+ */
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--foreground);
+}
+
+:global(.dark) .panel {
+  border-left: 1px solid var(--border);
+}
+
+/* The composition, anchored to the panel's bottom right and running off its edges. */
+.shapes {
+  position: absolute;
+  right: -48px;
+  bottom: -48px;
+  width: min(52%, 460px);
+  aspect-ratio: 1 / 1;
+}
+
+/* Corners come from the markup (3 px, or a circle's), so Tailwind's `rounded-*` can set them. */
+.shape {
+  position: absolute;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* After the logo has started: the shapes rise in one by one, the dimension line draws. */
+  .rise {
+    animation: rise 0.7s ease var(--delay, 0s) both;
+  }
+
+  .drawX {
+    transform-origin: left;
+    animation: draw-x 1.3s cubic-bezier(0.65, 0, 0.35, 1) var(--delay, 0s) both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: none;
+  }
+}

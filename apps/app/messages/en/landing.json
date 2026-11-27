@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "title": "{appName}: bills of quantities from IFC models",
+    "description": "Drop in a building model, choose how you measure, and get a bill of quantities in Excel. Every number shows its formula and the elements behind it."
+  },
+  "nav": {
+    "label": "Main",
+    "home": "{appName}, home",
+    "what": "What it is",
+    "how": "How it works",
+    "signIn": "Sign in",
+    "requestAccess": "Request access"
+  },
+  "rail": {
+    "s0": "00 — IFC in",
+    "s1": "01 — measured",
+    "s2": "02 — four steps",
+    "s3": "03 — traced",
+    "s4": "04 — notes",
+    "s5": "05 — BoQ out"
+  },
+  "hero": {
+    "label": "IFC → BoQ · bills of quantities from the model",
+    "title": "Quantities you can check.",
+    "lead": "Drop in a building model, choose how you measure, and get a bill of quantities in Excel. Every number shows its formula and the elements behind it.",
+    "seeHow": "See how it works",
+    "area": "267.16 m²",
+    "elements": "12 elements"
+  },
+  "what": {
+    "label": "No. 01 — What it is",
+    "title": "A measuring engine that shows its work.",
+    "lead": "{appName} reads an IFC model and writes the bill of quantities a quantity surveyor would, then shows how it got every number.",
+    "items": {
+      "traceable": {
+        "title": "Every number is traceable",
+        "body": "Open any quantity: the formula, the values it used and the elements in the model it came from."
+      },
+      "asks": {
+        "title": "It asks instead of guessing",
+        "body": "A wall with two thicknesses, a name it doesn't know: it asks you, once. The answer is kept for next time."
+      },
+      "rules": {
+        "title": "Your firm's rules",
+        "body": "Measure the way your firm measures. Rules, item codes and texts are your data, versioned and editable."
+      },
+      "revisions": {
+        "title": "Revisions are cheap",
+        "body": "A new model version reuses every answer. Re-measuring takes minutes, and the changes are listed line by line."
+      }
+    }
+  },
+  "how": {
+    "label": "No. 02 — How it works",
+    "title": "Model in. Quantities out.",
+    "step": "Step {n}",
+    "steps": {
+      "upload": {
+        "title": "Upload the model",
+        "body": "An IFC file from any authoring tool. Several discipline models can make one BoQ."
+      },
+      "measure": {
+        "title": "Choose how you measure",
+        "body": "Pick a rule set and a classification. The engine measures every element under them."
+      },
+      "answer": {
+        "title": "Answer what it can't tell",
+        "body": "Unclear names and values become short questions, each with a suggested answer."
+      },
+      "excel": {
+        "title": "Take it to Excel",
+        "body": "Sections, subtotals and a trace of every line. Edit it there and bring the changes back."
+      }
+    }
+  },
+  "calc": {
+    "label": "No. 03 — How it is calculated",
+    "title": "Pick any line. See where it came from.",
+    "caption": "Sample bill of quantities lines from the Duplex model",
+    "columns": {
+      "code": "Code",
+      "description": "Description",
+      "qty": "Qty",
+      "unit": "Unit",
+      "source": "Source"
+    },
+    "rows": {
+      "wall": "Wall, Exterior – Brick on Block, 417 mm",
+      "footing": "Bearing footing, 900 × 300",
+      "slab": "Slab, 127 mm slab on grade",
+      "formwork": "Formwork to walls, both faces",
+      "site": "Site setup and welfare"
+    },
+    "units": {
+      "m2": "m²",
+      "m3": "m³",
+      "item": "item"
+    },
+    "derived": "Derived",
+    "toConfirm": "To confirm",
+    "heading": "How it is calculated",
+    "gross": "Area, gross, of 12 elements",
+    "openings": "Minus 26 openings, all deducted",
+    "rounded": "Rounded as the rule set says",
+    "result": "267.16 m²",
+    "amount": "{value} m²",
+    "formula": "Formula: area (main, gross) − openings[all]",
+    "footnote": "From the Duplex sample, a real building model. On it the engine matches a hand-measured BoQ line for line."
+  },
+  "notes": {
+    "label": "General notes",
+    "title": "Plain about what it does.",
+    "number": "{n}.",
+    "items": {
+      "modelled": "It measures what is in the model. Work that isn't modelled, such as earthworks, plaster or scaffolding, is in the BoQ only if your rules derive it or you add it.",
+      "standards": "It ships no standard's rules or texts and never claims a BoQ complies with one. You bring your own.",
+      "formats": "Reads IFC2x3 and IFC4. Tested on 309 files from 30 authoring tools.",
+      "draft": "The result is a draft that a qualified person checks and approves."
+    }
+  },
+  "access": {
+    "title": "Measure your next model with {appName}.",
+    "body": "{appName} is in a private pilot. Request access with your work email, and we'll send you a link to start.",
+    "lines": "41 lines · each one traceable"
+  },
+  "footer": {
+    "drawing": "Drawing",
+    "drawingValue": "IFC → BoQ",
+    "sheet": "Sheet",
+    "sheetValue": "01 of 01",
+    "scale": "Scale",
+    "scaleValue": "1 : 1",
+    "copyright": "©",
+    "copyrightValue": "{year} {appName}",
+    "signIn": "Sign in"
+  }
+}

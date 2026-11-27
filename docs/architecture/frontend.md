@@ -69,7 +69,13 @@ use the full-strength `ring-ring` focus ring (not `ring-ring/30`), and the destr
 
 - The app is behind authentication and is data-heavy. Pages are **client components that fetch
   through TanStack Query**. Server Components are used for layouts, static chrome and the
-  public pages (sign-in shell, invitation previews).
+  public pages (sign-in shell, invitation previews, the landing page).
+- **The landing page (`/`, P58)** is server-rendered; its only client code (`landing-motion.tsx`)
+  draws the sections in once and sends a signed-in visitor on. The session cookie is scoped to
+  `/api/v1`, so the server can't see it on `/`: the native adapter keeps a readable hint cookie,
+  `boqlet-signed-in` (`src/auth/signed-in-hint.ts`), set when a session is found and cleared when
+  none is. With the hint, `/` redirects to `/app` on the server; without it, the page checks the
+  session itself. The hint is not a credential: `/app` checks the real session as every page does.
 - **No Next.js route handlers with business logic.** Next serves the UI. The API is a separate
   service on the same domain: the client calls `NEXT_PUBLIC_API_BASE_URL` (default `/api/v1`);
   in development the route handler `app/api/v1/[...path]/route.ts` (`src/api/proxy.ts`) passes
@@ -85,12 +91,15 @@ use the full-strength `ring-ring` focus ring (not `ring-ring/30`), and the destr
 ```text
 apps/app/
   app/
-    (public)/sign-in/[[...rest]]/page.tsx
-    (public)/sign-up/[[...rest]]/page.tsx
-    (public)/reset-password/page.tsx
-    (public)/invite/[token]/page.tsx
+    (marketing)/page.tsx               # `/`: the public landing page (P58); a signed-in browser goes to /app
+    app/page.tsx                       # `/app`: where a signed-in person starts (their org, onboarding, admin, a picker)
+    (public)/(auth)/layout.tsx         # the split sign-in layout: form beside the poster (AuthSplit)
+    (public)/(auth)/sign-in/[[...rest]]/page.tsx
+    (public)/(auth)/sign-up/[[...rest]]/page.tsx
+    (public)/(auth)/reset-password/page.tsx
+    (public)/(auth)/invite/[token]/page.tsx
+    (public)/(auth)/session-conflict/page.tsx
     (public)/s/[token]/page.tsx       # share link (F18)
-    (public)/session-conflict/page.tsx
     (app)/layout.tsx                   # auth gate, SSE connection, QueryClientProvider, IntlProvider
     (app)/onboarding/page.tsx
     (app)/account/page.tsx

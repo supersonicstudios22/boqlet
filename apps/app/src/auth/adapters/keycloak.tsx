@@ -9,7 +9,6 @@ import Keycloak from "keycloak-js";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { safeReturnTo, type AuthAdapter, type Session } from "../AuthAdapter";
 
@@ -167,9 +166,8 @@ function KeycloakPage({ registration }: { registration: boolean }) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-8 py-16">
-      <Wordmark className="text-display-sm" />
-      <h1 className="text-title">{t(registration ? "signUp" : "signIn")}</h1>
+    <main className="flex flex-col gap-6">
+      <h1 className="display text-display-sm">{t(registration ? "signUp" : "signIn")}</h1>
       <Button className="self-start" onClick={() => void continueToProvider()} disabled={pending || session.status !== "anonymous"}>
         {t("continue")}
       </Button>

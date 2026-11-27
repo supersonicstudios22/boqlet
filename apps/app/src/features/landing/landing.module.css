@@ -1,0 +1,369 @@
+/*
+ * The landing page (P58): "the running dimension". One dimension line runs down the left of the page;
+ * every section is a tick on it, and in the last one it turns into the purple line under the button.
+ * Colours are tokens only (globals.css), so the dark theme comes from `.dark` with nothing extra.
+ *
+ * Motion. Everything is drawn by default: a server render, a visit without JavaScript or one with
+ * `prefers-reduced-motion` shows the finished page. `landing-motion.tsx` adds `.motion` to the page once
+ * it runs (and only without reduced motion); from then on a section waits undrawn until it first enters
+ * the viewport, when it gets `.drawn`. The hero is drawn by CSS animations on load instead, so it never
+ * flashes. The rail grows with the page's scroll where scroll-driven animations exist. These draws are
+ * longer than the guidelines' 400 ms: like the sign-in splash, the landing page is the exception.
+ */
+
+.page {
+  --rail-x: clamp(14px, 3vw, 40px);
+  --pad-l: clamp(44px, 8.6vw, 104px);
+  --pad-r: clamp(20px, 4vw, 48px);
+  --ease-draw: cubic-bezier(0.65, 0, 0.35, 1);
+  --grid-line: color-mix(in oklab, var(--foreground) 5%, transparent);
+  background-color: var(--background);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--foreground);
+  font-size: var(--text-prose);
+  line-height: 1.6;
+  overflow-x: clip;
+}
+
+/* The content column the rail lives in. */
+.frame {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section {
+  position: relative;
+  scroll-margin-top: 16px;
+  padding: clamp(56px, 8vw, 104px) var(--pad-r) clamp(56px, 8vw, 104px) var(--pad-l);
+}
+
+.hero {
+  padding-top: clamp(32px, 6vw, 80px);
+  padding-bottom: clamp(64px, 9vw, 128px);
+}
+
+.calcSection {
+  padding-top: clamp(32px, 5vw, 64px);
+}
+
+.notesSection {
+  padding-top: clamp(40px, 6vw, 80px);
+}
+
+.accessSection {
+  padding-top: clamp(56px, 8vw, 112px);
+  padding-bottom: 64px;
+}
+
+/* The rail: a 2 px ink line from the top of the hero to the bottom of section 05. */
+.rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--rail-x);
+  width: 2px;
+  background: var(--foreground);
+  transform-origin: top;
+}
+
+/* The 12 px end tick at the top of the rail. */
+.railStart {
+  position: absolute;
+  top: 0;
+  left: calc(var(--rail-x) - 5px);
+  width: 12px;
+  height: 2px;
+  background: var(--foreground);
+}
+
+/* A section's tick on the rail: slashed, as on a chain dimension. */
+.tick {
+  position: absolute;
+  top: 0;
+  left: calc(var(--rail-x) - 6px);
+  width: 14px;
+  height: 2px;
+  background: var(--foreground);
+  transform: rotate(-45deg);
+}
+
+.railLabel {
+  position: absolute;
+  top: 16px;
+  left: calc(var(--rail-x) + 12px);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.hero .railLabel {
+  top: 12px;
+}
+
+.display {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.h1 {
+  font-size: clamp(34px, 4.6vw, 56px);
+}
+
+.h2 {
+  font-size: clamp(30px, 4vw, 52px);
+}
+
+.h2Notes {
+  font-size: clamp(28px, 3.4vw, 44px);
+}
+
+.h2Final {
+  max-width: 14ch;
+  font-size: clamp(36px, 5.4vw, 72px);
+  line-height: 0.98;
+}
+
+.lead {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* The hero's poster: decorative shapes, two dimension lines. */
+.poster {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  margin: 40px 0 0 36px;
+}
+
+/* Corners come from the markup (3 px, or a circle's), so Tailwind's `rounded-*` can set them. */
+.shape {
+  position: absolute;
+}
+
+/* Multiply works on paper; on ink it would turn the circle black. */
+.blend {
+  mix-blend-mode: multiply;
+}
+
+:global(.dark) .blend {
+  mix-blend-mode: normal;
+}
+
+/* Section 03: an ink panel in both themes. Light: the panel is scoped `.dark`, so ink with paper text.
+   Dark: the page is ink already, so the panel is a card with a hairline. */
+.inkPanel {
+  background: var(--background);
+  color: var(--foreground);
+  border-radius: var(--radius);
+}
+
+:global(.dark) .inkPanel {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.sheet {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  font-size: var(--text-ui);
+}
+
+.sheet th {
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--foreground);
+  color: var(--muted-foreground);
+  text-align: left;
+}
+
+.sheet td {
+  height: 36px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet .num {
+  text-align: right;
+}
+
+.selected {
+  background: var(--selection);
+}
+
+.selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--link);
+}
+
+/* The end of the rail: it turns horizontal, purple, from the rail to the right edge. */
+.finalLine {
+  position: relative;
+  align-self: stretch;
+  height: 40px;
+  margin-top: 40px;
+  margin-left: calc(-1 * (var(--pad-l) - var(--rail-x)));
+}
+
+.finalRule {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  left: 0;
+  height: 2px;
+  background: var(--link);
+}
+
+.finalTick {
+  position: absolute;
+  right: -6px;
+  bottom: 0;
+  width: 14px;
+  height: 2px;
+  background: var(--link);
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+.finalLabel {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--text-ui);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* A drawing's title block. */
+.titleBlock {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--foreground);
+}
+
+.titleCell {
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 16px;
+  border-right: 1px solid var(--foreground);
+}
+
+.titleCell:first-child {
+  flex: 2 1 220px;
+}
+
+.titleCell:last-child {
+  border-right: 0;
+}
+
+@media (max-width: 720px) {
+  .railLabel {
+    display: none;
+  }
+}
+
+/* --- Motion ------------------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The rail grows with the page's scroll; without scroll-driven animations it is simply complete. */
+  @supports (animation-timeline: scroll()) {
+    .rail {
+      animation: grow-y linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+
+  /* The hero, on load: the poster fades in at 0.3 s, its dimension lines draw at 0.6 s and 0.9 s. */
+  .heroPoster {
+    animation: rise 0.7s ease 0.3s both;
+  }
+
+  .heroDrawX {
+    transform-origin: left;
+    animation: draw-x 1.3s var(--ease-draw) 0.6s both;
+  }
+
+  .heroDrawY {
+    transform-origin: top;
+    animation: draw-y 1.1s var(--ease-draw) 0.9s both;
+  }
+
+  /* The other sections, once `.motion` is on: undrawn until they first enter the viewport. */
+  .motion .drawX {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1.3s var(--ease-draw) var(--delay, 0s);
+  }
+
+  .motion .rise {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.7s ease var(--delay, 0s),
+      transform 0.7s ease var(--delay, 0s);
+  }
+
+  .motion .drawn .drawX,
+  .motion .drawn .rise {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The purple end keeps its centring transform while it fades in. */
+  .motion .rise.finalLabel {
+    transform: translate(-50%, 10px);
+  }
+
+  .motion .drawn .rise.finalLabel {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0.12);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes draw-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

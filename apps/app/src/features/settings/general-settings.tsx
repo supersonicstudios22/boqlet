@@ -181,7 +181,7 @@ function DeleteOrg() {
     mutationFn: async () => api.DELETE("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { confirmName: confirm } }),
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: keys.me() });
-      router.replace("/");
+      router.replace("/app");
     },
     onError: () => {},
   });

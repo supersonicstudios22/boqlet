@@ -4,10 +4,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { API_BASE_URL } from "@/config";
+import { API_BASE_URL, APP_NAME } from "@/config";
 import { useHydrated } from "@/components/hydration";
 
 /**
@@ -58,12 +57,15 @@ export function SignUpLink({ returnTo }: { returnTo: string }) {
 export function SignUpRequest() {
   const t = useTranslations("auth.native");
   const open = useSignUpOpen();
-  if (open === null) return <main className="min-h-dvh" aria-busy="true" />;
+  if (open === null) return <main className="min-h-48" aria-busy="true" />;
+  // "Request access" on the landing page leads here (P58): say plainly that accounts are by invitation for now.
   if (!open)
     return (
-      <Frame title={t("setPassword")}>
-        <p>{t("setupLink")}</p>
-        <BackToSignIn />
+      <Frame title={t("closedTitle")}>
+        <p className="prose-text" data-testid="sign-up-closed">
+          {t("closedBody", { appName: APP_NAME })}
+        </p>
+        <BackToSignIn label="haveAccount" />
       </Frame>
     );
   return <LinkRequest kind="sign-up" />;
@@ -76,9 +78,8 @@ export function ResetRequest() {
 
 function Frame({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-8 py-16">
-      <Wordmark className="text-display-sm" />
-      <h1 className="text-title">{title}</h1>
+    <main className="flex flex-col gap-6">
+      <h1 className="display text-display-sm">{title}</h1>
       {children}
     </main>
   );

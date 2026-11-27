@@ -70,6 +70,19 @@ concept's dev build, phase 1 on the mock) are in [../archive/limitations-history
 - The session takeover question can't say where the other session is: `sessions.place` is never
   written. The 12 h idle expiry is hard-coded (`identity/Sessions.java`), not configurable (F01).
 
+**Landing page** (P58)
+- **"Request access" is the sign-up page.** While public sign-up is closed, a visitor reads that
+  accounts are by invitation for now and has no way to leave an address: no contact form or
+  published contact email yet.
+- English only, like the rest of the UI. There is no Open Graph image, favicon or canonical URL
+  (`TODO(owner)` in `app/(marketing)/page.tsx`), pending the move from booqlet.com to the product's
+  own domain.
+- A browser whose session ended while it was closed still carries the signed-in hint, so its next
+  visit to `/` opens the sign-in page instead of the landing page. That visit clears the hint.
+- The page's facts are copied by hand from the repo: the Duplex line (267.16 m² from 340.575 m²
+  less 73.413 m²), its 41 lines and "309 files from 30 authoring tools"
+  (`apps/app/messages/en/landing.json`). Change them when the engine or the corpus changes.
+
 **Models, BoQs, sheet, viewer**
 - An interrupted upload resumes only in the tab that started it (A-40 keeps the parts sent in
   memory); after a reload the file goes up again as a new version. The app refuses `.ifczip`,

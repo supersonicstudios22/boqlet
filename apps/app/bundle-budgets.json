@@ -38,6 +38,7 @@
   "/admin/plans/new": 300,
   "/admin/settings": 300,
   "/admin/users": 300,
+  "/app": 220,
   "/areas/[area]/[[...segments]]": 260,
   "/invite/[token]": 260,
   "/notifications": 260,

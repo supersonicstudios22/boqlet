@@ -43,8 +43,17 @@ export interface AuthAdapter {
   ResetPasswordPage?: ComponentType;
 }
 
-/** Only same-site paths are accepted as `returnTo` (no open redirects). */
-export function safeReturnTo(value: string | null | undefined, fallback = "/"): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
+/**
+ * Where a signed-in person starts (`app/app/page.tsx`): their org, onboarding, the admin console or an
+ * org picker. `/` is the public landing page, which sends signed-in visitors here.
+ */
+export const APP_HOME = "/app";
+
+/**
+ * Only same-site paths are accepted as `returnTo` (no open redirects). The landing page (`/`) is not a
+ * place to come back to after a sign-in: it means the app.
+ */
+export function safeReturnTo(value: string | null | undefined, fallback = APP_HOME): string {
+  if (!value || value === "/" || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
   return value;
 }

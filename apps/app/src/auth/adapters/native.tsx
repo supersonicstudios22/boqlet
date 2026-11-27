@@ -4,12 +4,12 @@ import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Wordmark } from "@/components/shell/wordmark";
 import { requestSplash } from "@/components/shell/splash";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "@/config";
 import { safeReturnTo, type AuthAdapter, type Session } from "../AuthAdapter";
+import { setSignedInHint } from "../signed-in-hint";
 import { LIMITS } from "@/lib/limits";
 import { useHydrated } from "@/components/hydration";
 import { useRelativeTime } from "@/i18n/use-relative-time";
@@ -30,6 +30,9 @@ const listeners = new Set<() => void>();
 
 function publish(next: Session) {
   state = next;
+  // The landing page's hint (signed-in-hint.ts); "unavailable" and "loading" say nothing either way.
+  if (next.status === "authenticated") setSignedInHint(true);
+  else if (next.status === "anonymous") setSignedInHint(false);
   for (const listener of listeners) listener();
 }
 
@@ -103,6 +106,7 @@ export const nativeAuthAdapter: AuthAdapter = {
   async signUp(opts) { window.location.assign(localAuthUrl(opts, true)); },
   async signOut(opts) {
     try {
+      setSignedInHint(false);
       if (!opts?.reason) await request("/sessions/current", { method: "DELETE" });
     } finally {
       window.location.assign(localAuthUrl(opts));
@@ -183,9 +187,8 @@ function NativeForm({ setup }: { setup: boolean }) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-8 py-16">
-      <Wordmark className="text-display-sm" />
-      <h1 className="text-title">{t(reset ? "newPassword" : setup ? "setPassword" : "signIn")}</h1>
+    <main className="flex flex-col gap-6">
+      <h1 className="display text-display-sm">{t(reset ? "newPassword" : setup ? "setPassword" : "signIn")}</h1>
       {/* Why one was signed out (`?reason=`) is shown above the form by the sign-in page. */}
       {setup && !token ? <p>{t("setupLink")}</p> : (
         <form method="post" onSubmit={submit} onChange={() => {

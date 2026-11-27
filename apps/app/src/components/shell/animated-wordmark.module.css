@@ -1,0 +1,172 @@
+/*
+ * The logo animation (AnimatedWordmark): the owner's animation (docs/brand/boqlet.mp4), timed from that video.
+ * Each element's own CSS is its final state, so `prefers-reduced-motion` (animations off) shows the
+ * finished logo. Lengths in transforms are SVG user units (the logo's font units).
+ *
+ *   0.00–0.50 s  one "o" pops in (overshoots to 106 %)
+ *   0.80–1.60 s  two more slide out from behind it, overshoot 5 % and settle: "ooo"
+ *   2.03–2.63 s  the outer two become "b" and "q": a 0.07 s crossfade, then the stems grow
+ *   3.13–3.97 s  the word slides left to make room; 3.30–3.85 "boq" turns purple; 3.37–3.93 "let" fades in
+ *   3.97–5.33 s  "boqlet" holds (the sign-in splash then fades into the app, splash.tsx)
+ */
+
+.logo {
+  height: auto;
+  overflow: visible;
+}
+
+/* "boq" moves right of centre until "let" arrives: the word is centred at each step. */
+.word {
+  animation: slide-word 0.84s cubic-bezier(0.65, 0, 0.35, 1) 3.13s both;
+}
+
+.boq {
+  fill: var(--brand);
+  animation: tint 0.55s linear 3.3s both;
+}
+
+.pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 0.5s 0s both;
+}
+
+/* The outer "o"s: behind the middle one until 0.8 s (hidden while it pops), then out to b's and q's bowls. */
+.left {
+  transform: translateX(-603px);
+  animation: hidden 0.8s linear, spread-left 0.8s 0.8s both;
+}
+
+.right {
+  transform: translateX(608px);
+  animation: hidden 0.8s linear, spread-right 0.8s 0.8s both;
+}
+
+.outer {
+  opacity: 0;
+  animation: fade-out 0.07s linear 2.03s both;
+}
+
+.stems {
+  animation: fade-in 0.07s linear 2.03s both;
+}
+
+/* The clip that grows from the bowls' height (-512…12) to the full ascender and descender. */
+.grow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: grow 0.6s ease-out 2.03s both;
+}
+
+.let {
+  animation: fade-in 0.56s ease-out 3.37s both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+  }
+  55% {
+    transform: scale(1.06);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes hidden {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes spread-left {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  46% {
+    transform: translateX(-603px);
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: translateX(-633px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: translateX(-603px);
+  }
+}
+
+@keyframes spread-right {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  46% {
+    transform: translateX(608px);
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: translateX(638px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: translateX(608px);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0.557);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes slide-word {
+  from {
+    transform: translateX(896px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes tint {
+  from {
+    fill: var(--foreground);
+  }
+  to {
+    fill: var(--brand);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .logo * {
+    animation: none !important;
+  }
+}

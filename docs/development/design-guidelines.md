@@ -197,7 +197,8 @@ on a grid.
 | Place | What appears |
 |---|---|
 | Setup wizard and onboarding | Each step has its own composition (a shape and colour per step); large display titles ("NO. 02 — HOW YOU MEASURE" label and an Inter Tight title); the progress is a dimension line |
-| Sign-in and sign-up | A poster-like composition beside the form, with the wordmark |
+| Sign-in and sign-up (and password reset, invitations, the takeover question) | The form on paper; beside it, from `lg`, an ink panel with the logo animation, the tagline, a dimension line and the shapes; below `lg`, four small shapes beside the wordmark (`AuthSplit`, P58) |
+| The public landing page (`/`, P58) | "The running dimension": a dimension line down the page with a tick per section, the hero poster, the step shapes, an ink panel with a sample sheet; its draws may run longer than 400 ms, like the splash |
 | Public share page (F18) | Header with the wordmark and a colour block, the project and BoQ name in display type; below it the calm sheet |
 | Dashboard and project cards | Each project card has a small generated composition: shapes and colours derived from the project id (deterministic), so projects are recognisable at a glance |
 

@@ -43,7 +43,7 @@ export default function AccountPage() {
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-10 px-8 py-10">
-      <Link href="/" aria-label={t("home", { appName: APP_NAME })}>
+      <Link href="/app" aria-label={t("home", { appName: APP_NAME })}>
         <Wordmark />
       </Link>
       <h1 className="text-title">{t("title")}</h1>

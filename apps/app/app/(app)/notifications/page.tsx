@@ -27,7 +27,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-8" data-testid="notifications-page">
-      <Link href="/" className="self-start">
+      <Link href="/app" className="self-start">
         <Wordmark />
       </Link>
       <div className="flex flex-wrap items-center gap-4">

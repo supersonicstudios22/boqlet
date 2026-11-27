@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
-import { LOGO_B, LOGO_LET, LOGO_O, LOGO_Q, LOGO_VIEW_BOX } from "./logo";
+import { ANIMATED_WORDMARK_MS, AnimatedWordmark } from "./animated-wordmark";
 import styles from "./splash.module.css";
 
 const KEY = "boqlet-splash";
-/** The animation's length (docs/brand/boqlet.mp4, timeline in splash.module.css). */
-const PLAY_MS = 5333;
+/** The animation's length (docs/brand/boqlet.mp4). */
+const PLAY_MS = ANIMATED_WORDMARK_MS;
 /** With reduced motion: the finished logo, this long. */
 const STILL_MS = 800;
 const FADE_MS = 300;
@@ -59,7 +59,6 @@ export function Splash() {
 }
 
 function SplashScreen() {
-  const clip = useId();
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -86,33 +85,7 @@ function SplashScreen() {
       className={cn(styles.screen, leaving && styles.leaving)}
       onClick={() => setLeaving(true)}
     >
-      <svg viewBox={LOGO_VIEW_BOX} className={styles.logo}>
-        <defs>
-          <clipPath id={clip}>
-            <rect className={styles.grow} x={0} y={-720} width={3600} height={940} />
-          </clipPath>
-        </defs>
-        <g className={styles.word}>
-          <g className={styles.boq}>
-            <g className={styles.outer}>
-              <g className={styles.left}>
-                <path d={LOGO_O} />
-              </g>
-              <g className={styles.right}>
-                <path d={LOGO_O} />
-              </g>
-            </g>
-            <g className={styles.stems} clipPath={`url(#${clip})`}>
-              <path d={LOGO_B} />
-              <path d={LOGO_Q} />
-            </g>
-            <path className={styles.pop} d={LOGO_O} />
-          </g>
-          <g className={styles.let} fill="currentColor">
-            {LOGO_LET.map((d) => <path key={d} d={d} />)}
-          </g>
-        </g>
-      </svg>
+      <AnimatedWordmark className={styles.logo} />
     </div>
   );
 }

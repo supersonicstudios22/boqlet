@@ -23,7 +23,7 @@ function SignedOutNotice() {
   const reason = useSearchParams().get("reason");
   if (!reason || !t.has(reason)) return null;
   return (
-    <p role="status" className="mx-auto mt-8 max-w-xl border-l-2 border-[var(--status-attention)] px-8 py-2" data-testid="signed-out-reason">
+    <p role="status" className="border-l-2 border-[var(--status-attention)] py-2 pl-3" data-testid="signed-out-reason">
       {t(reason)}
     </p>
   );

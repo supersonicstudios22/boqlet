@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { safeReturnTo } from "@/auth/AuthAdapter";
-import { Wordmark } from "@/components/shell/wordmark";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
 import { useRelativeTime } from "@/i18n/use-relative-time";
@@ -60,8 +59,7 @@ export function SessionConflict() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-8 py-16" data-testid="session-conflict-page">
-      <Wordmark className="text-display-sm" />
+    <main className="flex flex-col gap-6" data-testid="session-conflict-page">
       {active && (
         <div className="flex flex-col gap-4" data-testid="session-conflict">
           <h1 className="text-title">{t("title")}</h1>

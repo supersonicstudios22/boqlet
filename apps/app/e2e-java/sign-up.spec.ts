@@ -39,7 +39,7 @@ test("P57: while sign-up is closed, /sign-up says how accounts are made and sign
   await expect(page.getByTestId("forgot-password")).toBeVisible();
   await expect(page.getByTestId("sign-up-link")).toHaveCount(0);
   await page.goto("/sign-up");
-  await expect(page.getByText("Open the invitation or setup link you received to create your account.")).toBeVisible();
+  await expect(page.getByTestId("sign-up-closed")).toContainText("accounts are made by invitation");
   await expect(page.getByTestId("sign-up-form")).toHaveCount(0);
 });
 

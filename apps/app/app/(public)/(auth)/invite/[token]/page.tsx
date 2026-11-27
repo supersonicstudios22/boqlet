@@ -9,8 +9,6 @@ import { keys } from "@/api/keys";
 import { useAuth, useSession } from "@/auth";
 import { openAppSession } from "@/auth/app-session";
 import { useErrorMessage } from "@/components/errors/use-error-message";
-import { Poster } from "@/components/poster";
-import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { rememberOrg } from "@/features/orgs/org-context";
 
@@ -52,7 +50,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
       const { slug } = result;
       await client.invalidateQueries({ queryKey: keys.me() });
       if (slug) rememberOrg(slug);
-      router.push(slug ? `/${slug}` : "/");
+      router.push(slug ? `/${slug}` : "/app");
     },
     onError: () => {},
   });
@@ -62,9 +60,8 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
     session.status === "authenticated" && inv && session.email && session.email.toLowerCase() !== inv.email.toLowerCase();
 
   return (
-    <main className="mx-auto grid min-h-dvh max-w-5xl grid-cols-1 items-center gap-12 px-8 py-12 md:grid-cols-[1fr_280px]">
-      <div className="flex max-w-xl flex-col gap-6" data-testid="invitation">
-        <Wordmark />
+    <main>
+      <div className="flex flex-col gap-6" data-testid="invitation">
         {preview.isPending && <p className="text-muted-foreground">{t("loading")}</p>}
         {preview.isError && (
           <p role="alert" className="prose-text">
@@ -122,7 +119,6 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           </>
         )}
       </div>
-      <Poster variant={1} className="hidden w-full md:grid" />
     </main>
   );
 }
