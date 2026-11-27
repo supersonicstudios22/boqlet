@@ -3,6 +3,8 @@ import { apiAs, createOrg, newPerson, useSession, waitFor, type Person } from ".
 
 /**
  * Smoke against Java: the BoQ workspace's layout and keyboard (review WP-C1).
+ * - C-04: no focus jump on load (StrictMode in `next dev`), "Skip to the sheet", separators with a focus ring, one Tab
+ *   stop per toolbar, `g s` / `g q` / `?`.
  * - C-03: the line detail lies over the model as a drawer: Description keeps ≥ 320 px at 1440 px, the page stays the
  *   viewport's height; "Model open" and the split are the user's preferences, the same in a fresh browser.
  * - C-02: beside the model, at 1440 and 1024 px, every derived, manual and to-confirm line shows its status mark.
@@ -207,5 +209,58 @@ test("@c1-drawer C-03: the line detail is a drawer over the model; descriptions 
   await page2.getByTestId("toggle-model").click();
   await expect(page2.getByTestId("split-handle")).toHaveAttribute("aria-valuenow", split!);
   await fresh.close();
+  await context.close();
+});
+
+const focusedId = (page: Page) =>
+  page.evaluate(() => {
+    const a = document.activeElement;
+    return a === document.body ? "body" : (a?.getAttribute("data-testid") ?? a?.textContent?.trim() ?? a?.tagName);
+  });
+
+test("@c1-keyboard C-04: no focus jump on load, the sheet three Tab stops away, toolbars one stop each, shortcuts", async ({ browser }) => {
+  const { owner, url } = await sampleBoq("Kim Keys");
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await useSession(context, owner);
+  const page = await context.newPage();
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("sheet-grid")).toBeVisible({ timeout: 60_000 });
+  // The app runs `next dev` here, so React's StrictMode is on: focus must stay on the page (DEC-50).
+  await page.waitForTimeout(1500);
+  expect(await focusedId(page)).toBe("body");
+
+  // Skip to content, Skip to the sheet, Enter: the grid.
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  expect(await focusedId(page)).toBe("skip-to-sheet");
+  await page.keyboard.press("Enter");
+  expect(await focusedId(page)).toBe("sheet-grid");
+
+  // The separator shows a ring when it has focus (WCAG 2.4.7).
+  await page.getByTestId("split-handle").focus();
+  expect(await page.getByTestId("split-handle").evaluate((e) => getComputedStyle(e).boxShadow)).not.toBe("none");
+
+  // Each toolbar is one Tab stop; the arrows move inside it.
+  await page.getByTestId("group-by").focus();
+  await expect(page.locator("[role=toolbar]")).toHaveCount(2);
+  await page.keyboard.press("ArrowRight");
+  expect(await focusedId(page)).toBe("sheet-filters");
+  await page.keyboard.press("Tab");
+  expect(await focusedId(page)).toBe("sheet-search");
+  await page.keyboard.press("Tab");
+  expect(await focusedId(page)).toBe("add-line");
+  await page.keyboard.press("End");
+  expect(await focusedId(page)).toBe("columns-menu");
+
+  // g q and g s; ? lists the keys.
+  await page.locator("body").click({ position: { x: 5, y: 880 } });
+  await page.keyboard.press("g");
+  await page.keyboard.press("q");
+  await expect(page).toHaveURL(/tab=questions/);
+  await page.keyboard.press("g");
+  await page.keyboard.press("s");
+  await expect(page.getByTestId("sheet-grid")).toBeFocused();
+  await page.keyboard.press("Shift+?");
+  await expect(page.getByTestId("shortcuts-dialog")).toBeVisible();
   await context.close();
 });

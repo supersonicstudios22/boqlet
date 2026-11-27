@@ -23,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { InTabsRow } from "@/features/boqs/workspace-slots";
+import { SHEET_GRID_ID, takeGridFocusRequest } from "@/features/boqs/workspace-shortcuts";
+import { RovingToolbar } from "@/components/roving-toolbar";
+import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { useOrg } from "@/features/orgs/org-context";
 import { SearchPicker } from "@/features/questions/search-picker";
@@ -756,6 +759,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
   return (
     // `data-workspace-fill`: the workspace fills the screen and the grid takes the rest of it, the one scroll container (review C-01).
     <div className="flex min-h-0 flex-1 flex-col gap-2" data-testid="sheet" data-editable={editable ? "true" : "false"} data-workspace-fill="">
+      <SkipToSheet label={t("skipToSheet")} onSkip={() => gridRef.current?.focus()} />
       <InTabsRow>
         <WarningsToggle count={warningList.length} open={warningsOpen} onToggle={() => setWarningsOpen((o) => !o)} />
         <NotInModelsBar lines={all} collapsed={notInModelsCollapsed} onCollapsedChange={setNotInModelsCollapsed} />
@@ -764,7 +768,8 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
       {warningsOpen && warningList.length > 0 && <WarningsList warnings={warningList} systemNames={systemNames} />}
       <SystemRulesHint run={run} userId={me.data?.user.id} />
       <div className="flex flex-wrap items-center gap-2" data-testid="sheet-toolbar">
-        <div className="flex flex-wrap items-center gap-2" data-testid="sheet-filter-bar">
+        {/* Each toolbar is one Tab stop; the arrows move inside it (review C-04). The search is a stop of its own. */}
+        <RovingToolbar label={t("filterBar")} className="flex flex-wrap items-center gap-2" data-testid="sheet-filter-bar">
           <label className="flex items-center gap-1.5">
             <span className="label-caps text-muted-foreground">{t("groupBy")}</span>
             <NativeSelect value={groupBy ?? ""} onChange={(e) => setGroupBy(e.target.value || null)} className="max-w-56" data-testid="group-by">
@@ -866,10 +871,10 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               </button>
             </span>
           )}
-        </div>
+        </RovingToolbar>
         <Input ref={search} type="search" value={filters.q ?? ""} aria-label={t("search")} placeholder={t("searchHint")} onChange={(e) => setFilter("q", e.target.value)} className="w-56 min-w-40 flex-1 xl:max-w-80" data-testid="sheet-search" />
         {/* Always the same actions in the same order (review C-01); below 1280 px they fold into one menu. */}
-        <div className="ml-auto flex items-center gap-2" data-testid="sheet-actions">
+        <RovingToolbar label={t("actionsBar")} className="ml-auto flex items-center gap-2" data-testid="sheet-actions">
           <div className="hidden items-center gap-2 xl:flex">
             {editable && (
               <>
@@ -932,7 +937,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </RovingToolbar>
       </div>
       {split && hasModels && modelSelection.elements.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 border-l-2 border-[var(--link)] pl-3" role="status" data-testid="model-selection">
@@ -992,7 +997,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
               aria-valuemin={30}
               aria-valuemax={75}
               tabIndex={0}
-              className="mx-2 w-1.5 shrink-0 cursor-col-resize self-stretch bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:outline-none"
+              className="mx-2 w-1.5 shrink-0 cursor-col-resize self-stretch bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
               onPointerDown={startResize}
               onKeyDown={(e) => {
                 if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -1040,7 +1045,7 @@ function FullSheet({ run, boq, readOnly = false, frozen }: SheetProps) {
                     aria-valuemin={DRAWER.min}
                     aria-valuemax={DRAWER.max}
                     tabIndex={0}
-                    className="w-1.5 shrink-0 cursor-col-resize bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:outline-none"
+                    className="w-1.5 shrink-0 cursor-col-resize bg-border hover:bg-[var(--link)] focus-visible:bg-[var(--link)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                     onPointerDown={startDrawerResize}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -1151,6 +1156,31 @@ function BulkBar({ count, lists, system, systemName, onMove, onExclude, onRestor
   );
 }
 
+const noSubscribe = () => () => {};
+
+/**
+ * "Skip to the sheet" (review C-04): the second skip link, right after "Skip to content" in the shell's slot, so the
+ * grid is three Tab stops from the top of the page.
+ */
+function SkipToSheet({ label, onSkip }: { label: string; onSkip: () => void }) {
+  const slot = useSyncExternalStore(noSubscribe, () => document.getElementById("skip-links"), () => null);
+  if (!slot) return null;
+  return createPortal(
+    <a
+      href={`#${SHEET_GRID_ID}`}
+      onClick={(e) => {
+        e.preventDefault();
+        onSkip();
+      }}
+      className="sr-only focus:not-sr-only focus:absolute focus:top-1 focus:left-2 focus:z-50 focus:inline-flex focus:min-h-10 focus:items-center focus:border focus:border-border focus:bg-background focus:px-3 focus:shadow-sm"
+      data-testid="skip-to-sheet"
+    >
+      {label}
+    </a>,
+    slot,
+  );
+}
+
 const NO_BADGES: Readonly<Record<string, ReactNode>> = {};
 
 /**
@@ -1250,6 +1280,10 @@ function SheetGrid({
     return list ? [...list.values()].map((c) => ({ value: c.code, label: c.code, hint: c.title })) : [];
   }, [groupBy, lists]);
 
+  // `g s` from another tab: the grid takes focus once it is on the page (review C-04).
+  useEffect(() => {
+    if (takeGridFocusRequest()) scroller.current?.focus();
+  }, [scroller]);
   // The selected row changes height (two lines): the virtualizer measures the rows again.
   useEffect(() => {
     virtualizer.measure();
@@ -1278,6 +1312,7 @@ function SheetGrid({
   return (
     <div
       ref={scroller}
+      id={SHEET_GRID_ID}
       role="treegrid"
       aria-label={label}
       aria-rowcount={rows.length + 1}

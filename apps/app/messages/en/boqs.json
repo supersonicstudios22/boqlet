@@ -182,6 +182,9 @@
     },
     "toConfirm": "To confirm",
     "tableLabel": "Bill of quantities",
+    "skipToSheet": "Skip to the sheet",
+    "filterBar": "Grouping and filters",
+    "actionsBar": "Sheet actions",
     "showingRun": "Showing the run of {when}.",
     "codeGroup": "Code group",
     "model3d": "Model",
@@ -209,6 +212,56 @@
     "large": {
       "note": "This BoQ has {count, number} lines, so it opens grouped: open a group to see its lines and a line to see how it is calculated. Lines can't be edited in this view yet.",
       "more": "Show more lines"
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "intro": "In the BoQ workspace. Letters don't act while you type in a field.",
+    "keys": {
+      "search": {
+        "key": "/",
+        "does": "Search the lines"
+      },
+      "lines": {
+        "key": "↑ ↓",
+        "does": "Move between lines and group headings (in the sheet)"
+      },
+      "cells": {
+        "key": "← →",
+        "does": "Move between the selected line's editable cells; open or close a group"
+      },
+      "edit": {
+        "key": "F2 or Enter",
+        "does": "Edit the selected cell"
+      },
+      "tick": {
+        "key": "Space",
+        "does": "Tick the selected line (Shift for a range)"
+      },
+      "tickAll": {
+        "key": "Ctrl+A",
+        "does": "Tick every line shown, or none"
+      },
+      "undo": {
+        "key": "Ctrl+Z",
+        "does": "Undo your last edit"
+      },
+      "close": {
+        "key": "Esc",
+        "does": "Close the line's detail"
+      },
+      "goSheet": {
+        "key": "g then s",
+        "does": "Go to the sheet"
+      },
+      "goQuestions": {
+        "key": "g then q",
+        "does": "Go to the questions"
+      },
+      "help": {
+        "key": "?",
+        "does": "Show this list"
+      }
     }
   },
   "setup": {

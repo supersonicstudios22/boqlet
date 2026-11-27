@@ -25,6 +25,8 @@ export async function AppShell({ org, children }: { org: string; children: React
       >
         {t("skipToContent")}
       </a>
+      {/* More skip links from the page in view, right after the first ("Skip to the sheet", review C-04). */}
+      <div id="skip-links" className="contents" />
       {/* Sticky: the top bar stays in view on every page that scrolls (review C-01). */}
       <header className="sticky top-0 z-30 flex min-w-0 items-center gap-4 border-b border-border bg-background px-4 lg:col-span-2">
         <NavMenu org={org} />

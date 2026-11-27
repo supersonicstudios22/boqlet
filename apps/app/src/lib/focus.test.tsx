@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, useRef, useState } from "react";
+import { act, StrictMode, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useRefocusWhenLost } from "./focus";
@@ -62,6 +62,81 @@ describe("useRefocusWhenLost", () => {
     act(() => start());
     act(() => vi.advanceTimersToNextFrame());
     expect(document.activeElement).toBe(other);
+    vi.useRealTimers();
+  });
+
+  it("doesn't take focus on load under StrictMode, whose effects run twice (review C-04, DEC-50)", () => {
+    vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+    const host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    function Header({ kind }: { kind: string }) {
+      const ref = useRef<HTMLButtonElement>(null);
+      useRefocusWhenLost(ref, [kind]);
+      return <button ref={ref} data-testid="generate-again" />;
+    }
+    act(() =>
+      root!.render(
+        <StrictMode>
+          <Header kind="complete" />
+        </StrictMode>,
+      ),
+    );
+    act(() => vi.advanceTimersToNextFrame());
+    expect(document.activeElement).toBe(document.body);
+    // Data arriving later (the run's state while nobody is in the page) doesn't pull focus either.
+    act(() =>
+      root!.render(
+        <StrictMode>
+          <Header kind="needs_input" />
+        </StrictMode>,
+      ),
+    );
+    act(() => vi.advanceTimersToNextFrame());
+    expect(document.activeElement).toBe(document.body);
+    vi.useRealTimers();
+  });
+
+  it("still follows a replaced control under StrictMode", () => {
+    vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+    const host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    act(() =>
+      root!.render(
+        <StrictMode>
+          <Runner />
+        </StrictMode>,
+      ),
+    );
+    act(() => vi.advanceTimersToNextFrame());
+    expect(document.activeElement).toBe(document.body);
+    host.querySelector<HTMLButtonElement>("[data-testid=generate]")!.focus();
+    act(() => start());
+    act(() => vi.advanceTimersToNextFrame());
+    expect(document.activeElement).toBe(host.querySelector("[data-testid=cancel]"));
+    vi.useRealTimers();
+  });
+
+  it("follows a control that was disabled (focus went to the page) before it was replaced", () => {
+    vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+    const host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    function Pending({ phase }: { phase: "idle" | "pending" | "running" }) {
+      const cancel = useRef<HTMLButtonElement>(null);
+      useRefocusWhenLost(cancel, [phase === "running"]);
+      return phase === "running" ? <button key="cancel" ref={cancel} data-testid="cancel" /> : <button key="generate" data-testid="generate" disabled={phase === "pending"} />;
+    }
+    act(() => root!.render(<Pending phase="idle" />));
+    host.querySelector<HTMLButtonElement>("[data-testid=generate]")!.focus();
+    act(() => root!.render(<Pending phase="pending" />));
+    // The browser's focus fixup: a disabled control loses focus to the page.
+    act(() => (document.activeElement as HTMLElement).blur());
+    expect(document.activeElement).toBe(document.body);
+    act(() => root!.render(<Pending phase="running" />));
+    act(() => vi.advanceTimersToNextFrame());
+    expect(document.activeElement).toBe(host.querySelector("[data-testid=cancel]"));
     vi.useRealTimers();
   });
 });

@@ -10,6 +10,7 @@ import { DimensionRule } from "@/components/dimension-rule";
 import { BoqHeader } from "@/features/boqs/boq-header";
 import { BoqPresenceProvider, PresenceAvatars } from "@/features/boqs/presence";
 import { WorkspaceSlotsProvider } from "@/features/boqs/workspace-slots";
+import { WorkspaceShortcuts } from "@/features/boqs/workspace-shortcuts";
 import { useRevisions } from "@/api/hooks/diffs";
 import { ReviewTab } from "@/features/versions/review-tab";
 import { VersionsTab } from "@/features/versions/versions-tab";
@@ -91,6 +92,8 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
     <WorkspaceSlotsProvider value={{ tabsEnd }}>
     {/* On the sheet the workspace fills the screen and the grid takes the rest of it (review C-01). */}
     <div className="flex flex-col gap-6 has-[[data-workspace-fill]]:min-h-0 has-[[data-workspace-fill]]:flex-1 has-[[data-workspace-fill]]:gap-2" data-testid="boq-workspace">
+      {/* `g s`, `g q` and `?` (review C-04). */}
+      <WorkspaceShortcuts hrefOf={href} sheetOpen={tab === "sheet"} />
       <BoqHeader boq={boq.data} runs={runs.data} base={base} canArchive={can("archive")} approval={approval} />
       {viewing && (
         <p className="flex flex-wrap items-center gap-x-3 border-l-2 border-foreground pl-3" role="status" data-testid="viewing-version" data-label={viewing.label}>
