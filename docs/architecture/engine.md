@@ -91,7 +91,8 @@ by its occurrences. Pairwise solid intersections
 members, coverings, plates, piles, roofs; a sweep along x so only pairs whose boxes overlap are
 intersected; minimum 0.001 m3) catch double counting, and each element keeps what it shares with
 others (`intersections`), which measure turns into `embedded`. The sweep is one-dimensional: a
-tall, narrow model still compares many pairs; a full spatial index is for large models. Material,
+tall, narrow model still compares many pairs (N-38). Federation's overlap check between models uses a
+uniform grid over the boxes instead (`federation.box_pairs`, review B-24). Material,
 type, profile, layer set, property and quantity set extraction keeps everything raw. Checks are
 grouped and summarised (`CheckCode`, see 04). The parser makes no decisions.
 

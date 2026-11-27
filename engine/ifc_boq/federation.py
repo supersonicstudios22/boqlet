@@ -51,6 +51,8 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 
+import numpy as np
+
 from . import geometry
 from .expr import fmt
 from .log import CalcLog
@@ -475,6 +477,59 @@ def _coordinates(models, log, warnings):
                     code="log.federation.coordinate_warning", params=dict(first=ma["fileName"], second=mb["fileName"]))
 
 
+def sweep_pairs(boxes: list) -> list[tuple[int, int]]:
+    """Index pairs (i < j) of boxes, sorted by min x, whose padded x ranges meet: the original sweep, kept for a
+    threshold of 0 (where boxes that meet only in x still count) and as the oracle of `box_pairs`."""
+    out = []
+    for i, ba in enumerate(boxes):
+        for j in range(i + 1, len(boxes)):
+            if boxes[j][0][0] - PAD > ba[1][0] + PAD:
+                break
+            out.append((i, j))
+    return out
+
+
+GRID_SPAN = 64   # cells a box may cover before it is compared against all boxes instead (long or huge elements)
+
+
+def box_pairs(boxes: list) -> list[tuple[int, int]]:
+    """Index pairs (i < j) whose padded boxes overlap in all three axes, in the order `sweep_pairs` lists them
+    (review B-24): a uniform grid (cells the size of a typical box) instead of a sweep along x, which is quadratic
+    when many long elements share an x range. Pairs that meet in x only have a `ratio` of 0, so for any positive
+    threshold the overlap result is the sweep's."""
+    n = len(boxes)
+    if n < 2:
+        return []
+    lo = np.array([b[0] for b in boxes], dtype=float) - PAD
+    hi = np.array([b[1] for b in boxes], dtype=float) + PAD
+    cell = max(float(np.median((hi - lo).max(axis=1))), 1e-3)
+    first = np.floor(lo / cell).astype(np.int64)
+    last = np.floor(hi / cell).astype(np.int64)
+    span = (last - first + 1).prod(axis=1)
+    grid: dict[tuple[int, int, int], list[int]] = defaultdict(list)
+    big = []
+    for i in range(n):
+        if span[i] > GRID_SPAN:
+            big.append(i)
+            continue
+        (x0, y0, z0), (x1, y1, z1) = first[i], last[i]
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
+                for z in range(z0, z1 + 1):
+                    grid[(x, y, z)].append(i)
+    candidates: set[tuple[int, int]] = set()
+    for members in grid.values():
+        for a in range(len(members)):
+            for b in range(a + 1, len(members)):
+                candidates.add((members[a], members[b]))
+    for i in big:
+        meets = np.nonzero(((np.minimum(hi, hi[i]) - np.maximum(lo, lo[i])) > 0).all(axis=1))[0]
+        candidates.update((min(i, int(j)), max(i, int(j))) for j in meets if j != i)
+    out = [(i, j) for i, j in candidates
+           if all(min(hi[i][k], hi[j][k]) - max(lo[i][k], lo[j][k]) > 0 for k in range(3))]
+    return sorted(out)
+
+
 def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, solids):
     thr = settings.get("duplicateOverlap", 0.5)
     groups = defaultdict(list)
@@ -484,15 +539,14 @@ def _overlaps(taken, keys, by_id, settings, answers, questions, warnings, log, s
     pairs = defaultdict(list)                            # (key a, key b, class) -> [(ea, eb)]
     for items in groups.values():
         items.sort(key=lambda t: t[2][0][0])
-        for i, (ma, ea, ba) in enumerate(items):
-            for mb, eb, bb in items[i + 1:]:
-                if bb[0][0] - PAD > ba[1][0] + PAD:
-                    break
-                if ma is mb or solids.ratio(ma, ea["guid"], mb, eb["guid"]) < thr:
-                    continue
-                ka, kb = sorted([keys[ma["id"]], keys[mb["id"]]])
-                first, second = (ea, eb) if keys[ma["id"]] == ka else (eb, ea)
-                pairs[(ka, kb, ea["ifc_class"])].append((first, second))
+        boxes = [box for _, _, box in items]
+        for i, j in (box_pairs(boxes) if thr > 0 else sweep_pairs(boxes)):
+            (ma, ea, _), (mb, eb, _) = items[i], items[j]
+            if ma is mb or solids.ratio(ma, ea["guid"], mb, eb["guid"]) < thr:
+                continue
+            ka, kb = sorted([keys[ma["id"]], keys[mb["id"]]])
+            first, second = (ea, eb) if keys[ma["id"]] == ka else (eb, ea)
+            pairs[(ka, kb, ea["ifc_class"])].append((first, second))
     drop = set()
     for (ka, kb, cls), ps in sorted(pairs.items()):
         qid = f"overlap:{ka}|{kb}:{cls}"
