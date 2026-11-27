@@ -4640,6 +4640,19 @@ export interface components {
         /** @description Too many requests from this address (`rate_limited`); a public share allows 300 a minute per address by default, `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE` (TF-079) */
         RateLimited: {
             headers: {
+                /** @description Seconds until a request may succeed (also `details.retryAfterSeconds`) */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Too many attempts (`auth_throttled`): sign-in, set-password and account-link requests, counted in 15-minute windows (review B-21) */
+        AuthThrottled: {
+            headers: {
+                /** @description Seconds until the window ends (also `details.retryAfterSeconds`) */
+                "Retry-After"?: number;
                 [name: string]: unknown;
             };
             content: {
@@ -8256,15 +8269,7 @@ export interface operations {
                     "application/json": components["schemas"]["SessionConflict"];
                 };
             };
-            /** @description Too many attempts (`auth_throttled`) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
+            429: components["responses"]["AuthThrottled"];
         };
     };
     setPassword: {
@@ -8310,15 +8315,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Too many attempts (`auth_throttled`) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
+            429: components["responses"]["AuthThrottled"];
         };
     };
     getSignUpStatus: {
@@ -8397,15 +8394,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Too many attempts (`auth_throttled`) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
+            429: components["responses"]["AuthThrottled"];
         };
     };
     requestPasswordReset: {
@@ -8449,15 +8438,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Too many attempts (`auth_throttled`) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
+            429: components["responses"]["AuthThrottled"];
         };
     };
     openSession: {

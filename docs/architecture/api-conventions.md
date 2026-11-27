@@ -72,7 +72,7 @@ Every failure has this body, also those raised before a handler runs (the servle
 | 405 | method not served on this path | `method_not_allowed` (+ `Allow`) |
 | 409 | blocked by state | `invalid_transition` (+ `details.state`, the current state; TF-030), `revision_locked`, `project_archived`, `deadline_passed`, `boq_confirmed`, `unit_needs_quantity`, `draft_conflict`, `draft_has_problems` (publishing a draft the engine check refuses; + `details.problems`), `slug_taken`, `already_member`, `last_owner`, `not_ready`, `model_not_ready` |
 | 413 | upload or request body too large | `too_large`; `model_too_large` for a model version over the worker's upload limit |
-| 429 | rate limit | `rate_limited` (share pages, invitation mail, and any 429 the servlet answers; with `Retry-After` in seconds and `details.retryAfterSeconds`); `auth_throttled` (sign-in, set-password; no `Retry-After` yet) |
+| 429 | rate limit | `rate_limited` (share pages, invitation mail, and any 429 the servlet answers; with `Retry-After` in seconds and `details.retryAfterSeconds`); `auth_throttled` (sign-in, set-password, account-link requests; the same `Retry-After` and `details.retryAfterSeconds`, review B-21) |
 | 500/503 | server or engine unavailable | `internal` (logged with the request id), `engine_unavailable` |
 
 ## Pagination
@@ -136,8 +136,9 @@ events arrive late or never (found in FE-004).
 
 ## Rate limits
 
-The limited endpoints (security.md lists them) answer `429` over the limit. `rate_limited` answers
-carry `Retry-After`; `auth_throttled` doesn't yet. No `RateLimit-*` headers.
+The limited endpoints (security.md lists them) answer `429` over the limit. Every 429 carries
+`Retry-After` (seconds) and `details.retryAfterSeconds`, whether its code is `rate_limited` or
+`auth_throttled` (`http/RateLimits.tooMany`, review B-21). No `RateLimit-*` headers.
 
 ## Modules
 

@@ -40,12 +40,21 @@ public class RateLimits {
 
     /** `429 rate_limited` with `Retry-After` set on the current response. */
     public static ApiException tooMany(long retryAfterSeconds) {
+        return tooMany("rate_limited", "Too many requests. Try again later.", retryAfterSeconds);
+    }
+
+    /**
+     * A `429` with `code` (`rate_limited`, or `auth_throttled` for sign-in and account links), `Retry-After` in
+     * seconds on the current response and `details.retryAfterSeconds`: every 429 the API answers carries both
+     * (api-conventions, review B-21).
+     */
+    public static ApiException tooMany(String code, String message, long retryAfterSeconds) {
+        long seconds = Math.max(1, retryAfterSeconds);
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes
                 && attributes.getResponse() != null) {
-            attributes.getResponse().setHeader(HttpHeaders.RETRY_AFTER, Long.toString(retryAfterSeconds));
+            attributes.getResponse().setHeader(HttpHeaders.RETRY_AFTER, Long.toString(seconds));
         }
-        return new ApiException(HttpStatus.TOO_MANY_REQUESTS, "rate_limited", "Too many requests. Try again later.",
-                Map.of("retryAfterSeconds", retryAfterSeconds));
+        return new ApiException(HttpStatus.TOO_MANY_REQUESTS, code, message, Map.of("retryAfterSeconds", seconds));
     }
 
     @Scheduled(fixedDelay = 3_600_000)

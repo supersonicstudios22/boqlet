@@ -135,8 +135,12 @@ class NativeAuthTest {
         // Three requests per address in 15 minutes, then 429 (the answer is the same for every address).
         db.update("DELETE FROM native_auth_limits");
         for (int i = 0; i < 3; i++) http.perform(reset("throttled@example.test")).andExpect(status().isAccepted());
-        http.perform(reset("throttled@example.test")).andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.code").value("auth_throttled"));
+        // Review B-21: a throttled request says when to try again, as every 429 does.
+        var throttled = http.perform(reset("throttled@example.test")).andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("auth_throttled"))
+                .andExpect(jsonPath("$.details.retryAfterSeconds").isNumber()).andReturn().getResponse();
+        long retryAfter = Long.parseLong(throttled.getHeader("Retry-After"));
+        assertThat(retryAfter).isBetween(1L, 900L);
         db.update("UPDATE platform_settings SET public_sign_up = false");
     }
 

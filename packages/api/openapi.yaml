@@ -1716,7 +1716,7 @@ paths:
         "403": { description: Not from the app's origin (`invalid_origin`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "409": { description: Another session is active, content: { application/json: { schema: { $ref: "#/components/schemas/SessionConflict" } } } }
-        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { $ref: "#/components/responses/AuthThrottled" }
   /auth/set-password:
     post:
       tags: [auth]
@@ -1744,7 +1744,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "403": { description: Not from the app's origin (`invalid_origin`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
-        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { $ref: "#/components/responses/AuthThrottled" }
   /auth/sign-up:
     get:
       tags: [auth]
@@ -1784,7 +1784,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "403": { description: "Public sign-up is off (`sign_up_closed`), or not from the app's origin (`invalid_origin`)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
-        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { $ref: "#/components/responses/AuthThrottled" }
   /auth/password-reset:
     post:
       tags: [auth]
@@ -1809,7 +1809,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "403": { description: Not from the app's origin (`invalid_origin`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "404": { description: This backend doesn't run native sign-in (`native_auth_disabled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
-        "429": { description: Too many attempts (`auth_throttled`), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { $ref: "#/components/responses/AuthThrottled" }
   /sessions:
     post:
       tags: [sessions]
@@ -2424,6 +2424,13 @@ components:
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     RateLimited:
       description: "Too many requests from this address (`rate_limited`); a public share allows 300 a minute per address by default, `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE` (TF-079)"
+      headers:
+        Retry-After: { description: Seconds until a request may succeed (also `details.retryAfterSeconds`), schema: { type: integer, minimum: 1 } }
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    AuthThrottled:
+      description: "Too many attempts (`auth_throttled`): sign-in, set-password and account-link requests, counted in 15-minute windows (review B-21)"
+      headers:
+        Retry-After: { description: Seconds until the window ends (also `details.retryAfterSeconds`), schema: { type: integer, minimum: 1 } }
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     LimitReached:
       description: Plan limit reached

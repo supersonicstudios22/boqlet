@@ -46,14 +46,19 @@ public class NativeCredentials {
     public static final int LINK_REQUESTS_PER_SOURCE = 20;
     public static final int LINK_REQUESTS_PER_EMAIL = 3;
 
-    /** `429 auth_throttled` when this window's count for the bucket has reached the maximum. */
+    /**
+     * `429 auth_throttled` when this window's count for the bucket has reached the maximum, with `Retry-After`
+     * until the 15-minute window ends (review B-21).
+     */
     public void requireUnder(String bucket, int maximum) {
-        Integer attempts = db.query("""
-                SELECT attempts FROM native_auth_limits
+        record Window(int attempts, long retry) {}
+        var window = db.query("""
+                SELECT attempts, ceil(extract(epoch FROM window_start + interval '15 minutes' - now()))::bigint AS retry
+                FROM native_auth_limits
                 WHERE bucket = ? AND window_start = date_bin(interval '15 minutes', now(), timestamptz '2000-01-01')
-                """, (row, index) -> row.getInt(1), bucket).stream().findFirst().orElse(0);
-        if (attempts >= maximum) {
-            throw IdentityService.failure(HttpStatus.TOO_MANY_REQUESTS, "auth_throttled", "Try again in a few minutes.");
+                """, (row, index) -> new Window(row.getInt(1), row.getLong(2)), bucket).stream().findFirst().orElse(null);
+        if (window != null && window.attempts() >= maximum) {
+            throw com.boqlet.api.http.RateLimits.tooMany("auth_throttled", "Try again in a few minutes.", window.retry());
         }
     }
 
@@ -218,7 +223,8 @@ public class NativeCredentials {
 
     private void acquirePasswordSlot() {
         if (!passwordSlots.tryAcquire()) {
-            throw IdentityService.failure(HttpStatus.TOO_MANY_REQUESTS, "auth_throttled", "Try again in a moment.");
+            // Every password check slot is busy: a second is enough to try again (review B-21).
+            throw com.boqlet.api.http.RateLimits.tooMany("auth_throttled", "Try again in a moment.", 1);
         }
     }
 
