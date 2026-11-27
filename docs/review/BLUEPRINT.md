@@ -259,6 +259,7 @@ item. The package's PROGRESS.md row points here.
 | DEC-120 | WP-B4 B-15 | **`waitForJob` is a function, not the item's `useJob` hook; one delay policy (100 ms for 1 s, 250 ms to 10 s, then 500 ms); the admin CSV quotes only where RFC 4180 needs it; `kg/m3` leaves the unit pickers.** Every caller waits inside a mutation or a query function, where a hook can't run. The policy keeps the preview's TF-134 cadence and slows long exports. The admin export quoted every cell; one writer means one quoting rule (no test read the quotes). `kg/m3` was offered but the engine refuses it since A-28. | One implementation each (the acceptance); the existing preview-cadence test runs against the shared policy. |
 | DEC-121 | WP-B4 B-16 | **The "declined" variant, with a finding for the owner: the Java test harness signs in through the OIDC filter.** No owner confirmation is recorded (DEC-62), so the path stays, labelled rollback only, and `OidcConfigurationTest` boots its real decoder. `ApiFoundationTest.Tokens` and `SuiteSupport` reach `IdentityFilter` with a stub `JwtDecoder`, so removing the path first needs that harness on native sign-in (N-32). | The entry check's rule; recorded as D110. |
 | DEC-122 | WP-B4 B-17 | **design-system.md lists what `apps/app/src` has, built or not built, and the unused shadcn `ui/select.tsx` is deleted.** Selects are native (`native-select.tsx`) and nothing imported the shadcn one; "note it" would keep a component the doc then has to explain. The favicon is still missing (N-35). | The code wins (CLAUDE.md). |
+| DEC-123 | WP-B5 B-18 | **The list's trace is a summary in the same `RunLine` shape (formula, source line, per element guid, quantity and model; params `{}`; no steps), full with `include=trace`; the 15 % target is read on the wire.** The item offers "a compact array or a separate stream" for the viewer's ids; keeping the schema means no app type or viewer change, and Java's own readers (exports, shares) keep full lines. S08: 927 KB full, 317 KB as summaries (34 %: each element's guid, quantity and model remain), 17.9 KB gzipped (1.9 %). Going under 15 % uncompressed needs a new element shape in the contract (N-37). WP-B5 was split: B-19 (L) and B-20 (M) went to WP-B5b, as section 6.1 step 5 allows. | The acceptance names gzip with the payload; the change is visible to API clients only as a smaller trace, documented on the operation. |
 
 ### 3.5 Spec-issue findings: which doc changes and how
 
@@ -964,7 +965,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Tests:** contract test for the new shape; B-07 perf spec.
 - **Effort:** M · **Depends on:** B-07 · **Risk:** the viewer needs element ids per line — provide them compactly.
 
-#### B-19 · Server-side grouping and windowing above a threshold  (WP-B5)
+#### B-19 · Server-side grouping and windowing above a threshold  (WP-B5b)
 - **Sources:** FM-29
 - **Problem:** the sheet groups in the browser; Java supports `groupBy`/`level` but no client uses it.
 - **Why it matters:** F06 promises server grouping above 20,000 lines.
@@ -974,7 +975,7 @@ change quantities; any baseline difference is a regression unless the item says 
 - **Tests:** scenario `sheet.test.ts` for grouped pages; B-07 perf.
 - **Effort:** L · **Depends on:** B-12, B-18 · **Risk:** edits and co-editing on windowed data — keep line edits keyed by line key.
 
-#### B-20 · No N+1 queries in BoQ and revision views  (WP-B5)
+#### B-20 · No N+1 queries in BoQ and revision views  (WP-B5b)
 - **Sources:** ENG-031
 - **Problem:** `BoqAccess.java:103-106` (view per BoQ), `:130-138` (query per model input), `:140` `runs.require`, `:153-157` `pending()` (reads every question id and rebuilds the snapshot), reviewers/comments lookups; `permissions()` calls `orgs.require` twice.
 - **Why it matters:** slow lists on busy projects.
@@ -2439,7 +2440,7 @@ means compare-baseline must report 0 differences.
 - **Expected baseline changes:** none (B-12 changes only Java's grouped view and the sheet's count; the baseline has no excluded lines).
 
 #### WP-B5 · Sheet payload, server-side grouping, query and API hygiene
-- **Items:** B-18, B-19, B-20, B-21
+- **Items:** B-18, B-21 (the grouping and query items were split to WP-B5b, DEC-123)
 - **Requires:** WP-B2, WP-B4
 - **Touches:** `services/api/.../boq/RunReads.java`, `BoqAccess.java`, `Boqs.java`, `identity/NativeCredentials.java`, `application.yml`, `packages/api/openapi.yaml`, `apps/app/src/api/hooks/sheet.ts`, sheet, line detail, viewer, `docs/review/tools/compare_baseline.py` (stack fetch).
 - **Entry check:** standard; `npm run local:up`.
@@ -2464,6 +2465,14 @@ means compare-baseline must report 0 differences.
 
 ### Phase C packages
 
+
+#### WP-B5b · Server-side grouping and no N+1 queries (split from WP-B5)
+- **Items:** B-19, B-20 (their text is in section 4)
+- **Requires:** WP-B2, WP-B4, WP-B5
+- **Touches:** `services/api/.../boq/RunReads.java`, `BoqAccess.java`, `Boqs.java`, a migration if a cached column is added, `apps/app/src/api/hooks/sheet.ts`, `apps/app/src/features/boq-sheet/*`, `tests/scenarios/sheet.test.ts`, `apps/app/e2e-java/perf.spec.ts`.
+- **Entry check:** standard; `npm run local:up`.
+- **Exit check:** standard (Java changed); B-07 perf spec within budget, its first-row gate tightened to 2 s when B-19 meets it; the query-count test of B-20.
+- **Expected baseline changes:** none (the stack layer fetches full lines with `include=trace`, WP-B5).
 #### WP-C1 · BoQ workspace layout and keyboard
 - **Items:** C-01, C-02, C-03, C-04, C-05
 - **Requires:** —
