@@ -52,13 +52,28 @@ class BoqInputs {
 
     /** Review A-44: the preset versions of these inputs, with a newer version where `newer`. */
     List<PresetInputInfo> presets(RevisionInputs input, boolean newer) {
+        return catalog.inputs(presetIds(input), newer);
+    }
+
+    /** The preset versions a revision's inputs name, in the order `presets` lists them (nulls included). */
+    static List<UUID> presetIds(RevisionInputs input) {
         var ids = new ArrayList<UUID>();
         ids.add(input.getRuleSetVersionId());
         ids.addAll(input.getClassificationVersionIds());
         ids.addAll(input.getDictionaryVersionIds());
         ids.add(input.getFederationVersionId().orElse(null));
         ids.add(input.getResolutionVersionId().orElse(null));
-        return catalog.inputs(ids, newer);
+        return ids;
+    }
+
+    /** `PresetInputInfo` for many versions at once (review B-20). */
+    List<PresetInputInfo> presetInfos(List<UUID> versions, boolean newer) {
+        return catalog.inputs(versions, newer);
+    }
+
+    /** The project dictionary's published version, or null. */
+    UUID projectDictionary(Project project) {
+        return project.getProjectDictionaryId() == null ? null : catalog.head(project.getProjectDictionaryId()).published();
     }
 
     RevisionInputs merge(RevisionInputs current, RevisionInputsPartial patch) {
@@ -101,12 +116,15 @@ class BoqInputs {
     }
 
     ObjectNode snapshot(Project project, UUID boq, RevisionInputs inputs) {
-        var snapshot = json.object(Map.of("inputs", inputs, "decisions", decisions(project.getId()),
-                "overrides", overrides(boq, false), "manualItems", manualItems(boq, false)));
-        if (project.getProjectDictionaryId() != null) {
-            UUID dictionary = catalog.head(project.getProjectDictionaryId()).published();
-            if (dictionary != null) snapshot.put("projectDictionaryVersionId", dictionary.toString());
-        }
+        return snapshot(inputs, decisions(project.getId()), overrides(boq, false), manualItems(boq, false), projectDictionary(project));
+    }
+
+    /** The same snapshot from parts already read (the BoQ list reads them for every BoQ at once, review B-20). */
+    ObjectNode snapshot(RevisionInputs inputs, List<ObjectNode> decisions, List<ObjectNode> overrides, List<ObjectNode> manualItems,
+                        UUID projectDictionary) {
+        var snapshot = json.object(Map.of("inputs", inputs, "decisions", decisions,
+                "overrides", overrides, "manualItems", manualItems));
+        if (projectDictionary != null) snapshot.put("projectDictionaryVersionId", projectDictionary.toString());
         return snapshot;
     }
 
@@ -169,6 +187,41 @@ class BoqInputs {
                 LEFT JOIN users u ON u.id = e.created_by AND u.deleted_at IS NULL
                 WHERE e.boq_id = ? ORDER BY e.line_key
                 """, (row, index) -> adjustment(row, "edit", metadata), boq);
+    }
+
+    /** `overrides(boq, false)` for many BoQs in one query, each list in the same order (review B-20). */
+    Map<UUID, List<ObjectNode>> overridesOf(Collection<UUID> boqs) {
+        var out = new HashMap<UUID, List<ObjectNode>>();
+        for (UUID boq : boqs) out.put(boq, new ArrayList<>());
+        if (boqs.isEmpty()) return out;
+        database.query("""
+                SELECT e.*, u.name AS author FROM line_overrides e
+                LEFT JOIN users u ON u.id = e.created_by AND u.deleted_at IS NULL
+                WHERE e.boq_id = ANY(CAST(? AS uuid[])) ORDER BY e.boq_id, e.line_key
+                """, row -> {
+            out.get(row.getObject("boq_id", UUID.class)).add(adjustment(row, "edit", false));
+        }, uuidArray(boqs));
+        return out;
+    }
+
+    /** `manualItems(boq, false)` for many BoQs in one query, each list in the same order (review B-20). */
+    Map<UUID, List<ObjectNode>> manualItemsOf(Collection<UUID> boqs) {
+        var out = new HashMap<UUID, List<ObjectNode>>();
+        for (UUID boq : boqs) out.put(boq, new ArrayList<>());
+        if (boqs.isEmpty()) return out;
+        database.query("""
+                SELECT e.*, u.name AS author FROM manual_items e
+                LEFT JOIN users u ON u.id = e.created_by AND u.deleted_at IS NULL
+                WHERE e.boq_id = ANY(CAST(? AS uuid[])) ORDER BY e.boq_id, e.item->'item'->>'id', e.id
+                """, row -> {
+            out.get(row.getObject("boq_id", UUID.class)).add(adjustment(row, "item", false));
+        }, uuidArray(boqs));
+        return out;
+    }
+
+    /** A PostgreSQL `uuid[]` literal for `CAST(? AS uuid[])`. */
+    static String uuidArray(Collection<UUID> ids) {
+        return "{" + String.join(",", ids.stream().map(UUID::toString).toList()) + "}";
     }
 
     List<ObjectNode> manualItems(UUID boq, boolean metadata) {

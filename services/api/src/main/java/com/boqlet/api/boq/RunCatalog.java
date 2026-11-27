@@ -34,6 +34,16 @@ public class RunCatalog {
                 .orElseThrow(() -> BoqAccess.missing("run"));
     }
 
+    /** Many runs at once (review B-20); a run that isn't found is simply not in the map. */
+    java.util.Map<UUID, Entry> requireAll(java.util.Collection<UUID> ids) {
+        var out = new java.util.HashMap<UUID, Entry>();
+        if (ids.isEmpty()) return out;
+        for (var entry : database.query(SELECT + " AND n.id = ANY(CAST(? AS uuid[]))", this::map, BoqInputs.uuidArray(ids))) {
+            out.put(entry.run().getId(), entry);
+        }
+        return out;
+    }
+
     List<Entry> revisions(UUID revision) {
         return database.query(SELECT + " AND n.revision_id = ? ORDER BY n.created_at DESC, n.id DESC", this::map, revision);
     }

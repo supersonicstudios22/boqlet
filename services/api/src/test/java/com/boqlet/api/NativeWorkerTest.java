@@ -53,7 +53,7 @@ import org.testcontainers.utility.DockerImageName;
 @DirtiesContext
 @AutoConfigureMockMvc
 @Testcontainers
-@Import({ApiFoundationTest.Tokens.class, com.boqlet.suite.SuiteSupport.class})
+@Import({ApiFoundationTest.Tokens.class, com.boqlet.suite.SuiteSupport.class, QueryCounter.class})
 @EnabledIfEnvironmentVariable(named = "BOQLET_NATIVE_WORKER_PYTHON", matches = ".+")
 class NativeWorkerTest {
     private static final String BUCKET = "boqlet-native-test";
@@ -836,6 +836,40 @@ class NativeWorkerTest {
         verifySharing(org, billPath, next, version, key, cookie);
         verifyIndexRestoration(billPath, next, after, key, cookie);
         verifyTenantIsolation(org, project, version, billPath, next, after, reportId, exported, job);
+        verifyListQueries(project, cookie);
+    }
+
+    /**
+     * Review B-20: listing a project's BoQs costs the same number of queries for 3 BoQs as for 10 (no query per BoQ),
+     * and every listed BoQ is exactly its own view.
+     */
+    private void verifyListQueries(String project, Cookie cookie) throws Exception {
+        String boqs = "/api/v1/projects/" + project + "/boqs";
+        int made = 0;
+        while (perform(get(boqs), cookie, 200).size() < 3) perform(post(boqs).content("{\"name\":\"Listed " + made++ + "\"}"), cookie, 201);
+        int few = listQueries(boqs, cookie);
+        for (int i = 0; i < 7; i++) perform(post(boqs).content("{\"name\":\"Listed more " + i + "\"}"), cookie, 201);
+        int many = listQueries(boqs, cookie);
+        System.out.println("[b-20] statements to list 3 BoQs: " + few + ", 10 BoQs: " + many);
+        assertThat(many).as("queries for 10 BoQs against 3").isEqualTo(few);
+        var listed = perform(get(boqs), cookie, 200);
+        assertThat(listed.size()).isGreaterThanOrEqualTo(10);
+        for (var boq : listed) assertThat(perform(get("/api/v1/boqs/" + id(boq)), cookie, 200)).isEqualTo(boq);
+        var bill = listed.get(0);
+        var versions = "/api/v1/boqs/" + id(bill) + "/revisions";
+        for (var revision : perform(get(versions), cookie, 200)) {
+            assertThat(perform(get("/api/v1/revisions/" + id(revision)), cookie, 200)).isEqualTo(revision);
+        }
+    }
+
+    private int listQueries(String path, Cookie cookie) {
+        return QueryCounter.count(() -> {
+            try {
+                return http.perform(auth(get(path), cookie)).andExpect(status().isOk()).andReturn();
+            } catch (Exception failure) {
+                throw new IllegalStateException(failure);
+            }
+        }).statements();
     }
 
     private void verifyTenantIsolation(String org, String project, String version, String bill, String revision,
