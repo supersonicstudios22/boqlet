@@ -52,7 +52,7 @@ describe("lines (F06 §1)", () => {
 
   it("filters by source, storey and text without changing the lines (F06 §4)", async () => {
     const api = client(owner.token);
-    const derived = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { source: "derived" } } })).data!;
+    const derived = (await api.GET("/runs/{runId}/lines", { params: { path: { runId: run.id }, query: { source: "derived", include: "trace" } } })).data!;
     expect(derived.items.length).toBe(lines.filter((l) => l.source === "derived").length);
     expect(derived.total).toBe(derived.items.length);
     const storey = lines.find((l) => l.location?.storey)?.location?.storey;
@@ -86,7 +86,7 @@ describe("lines (F06 §1)", () => {
     expect(summary.length).toBe(lines.length);
     for (const l of summary) {
       const whole = full.get(l.key)!;
-      expect(l.trace.steps).toBeUndefined();
+      expect(l.trace.steps ?? []).toEqual([]);
       expect(l.trace.params).toEqual({});
       expect(l.trace.formula).toBe(whole.trace.formula);
       expect(l.trace.sourceLine).toBe(whole.trace.sourceLine);
