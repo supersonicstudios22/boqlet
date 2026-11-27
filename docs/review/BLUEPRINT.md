@@ -2262,6 +2262,27 @@ stub (DEC-04). The pricing module comes last (DEC-03). Large items may be split 
 - **Tests:** module scenario tests.
 - **Effort:** L · **Depends on:** D-62 · **Risk:** none beyond scope.
 
+### Phase E — consolidation of what the work found
+
+Phases A–D are the review's plan. Executing them finds new problems, logged in PROGRESS.md's "New items
+discovered" (N-01 onwards, execution rule 4) with a *proposed* package. Some of those packages are already done
+when the item is found, and none of the proposals is in a package's Items list, so no session picks them up.
+Phase E runs after the last Phase D package (owner's decision, 2026-11-27: one consolidation at the end, even if
+some screens are then worked on twice) and turns the whole log into packages.
+
+#### E-01 · Consolidate the new items into packages; settle the open decisions  (WP-E1)
+- **Sources:** every row of PROGRESS.md "New items discovered" (N-01…N-41 at the time of writing, and every row added by Phases C and D); the items marked "owner to confirm" (B-16 / N-32, C-14, D-58) and every item left `blocked` or done with a documented fallback because an owner decision was missing
+- **Problem:** the new items live only in a log; their proposed packages are often done (N-02 → WP-A3, N-09 → WP-A5, N-04/N-21 → WP-B3, N-05/N-28/N-29 → WP-B4) or were done without them; decisions left to the owner and operator steps (N-18, N-19, N-27, N-30, N-32, N-35) stay open indefinitely.
+- **Why it matters:** rule 4 says new issues become items in a later package; without this step they become silent scope drops instead (CLAUDE.md rule 5 in spirit: nothing is silently dropped).
+- **Change and approach:** two parts, in this order.
+  1. **Settle the open decisions, by the session's own judgement.** List every open decision (an "owner to confirm" item, an `open (owner)` N row, a `blocked` item, a fallback taken in place of a decision). **Do not ask the owner** (owner's instruction, 2026-11-27): decide each one from `docs/product/overview.md` (outcomes, principles, non-goals), `docs/decisions.md` and the code, and record it in `docs/decisions.md` (a new D row, or the existing one amended) with the reasoning and the alternative not taken, and as a judgement call in section 3.6. A decision to make a change becomes an item in part 2; a decision against closes the item with the decision's id. Steps only someone with access to the pilot host or the repository's GitHub settings can perform (N-19, N-27, N-30 style) are not questions either: write them as a checklist in `docs/operations/pilot.md` and mark the N row `→ operator checklist`.
+  2. **Consolidate.** For every N row still `open` (and every part-1 outcome that needs work): check it against the code as it is then; close what later work already fixed (with the commit); merge duplicates (e.g. N-12 + N-15); write each remaining one as an `E-nn` item in section 4 with the standard fields (Sources = its N ids); group them into new packages `WP-E2`, `WP-E3`… in section 5 after WP-E1, by area (engine changes that move numbers in their own package or packages, ordered for the baseline as DEC-74 does; then backend/API, app, docs and tooling), each with prerequisites, touches, entry/exit checks and expected baseline changes; add their rows to PROGRESS.md as `todo`; mark each N row `→ E-nn` (or `closed`, `fixed in …`, `declined (Pnn/Dnn)`).
+  New rows found while executing the E packages are logged as before; when the last E package is done and open rows remain, a new consolidation item (E-nn, same two parts) is appended as the next package.
+- **Files:** `docs/review/BLUEPRINT.md` (sections 4, 5, 7 if a finding mapping changes), `docs/review/PROGRESS.md`, `docs/decisions.md`, `docs/product/known-limitations.md`, `docs/changelog.md`.
+- **Acceptance:** every N row has a final status (`→ E-nn`, closed, fixed, declined, operator checklist); every open decision is decided and recorded with its reasoning; `check-blueprint.py` OK with the new items and packages; the next package in section 5's order is the first new E package.
+- **Tests:** `docs/review/tools/check-blueprint.py`; no code changes in this item.
+- **Effort:** M · **Depends on:** — · **Risk:** a decision the owner would have made differently; mitigated by recording the reasoning and the alternative, so it can be reversed by a later item.
+
 ### Deferred / out of scope
 
 | What | Why | Rows |
@@ -2719,6 +2740,16 @@ means compare-baseline must report 0 differences.
 - **Entry check:** standard; ArchUnit green.
 - **Exit check:** standard; core passes with the module removed; security review of the vendor access kind recorded.
 - **Expected baseline changes:** none.
+
+### Phase E packages
+
+#### WP-E1 · Consolidate the new items; settle the open decisions
+- **Items:** E-01
+- **Requires:** — (runs last on purpose: take it only when every package before it in this order is `done` or `blocked`; it is listed last for that reason, not because of an item dependency)
+- **Touches:** `docs/review/BLUEPRINT.md`, `docs/review/PROGRESS.md`, `docs/decisions.md`, `docs/product/known-limitations.md`, `docs/changelog.md`.
+- **Entry check:** every package before WP-E1 is `done` or `blocked`. No stack or baseline run needed. No questions to the owner: every decision is the session's own (E-01 part 1).
+- **Exit check:** `docs/review/tools/check-blueprint.py` OK; every N row in PROGRESS.md has a final status; the new packages WP-E2… are in section 5 and PROGRESS.md.
+- **Expected baseline changes:** none (no code).
 
 ---
 

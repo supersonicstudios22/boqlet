@@ -27,14 +27,15 @@ progress = (REVIEW / "PROGRESS.md").read_text(encoding="utf-8")
 
 FINDING_RE = re.compile(r"\b(?:ENG|PRD|CAS|QS|LEAD|UX|VER)-\d{3}\b")
 FM_RE = re.compile(r"\bFM-\d{2,3}\b")
-ITEM_RE = re.compile(r"\b[ABCD]-\d{2}\b")
+ITEM_RE = re.compile(r"\b[ABCDE]-\d{2}\b")
+NEW_RE = re.compile(r"\bN-\d{2}\b")  # Phase E items trace to PROGRESS.md's "New items discovered" rows
 errors: list[str] = []
 
 # ---- items
 items: dict[str, dict] = {}
 cur = None
 for line in bp.splitlines():
-    m = re.match(r"^#### ([ABCD]-\d{2}) · (.+?)\s+\((WP-[A-D]\d+[a-z]?)\)\s*$", line)
+    m = re.match(r"^#### ([ABCDE]-\d{2}) · (.+?)\s+\((WP-[A-E]\d+[a-z]?)\)\s*$", line)
     if m:
         if m.group(1) in items:
             errors.append(f"duplicate item heading {m.group(1)}")
@@ -59,8 +60,8 @@ for iid, it in items.items():
     if missing:
         errors.append(f"{iid}: missing fields {sorted(missing)}")
     src = it["sources"] or ""
-    if not (FINDING_RE.search(src) or FM_RE.search(src)):
-        errors.append(f"{iid}: no finding/VER/FM id in Sources")
+    if not (FINDING_RE.search(src) or FM_RE.search(src) or (iid[0] == "E" and NEW_RE.search(src))):
+        errors.append(f"{iid}: no finding/VER/FM id (or N id for a Phase E item) in Sources")
     if it["deps"] is None or "**Depends on:**" not in it["deps"] or "**Risk:**" not in it["deps"]:
         errors.append(f"{iid}: Effort line lacks Depends on / Risk")
 
@@ -70,7 +71,7 @@ wp_order: list[str] = []
 cur = None
 for line in bp.splitlines():
     # A split package carries a letter (WP-C2b, BLUEPRINT.md 6.1 step 5).
-    m = re.match(r"^#### (WP-[A-D]\d+[a-z]?) · (.+?)\s*$", line)
+    m = re.match(r"^#### (WP-[A-E]\d+[a-z]?) · (.+?)\s*$", line)
     if m:
         cur = m.group(1)
         if cur in wps:
@@ -88,7 +89,7 @@ for line in bp.splitlines():
         if line.startswith("- **Items:**"):
             wps[cur]["items"] = ITEM_RE.findall(line)
         if line.startswith("- **Requires:**"):
-            wps[cur]["req"] = re.findall(r"WP-[A-D]\d+[a-z]?", line)
+            wps[cur]["req"] = re.findall(r"WP-[A-E]\d+[a-z]?", line)
 
 WP_REQUIRED = {"Items", "Requires", "Touches", "Entry check", "Exit check", "Expected baseline changes"}
 for w, d in wps.items():
@@ -222,10 +223,10 @@ for word in ["review/blueprint"]:
         errors.append(f"mention of {word!r} remains")
 
 # ---- report
-by_phase = {p: sum(1 for i in items if i[0] == p) for p in "ABCD"}
-wp_phase = {p: sum(1 for w in wps if w[3] == p) for p in "ABCD"}
-print(f"items: {len(items)} (A {by_phase['A']}, B {by_phase['B']}, C {by_phase['C']}, D {by_phase['D']})")
-print(f"work packages: {len(wps)} (A {wp_phase['A']}, B {wp_phase['B']}, C {wp_phase['C']}, D {wp_phase['D']})")
+by_phase = {p: sum(1 for i in items if i[0] == p) for p in "ABCDE"}
+wp_phase = {p: sum(1 for w in wps if w[3] == p) for p in "ABCDE"}
+print(f"items: {len(items)} (A {by_phase['A']}, B {by_phase['B']}, C {by_phase['C']}, D {by_phase['D']}, E {by_phase['E']})")
+print(f"work packages: {len(wps)} (A {wp_phase['A']}, B {wp_phase['B']}, C {wp_phase['C']}, D {wp_phase['D']}, E {wp_phase['E']})")
 print(f"findings in coverage: {sum(1 for f in expected_findings if f in rows)}/{len(expected_findings)} "
       f"(186 report findings + 7 VER); rejected: {', '.join(sorted(rejected))}")
 print(f"FM rows in coverage: {sum(1 for n in range(1,124) if (f'FM-{n:02d}' if n < 100 else f'FM-{n}') in rows)}/123")

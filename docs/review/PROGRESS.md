@@ -125,7 +125,8 @@ State after WP-B6b (2026-11-27, no baseline change; Phase B done): `compare-base
 | WP-D13 | Federation alignment, CDE pull, viewer depth | todo | WP-A5, WP-B5, WP-C1, WP-C9, WP-C12 | D-52, D-53, D-54, D-55 |  |  |  |  |
 | WP-D14 | Platform operations | todo | WP-D3, WP-D4 | D-56, D-57, D-58, D-59 |  |  |  |  |
 | WP-D15 | Pricing module I: rate library, pricebooks and estimates | todo | WP-C5, WP-D14 | D-60, D-61 |  |  |  |  |
-| WP-D16 | Pricing module II: vendors and offer requests | todo | WP-D15 | D-62, D-63 |  |  |  |  |
+| WP-D16 | Pricing module II: vendors and offer requests | todo | WP-D15 | D-62, D-63 |
+| WP-E1 | Consolidate the new items; settle the open decisions | todo | — (last: every earlier package done or blocked) | E-01 | | | | Decides every open decision itself (no questions to the owner), then turns every open N row into E items and packages WP-E2… (added 2026-11-27, owner's decision) |  |  |  |  |
 
 ## Baseline differences log
 
@@ -163,7 +164,7 @@ One row per difference reported by `compare-baseline` or `verify-quantities` at 
 
 ## New items discovered
 
-Problems found while working. Each becomes an item in a later package (never a silent scope change).
+Problems found while working. Each becomes an item in a later package (never a silent scope change). Keep logging rows here with a proposed package; they are not added to packages one by one: WP-E1 (E-01), after Phase D, turns every open row into E items and packages and settles the `open (owner)` rows by its own judgement (no questions to the owner).
 
 | Id | Found in (package/item) | Problem | Proposed item / package | Status |
 |---|---|---|---|---|
