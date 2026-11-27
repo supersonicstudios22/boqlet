@@ -1,5 +1,6 @@
 package com.boqlet.api.admin;
 
+import com.boqlet.api.http.Csv;
 import com.boqlet.api.identity.Login;
 import com.boqlet.contract.api.AdminApi;
 import com.boqlet.contract.model.*;
@@ -8,12 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,18 +66,17 @@ class AdminController implements AdminApi {
         // Every org with its owner's email: the export is audited like every admin read (P54 Q59, TF-156).
         viewed("admin.orgs_exported", "org", null, filters(plan, status, country, tag, signal, stuck, query, rows.size()));
         // The fields of AdminOrgRow by their contract names, as the contract names them (F19 "orgs table, CSV").
-        var csv = new StringBuilder("﻿id,name,country,planId,status,subscriptionStatus,trialEndsAt,seatsUsed,seatsMax,activeProjects,")
-                .append("activeProjectsMax,processingMinutes,processingMinutesMax,limitHits30d,lastActivityAt,createdAt,ownerEmail,tags\r\n");
+        var csv = new Csv().row("id", "name", "country", "planId", "status", "subscriptionStatus", "trialEndsAt", "seatsUsed", "seatsMax",
+                "activeProjects", "activeProjectsMax", "processingMinutes", "processingMinutesMax", "limitHits30d", "lastActivityAt",
+                "createdAt", "ownerEmail", "tags");
         for (var row : rows) {
-            csv.append(Stream.of(row.getId(), row.getName(), row.getCountry(), row.getPlanId(), row.getStatus(), row.getSubscriptionStatus(),
+            csv.row(row.getId(), row.getName(), row.getCountry(), row.getPlanId(), row.getStatus(), row.getSubscriptionStatus(),
                     row.getTrialEndsAt().orElse(null), row.getSeats().getUsed(), row.getSeats().getMax().orElse(null),
                     row.getActiveProjects().getUsed(), row.getActiveProjects().getMax().orElse(null), row.getProcessingMinutes().getUsed(),
                     row.getProcessingMinutes().getMax().orElse(null), row.getLimitHits30d(), row.getLastActivityAt().orElse(null),
-                    row.getCreatedAt(), row.getOwnerEmail(), String.join("; ", row.getTags()))
-                    .map(AdminController::csvCell).collect(Collectors.joining(","))).append("\r\n");
+                    row.getCreatedAt(), row.getOwnerEmail(), String.join("; ", row.getTags()));
         }
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=boqlet-organisations.csv").body(csv.toString());
+        return csv.download("boqlet-organisations.csv");
     }
 
     @Override
@@ -212,11 +208,5 @@ class AdminController implements AdminApi {
             // Report the invalid cursor below.
         }
         throw AdminOrganisations.invalid("invalid_parameter", "Invalid cursor.");
-    }
-
-    private static String csvCell(Object value) {
-        String text = Objects.toString(value, "");
-        if (value instanceof String && text.stripLeading().matches("(?s)^[=+@-].*")) text = "'" + text;
-        return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { previewPollDelay } from "./library";
+import { jobPollDelay as previewPollDelay } from "@/api/jobs";
 
 /**
  * TF-134 (F16-AC2, 3 s per answer): the preview job is asked for often in its first second (it takes

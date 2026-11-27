@@ -104,8 +104,8 @@ export const MODES_WITH_SIZE: DeductionMode[] = ["over_threshold", "excess_only"
 /** Fields offered as "one line per …" ticks, in order. */
 export const LINE_SPLITS = ["type_name", "storey", "material", "thickness", "is_external", "ifc_class", "predefined_type", "family_name", "profile", "nominal_size", "system", "space_type"];
 
-/** Common units; any other text is allowed too. */
-export const UNITS = ["nr", "item", "sum", "mm", "m", "km", "m2", "m3", "kg", "t", "ft", "ft2", "ft3", "yd2", "yd3", "lb", "h", "kg/m3"];
+/** The units offered in the editors: the unit registry's (review B-15). */
+export { UNIT_CHOICES as UNITS } from "@/i18n/unit-choices";
 
 export const DICT_FIELDS = [
   "material", "layer_material", "type_name", "name", "object_type", "ifc_class", "predefined_type", "system", "space_name",

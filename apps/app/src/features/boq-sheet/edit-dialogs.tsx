@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { SearchPicker } from "@/features/questions/search-picker";
 import type { CodeLists } from "./edits";
 import { NotInModelsText } from "./not-in-models";
+import { UNIT_CHOICES } from "@/i18n/unit-choices";
 import { useUnit } from "@/i18n/units";
 import { LIMITS } from "@/lib/limits";
 
@@ -52,7 +53,6 @@ export function ReasonDialog({ title, summary, initial, onConfirm, onClose }: { 
   );
 }
 
-const UNITS = ["nr", "item", "sum", "m", "m2", "m3", "kg", "t", "h", "mm", "km", "ft", "ft2", "ft3", "yd2", "yd3", "lb"];
 const KINDS = ["other", "preliminary", "provisional_sum", "lump_sum", "daywork"] as const;
 
 /** The manual line's quantity as a formula is checked by the engine through a slot it points to (expr.py syntax check). */
@@ -164,7 +164,7 @@ export function ManualLineDialog({
             <label className="flex flex-col gap-1">
               <span className="label-caps text-muted-foreground">{t("unit")}</span>
               <NativeSelect value={unit} onChange={(e) => setUnit(e.target.value)} data-testid="manual-unit">
-                {UNITS.map((u) => (
+                {UNIT_CHOICES.map((u) => (
                   <option key={u} value={u}>
                     {unitLabel(u)}
                   </option>

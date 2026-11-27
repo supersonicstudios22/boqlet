@@ -5,12 +5,10 @@ import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { localJobs } from "@/realtime/local-jobs";
 import { idempotencyHeaders } from "@/api/idempotency";
+import { jobError, jobPollDelay, waitForJob } from "@/api/jobs";
 
 type Job = Schemas["Job"];
 
-/** How often an export job is asked about while it runs (exports take seconds, F12). */
-const POLL_MS = 500;
-const TIMEOUT_MS = 120_000;
 
 /** Hands a file to the browser as a download. */
 export function saveFile(blob: Blob, fileName: string) {
@@ -30,14 +28,8 @@ export function saveFile(blob: Blob, fileName: string) {
  */
 export async function downloadWhenDone(job: Job) {
   localJobs.add(job.id);
-  const deadline = Date.now() + TIMEOUT_MS;
-  let current = job;
-  while (current.status === "queued" || current.status === "running") {
-    if (Date.now() > deadline) throw new Error("export timed out");
-    await new Promise((r) => setTimeout(r, POLL_MS));
-    current = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
-  }
-  if (current.status !== "succeeded") throw Object.assign(new Error(current.error?.message ?? "export failed"), { code: current.error?.code });
+  const current = await waitForJob(job, { what: "export" });
+  if (current.status !== "succeeded") throw jobError(current, "export failed");
   const exportId = (current.output as { exportId?: string } | undefined)?.exportId;
   if (!exportId) throw new Error("export without a file");
   const meta = (await api.GET("/exports/{exportId}", { params: { path: { exportId } } })).data!;
@@ -64,11 +56,11 @@ const RUN_TIMEOUT_MS = 30 * 60_000;
  */
 export async function generateAndExport(revisionId: string, groupBy: string | null, onGenerated?: (run: Schemas["Run"]) => void) {
   const started = (await api.POST("/revisions/{revisionId}/runs", { params: { path: { revisionId } }, headers: idempotencyHeaders(`generateRun:${revisionId}`) })).data!;
-  const deadline = Date.now() + RUN_TIMEOUT_MS;
+  const begun = Date.now();
   let run = started.run;
   while (run.status === "queued" || run.status === "running") {
-    if (Date.now() > deadline) throw new Error("generating timed out");
-    await new Promise((r) => setTimeout(r, POLL_MS));
+    if (Date.now() - begun > RUN_TIMEOUT_MS) throw new Error("generating timed out");
+    await new Promise((r) => setTimeout(r, jobPollDelay(Date.now() - begun)));
     run = (await api.GET("/runs/{runId}", { params: { path: { runId: run.id } } })).data!;
   }
   onGenerated?.(run);

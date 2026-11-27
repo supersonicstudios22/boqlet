@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { localJobs } from "@/realtime/local-jobs";
 import { useUnit } from "@/i18n/units";
 import { idempotencyHeaders } from "@/api/idempotency";
+import { waitForJob } from "@/api/jobs";
 
 type Report = Schemas["EditsImportReport"];
 type Proposal = Report["overrides"][number];
@@ -29,13 +30,7 @@ async function readWorkbook(revisionId: string, file: File): Promise<Report> {
   form.append("file", file);
   const job = (await api.POST("/revisions/{revisionId}/edits-import", { params: { path: { revisionId } }, body: form as never, bodySerializer: (b) => b as unknown as FormData, headers: idempotencyHeaders(`importBoqEdits:${revisionId}`, [file.name, file.size, file.lastModified]) })).data!;
   localJobs.add(job.id);
-  let current = job;
-  const deadline = Date.now() + 120_000;
-  while (current.status === "queued" || current.status === "running") {
-    if (Date.now() > deadline) throw new Error("import timed out");
-    await new Promise((r) => setTimeout(r, 400));
-    current = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
-  }
+  await waitForJob(job, { what: "import" });
   return (await api.GET("/jobs/{jobId}/edits-import-report", { params: { path: { jobId: job.id } } })).data!;
 }
 

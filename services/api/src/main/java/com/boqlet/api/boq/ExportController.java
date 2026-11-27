@@ -2,6 +2,7 @@ package com.boqlet.api.boq;
 
 import com.boqlet.api.audit.AuditReader;
 import com.boqlet.api.identity.Login;
+import com.boqlet.api.http.Csv;
 import com.boqlet.api.http.Idempotency;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
@@ -14,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
-import java.util.stream.Collectors;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -91,15 +90,14 @@ class ExportController implements ExportsApi {
 
     @Override
     public ResponseEntity<String> exportDecisionsCsv(UUID project) {
-        var out = new StringBuilder("\uFEFF");
-        csv(out, "kind", "question", "question_id", "answer", "note", "decided_by", "decided_at", "used_by_latest_runs", "promoted");
+        var out = new Csv().row("kind", "question", "question_id", "answer", "note", "decided_by", "decided_at", "used_by_latest_runs", "promoted");
         for (var row : decisions.list(project, actor(), null)) {
             var answer = row.getAnswer().orElse(null);
-            csv(out, row.getKind(), row.getSummary(), row.getQuestionId(), answer == null ? "(dismissed)" : answer,
+            out.row(row.getKind(), row.getSummary(), row.getQuestionId(), answer == null ? "(dismissed)" : answer,
                     row.getNote(), row.getDecidedBy() == null ? "" : row.getDecidedBy().getName(), row.getDecidedAt(),
                     Boolean.TRUE.equals(row.getUsedByLatestRuns()) ? "yes" : "no", row.getPromotedToPresetVersionId().orElse(null) != null ? "yes" : "no");
         }
-        return csvResponse("decisions.csv", out);
+        return out.download("decisions.csv");
     }
 
     @Override
@@ -119,9 +117,8 @@ class ExportController implements ExportsApi {
 
     private ResponseEntity<String> auditCsv(UUID org, UUID project, String user, String action, String entity,
                                            OffsetDateTime from, OffsetDateTime to) {
-        var out = new StringBuilder("\uFEFF");
         // F12 "Audit CSV": actor is the person's name or "system", project its name, data JSON.
-        csv(out, "at", "actor", "action", "entityType", "entityId", "project", "data");
+        var out = new Csv().row("at", "actor", "action", "entityType", "entityId", "project", "data");
         var projectNames = new java.util.HashMap<UUID, String>();
         String cursor = null;
         do {
@@ -137,26 +134,12 @@ class ExportController implements ExportsApi {
                 } catch (JsonProcessingException failed) {
                     throw new IllegalStateException(failed);
                 }
-                csv(out, row.getAt(), row.getActor() == null ? "system" : row.getActor().getName(),
+                out.row(row.getAt(), row.getActor() == null ? "system" : row.getActor().getName(),
                         row.getAction(), row.getEntityType(), row.getEntityId(), projectName, data);
             }
             cursor = page.getNextCursor().orElse(null);
         } while (cursor != null);
-        return csvResponse("audit.csv", out);
-    }
-
-    /** One CSV row (RFC 4180): a cell is quoted only when it needs it; text a spreadsheet would run as a formula is defused. */
-    private static void csv(StringBuilder out, Object... values) {
-        out.append(java.util.Arrays.stream(values).map(value -> {
-            String text = value == null ? "" : value.toString();
-            if (value instanceof String && text.stripLeading().matches("(?s)^[=+@-].*")) text = "'" + text;
-            return text.matches("(?s).*[\",\r\n].*") ? "\"" + text.replace("\"", "\"\"") + "\"" : text;
-        }).collect(Collectors.joining(","))).append("\r\n");
-    }
-
-    private static ResponseEntity<String> csvResponse(String file, StringBuilder data) {
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "text/csv; charset=utf-8")
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file + "\"").body(data.toString());
+        return out.download("audit.csv");
     }
 
     private static UUID actor() { return Login.current().userId(); }

@@ -30,7 +30,7 @@ the ArchUnit test `CoreArchitectureTest` keeps the core free of module dependenc
 | `maintenance` | org_milestone_history | Scheduled expiry, retention, purge (`Maintenance`), alerts as log lines (`AlertMonitor`) |
 | `storage` | — | S3 client, signed URLs, multipart, key layout (`ObjectStorage`) |
 | `extension` | — | Core extension SPI for modules: `CoreModule`, `CoreModules`, `CoreEvents`, `ModuleTasks` (modules.md); no module registered |
-| `http` | idempotency_keys | Errors, idempotency, request context and id, `SecurityConfiguration` |
+| `http` | idempotency_keys | Errors, idempotency, request context and id, `SecurityConfiguration`, the one CSV writer (`Csv`: BOM, RFC 4180, formulas defused; review B-15) |
 | `db` | — | Ids, Postgres COPY, stored JSON helpers |
 | **`pricing`** (module, removable) | schema `pricing` | **Planned, not built** (P48): vendors, pricebooks, estimates, offer requests, vendor endpoints; to depend on the core only through `extension` and the read services (P36) |
 

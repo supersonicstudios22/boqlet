@@ -4,13 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
+import { jobError, waitForJob } from "@/api/jobs";
 
 export type RunDiff = Schemas["RunDiff"];
 export type LineChange = Schemas["LineChange"];
 export type ElementChange = Schemas["ElementChange"];
 
-const POLL_MS = 150;
-const TIMEOUT_MS = 120_000;
 
 /**
  * F08 §3: the change report of `toRunId` against `fromRunId`. `POST /runs/{to}/compare` answers the
@@ -26,15 +25,9 @@ export function useDiff(toRunId: string | undefined, fromRunId: string | undefin
     queryFn: async () => {
       const res = await api.POST("/runs/{runId}/compare", { params: { path: { runId: toRunId! } }, body: { againstRunId: fromRunId! } });
       if (res.response.status === 200) return res.data as RunDiff;
-      let job = res.data as unknown as Schemas["Job"];
-      const deadline = Date.now() + TIMEOUT_MS;
-      while (job.status === "queued" || job.status === "running") {
-        if (Date.now() > deadline) throw new Error("comparison timed out");
-        await new Promise((r) => setTimeout(r, POLL_MS));
-        job = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
-      }
+      const job = await waitForJob(res.data as unknown as Schemas["Job"], { what: "comparison" });
       const diffId = (job.output as { diffId?: string } | undefined)?.diffId;
-      if (job.status !== "succeeded" || !diffId) throw Object.assign(new Error(job.error?.message ?? "comparison failed"), { code: job.error?.code });
+      if (job.status !== "succeeded" || !diffId) throw jobError(job, "comparison failed");
       return (await api.GET("/diffs/{diffId}", { params: { path: { diffId } } })).data!;
     },
   });

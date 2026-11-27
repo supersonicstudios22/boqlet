@@ -5,6 +5,7 @@ import type { Schemas } from "@ifc-boq/api";
 import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { idempotencyHeaders } from "@/api/idempotency";
+import { jobError, waitForJob } from "@/api/jobs";
 
 /** F10 Library: presets, versions, usage and the shell's writes (FE-021). */
 
@@ -175,8 +176,6 @@ export interface PreviewOutput {
   jobId: string;
 }
 
-/** How long to wait before asking for the preview job again: often at first (a preview takes about a second, TF-134), then less. */
-export const previewPollDelay = (elapsedMs: number) => (elapsedMs < 1000 ? 100 : 250);
 const PREVIEW_TIMEOUT_MS = 180_000;
 
 /**
@@ -189,15 +188,9 @@ export function usePreview(presetId: string, onResult?: (result: PreviewResult |
       // A preview follows a save and its body doesn't carry the draft: the same body twice is two
       // previews of two drafts, so each call has its own key (never the earlier job's answer).
       const job = (await api.POST("/presets/{presetId}/preview", { params: { path: { presetId } }, body: { ...body, compareWithPublished: true } as never, headers: idempotencyHeaders(`previewPreset:${presetId}:${crypto.randomUUID()}`) })).data!;
-      const started = Date.now();
-      const deadline = started + PREVIEW_TIMEOUT_MS;
-      let current = job;
-      while (current.status === "queued" || current.status === "running") {
-        if (Date.now() > deadline) throw new Error("preview timed out");
-        await new Promise((r) => setTimeout(r, previewPollDelay(Date.now() - started)));
-        current = (await api.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
-      }
-      if (current.status !== "succeeded") throw Object.assign(new Error(current.error?.message ?? "preview failed"), { code: current.error?.code });
+      // Asked about often in its first second (TF-134), through the app's one job wait (review B-15).
+      const current = await waitForJob(job, { timeoutMs: PREVIEW_TIMEOUT_MS, what: "preview" });
+      if (current.status !== "succeeded") throw jobError(current, "preview failed");
       const output = current.output as { previewResultUrl: string; presetVersionId: string };
       const res = await fetch(output.previewResultUrl);
       if (!res.ok) throw new Error(`preview result answered ${res.status}`);
