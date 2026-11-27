@@ -651,7 +651,11 @@ def main(argv=None) -> int:
     if a.capture or not a.parse_cache:
         os.environ["BASELINE_NO_PARSE_CACHE"] = "1"
 
-    missing = [n for n in S.values() if not (SAMPLES / n).exists()]
+    # Only the samples the chosen runs use: CI fetches a subset (S01-S05, S09) and runs those (review B-04).
+    layers = ([RUNS] if a.layer in ("engine", "all") else []) + ([STACK_RUNS] if a.layer in ("stack", "all") else [])
+    needed = {sid for runs in layers for rid, (members, _) in runs.items() if not a.only or rid in a.only
+              for sid, _ in members}
+    missing = [S[sid] for sid in sorted(needed) if not (SAMPLES / S[sid]).exists()]
     if missing:
         print(f"samples missing: {missing}; run docs/review/tools/fetch-samples.sh first", file=sys.stderr)
         return 3

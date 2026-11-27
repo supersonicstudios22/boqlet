@@ -134,7 +134,7 @@ def vertical_faces(m: trimesh.Trimesh, others: list[trimesh.Trimesh]) -> dict:
         near = ~inside & np.all(probe >= lo, axis=1) & np.all(probe <= hi, axis=1)
         if near.any():
             inside[near] = points_inside(o, probe[near])
-    return {"area": area, "contact": float(min(area, part[inside].sum()))}
+    return {"area": area, "contact": min(area, float(part[inside].sum()))}
 
 
 def up_faces(m: trimesh.Trimesh) -> dict:
