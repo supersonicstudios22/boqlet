@@ -132,7 +132,7 @@ def _parse(job, storage, prefix, progress):
                                         progress=progress)
         except JobCancelled:
             raise
-        except IfcFileError as exc:                   # not_ifc / truncated_file / no_project (review A-32)
+        except IfcFileError as exc:                   # not_ifc / truncated_file / no_project (A-32), too_complex (B-22)
             raise JobError(exc.code, str(exc)) from exc
         except Exception as exc:
             import ifcopenshell

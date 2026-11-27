@@ -55,6 +55,7 @@ sh check-private.sh
 | `ENGINE_INTERACTIVE_CONCURRENCY`, `ENGINE_INTERACTIVE_CPUS`, `ENGINE_INTERACTIVE_MEMORY` | 1 slot, 1 CPU, 2 GiB (`queue-interactive`: runs and previews only) |
 | `ENGINE_HTTP_CONCURRENCY`, `ENGINE_HTTP_CPUS`, `ENGINE_HTTP_MEMORY` | 1, 1 CPU, 1.5 GiB |
 | `MAX_UPLOAD_MIB` | 512 MiB |
+| `ENGINE_QUEUE_PARSE_MEMORY_MB`, `ENGINE_INTERACTIVE_PARSE_MEMORY_MB`, `ENGINE_HTTP_PARSE_MEMORY_MB` | 3,400, 1,700, 1,300 MB (`BOQLET_PARSE_MEMORY_MB`: a parse past it fails as `too_complex` instead of the container being killed, review B-22; set below each `mem_limit`, because the geometry kernel's own peak happens inside a shape: S07 builds to about 1.2–1.6 GB inside the kernel while the parser keeps about 0.3 GB). **Operator:** the server's root-owned `compose.yaml` gets these lines with the next Compose update (DEC-101); without them nothing changes |
 
 `queue-interactive` (P54, TF-180) claims only `run` and `preview` jobs from the same pool, so an
 interactive run doesn't wait behind a parse; `queue` still takes every type, runs included when

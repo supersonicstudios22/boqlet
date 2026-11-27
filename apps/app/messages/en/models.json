@@ -46,6 +46,7 @@
       "corrupt_file": "The file could not be read. It may be damaged or incomplete.",
       "truncated_file": "The file is cut short: it stops before its end. Export or upload it again.",
       "no_project": "The file has no project in it, so it is not a whole model (a fragment or a library). Export the whole model.",
+      "too_complex": "The model is too large to process in one go: building its geometry needed more memory than the processing service has. Split it into smaller models (by storey or discipline) and upload those.",
       "parse_timeout": "Processing took too long and was stopped.",
       "parse_error": "The model could not be processed.",
       "engine_unavailable": "The processing service was not available. Try again.",

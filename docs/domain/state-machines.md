@@ -27,6 +27,7 @@ stateDiagram-v2
   still recorded).
 - `failed.error.code`: `not_ifc`, `unsupported_schema`, `corrupt_file`, `truncated_file` (the file stops before
   `END-ISO-10303-21;`, its line and byte in the message), `no_project` (no `IfcProject`), `too_large`,
+  `too_complex` (building its geometry needed more memory than the worker's `BOQLET_PARSE_MEMORY_MB`, review B-22),
   `parse_timeout`, `parse_error`, `cancelled`, `upload_expired`. A job failure with another code (the worker's or the
   backend's: `engine_timeout`, `worker_lost`, `engine_unavailable`, `ingestion_failed`, `result_invalid` (a result the database
   refuses for its content, not retried, review A-25)…) is stored as

@@ -129,6 +129,46 @@ def _hull2d(p: np.ndarray) -> np.ndarray:
     return np.array(lower[:-1] + upper[:-1])
 
 
+PARSE_MEMORY_ENV = "BOQLET_PARSE_MEMORY_MB"
+MEMORY_CHECK_EVERY = 25   # shapes between two looks at the process's memory
+
+
+def resident_mb() -> float | None:
+    """This process's resident memory in MB (Linux /proc, Windows' working set), None where it can't be read."""
+    try:
+        with open("/proc/self/status", encoding="ascii") as status:
+            for line in status:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1]) / 1024
+    except OSError:
+        pass
+    if sys.platform == "win32":                     # sys.platform, not os.name: mypy checks this branch only on Windows
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD), ("PeakWorkingSetSize", ctypes.c_size_t),
+                        ("WorkingSetSize", ctypes.c_size_t), ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPagedPoolUsage", ctypes.c_size_t), ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaNonPagedPoolUsage", ctypes.c_size_t), ("PagefileUsage", ctypes.c_size_t),
+                        ("PeakPagefileUsage", ctypes.c_size_t)]
+        counters = Counters()
+        counters.cb = ctypes.sizeof(Counters)
+        kernel = ctypes.WinDLL("kernel32")
+        if kernel.K32GetProcessMemoryInfo(kernel.GetCurrentProcess(), ctypes.byref(counters), counters.cb):
+            return float(counters.WorkingSetSize) / 2**20
+    return None
+
+
+def memory_limit_mb() -> float | None:
+    """The memory a parse may use (`BOQLET_PARSE_MEMORY_MB`, set below the worker's container limit), or None."""
+    raw = os.environ.get(PARSE_MEMORY_ENV, "").strip()
+    try:
+        return float(raw) if raw else None
+    except ValueError:
+        return None
+
+
 class Parser:
     def __init__(self, path: str, overlaps: bool = True):
         self.path = path
@@ -406,6 +446,7 @@ class Parser:
         # assignment and silently return millimetres as metres (ISO sample wall-with-opening-and-window).
         s.set("convert-back-units", True)
         geo = {}
+        limit = memory_limit_mb()
         for include_openings in (False, True):
             kwargs = ({"include": list(self.f.by_type("IfcOpeningElement"))} if include_openings
                       else {"exclude": ("IfcOpeningElement",)})
@@ -443,6 +484,14 @@ class Parser:
                     geo[sh.guid] = info
                     self.meshes[sh.guid] = m
                 done += 1
+                # Review B-22: a model that outgrows the worker fails with a clear code instead of being killed. The
+                # geometry kernel's own peak happens inside a shape, so the limit sits below the container's.
+                if limit is not None and done % MEMORY_CHECK_EVERY == 0:
+                    used = resident_mb()
+                    if used is not None and used > limit:
+                        raise IfcFileError("too_complex", f"The model needs more memory than this worker has ({used:,.0f} MB "
+                                                          f"while building its geometry, the limit is {limit:,.0f} MB): split it "
+                                                          "into smaller models, or ask for a larger worker.")
                 if progress and time.monotonic() - reported >= 10:
                     reported = time.monotonic()
                     progress("geometry", 30 + min(44, 44 * done // total), "Building geometry")
@@ -1124,7 +1173,8 @@ class Parser:
 
 class IfcFileError(ValueError):
     """A file that is not a whole IFC model (review A-32): `code` is not_ifc, truncated_file or no_project, and the
-    message says where (the worker reports the code; the app explains it)."""
+    message says where (the worker reports the code; the app explains it). `too_complex` (review B-22): a model whose
+    geometry needs more memory than the worker's `BOQLET_PARSE_MEMORY_MB`."""
 
     def __init__(self, code: str, message: str):
         super().__init__(message)

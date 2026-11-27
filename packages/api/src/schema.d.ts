@@ -3400,7 +3400,7 @@ export interface components {
             parseJobId?: string | null;
             summary?: components["schemas"]["ModelSummary"];
             identicalToVersion?: number | null;
-            /** @description A failed version's error: `code` one of not_ifc, unsupported_schema, corrupt_file, truncated_file, no_project, too_large, parse_timeout, parse_error, cancelled (state-machines.md); `details.retryable` whether a retry can help (TF-020); `details.cause` the job's own code when it was mapped (TF-037) */
+            /** @description A failed version's error: `code` one of not_ifc, unsupported_schema, corrupt_file, truncated_file, no_project, too_large, too_complex (the geometry needs more memory than the worker has, review B-22), parse_timeout, parse_error, cancelled (state-machines.md); `details.retryable` whether a retry can help (TF-020); `details.cause` the job's own code when it was mapped (TF-037) */
             error?: components["schemas"]["Error"];
             note?: string;
             uploadedBy?: components["schemas"]["UserRef"];

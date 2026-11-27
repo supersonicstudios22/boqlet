@@ -149,6 +149,8 @@ services:
     environment:
       <<: *engine-environment
       BOQLET_WORKER_TOKEN: ${WORKER_TOKEN:-}
+      # A parse past this fails as too_complex instead of the container being killed (review B-22); below mem_limit.
+      BOQLET_PARSE_MEMORY_MB: ${ENGINE_HTTP_PARSE_MEMORY_MB:-1300}
     networks: [backend]
     mem_limit: ${ENGINE_HTTP_MEMORY:-1536m}
     cpus: ${ENGINE_HTTP_CPUS:-1.0}
@@ -168,6 +170,7 @@ services:
       ENGINE_QUEUE_JOB_TIMEOUT_SECONDS: ${ENGINE_QUEUE_JOB_TIMEOUT_SECONDS:-1800}
       ENGINE_QUEUE_POLL_SECONDS: ${ENGINE_QUEUE_POLL_SECONDS:-1}
       ENGINE_LOG_FORMAT: json
+      BOQLET_PARSE_MEMORY_MB: ${ENGINE_QUEUE_PARSE_MEMORY_MB:-3400}
     networks: [backend, database]
     mem_limit: ${ENGINE_QUEUE_MEMORY:-4g}
     cpus: ${ENGINE_QUEUE_CPUS:-2.0}
@@ -181,6 +184,7 @@ services:
       <<: *queue-environment
       ENGINE_QUEUE_TYPES: run,preview
       ENGINE_QUEUE_CONCURRENCY: ${ENGINE_INTERACTIVE_CONCURRENCY:-1}
+      BOQLET_PARSE_MEMORY_MB: ${ENGINE_INTERACTIVE_PARSE_MEMORY_MB:-1700}
     mem_limit: ${ENGINE_INTERACTIVE_MEMORY:-2g}
     cpus: ${ENGINE_INTERACTIVE_CPUS:-1.0}
     pids_limit: 128
