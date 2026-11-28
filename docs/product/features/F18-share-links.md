@@ -27,7 +27,8 @@ explanations and 3D view the firm sees (P26).
    The dialog shows the link with a copy button.
 2. **The public page** (`/s/{token}`): firm name, project name, BoQ name, revision label and
    status (a "WORKING" watermark unless it is a saved version), date of the run. The sheet
-   read-only with grouping, search and filters (F06 §4), the line detail, the 3D view, as
+   read-only with grouping, search and filters (F06 §4), the line detail (each element's measured
+   inputs included, without the questions behind them; no measure log; review C-10), the 3D view, as
    included. No questions, decisions, edits history, reviewers, member names, vendor or price
    information. A small footer names the product (link to the sign-up page).
 3. **Manage:** BoQ workspace › Share lists the BoQ's links: label, what, includes, created by,

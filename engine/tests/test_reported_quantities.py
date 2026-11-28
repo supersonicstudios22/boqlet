@@ -246,6 +246,20 @@ def test_an_implausible_reported_area_gives_way_to_the_geometry():
     assert q["suggestion"] == "geometry" and q["params"]["unit"] == "m2" and not q["params"]["unitError"]
 
 
+def test_the_measure_log_and_the_sources_say_which_area_was_used():
+    """WP-C3 C-10 regression: "... m2 from geometry used" belongs to the geometry's branch only, and the sources agree."""
+    implausible = slab({"Qto_SlabBaseQuantities": {"NetArea": 2 * 50.0 + 2 * 15.0 * 0.2, "NetVolume": 10.0}})
+    m, _, log = measure(doc(implausible))
+    adopted = next(e for e in log.entries if e.get("code") == "log.measure.adopted")
+    assert "50 m2 from geometry used" in adopted["message"]
+    assert m["slab-1"]["sources"]["net_area"] == {"basis": "faces", "from": "Qto_SlabBaseQuantities.NetArea", "stated": 106.0}
+    plausible = slab({"Qto_SlabBaseQuantities": {"NetArea": 40.0, "NetVolume": 10.0}})
+    m, _, log = measure(doc(plausible))
+    adopted = next(e for e in log.entries if e.get("code") == "log.measure.adopted")
+    assert "geometry used" not in adopted["message"]
+    assert m["slab-1"]["sources"]["net_area"] == {"basis": "property", "from": "Qto_SlabBaseQuantities.NetArea", "geometry": 50.0}
+
+
 def test_a_plausible_area_difference_asks_but_keeps_the_stated_area():
     el = slab({"Qto_SlabBaseQuantities": {"NetArea": 40.0, "NetVolume": 10.0}})         # geometry 50 m2 (+25 %)
     m, qs, _ = measure(doc(el))

@@ -593,9 +593,9 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                         src["net_area"] = source("faces", rep["area"][1], stated=stated,
                                                  question=qid if answers.get(qid) == "geometry" else None)
                         net_area, prov["net_area"] = side_mean, "geometry"
+                        a_note += f": {fmt(round(net_area, 3))} m2 from geometry used"
                     else:
                         src["net_area"].update(geometry=round(geo_area, 6), **({"question": qid} if answers.get(qid) == "reported" else {}))
-                        a_note += f": {fmt(round(net_area, 3))} m2 from geometry used"
                     if answers.get(qid) not in ("geometry", "reported"):
                         ask(qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
                              rep["area"][1], used="geometry" if use_geo else "reported")
