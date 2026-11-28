@@ -29,8 +29,8 @@
   "parseSeconds": {
    "S02": 1.6
   },
-  "runSeconds": 1.6,
-  "totalSeconds": 11.2
+  "runSeconds": 1.7,
+  "totalSeconds": 11.7
  },
  "runJob": "succeeded",
  "status": "complete",

@@ -20,16 +20,16 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S09": 2.69
+   "S09": 2.11
   },
-  "runSeconds": 0.13,
-  "totalSeconds": 4.07
+  "runSeconds": 0.15,
+  "totalSeconds": 3.39
  },
  "outcome": "result",
  "status": "needs_input",
  "ruleSet": {
   "id": "as-modelled",
-  "version": "1.0.0"
+  "version": "1.1.0"
  },
  "counts": {
   "elements": 64,
@@ -43,7 +43,7 @@
   "blockingQuestions": 3,
   "warnings": 0
  },
- "peakMemoryMB": 195.7,
+ "peakMemoryMB": 194.9,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

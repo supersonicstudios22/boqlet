@@ -117,7 +117,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600 x 600 x 900mm",
     "unit": "m2",
     "quantity": 7.92
    }

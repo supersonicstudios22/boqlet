@@ -69,7 +69,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, Insitu Concrete",
     "unit": "m2",
     "quantity": 19.12
    },
@@ -153,7 +153,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -237,7 +237,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -321,7 +321,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -405,7 +405,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -489,7 +489,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -573,7 +573,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -657,7 +657,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -741,7 +741,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600mm Diameter",
     "unit": "m2",
     "quantity": 100.97
    },
@@ -828,7 +828,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, Insitu Concrete 250mm",
     "unit": "m2",
     "quantity": 13.96
    },
@@ -1335,7 +1335,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600 x 600 x 900mm",
     "unit": "m2",
     "quantity": 8.32
    },
@@ -1719,7 +1719,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 3800 x 3800 x 600mm",
     "unit": "m2",
     "quantity": 15.96
    },
@@ -2600,13 +2600,13 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, Insitu Concrete",
     "unit": "m2",
     "quantity": 19.12
    },
    {
     "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, Insitu Concrete 250mm",
     "unit": "m2",
     "quantity": 13.96
    },

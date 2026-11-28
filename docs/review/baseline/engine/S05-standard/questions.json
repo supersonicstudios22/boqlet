@@ -45,7 +45,7 @@
   "affectedLines": [
    {
     "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
-    "description": "masonry.block, 193 mm (normal height)",
+    "description": "masonry.block, 193 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    },
@@ -57,13 +57,13 @@
    },
    {
     "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
-    "description": "board.plasterboard, 16 mm (normal height)",
+    "description": "board.plasterboard, 16 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    },
    {
     "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
-    "description": "metal.steel.stud, 41 mm (normal height)",
+    "description": "metal.steel.stud, 41 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    }
@@ -114,7 +114,7 @@
   "affectedLines": [
    {
     "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
-    "description": "masonry.block, 193 mm (normal height)",
+    "description": "masonry.block, 193 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    },
@@ -126,13 +126,13 @@
    },
    {
     "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
-    "description": "board.plasterboard, 16 mm (normal height)",
+    "description": "board.plasterboard, 16 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    },
    {
     "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
-    "description": "metal.steel.stud, 41 mm (normal height)",
+    "description": "metal.steel.stud, 41 mm (normal height), wall.party",
     "unit": "m2",
     "quantity": 157.67
    }

@@ -29,7 +29,7 @@
   "parseSeconds": {
    "S01": 1.8
   },
-  "runSeconds": 1.7,
+  "runSeconds": 1.8,
   "totalSeconds": 13.0
  },
  "runJob": "succeeded",

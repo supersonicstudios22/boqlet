@@ -20,16 +20,16 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S01": 0.08
+   "S01": 0.05
   },
-  "runSeconds": 0.03,
-  "totalSeconds": 0.68
+  "runSeconds": 0.02,
+  "totalSeconds": 0.43
  },
  "outcome": "result",
  "status": "needs_input",
  "ruleSet": {
   "id": "as-modelled",
-  "version": "1.0.0"
+  "version": "1.1.0"
  },
  "counts": {
   "elements": 2,

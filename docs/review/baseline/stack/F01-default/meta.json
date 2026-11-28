@@ -44,8 +44,8 @@
    "S07": 0.1,
    "S08": 0.1
   },
-  "runSeconds": 4.7,
-  "totalSeconds": 26.8
+  "runSeconds": 6.3,
+  "totalSeconds": 29.8
  },
  "runJob": "succeeded",
  "status": "needs_input",

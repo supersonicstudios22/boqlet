@@ -117,7 +117,7 @@
    },
    {
     "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
-    "description": "Edge formwork to slabs",
+    "description": "Edge formwork to slabs, 600 x 600 x 900mm",
     "unit": "m2",
     "quantity": 7.92
    }
@@ -2504,13 +2504,13 @@
    },
    {
     "key": "walls | Wall - Timber Clad | True |  | m2",
-    "description": "Wall, Wall - Timber Clad, 202 mm",
+    "description": "Wall, Wall - Timber Clad, 202 mm, external",
     "unit": "m2",
     "quantity": 120.71
    },
    {
     "key": "walls | Wall - Timber Clad | None |  | m2",
-    "description": "Wall, Wall - Timber Clad, 202 mm",
+    "description": "Wall, Wall - Timber Clad, 202 mm, external or internal not stated",
     "unit": "m2",
     "quantity": 42.75
    }

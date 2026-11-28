@@ -122,7 +122,7 @@
  {
   "key": "formwork-walls | wall-layers | wall.foundation | concrete.in_situ | 0.417 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, 417 mm",
   "unit": "m2",
   "quantity": 135.28,
   "source": "derived",
@@ -134,7 +134,7 @@
  {
   "key": "formwork-walls | wall-layers | wall.foundation | concrete.in_situ | 0.435 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, 435 mm",
   "unit": "m2",
   "quantity": 26.23,
   "source": "derived",
@@ -146,7 +146,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 127mm Slab on Grade |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 127mm Slab on Grade",
   "unit": "m2",
   "quantity": 9.21,
   "source": "derived",
@@ -158,7 +158,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 150mm Exterior Slab on Grade |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 150mm Exterior Slab on Grade",
   "unit": "m2",
   "quantity": 6.42,
   "source": "derived",
@@ -206,7 +206,7 @@
  {
   "key": "rebar-estimate-slabs | slab-concrete | 127mm Slab on Grade |  | m3 | t",
   "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
+  "description": "Reinforcement to slabs (estimated), 127mm Slab on Grade",
   "unit": "t",
   "quantity": 1.65,
   "source": "derived",
@@ -218,7 +218,7 @@
  {
   "key": "rebar-estimate-slabs | slab-concrete | 150mm Exterior Slab on Grade |  | m3 | t",
   "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
+  "description": "Reinforcement to slabs (estimated), 150mm Exterior Slab on Grade",
   "unit": "t",
   "quantity": 0.76,
   "source": "derived",
@@ -230,7 +230,7 @@
  {
   "key": "wall-layers | wall.external | board.plasterboard | 0.016 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
+  "description": "board.plasterboard, 16 mm (normal height), wall.external",
   "unit": "m2",
   "quantity": 274.63,
   "source": "measured",
@@ -254,7 +254,7 @@
  {
   "key": "wall-layers | wall.external | masonry.block | 0.193 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "masonry.block, 193 mm (normal height)",
+  "description": "masonry.block, 193 mm (normal height), wall.external",
   "unit": "m2",
   "quantity": 274.63,
   "source": "measured",
@@ -278,7 +278,7 @@
  {
   "key": "wall-layers | wall.external | metal.steel.stud | 0.041 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "metal.steel.stud, 41 mm (normal height)",
+  "description": "metal.steel.stud, 41 mm (normal height), wall.external",
   "unit": "m2",
   "quantity": 274.63,
   "source": "measured",
@@ -288,33 +288,9 @@
   "elements": 12
  },
  {
-  "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
-  "unit": "m2",
-  "quantity": 157.67,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 8
- },
- {
-  "key": "wall-layers | wall.partition | board.plasterboard | 0.016 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
-  "unit": "m2",
-  "quantity": 231.58,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02"
-  },
-  "elements": 40
- },
- {
   "key": "wall-layers | wall.lining | board.plasterboard | 0.016 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "board.plasterboard, 16 mm (normal height)",
+  "description": "board.plasterboard, 16 mm (normal height), wall.lining",
   "unit": "m2",
   "quantity": 61.12,
   "source": "measured",
@@ -324,9 +300,33 @@
   "elements": 14
  },
  {
+  "key": "wall-layers | wall.partition | board.plasterboard | 0.016 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 16 mm (normal height), wall.partition",
+  "unit": "m2",
+  "quantity": 231.58,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 40
+ },
+ {
+  "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "board.plasterboard, 16 mm (normal height), wall.party",
+  "unit": "m2",
+  "quantity": 157.67,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02"
+  },
+  "elements": 8
+ },
+ {
   "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "masonry.block, 193 mm (normal height)",
+  "description": "masonry.block, 193 mm (normal height), wall.party",
   "unit": "m2",
   "quantity": 157.67,
   "source": "measured",
@@ -374,7 +374,7 @@
  {
   "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "metal.steel.stud, 41 mm (normal height)",
+  "description": "metal.steel.stud, 41 mm (normal height), wall.party",
   "unit": "m2",
   "quantity": 157.67,
   "source": "measured",

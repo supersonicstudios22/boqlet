@@ -26,17 +26,17 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S07": 51.97,
-   "S08": 51.16
+   "S07": 50.64,
+   "S08": 31.02
   },
-  "runSeconds": 5.26,
-  "totalSeconds": 118.66
+  "runSeconds": 1.78,
+  "totalSeconds": 89.35
  },
  "outcome": "result",
  "status": "needs_input",
  "ruleSet": {
   "id": "as-modelled",
-  "version": "1.0.0"
+  "version": "1.1.0"
  },
  "counts": {
   "elements": 4581,
@@ -50,7 +50,7 @@
   "blockingQuestions": 59,
   "warnings": 17
  },
- "peakMemoryMB": 1587.8,
+ "peakMemoryMB": 1601.9,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

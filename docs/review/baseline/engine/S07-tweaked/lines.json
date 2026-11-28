@@ -192,11 +192,11 @@
   "elements": 17
  },
  {
-  "key": "formwork-slab-edges | slab-concrete | Concrete-Domestic 425mm |  | m3 | m2",
+  "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 150mm Foundation Slab",
   "unit": "m2",
-  "quantity": 4.34,
+  "quantity": 9.61,
   "source": "derived",
   "codes": {
    "demo-trades": "01"
@@ -206,7 +206,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 600 x 600 x 900mm",
   "unit": "m2",
   "quantity": 7.92,
   "source": "derived",
@@ -216,9 +216,21 @@
   "elements": 11
  },
  {
+  "key": "formwork-slab-edges | slab-concrete | Concrete-Domestic 425mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, Concrete-Domestic 425mm",
+  "unit": "m2",
+  "quantity": 4.34,
+  "source": "derived",
+  "codes": {
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
   "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, Insitu Concrete 225mm",
   "unit": "m2",
   "quantity": 14.31,
   "source": "derived",
@@ -226,18 +238,6 @@
    "demo-trades": "01"
   },
   "elements": 2
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 9.61,
-  "source": "derived",
-  "codes": {
-   "demo-trades": "01"
-  },
-  "elements": 1
  },
  {
   "key": "walls | Interior - 165 Partition (1-hr) | False |  | m2",
@@ -470,7 +470,7 @@
  {
   "key": "walls | Wall - Timber Clad | True |  | m2",
   "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "description": "Wall, Wall - Timber Clad, 202 mm, external",
   "unit": "m2",
   "quantity": 120.71,
   "source": "measured",
@@ -482,7 +482,7 @@
  {
   "key": "walls | Wall - Timber Clad | None |  | m2",
   "ruleId": "walls",
-  "description": "Wall, Wall - Timber Clad, 202 mm",
+  "description": "Wall, Wall - Timber Clad, 202 mm, external or internal not stated",
   "unit": "m2",
   "quantity": 42.75,
   "source": "measured",

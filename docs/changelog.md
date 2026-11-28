@@ -10,6 +10,7 @@ as they were then (for example `apps/app/e2e/*`, deleted by P53, and `plan/`, no
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-28 | (this commit) | Review WP-C5 exit check: package done (C-21…C-24), **baseline recaptured** (run 20261128-164325: Ref position numbers and item texts in every run, split-line descriptions in S05/S07/S08/F01/F02; keys and quantities identical), PROGRESS.md row and baseline log, new items N-54…N-57, judgement calls DEC-147…DEC-152 |
 | 2026-11-28 | WP-C5 C-22/C-23 fix | The share page's Excel answered 500 for an org without a date format (a null `findFirst()` in `PublicShares.workbook`; `NativeWorkerTest` caught it); the scenario helper and the sheet scenario read Ref as the position number (C-23) |
 | 2026-11-28 | WP-C5 C-23 fix | With item texts the Duplex BoQ printed on 3 pages: no "Measured as" note when the item text already contains the measured description, and Description 75 / Notes 30 characters wide (168 in all); it prints on 2 landscape pages again (LibreOffice test) |
 | 2026-11-28 | WP-C5 C-24 | Split lines get distinguishing descriptions (D126): lines of one rule that would share a description get the line-key values that differ among them in words ("Edge formwork to slabs, 127mm Slab on Grade", "Wall, Wall - Timber Clad, 202 mm, external"); words are rule-set data (`lineKeyWords`, types first; as-modelled 1.1.0). No two lines of one rule share a description in any baseline run; keys and quantities identical. Tests: `test_split_descriptions.py` ([rules language](architecture/rules-language.md)) |

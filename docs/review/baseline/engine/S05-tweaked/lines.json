@@ -134,7 +134,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 127mm Slab on Grade |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 127mm Slab on Grade",
   "unit": "m2",
   "quantity": 8.78,
   "source": "derived",
@@ -146,7 +146,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 150mm Exterior Slab on Grade |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 150mm Exterior Slab on Grade",
   "unit": "m2",
   "quantity": 6.11,
   "source": "derived",

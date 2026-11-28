@@ -41,7 +41,7 @@
  {
   "key": "wall-layers | wall.foundation | concrete.in_situ | 0.3 | normal height | m2",
   "ruleId": "wall-layers",
-  "description": "concrete.in_situ, 300 mm (normal height)",
+  "description": "concrete.in_situ, 300 mm (normal height), wall.foundation",
   "unit": "m2",
   "quantity": 30.86,
   "source": "measured",
@@ -158,7 +158,7 @@
  {
   "key": "formwork-walls | wall-layers | None | concrete | 0.28 | above limit | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, concrete, 280 mm, above limit",
   "unit": "m2",
   "quantity": 51.03,
   "source": "derived",
@@ -171,7 +171,7 @@
  {
   "key": "formwork-walls | wall-layers | None | concrete | 0.28 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, concrete, 280 mm, normal height",
   "unit": "m2",
   "quantity": 427.18,
   "source": "derived",
@@ -184,7 +184,7 @@
  {
   "key": "formwork-walls | wall-layers | wall.foundation | concrete.in_situ | 0.3 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, wall.foundation, concrete.in_situ, 300 mm, normal height",
   "unit": "m2",
   "quantity": 64.81,
   "source": "derived",
@@ -195,22 +195,9 @@
   "elements": 1
  },
  {
-  "key": "formwork-slab-edges | slab-concrete | Concrete-Domestic 425mm |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 4.56,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "B.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 600 x 600 x 900mm",
   "unit": "m2",
   "quantity": 8.32,
   "source": "derived",
@@ -221,9 +208,22 @@
   "elements": 11
  },
  {
+  "key": "formwork-slab-edges | slab-concrete | Concrete-Domestic 425mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, Concrete-Domestic 425mm",
+  "unit": "m2",
+  "quantity": 4.56,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "B.03",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
   "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 225mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, Insitu Concrete 225mm",
   "unit": "m2",
   "quantity": 15.02,
   "source": "derived",
@@ -260,48 +260,9 @@
   "elements": 1
  },
  {
-  "key": "rebar-estimate-slabs | slab-concrete | Concrete-Domestic 425mm |  | m3 | t",
-  "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
-  "unit": "t",
-  "quantity": 0.67,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "rebar-estimate-slabs | slab-concrete | 600 x 600 x 900mm |  | m3 | t",
-  "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
-  "unit": "t",
-  "quantity": 0.12,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
-  "key": "rebar-estimate-slabs | slab-concrete | Insitu Concrete 225mm |  | m3 | t",
-  "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
-  "unit": "t",
-  "quantity": 1.68,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.03",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "rebar-estimate-slabs | slab-concrete | 150mm Foundation Slab |  | m3 | t",
   "ruleId": "rebar-estimate-slabs",
-  "description": "Reinforcement to slabs (estimated)",
+  "description": "Reinforcement to slabs (estimated), 150mm Foundation Slab",
   "unit": "t",
   "quantity": 1.85,
   "source": "derived",
@@ -312,9 +273,61 @@
   "elements": 1
  },
  {
+  "key": "rebar-estimate-slabs | slab-concrete | 600 x 600 x 900mm |  | m3 | t",
+  "ruleId": "rebar-estimate-slabs",
+  "description": "Reinforcement to slabs (estimated), 600 x 600 x 900mm",
+  "unit": "t",
+  "quantity": 0.12,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.03",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "rebar-estimate-slabs | slab-concrete | Concrete-Domestic 425mm |  | m3 | t",
+  "ruleId": "rebar-estimate-slabs",
+  "description": "Reinforcement to slabs (estimated), Concrete-Domestic 425mm",
+  "unit": "t",
+  "quantity": 0.67,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.03",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "rebar-estimate-slabs | slab-concrete | Insitu Concrete 225mm |  | m3 | t",
+  "ruleId": "rebar-estimate-slabs",
+  "description": "Reinforcement to slabs (estimated), Insitu Concrete 225mm",
+  "unit": "t",
+  "quantity": 1.68,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.03",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
+  "key": "formwork-walls | wall-layers | None | concrete.in_situ | 0.3 | normal height | m2 | m2",
+  "ruleId": "formwork-walls",
+  "description": "Formwork to walls, both faces, concrete.in_situ, 300 mm, normal height",
+  "unit": "m2",
+  "quantity": 405.49,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04",
+   "demo-trades": "01"
+  },
+  "elements": 1
+ },
+ {
   "key": "formwork-walls | wall-layers | None | concrete.screed | 0.022 | above limit | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, concrete.screed, 22 mm, above limit",
   "unit": "m2",
   "quantity": 153.85,
   "source": "derived",
@@ -327,7 +340,7 @@
  {
   "key": "formwork-walls | wall-layers | None | concrete.screed | 0.022 | normal height | m2 | m2",
   "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
+  "description": "Formwork to walls, both faces, concrete.screed, 22 mm, normal height",
   "unit": "m2",
   "quantity": 94.56,
   "source": "derived",
@@ -338,22 +351,9 @@
   "elements": 1
  },
  {
-  "key": "formwork-walls | wall-layers | None | concrete.in_situ | 0.3 | normal height | m2 | m2",
-  "ruleId": "formwork-walls",
-  "description": "Formwork to walls, both faces",
-  "unit": "m2",
-  "quantity": 405.49,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04",
-   "demo-trades": "01"
-  },
-  "elements": 1
- },
- {
   "key": "formwork-slab-edges | slab-concrete | 150mm Foundation Slab |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 150mm Foundation Slab",
   "unit": "m2",
   "quantity": 10.09,
   "source": "derived",

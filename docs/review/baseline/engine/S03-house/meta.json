@@ -25,7 +25,7 @@
    "S03": 0.15
   },
   "runSeconds": 0.03,
-  "totalSeconds": 0.68
+  "totalSeconds": 0.62
  },
  "outcome": "result",
  "status": "needs_input",
@@ -45,7 +45,7 @@
   "blockingQuestions": 9,
   "warnings": 0
  },
- "peakMemoryMB": 100.1,
+ "peakMemoryMB": 100.0,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

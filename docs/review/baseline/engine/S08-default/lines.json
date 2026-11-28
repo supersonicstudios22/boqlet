@@ -192,57 +192,9 @@
   "elements": 9
  },
  {
-  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 18.21,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04"
-  },
-  "elements": 4
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 5.76,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04"
-  },
-  "elements": 8
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 96.16,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04"
-  },
-  "elements": 17
- },
- {
-  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
-  "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
-  "unit": "m2",
-  "quantity": 13.29,
-  "source": "derived",
-  "codes": {
-   "acme-cost-codes": "C.04"
-  },
-  "elements": 2
- },
- {
   "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 3800 x 3800 x 600mm",
   "unit": "m2",
   "quantity": 15.2,
   "source": "derived",
@@ -254,7 +206,7 @@
  {
   "key": "formwork-slab-edges | slab-concrete | 400 x 400 x 900mm |  | m3 | m2",
   "ruleId": "formwork-slab-edges",
-  "description": "Edge formwork to slabs",
+  "description": "Edge formwork to slabs, 400 x 400 x 900mm",
   "unit": "m2",
   "quantity": 3.84,
   "source": "derived",
@@ -262,6 +214,54 @@
    "acme-cost-codes": "C.04"
   },
   "elements": 6
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, 600 x 600 x 900mm",
+  "unit": "m2",
+  "quantity": 5.76,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 8
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | 600mm Diameter |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, 600mm Diameter",
+  "unit": "m2",
+  "quantity": 96.16,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 17
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, Insitu Concrete",
+  "unit": "m2",
+  "quantity": 18.21,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 4
+ },
+ {
+  "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
+  "ruleId": "formwork-slab-edges",
+  "description": "Edge formwork to slabs, Insitu Concrete 250mm",
+  "unit": "m2",
+  "quantity": 13.29,
+  "source": "derived",
+  "codes": {
+   "acme-cost-codes": "C.04"
+  },
+  "elements": 2
  },
  {
   "key": "linear-other | IfcBeam | 30mm |  | m",
