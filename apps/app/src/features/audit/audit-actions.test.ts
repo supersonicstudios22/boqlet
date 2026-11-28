@@ -16,7 +16,7 @@ const files = (dir: string): string[] =>
   });
 const PREFIX = /^"(admin|auth|org|member|session|project|model|model_version|boq|revision|version|run|decision|line|manual_line|export|preset|share_link|user)\.[a-z_]+"$/;
 /** Literals with an audit-like shape that are not audit actions: realtime events, notification kinds, a state. */
-const NOT_ACTIONS = new Set(["boq.presence", "boq.new_version_available", "run.needs_input", "revision.review_requested", "session.revoked", "org.deleting", "export.xlsx"]);
+const NOT_ACTIONS = new Set(["boq.presence", "boq.new_version_available", "run.needs_input", "revision.review_requested", "session.revoked", "org.deleting", "export.xlsx", "decision.replaced"]);
 
 function javaActions(): string[] {
   const out = new Set<string>();
