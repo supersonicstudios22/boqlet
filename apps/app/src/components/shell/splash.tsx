@@ -8,8 +8,8 @@ import styles from "./splash.module.css";
 const KEY = "boqlet-splash";
 /** The animation's length (docs/brand/boqlet.mp4). */
 const PLAY_MS = ANIMATED_WORDMARK_MS;
-/** With reduced motion: the finished logo, this long. */
-const STILL_MS = 800;
+/** With reduced motion: the finished logo, this long in all, with no fade (review C-33, DEC-52). */
+const STILL_MS = 300;
 const FADE_MS = 300;
 
 /** Called by a sign-in just before it loads the app: the next page opens with the splash. */
@@ -63,8 +63,9 @@ function SplashScreen() {
 
   useEffect(() => {
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timer = setTimeout(() => setLeaving(true), still ? STILL_MS : PLAY_MS);
-    const skip = () => setLeaving(true);
+    // Reduced motion: the still logo, then the app at once (a fade is motion too).
+    const timer = setTimeout(still ? finish : () => setLeaving(true), still ? STILL_MS : PLAY_MS);
+    const skip = () => (still ? finish() : setLeaving(true));
     window.addEventListener("keydown", skip);
     return () => {
       clearTimeout(timer);

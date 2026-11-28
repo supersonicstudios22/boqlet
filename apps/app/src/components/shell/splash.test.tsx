@@ -83,12 +83,14 @@ describe("sign-in splash", () => {
     expect(splash()).toBeNull();
   });
 
-  it("with reduced motion it shows the finished logo briefly", async () => {
+  it("with reduced motion it shows the finished logo for at most 300 ms, without a fade (review C-33)", async () => {
     stubMotion(true);
     (await import("./splash")).requestSplash();
     await load();
-    act(() => vi.advanceTimersByTime(800));
-    act(() => vi.advanceTimersByTime(300));
+    expect(splash()).not.toBeNull();
+    act(() => vi.advanceTimersByTime(299));
+    expect(splash()).not.toBeNull();
+    act(() => vi.advanceTimersByTime(1));
     expect(splash()).toBeNull();
   });
 });

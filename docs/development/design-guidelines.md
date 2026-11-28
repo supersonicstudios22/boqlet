@@ -237,7 +237,8 @@ Drawn with 2 px ink rules and 10 px ticks; the measurement is in mono, tabular. 
   free plan, F18); emails name the product in text.
 - **Sign-in splash**: after each sign-in the app opens with the logo animation (5.3 s, timed from
   `boqlet.mp4`: "o", "ooo", "boq", "boqlet") over the app while it loads, then fades into it. Once
-  per sign-in, never on a reload; a click or any key skips it.
+  per sign-in, never on a reload; a click or any key skips it. Under `prefers-reduced-motion:
+  reduce` it is the finished logo for 300 ms and then the app, with no fade (review C-33).
 - Poster-style section labels ("NO. 03 — MEASURE", "IFC → BOQ") may be used in the expressive
   places above.
 
@@ -260,7 +261,7 @@ status marks), always with text or a tooltip. No decorative icons.
 - Wizard and onboarding: the shapes move between steps and the dimension line draws as you
   progress, both short (≤ 400 ms).
 - The sign-in splash (Brand) is the one longer animation: once per sign-in, skippable.
-- `prefers-reduced-motion` turns every movement off (the splash shows the finished logo briefly).
+- `prefers-reduced-motion` turns every movement off (the splash shows the finished logo for 300 ms, no fade).
 
 ## Accessibility
 
