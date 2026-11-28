@@ -48,7 +48,7 @@ Org owners and admins act as `lead` on every project. The creator of a project b
 
 | Action | lead | estimator | approver | viewer |
 |---|---|---|---|---|
-| See project, models, BoQs (working and saved versions), explanations, viewer, exports | ✓ | ✓ | ✓ | ✓ |
+| See project, models, BoQs (working and saved versions), explanations, viewer, change reports (compare runs, the Changes tab; review C-14), exports | ✓ | ✓ | ✓ | ✓ |
 | Edit project settings, defaults, archive | ✓ | | | |
 | Manage project members | ✓ | | | |
 | Create models, upload versions, edit scope | ✓ | ✓ | | |

@@ -110,6 +110,34 @@ describe("B-14: the reviewer picker offers whom the API accepts (ENG-016, DEC-27
   });
 });
 
+describe("C-14: everyone who can view the BoQ reads the change report (LEAD-020, DEC-60, D120)", () => {
+  it("a viewer compares two runs, reads the summary and lines, and exports the report; a stranger is refused", async () => {
+    const boqId = await newBoq("Viewer changes");
+    const first = (await boqOf(boqId)).currentRevision.currentRun!.id;
+    const second = (await generate(boqId)).id;
+    const viewer = as("viewer");
+    const res = await viewer.POST("/runs/{runId}/compare", { params: { path: { runId: second } }, body: { againstRunId: first } });
+    expect([200, 202]).toContain(res.response.status);
+    let diffId = (res.data as Schemas["RunDiff"]).id;
+    if (res.response.status === 202) {
+      const deadline = Date.now() + 120_000;
+      let job = (await viewer.GET("/jobs/{jobId}", { params: { path: { jobId: (res.data as unknown as Schemas["Job"]).id } } })).data!;
+      while ((job.status === "queued" || job.status === "running") && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 200));
+        job = (await viewer.GET("/jobs/{jobId}", { params: { path: { jobId: job.id } } })).data!;
+      }
+      expect(job.status).toBe("succeeded");
+      diffId = (job.output as { diffId: string }).diffId;
+    }
+    const diff = await viewer.GET("/diffs/{diffId}", { params: { path: { diffId } } });
+    expect(diff.response.status).toBe(200);
+    expect(diff.data!.summary.linesUnchanged).toBeGreaterThan(0);
+    expect((await viewer.GET("/diffs/{diffId}/lines", { params: { path: { diffId } } })).response.status).toBe(200);
+    expect((await viewer.POST("/diffs/{diffId}/export", { params: { path: { diffId } } })).response.status).toBe(202);
+    expect((await as("stranger").GET("/diffs/{diffId}", { params: { path: { diffId } } })).response.status).toBe(404);
+  }, 420_000);
+});
+
 describe("BR-20: a saved version refuses every write, for every role (TF-010)", () => {
   let saved: Schemas["BoqRevision"];
   beforeAll(async () => {

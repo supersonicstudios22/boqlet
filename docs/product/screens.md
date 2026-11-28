@@ -34,7 +34,7 @@ setup links and invitations, not a public sign-up (F01), and `/onboarding` has n
 | S12a | … `?tab=sheet` | | lines, warnings, scene | fills the screen, the grid the one scroll container (review C-01); sheet + 3D side by side, shared filters, detail with "How it is calculated", inline edits, move, reorder, exclude, add line, request prices, share |
 | S12b | … `?tab=questions` | lead, estimator, approver; viewer read-only | questions + decisions | answer, bulk, dismiss, promote |
 | S12c | … `?tab=viewer` | all | geometry, scene, coverage | select, colour modes |
-| S12d | … `?tab=changes` | lead, estimator, approver | diff | filter, export |
+| S12d | … `?tab=changes` | project roles (viewer read-only: compare, filter and export, as the API allows; review C-14, D120) | diff | compare with, filter, export |
 | S12e | … `?tab=log` | lead, estimator, approver; viewer read-only | log | filter |
 | S12f | … `?tab=setup` | lead, estimator (edit in draft); approver, viewer read-only | revision inputs, presets | change inputs |
 | S12g | … `?tab=exports` | project roles | exports | export, download, import edits from Excel |

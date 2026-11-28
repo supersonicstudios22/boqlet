@@ -39,7 +39,7 @@ type Tab = (typeof TABS)[number];
 
 /**
  * S12: the BoQ workspace: header, Sheet (FE-009), Questions (FE-010), Viewer (FE-016), Changes
- * (FE-030; leads, estimators and approvers, S12d), Log, Setup and the run history (FE-008).
+ * (FE-030, S12d; everyone who can view the BoQ, review C-14), Log, Setup and the run history (FE-008).
  */
 export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: string }> }) {
   const { boqId } = use(params);
@@ -61,11 +61,9 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
   const versionId = search.get("version");
   const viewing = versionId ? revisions.data?.find((r) => r.id === versionId && r.status === "issued") : undefined;
   const status = boq.data?.currentRevision.status;
-  // S12d: the change report is for leads, estimators and approvers (seeAudit: lead, approver). The
-  // review screen shows while a version is in review or approved (F09 §4).
-  const tabs = TABS.filter(
-    (k) => (k !== "changes" || can("seeAudit") || can("editBoqs")) && (k !== "review" || status === "in_review" || status === "approved") && (!viewing || VERSION_TABS.includes(k)),
-  );
+  // S12d: the change report is for everyone who can view the BoQ, read-only managers included (review
+  // C-14, D120; the API always allowed it). The review screen shows while a version is in review or approved (F09 §4).
+  const tabs = TABS.filter((k) => (k !== "review" || status === "in_review" || status === "approved") && (!viewing || VERSION_TABS.includes(k)));
   // Module tabs (`boq.workspaceTabs`, P36) after the core's; not on a saved version opened read-only.
   const moduleTabs = viewing ? [] : extensions("boq.workspaceTabs").filter((m) => !m.visible || m.visible({ ...orgScope, projectPermissions: project.permissions ?? {} }));
   const moduleTab = moduleTabs.find((m) => m.id === requested);
