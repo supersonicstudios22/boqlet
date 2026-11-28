@@ -6,9 +6,11 @@ from __future__ import annotations
 
 import copy
 
+import pytest
 from test_reported_quantities import doc, slab
 
 from ifc_boq import presets
+from ifc_boq.names import UNSPECIFIED, Resolver, TermIndex
 from ifc_boq.pipeline import AFFECTED_LINES, affected_lines, get_boq
 
 
@@ -62,11 +64,6 @@ def test_affected_lines_are_capped_in_boq_order():
 
 
 # ------------------------------------------------------------------ C-16: names that can always be answered
-from ifc_boq.names import UNSPECIFIED, Resolver, TermIndex  # noqa: E402
-
-import pytest  # noqa: E402
-
-
 def seed_resolver() -> Resolver:
     return Resolver([presets.load_dictionary("global-seed")], presets.resolution())
 
