@@ -13,7 +13,7 @@ system interaction where it isn't obvious. Screens are defined in [screens.md](s
 | 1a | User | After sign-in: if the account is open on another device, confirms the takeover (F01 §10) | `/session-conflict` | `POST /sessions` (`409 session_active` → `{takeover: true}`) |
 | 2 | User | Lands in onboarding, names the org, picks currency / units / country. The org starts on the default tier (P17) | `/onboarding` | `GET /me`, `POST /orgs` |
 | 2a | Owner | **Setup wizard, required** (F16, P18): how the firm measures, item numbers and texts, names. "Use the suggested answers" finishes in minutes | `/{org}/setup` | F16 API |
-| 3 | Owner | Optional: invite colleagues (skip allowed). **Not built in onboarding:** onboarding is one create-org form; invitations are sent from org settings › Members | `/onboarding` step 2 | `POST /orgs/{id}/invitations` |
+| 3 | Owner | Optional: invite colleagues (skip allowed), when the plan has seats for them (review C-30); on a one-seat plan the step is left out and invitations come from org settings › Members | `/onboarding` step 2 | `GET /orgs/{id}/entitlements`, `POST /orgs/{id}/invitations` |
 | 4 | Owner | Empty dashboard with "Create your first project" and "Try with a sample project" | `/{org}` | `GET /orgs/{id}/projects` |
 | 5 | Owner | Sample project: a copy of the Duplex project (model, BoQ, a few answered questions) to explore | `/{org}/projects/{p}` | `POST /orgs/{id}/projects?sample=duplex` |
 | 6 | Owner | Later: refine the presets in the Library (guided mode, full editors or Excel templates, F10) | `/{org}/library` | Library endpoints |

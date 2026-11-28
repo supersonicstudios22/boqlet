@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { apiAs, createOrg, invitationToken, newEmail, newPerson, rawAs, useSession } from "./helpers";
+import { apiAs, createOrg, invitationToken, mailLinks, newEmail, newPerson, rawAs, setDefaultPlan, unique, useSession, waitFor } from "./helpers";
 
 /** Smoke against Java: invitations, plan limits, owners and several orgs (F01, F14). */
 
@@ -79,4 +79,38 @@ test("F01-AC6: a person in two orgs switches between them and sees the other org
   await expect(page.getByTestId("settings-name")).toHaveValue("Second Firm");
   // A member there: read-only settings, no invitations.
   await expect(page.getByTestId("read-only-note")).toBeVisible();
+});
+
+test("C-30: on a plan with seats, onboarding offers to invite colleagues; on Free it promises nothing it can't do", async ({ page }) => {
+  try {
+    await setDefaultPlan("team");
+    const owner = await newPerson("Team Founder");
+    await useSession(page.context(), owner);
+    await page.goto("/onboarding");
+    await expect(page.getByText("You can invite colleagues from Settings › Members when your plan allows.")).toBeVisible();
+    await page.getByTestId("org-name").fill(`Team Firm ${unique("t")}`);
+    await page.getByTestId("create-org").click();
+    const step = page.getByTestId("invite-step");
+    await expect(step).toContainText("Invite colleagues");
+    const colleague = newEmail("colleague");
+    await page.getByTestId("invite-step-email-0").fill(colleague);
+    await page.getByTestId("invite-step-role-0").selectOption("admin");
+    await page.getByTestId("invite-step-send").click();
+    await expect(page).toHaveURL(/\/setup$/);
+    const token = await waitFor("the invitation mail", async () =>
+      (await mailLinks(colleague)).map((l) => /\/invite\/([A-Za-z0-9_-]{43})/.exec(l)?.[1]).find(Boolean), 30_000);
+    expect(await apiAs(owner, "GET", `/invitations/${token}`)).toMatchObject({ email: colleague, role: "admin", status: "pending" });
+  } finally {
+    await setDefaultPlan("free");
+  }
+
+  // Free has one seat: no invite step, straight to the wizard.
+  const solo = await newPerson("Solo Founder");
+  await page.context().clearCookies();
+  await useSession(page.context(), solo);
+  await page.goto("/onboarding");
+  await page.getByTestId("org-name").fill(`Solo Firm ${unique("s")}`);
+  await page.getByTestId("create-org").click();
+  await expect(page).toHaveURL(/\/setup$/);
+  await expect(page.getByTestId("invite-step")).toHaveCount(0);
 });

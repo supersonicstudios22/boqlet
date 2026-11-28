@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useHydrated } from "@/components/hydration";
 import { CountryPicker, CurrencyPicker } from "@/features/orgs/code-pickers";
+import { InviteStep } from "@/features/orgs/invite-step";
 import { rememberOrg } from "@/features/orgs/org-context";
 import { SLUG_PATTERN, suggestSlug } from "@/features/orgs/slug";
 import { LIMITS } from "@/lib/limits";
@@ -36,6 +37,9 @@ export default function OnboardingPage() {
   const [country, setCountry] = useState("");
   const [unitSystem, setUnitSystem] = useState<"metric" | "imperial">("metric");
   const effectiveSlug = slugEdited ? slug : suggestSlug(name);
+  // Review C-30: after the org, an optional invite step when its plan has seats for colleagues.
+  const [created, setCreated] = useState<{ id: string; slug: string; seatsLeft: number } | null>(null);
+  const toWizard = (orgSlug: string) => router.push(`/${orgSlug}/setup`);
 
   const create = useMutation({
     mutationFn: async () => {
@@ -49,8 +53,14 @@ export default function OnboardingPage() {
     onSuccess: async (org) => {
       rememberOrg(org.slug);
       await client.invalidateQueries({ queryKey: keys.me() });
-      // F16, P18: a new org's owner goes straight into the setup wizard.
-      router.push(`/${org.slug}/setup`);
+      const entitlements = await api.GET("/orgs/{orgId}/entitlements", { params: { path: { orgId: org.id } } })
+        .then((r) => r.data)
+        .catch(() => undefined);
+      const seats = entitlements?.limits.seats ?? 1;
+      const seatsLeft = Math.min(10, seats - (entitlements?.usage.seats ?? 1));
+      // F16, P18: then the new org's owner goes into the setup wizard.
+      if (seatsLeft >= 1) setCreated({ id: org.id, slug: org.slug, seatsLeft });
+      else toWizard(org.slug);
     },
     onError: () => {},
   });
@@ -61,6 +71,18 @@ export default function OnboardingPage() {
   const slugInvalid = slugMissing || (effectiveSlug !== "" && !SLUG_PATTERN.test(effectiveSlug));
   const slugOpen = editingSlug || slugEdited || slugTaken || slugInvalid;
   const otherError = create.error && !slugTaken ? message(create.error) : null;
+
+  if (created) {
+    return (
+      <main className="mx-auto grid min-h-dvh max-w-5xl grid-cols-1 items-center gap-12 px-8 py-12 md:grid-cols-[1fr_320px]">
+        <div className="flex flex-col gap-6">
+          <Wordmark />
+          <InviteStep orgId={created.id} seatsLeft={created.seatsLeft} onDone={() => toWizard(created.slug)} />
+        </div>
+        <Poster variant={1} className="hidden w-full md:grid" />
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-5xl grid-cols-1 items-center gap-12 px-8 py-12 md:grid-cols-[1fr_320px]">

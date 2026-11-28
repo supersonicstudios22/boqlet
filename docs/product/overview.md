@@ -136,7 +136,6 @@ Planned in the specs but **not built**:
 | Gap | Spec | Note |
 |---|---|---|
 | Strong bot protection for public sign-up | P57, BE-D12 | Sign-up is built and off until the platform admin opens it; its bot protection is basic (a hidden field, a minimum fill time, throttling) |
-| Invite colleagues during onboarding | FL-1 step 3 | Onboarding is a single create-org form; the wizard follows, and until it is finished every org page but the settings leads to it (P54 Q57) |
 | Payment provider, checkout, webhooks | F14, BE-D7 | Manual billing: checkout answers `409 checkout_unavailable`, the webhook `400 unsupported_provider` |
 | Trial driven by plan config, downgrade rules | plans-and-limits | Admins set `trialEndsAt` by hand; no job drops an org to Free; excess projects don't become read-only |
 | Default presets chosen per project | F02 | Defaults come from the org's starred presets or the wizard's "Publish all" |

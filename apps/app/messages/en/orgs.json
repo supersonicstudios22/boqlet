@@ -12,7 +12,7 @@
   "onboarding": {
     "step": "NO. 01 — YOUR FIRM",
     "title": "Create your organisation",
-    "intro": "Your firm's space for projects, models and bills of quantities. You can invite colleagues next.",
+    "intro": "Your firm's space for projects, models and bills of quantities. You can invite colleagues from Settings › Members when your plan allows.",
     "name": "Organisation name",
     "slug": "Web address",
     "slugHint": "Your organisation's web address: {address}",
@@ -27,6 +27,19 @@
     "imperial": "Imperial",
     "optional": "Optional",
     "create": "Create organisation"
+  },
+  "inviteStep": {
+    "step": "NO. 02 — YOUR TEAM",
+    "title": "Invite colleagues",
+    "intro": "They get an email with a link to join. Your plan has room for {seats, plural, one {# more person} other {# more people}}; you can invite more later from Settings › Members.",
+    "email": "Colleague {n}: email",
+    "role": "Colleague {n}: role",
+    "emailPlaceholder": "name@example.com",
+    "more": "Add another",
+    "sent": "Invitation sent to {email}",
+    "send": "Send invitations",
+    "continue": "Continue",
+    "skip": "Skip for now"
   },
   "codes": {
     "country": "Country",

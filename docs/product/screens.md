@@ -10,7 +10,8 @@ and **read-only** (archived project, saved version, confirmed BoQ, insufficient 
 
 Screens marked "(pricing module)" are **not built** (P48). Every other screen in the inventory
 exists at its route under `apps/app/app/` (2026-11-21); `/sign-up` is the set-password page for
-setup links and invitations, not a public sign-up (F01), and `/onboarding` has no invite step.
+setup links and invitations, not a public sign-up (F01); `/onboarding`'s invite step shows only
+when the plan has seats for colleagues (review C-30).
 
 ## Inventory
 

@@ -109,6 +109,9 @@ export async function createOrg(person: Pick<Person, "session">, name: string, o
 /** Makes a person a platform admin (the harness's `/_test/platform-admin`, as `npm run local:admin` does). */
 export const makePlatformAdmin = (userId: string) => testCall("/platform-admin", { userId });
 
+/** The plan new orgs start on (the harness's `/_test/default-plan`); put back `free` afterwards. */
+export const setDefaultPlan = (planId: string) => testCall("/default-plan", { planId });
+
 /** Opens or closes public sign-up (P57), as the platform admin's setting does. */
 export const setPublicSignUp = (open: boolean) => testCall("/public-sign-up", { open });
 

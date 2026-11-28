@@ -4,7 +4,6 @@
 > **Not built / differs** (also in [known limitations](../known-limitations.md)):
 > - Bot protection is basic (P57): no captcha or proof of work; sign-up asks for no terms or privacy acceptance (there are no such pages yet).
 > - `ownedOrgsPerUser` is checked when someone creates an org, not when ownership changes hands ("make someone owner").
-> - Onboarding has no invite step (FL-1 step 3): `apps/app/app/(app)/onboarding/page.tsx` creates the org and goes to the wizard.
 > - The takeover question's place is always empty: `Sessions.java` has a `place` column nothing writes.
 > - The 12 h idle expiry is hard-coded (`interval '12 hours'` in `Sessions.java`), not configurable.
 > - Ownership transfer is "make someone owner" (owner only, `Orgs.java`); no separate transfer action.
@@ -51,7 +50,10 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
    name with no letter a–z or digit suggests none and asks for one (never "000"). Country and
    currency are searchable pickers by name in the person's language (`Intl.DisplayNames`) that
    store the ISO code ("Ireland" → `IE`); org settings and the project forms use the same
-   pickers (review C-29).
+   pickers (review C-29). When the new org's plan has seats for colleagues, onboarding's second
+   step invites them (emails and an org role each, "Skip for now"; review C-30,
+   `features/orgs/invite-step.tsx`); on a one-seat plan (Free) it goes straight to the wizard and
+   the first step says invitations come from Settings › Members when the plan allows.
 5. **Invite:** email + role. `seats` is checked when sending (`402 limit_reached` with
    `limit: "seats"`). Pending invitations count towards seats. Inviting an email that is
    already a member returns `409 already_member`. Invitations expire after 14 days and can be

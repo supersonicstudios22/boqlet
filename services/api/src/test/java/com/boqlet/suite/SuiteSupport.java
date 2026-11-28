@@ -213,6 +213,17 @@ public class SuiteSupport {
             return Map.of("updated", updated);
         }
 
+        /**
+         * Which plan new orgs start on (`plans.default_plan`), for the onboarding invite step's browser test
+         * (review C-30): `{planId}`. The browser suite runs one test at a time; the test puts Free back.
+         */
+        @PostMapping("/default-plan")
+        Map<String, Object> defaultPlan(@RequestBody Map<String, Object> body) {
+            String plan = String.valueOf(body.get("planId"));
+            database.update("UPDATE plans SET default_plan = false WHERE default_plan AND id <> ?", plan);
+            return Map.of("updated", database.update("UPDATE plans SET default_plan = true WHERE id = ?", plan));
+        }
+
         /** The database sessions that are not idle, with what they wait on (diagnosing a request that hangs). */
         @GetMapping("/db-activity")
         java.util.List<Map<String, Object>> dbActivity() {
