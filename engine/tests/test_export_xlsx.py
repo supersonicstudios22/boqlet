@@ -12,9 +12,35 @@ from ifc_boq.export_xlsx import export, subtotal
 
 def _rows(workbook_bytes):
     sheet = load_workbook(BytesIO(workbook_bytes))["BoQ"]
-    # Column I keeps the line key (hidden, for the edits round trip); J the position number.
-    return [(sheet.cell(row, 9).value, sheet.cell(row, 10).value) for row in range(6, sheet.max_row + 1)
+    # Column I keeps the line key (hidden, for the edits round trip); A (Ref) the position number (C-23).
+    return [(sheet.cell(row, 9).value, sheet.cell(row, 1).value) for row in range(6, sheet.max_row + 1)
             if sheet.cell(row, 9).value]
+
+
+def test_ref_is_the_position_number_a_number_where_it_is_one(duplex_parsed):
+    """Review C-23 (QS-016): Ref held the group code on every line, the item number sat in a text column "No.".
+    Ref is the position number now (the sheet's rule: code, separator, running number), a number without a
+    classification; the group rows keep their codes; no "No." column."""
+    result = run(duplex_parsed)
+    coded = load_workbook(BytesIO(export(result, {"boqId": "c-23", "classifications": [
+        {"id": "acme-cost-codes", "name": "ACME", "separator": "."}]})))["BoQ"]
+    assert coded["J5"].value is None
+    refs = {}
+    for row in range(6, coded.max_row + 1):
+        if key := coded.cell(row, 9).value:
+            refs[key] = coded.cell(row, 1).value
+    by_code: dict = {}
+    for line in result["lines"]:
+        if not line.get("excluded"):
+            code = line["codes"]["acme-cost-codes"]["code"]
+            by_code[code] = by_code.get(code, 0) + 1
+            assert refs[line["key"]] == f"{code}.{by_code[code]}"
+    headings = {coded.cell(r, 1).value for r in range(6, coded.max_row + 1) if not coded.cell(r, 9).value and coded.cell(r, 1).value}
+    assert headings and headings <= {step["code"] for line in result["lines"] for step in line["codes"]["acme-cost-codes"]["path"]}
+
+    plain = load_workbook(BytesIO(export(result, {"boqId": "c-23"})))["BoQ"]
+    numbers = [plain.cell(r, 1).value for r in range(6, plain.max_row + 1) if plain.cell(r, 9).value]
+    assert numbers == list(range(1, len(numbers) + 1)) and all(isinstance(n, int) for n in numbers)
 
 
 def test_rows_follow_the_line_order_and_numbers_run_in_sequence(duplex_parsed):
@@ -273,18 +299,21 @@ def test_an_unedited_export_grouped_by_storey_or_rule_imports_as_nothing_to_appl
     data = export(result, meta)
     info = {"boqId": "b", "primary": "acme-cost-codes", "lines": result["lines"]}
     assert boq_import.read(data, info) == {"overrides": [], "manualItems": [], "problems": []}
-    # Ref still carries the line's code in the first classification, and changing it still moves the line.
+    # Ref is the line's position in the first classification (C-23), and changing it still moves the line:
+    # to a code typed in, or to the section of a position number typed in.
     from openpyxl import load_workbook
     wb = load_workbook(BytesIO(data))
     ws = wb["BoQ"]
     row = next(r for r in range(6, ws.max_row + 1) if ws.cell(r, 9).value and ws.cell(r, 1).value)
     key = ws.cell(row, 9).value
-    assert ws.cell(row, 1).value == next(l for l in result["lines"] if l["key"] == key)["codes"]["acme-cost-codes"]["code"]
-    ws.cell(row, 1).value = "99"
-    out = BytesIO()
-    wb.save(out)
-    report = boq_import.read(out.getvalue(), info)
-    assert [o["edit"] for o in report["overrides"]] == [{"lineKey": key, "codes": {"acme-cost-codes": "99"}}]
+    code = next(l for l in result["lines"] if l["key"] == key)["codes"]["acme-cost-codes"]["code"]
+    assert str(ws.cell(row, 1).value).startswith(code + ".")
+    for typed, moved in (("99", "99"), ("H.03.7", "H.03"), (f"{code}.42", None)):
+        ws.cell(row, 1).value = typed
+        out = BytesIO()
+        wb.save(out)
+        report = boq_import.read(out.getvalue(), info)
+        assert [o["edit"] for o in report["overrides"]] == ([{"lineKey": key, "codes": {"acme-cost-codes": moved}}] if moved else []), typed
 
 
 def test_every_sheet_prints_landscape_one_page_wide_with_its_header_row_and_a_footer(duplex_parsed):
@@ -351,7 +380,7 @@ def test_an_issue_workbook_is_a_cover_and_the_bill_without_internal_ids(duplex_p
     assert boq["A2"].value == "Grouping: ACME cost codes  |  Date: 28 November 2026"
     texts = " ".join(str(cell.value) for sheet in book.worksheets if sheet.sheet_state == "visible"
                      for row in sheet.iter_rows() for cell in row if cell.value is not None)
-    for internal in ("Rules:", "sha256", "Locale", "the team's own note", "checked on site", "Measured as", "complete"):
+    for internal in ("Rules:", "sha256", "Locale", "the team's own note", "checked on site", "Measured as", "Status: complete"):
         assert internal not in texts, internal
     assert boq.column_dimensions["I"].hidden
 

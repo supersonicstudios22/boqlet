@@ -57,7 +57,9 @@ def test_codes_exclusion_orphans_and_xlsx(duplex_parsed):
     ])
     line = next(line for line in result["lines"] if line["key"] == item["key"])
     assert line["codes"][systems[0]]["code"] == target_code
-    assert line["codes"][systems[1]] == item["codes"][systems[1]]
+    # The other system's code stays; its item text reads the edited description (review C-23: "{description}").
+    assert {k: v for k, v in line["codes"][systems[1]].items() if k != "text"} == {k: v for k, v in item["codes"][systems[1]].items() if k != "text"}
+    assert "=1+2" in line["codes"][systems[1]].get("text", "=1+2")
     assert line["overridden"]["engineCodes"] == {systems[0]: old_code}
     assert line["overridden"]["engineDescription"] == item["description"]
     assert any(q["id"] == "orphan:removed line" and not q["blocking"] for q in result["questions"])

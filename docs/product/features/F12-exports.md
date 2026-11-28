@@ -8,7 +8,7 @@
 
 | Export | Content | Produced by | Trigger |
 |---|---|---|---|
-| **BoQ Excel** (per run) | Sheet grouped by a chosen classification, or by storey or "measured as" (`groupBy` `~storey` / `~rule`, review C-07; Ref and the numbers stay the first classification's, and the edits import reads those sections as headings): ref, description, unit, quantity, source, notes; nested sections as the sheet, each with its line count and, when the unit is shared, its quantity; amounts as SUBTOTAL formulas; a "Lines" sheet with every column; a "Trace" sheet (line → elements); a "Questions" sheet; cover sheet: project, BoQ, revision, run time, presets and versions, status (WORKING watermark unless it is a saved version; free-plan watermark per entitlements) | engine `export_xlsx.export` (extended: EN-006) | `POST /runs/{runId}/exports` |
+| **BoQ Excel** (per run) | Sheet grouped by a chosen classification, or by storey or "measured as" (`groupBy` `~storey` / `~rule`, review C-07; Ref and the numbers stay the first classification's, and the edits import reads those sections as headings): Ref (the line's position number, review C-23), description, unit, quantity, source, notes; nested sections as the sheet, each with its line count and, when the unit is shared, its quantity; amounts as SUBTOTAL formulas; a "Lines" sheet with every column; a "Trace" sheet (line → elements); a "Questions" sheet; cover sheet: project, BoQ, revision, run time, presets and versions, status (WORKING watermark unless it is a saved version; free-plan watermark per entitlements) | engine `export_xlsx.export` (extended: EN-006) | `POST /runs/{runId}/exports` |
 | **Saved version Excel** | The workbook to send (`issue`, review C-22) with version label, save date and note; frozen when saved (BR-25). Its working workbook is written on request from the same stored run (`profile: working`, file name `..._working.xlsx`) | engine | when the version is saved |
 | **Change report Excel** | Line changes with before/after/Δ/Δ%/causes; element changes | engine | `POST /diffs/{diffId}/export` |
 | **Decisions CSV** | Project decisions table | backend | decisions page |
@@ -35,6 +35,9 @@
     with the calculation" for the working version, and "Working workbook of this version" for each saved
     one. The share dialog offers which Excel the share page gives (F18).
 
+- **Ref column** (review C-23, D125): each line's position number as the sheet shows it (the section's code, the
+  code list's separator and a running number: "B.02.3"; 1, 2, 3 without a classification, written as numbers);
+  the section rows carry the codes. There is no separate "No." column any more.
 - **Description column:** the line's item text in the export's grouping classification when
   its code has one (P14), else the rule set's line text. Item texts wrap in the cell. The
   "Lines" sheet has both: a column "Measured as" (rule set's line text) and one item-text
@@ -82,7 +85,8 @@ next revision.
 - **Import edits** (BoQ workspace › Exports, draft revisions, estimator+): upload the edited
   file → `import_boq_edits` job (engine, EN-006) → a review list: quantity, description and
   unit changes per line, lines moved to another section (a row moved under another group
-  heading or its Ref changed), lines deleted (proposed as exclusions), new rows without a key
+  heading, or its Ref changed to another section's code or to a position number in another section: "C.02.4"
+  moves the line to C.02, a number in its own section is no move; review C-23), lines deleted (proposed as exclusions), new rows without a key
   (proposed as manual lines under the group they sit in), rows it couldn't read. The user
   ticks what to apply and gives a reason where F06 §6 requires one. Applied changes become
   line edits and manual lines like any made in the sheet.

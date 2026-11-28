@@ -34,7 +34,9 @@ def edited(data, change):
 
 
 def row_of(sheet, description):
-    return next(row[0].row for row in sheet.iter_rows(min_row=6) if row[1].value == description)
+    """The row of a heading or subtotal by its text, or of a line by its measured description (its item text wraps it, C-23)."""
+    return next(row[0].row for row in sheet.iter_rows(min_row=6) if row[1].value == description
+                or (row[8].value and isinstance(row[1].value, str) and f": {description};" in row[1].value))
 
 
 def new_rows(rows):

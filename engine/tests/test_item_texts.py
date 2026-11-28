@@ -58,3 +58,22 @@ def test_preview_lines_carry_the_engine_filled_item_text(duplex_parsed):
     assert "codes" not in uncoded
     plain = sample({**line, "codes": {codes["id"]: {k: v for k, v in line["codes"][codes["id"]].items() if k != "text"}}})
     assert plain["codes"] == {codes["id"]: {"code": line["codes"][codes["id"]]["code"]}}
+
+
+def test_the_shipped_example_code_lists_carry_item_texts_that_never_move_a_quantity(duplex_parsed):
+    """Review C-23 (QS-016): no shipped code list had an item text, so every description read "Wall, <Revit type>,
+    417 mm". The two example lists carry illustrative texts in our own words (rule 8): each wraps the line's
+    description, so every line under a coded item reads as an item to price; quantities stay (rule 6)."""
+    for name in ("acme-cost-codes", "demo-trades"):
+        codes, mapping = presets.load_classification(name)
+        assert presets.check("classifications", {"codeList": codes, "map": mapping}) == []
+        items = [code for code in codes["codes"] if code.get("description")]
+        assert len(items) >= 9 and all("{description}" in code["description"] for code in items), name
+    plain = run(duplex_parsed, classes=())
+    coded = run(duplex_parsed, classes=("acme-cost-codes", "demo-trades"))
+    assert {l["key"]: l["quantity"] for l in coded["lines"]} == {l["key"]: l["quantity"] for l in plain["lines"]}
+    texts = [l["codes"]["acme-cost-codes"].get("text") for l in coded["lines"]]
+    assert sum(bool(t) for t in texts) >= len(texts) - 2
+    wall = next(l for l in coded["lines"] if l["ruleId"] == "walls" and "Exterior - Brick on Block" in l["description"])
+    assert wall["codes"]["acme-cost-codes"]["text"].startswith(f"External wall: {wall['description']};")
+    assert not [w for w in coded["warnings"] if w["code"] == "item_text_blank"]

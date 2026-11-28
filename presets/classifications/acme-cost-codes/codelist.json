@@ -4,7 +4,7 @@
   "name": "ACME cost codes",
   "kind": "company",
   "publisher": "ACME Ltd",
-  "version": "2026.1",
+  "version": "2026.2",
   "locale": "en",
   "licence": {
     "name": "Internal",
@@ -22,15 +22,18 @@
     },
     {
       "code": "A.01",
-      "title": "Site setup and welfare"
+      "title": "Site setup and welfare",
+      "description": "Site setup and welfare: {description}; set up, kept in use for the works and removed at the end."
     },
     {
       "code": "A.02",
-      "title": "Access and scaffolding"
+      "title": "Access and scaffolding",
+      "description": "Access and scaffolding: {description}; put up, adapted as the work proceeds and taken down."
     },
     {
       "code": "A.03",
-      "title": "Cleaning"
+      "title": "Cleaning",
+      "description": "Cleaning: {description}; during the works and before handover."
     },
     {
       "code": "B",
@@ -38,15 +41,18 @@
     },
     {
       "code": "B.01",
-      "title": "Foundations"
+      "title": "Foundations",
+      "description": "Foundations: {description}; placed and finished to the levels shown. Excavation and disposal are separate items."
     },
     {
       "code": "B.02",
-      "title": "Ground slabs"
+      "title": "Ground slabs",
+      "description": "Ground slab: {description}; placed, compacted and finished level to take the floor build-up."
     },
     {
       "code": "B.03",
-      "title": "Formwork to substructure"
+      "title": "Formwork to substructure",
+      "description": "Formwork to substructure: {description}; put up, struck and removed."
     },
     {
       "code": "C",
@@ -54,23 +60,28 @@
     },
     {
       "code": "C.01",
-      "title": "Structural steel"
+      "title": "Structural steel",
+      "description": "Structural steel: {description}; made, delivered, erected and bolted, primed as specified."
     },
     {
       "code": "C.02",
-      "title": "Concrete frame and slabs"
+      "title": "Concrete frame and slabs",
+      "description": "Concrete frame and slabs: {description}; supplied, placed, compacted and cured."
     },
     {
       "code": "C.03",
-      "title": "Reinforcement"
+      "title": "Reinforcement",
+      "description": "Reinforcement: {description}; cut, bent and fixed with spacers and tying wire."
     },
     {
       "code": "C.04",
-      "title": "Formwork to frame"
+      "title": "Formwork to frame",
+      "description": "Formwork to frame: {description}; put up, struck and removed."
     },
     {
       "code": "C.05",
-      "title": "Timber and other members"
+      "title": "Timber and other members",
+      "description": "Structural member: {description}; supplied, cut to length and fixed."
     },
     {
       "code": "D",
@@ -78,15 +89,18 @@
     },
     {
       "code": "D.01",
-      "title": "External walls"
+      "title": "External walls",
+      "description": "External wall: {description}; built complete with fixings, ties and closers around openings."
     },
     {
       "code": "D.02",
-      "title": "Internal walls and partitions"
+      "title": "Internal walls and partitions",
+      "description": "Internal wall or partition: {description}; built complete with fixings at head and base."
     },
     {
       "code": "D.03",
-      "title": "Curtain walling, panels and cladding"
+      "title": "Curtain walling, panels and cladding",
+      "description": "Curtain walling, panel or cladding: {description}; supplied and installed with fixings and seals."
     },
     {
       "code": "E",
@@ -94,11 +108,13 @@
     },
     {
       "code": "E.01",
-      "title": "Windows and rooflights"
+      "title": "Windows and rooflights",
+      "description": "Window or rooflight: {description}; supplied and fixed with ironmongery, sealed to the opening."
     },
     {
       "code": "E.02",
-      "title": "Doors"
+      "title": "Doors",
+      "description": "Door: {description}; supplied and hung with frame, ironmongery and seals."
     },
     {
       "code": "F",
@@ -106,7 +122,8 @@
     },
     {
       "code": "F.01",
-      "title": "Roof build-ups and coverings"
+      "title": "Roof build-ups and coverings",
+      "description": "Roof: {description}; laid complete with fixings, upstands and edge trims."
     },
     {
       "code": "G",
@@ -114,15 +131,18 @@
     },
     {
       "code": "G.01",
-      "title": "Upper floors"
+      "title": "Upper floors",
+      "description": "Upper floor: {description}; supplied and fixed complete."
     },
     {
       "code": "G.02",
-      "title": "Stairs"
+      "title": "Stairs",
+      "description": "Stair: {description}; supplied and installed complete with fixings."
     },
     {
       "code": "G.03",
-      "title": "Railings and balustrades"
+      "title": "Railings and balustrades",
+      "description": "Railing or balustrade: {description}; supplied and fixed complete."
     },
     {
       "code": "H",
@@ -130,19 +150,23 @@
     },
     {
       "code": "H.01",
-      "title": "Floor finishes"
+      "title": "Floor finishes",
+      "description": "Floor finish: {description}; laid on the prepared base."
     },
     {
       "code": "H.02",
-      "title": "Ceiling finishes"
+      "title": "Ceiling finishes",
+      "description": "Ceiling finish: {description}; fixed complete."
     },
     {
       "code": "H.03",
-      "title": "Wall finishes and painting"
+      "title": "Wall finishes and painting",
+      "description": "Wall finish: {description}; applied to the prepared surfaces."
     },
     {
       "code": "H.04",
-      "title": "Skirtings and trims"
+      "title": "Skirtings and trims",
+      "description": "Skirting or trim: {description}; fixed complete with joints and ends."
     },
     {
       "code": "J",
@@ -150,11 +174,13 @@
     },
     {
       "code": "J.01",
-      "title": "Fittings and furniture"
+      "title": "Fittings and furniture",
+      "description": "Fitting or furniture: {description}; supplied and installed."
     },
     {
       "code": "J.02",
-      "title": "Other components"
+      "title": "Other components",
+      "description": "Component: {description}; supplied and installed."
     },
     {
       "code": "K",
@@ -162,11 +188,13 @@
     },
     {
       "code": "K.01",
-      "title": "Pipework, ductwork and cabling"
+      "title": "Pipework, ductwork and cabling",
+      "description": "Pipework, ductwork or cabling: {description}; installed with supports and fittings."
     },
     {
       "code": "K.02",
-      "title": "Fittings, terminals and equipment"
+      "title": "Fittings, terminals and equipment",
+      "description": "Services fitting or equipment: {description}; installed and connected."
     },
     {
       "code": "L",
@@ -174,19 +202,23 @@
     },
     {
       "code": "L.01",
-      "title": "Earthworks"
+      "title": "Earthworks",
+      "description": "Earthworks: {description}."
     },
     {
       "code": "L.02",
-      "title": "Pavements, courses and markings"
+      "title": "Pavements, courses and markings",
+      "description": "Paving or surfacing: {description}; laid on the prepared base."
     },
     {
       "code": "L.03",
-      "title": "Kerbs, edgings and rails"
+      "title": "Kerbs, edgings and rails",
+      "description": "Kerb, edging or rail: {description}; laid to line and level."
     },
     {
       "code": "L.04",
-      "title": "Site, track and landscape components"
+      "title": "Site, track and landscape components",
+      "description": "Site or landscape component: {description}; supplied and installed."
     },
     {
       "code": "X",
@@ -194,7 +226,8 @@
     },
     {
       "code": "X.01",
-      "title": "Provisional sums"
+      "title": "Provisional sums",
+      "description": "Provisional sum: {description}."
     },
     {
       "code": "Z",

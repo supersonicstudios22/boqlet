@@ -84,7 +84,8 @@ def main(argv=None) -> int:
         meta = {"modelName": " + ".join(m["parsed"]["header"]["source"]["fileName"] for m in models),
                 "modelId": ", ".join(m["parsed"]["header"]["source"]["sha256"] for m in models),
                 "dictionaries": [f"{d['name']} ({d['layer']})" for d in dicts],
-                "classifications": [{"id": cl["id"], "name": cl["name"]} for cl, _ in systems], "decisions": decisions}
+                "classifications": [{"id": cl["id"], "name": cl["name"], **({"separator": cl["separator"]} if cl.get("separator") else {})}
+                                    for cl, _ in systems], "decisions": decisions}
         Path(a.out).write_bytes(export(result, meta))
         if not a.quiet:
             print(f"Excel: {a.out}")

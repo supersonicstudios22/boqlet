@@ -19,12 +19,14 @@ FIRST = 6
 COLS = {"ref": "A", "description": "B", "unit": "C", "quantity": "D"}
 
 
-def annotate(wb, boq_id, primary, rows, grouping=None):
+def annotate(wb, boq_id, primary, rows, grouping=None, separator=None):
     ws = wb["BoQ"]
     ws.cell(row=FIRST - 1, column=KEY_COL, value="Line key")
     snap = wb.create_sheet("_boqlet")
     # `grouping`: a built-in grouping (by storey or rule, review C-07), whose section rows carry no code.
-    snap.append(["boqId", boq_id, "primary", primary or "", *(["grouping", grouping] if grouping else [])])
+    # `refs positions` (review C-23): a line's Ref is its position number (code, separator, number), not its code.
+    snap.append(["boqId", boq_id, "primary", primary or "", *(["grouping", grouping] if grouping else []),
+                 *(["refs", "positions", "separator", separator] if separator is not None else [])])
     snap.append(["key", "ref", "description", "unit", "quantity", "top"])
     unlocked = Protection(locked=False)
     for row, key, top in rows:
@@ -124,7 +126,8 @@ def _read(wb, info, report):
         report["problems"].append({"row": 0, "message": "This workbook wasn't exported from boqlet (its BoQ sheet or line keys are missing)."})
         return report
     snap = wb["_boqlet"]
-    head = next(snap.iter_rows(min_row=1, max_row=1, max_col=6, values_only=True), [None] * 6)
+    head = next(snap.iter_rows(min_row=1, max_row=1, max_col=10, values_only=True), [None] * 10)
+    head = [*head, *[None] * (10 - len(head))]
     if head[0] != "boqId" or str(head[1] or "") != info["boqId"]:
         report["problems"].append({"sheet": "BoQ", "row": 0, "message": "This workbook was exported from another BoQ."})
         return report
@@ -132,6 +135,9 @@ def _read(wb, info, report):
     # Exported grouped by storey or rule (review C-07): a row without a key, unit and quantity is a section
     # heading, and a section is no code, so only a changed Ref moves a line.
     built_in = head[4] == "grouping" and bool(head[5])
+    options = {str(head[i]): head[i + 1] for i in range(4, len(head) - 1, 2) if head[i]}
+    position_refs = options.get("refs") == "positions"
+    separator = str(options.get("separator") or ".")
     ws = wb["BoQ"]
     if any(sheet.max_row is None or sheet.max_row > 250_000 for sheet in (ws, snap)):
         report["problems"].append({"sheet": "BoQ", "row": 0, "message": "The workbook exceeds the maximum row count."})
@@ -148,6 +154,23 @@ def _read(wb, info, report):
             headings.add((str(node["code"]).strip(), str(node["title"]).strip()))
     # The grouping code list's codes, when the caller sends them: a Ref outside it is that row's problem.
     known = set(info["codes"]) if info.get("codes") is not None else None
+    sections = {code for code, _ in headings if code}
+
+    def section_of(ref_s: str, exported_ref: str | None = None) -> str:
+        """The code a Ref names. A workbook whose Ref holds position numbers (review C-23) names the section by the
+        number's code ("C.02.3" -> "C.02", "0.4" -> none); a Ref that is a code itself stays one, as before. A line's
+        Ref typed with fewer or more separators than its position had ("B.99" for "B.02.1") is a code typed in."""
+        if not position_refs or not ref_s or (known is not None and ref_s in known) or ref_s in sections:
+            return ref_s
+        if exported_ref is not None and ref_s.count(separator) != exported_ref.count(separator):
+            return ref_s
+        number = re.fullmatch(r"(.+)" + re.escape(separator) + r"\d+", ref_s)
+        if number and number[1] == "0" and (known is None or "0" not in known):
+            return ""
+        if number and (known is None or number[1] in known or number[1] in sections):
+            return number[1]
+        return ref_s
+
     ids = {}
     seen = set()
     heading = ""
@@ -191,8 +214,8 @@ def _read(wb, info, report):
             if not desc_s:
                 _problem(report, r, COLS["description"], "A new row needs a description.")
                 continue
-            code = ref_s or heading
-            if primary and ref_s and known is not None and ref_s not in known:
+            code = section_of(ref_s) or heading
+            if primary and ref_s and known is not None and code not in known:
                 _problem(report, r, COLS["ref"], f"\"{ref_s}\" is not a code of the grouping classification.")
                 continue
             unit_s = str(unit or "item").strip()
@@ -234,7 +257,10 @@ def _read(wb, info, report):
             changes.append("unit")
         ref_s = str(ref or "").strip()
         if primary and (ref_s != str(was["ref"]).strip() or (heading and heading != str(was["top"]))):
-            code = ref_s if ref_s != str(was["ref"]).strip() else heading
+            code = section_of(ref_s, str(was["ref"]).strip()) if ref_s != str(was["ref"]).strip() else heading
+            # A position renumbered within its own section is no move.
+            if code and code == str((((current[key].get("codes") or {}).get(primary)) or {}).get("code") or ""):
+                code = ""
             if code and known is not None and code not in known:
                 _problem(report, r, COLS["ref"], f"\"{code}\" is not a code of the grouping classification.")
             elif code:

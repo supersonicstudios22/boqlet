@@ -96,7 +96,7 @@ def verify_edit_round_trip(storage, result_key, code_list):
     assert sheet.protection.sheet and sheet.column_dimensions["I"].hidden
     assert workbook["_boqlet"].sheet_state == "veryHidden"
     rows = [(row, sheet.cell(row, 9).value) for row in range(6, sheet.max_row + 1) if sheet.cell(row, 9).value]
-    assert sheet.cell(dict((key, row) for row, key in rows)["site-hoarding"], 10).value == "D.02.1"
+    assert sheet.cell(dict((key, row) for row, key in rows)["site-hoarding"], 1).value == "D.02.1"
     (quantity, quantity_key), (move, move_key), (remove, removed_key), (invalid, _) = rows[:4]
     assert not sheet.cell(quantity, 4).protection.locked and sheet.cell(quantity, 9).protection.locked
     sheet.cell(quantity, 4, 100.5)

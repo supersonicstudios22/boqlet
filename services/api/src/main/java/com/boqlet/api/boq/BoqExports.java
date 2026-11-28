@@ -164,6 +164,8 @@ public class BoqExports {
         metadata.put("classifications", run.run().getClassifications() == null ? List.of() : run.run().getClassifications());
         // Grouped by storey or rule (review C-07), a view: Ref and the numbers stay those of the first classification.
         metadata.put("positionNumbers", positions(currentId, builtIn(group) ? primary(run) : group));
+        // The separator those numbers use, so the edits import reads a typed position's section (review C-23).
+        metadata.put("separator", separator(currentId, builtIn(group) ? primary(run) : group));
         // The sheet's order, with reorders and placed manual lines (F06-AC3, BR-28; TF-049).
         metadata.put("lineOrder", database.queryForList("SELECT line_key FROM run_lines WHERE run_id = ? ORDER BY sort_index",
                 String.class, currentId));
@@ -258,14 +260,7 @@ public class BoqExports {
                 """, (row, index) -> new Numbered(row.getString("line_key"), row.getInt("sort_index"), row.getString("code")),
                 group, run);
         var counts = new HashMap<String, Integer>();
-        String separator = ".";
-        if (group != null) separator = database.query("""
-                SELECT v.doc->'codeList'->>'separator' AS separator FROM runs r
-                CROSS JOIN LATERAL jsonb_array_elements_text(r.snapshot_versions->'classificationVersionIds') chosen(id)
-                JOIN preset_versions v ON v.id = chosen.id::uuid
-                WHERE r.id = ? AND v.doc->'codeList'->>'id' = ?
-                """, (row, index) -> Optional.ofNullable(row.getString("separator")).filter(value -> !value.isBlank()).orElse("."),
-                run, group).stream().findFirst().orElse(".");
+        String separator = separator(run, group);
         var out = new ArrayList<Numbered>(rows.size());
         int index = 0;
         for (Numbered line : rows) {
@@ -273,6 +268,18 @@ public class BoqExports {
             out.add(line.at(group == null ? Integer.toString(++index) : code + separator + counts.merge(code, 1, Integer::sum)));
         }
         return out;
+    }
+
+    /** The grouping code list's separator in a run (`.` when it has none, or with no grouping). */
+    String separator(UUID run, String group) {
+        if (group == null) return ".";
+        return database.query("""
+                SELECT v.doc->'codeList'->>'separator' AS separator FROM runs r
+                CROSS JOIN LATERAL jsonb_array_elements_text(r.snapshot_versions->'classificationVersionIds') chosen(id)
+                JOIN preset_versions v ON v.id = chosen.id::uuid
+                WHERE r.id = ? AND v.doc->'codeList'->>'id' = ?
+                """, (row, index) -> Optional.ofNullable(row.getString("separator")).filter(value -> !value.isBlank()).orElse("."),
+                run, group).stream().findFirst().orElse(".");
     }
 
     private static String primary(RunCatalog.Entry run) {

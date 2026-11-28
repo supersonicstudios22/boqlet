@@ -246,7 +246,8 @@ def _run_result(job, storage, prefix, progress, *, check_result=True, models=Non
         meta = {
             "modelName": " + ".join(m["parsed"]["header"]["source"]["fileName"] for m in models),
             "dictionaries": [f"{d['name']} ({d['layer']})" for d in dictionaries],
-            "classifications": [{"id": code["id"], "name": code["name"]} for code, _ in classifications],
+            "classifications": [{"id": code["id"], "name": code["name"], **({"separator": code["separator"]} if code.get("separator") else {})}
+                                for code, _ in classifications],
             "decisions": decisions,
             **config.get("meta", {}),
         }

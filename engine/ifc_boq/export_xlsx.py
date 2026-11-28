@@ -234,6 +234,32 @@ def subtotal(lines) -> dict:
     return {"count": len(included), "unit": unit, "quantity": sum(measured) if unit is not None and measured else None}
 
 
+def position_numbers(lines: list[dict], system: str | None, separator: str = ".") -> dict[str, str]:
+    """Each line's position number, the sheet's rule (`positions.ts`, the backend's `BoqExports.numbering`): the
+    line's code in the grouping system and a running number in the order given, with the code list's separator;
+    lines without a code count under "0"; with no system 1, 2, 3; excluded lines get none. The API sends the
+    numbers it shows (`meta.positionNumbers`); the engine's own exports (CLI, tools) number the same way."""
+    out: dict[str, str] = {}
+    counts: dict[str, int] = {}
+    for line in lines:
+        if line.get("excluded"):
+            continue
+        if not system:
+            out[line["key"]] = str(len(out) + 1)
+            continue
+        code = str((line["codes"].get(system) or {}).get("code") or "0")
+        counts[code] = counts.get(code, 0) + 1
+        out[line["key"]] = f"{code}{separator or '.'}{counts[code]}"
+    return out
+
+
+def _ref(position: str | None):
+    """Review C-23 (QS-016): Ref is the item number, a number where it is one ("12"), text where it is a dotted code."""
+    if position and position.isdigit() and not (len(position) > 1 and position.startswith("0")):
+        return int(position)
+    return position or ""
+
+
 def _description(line, primary):
     if "description" in line.get("overridden", {}).get("fields", []):
         return line["description"]
@@ -305,14 +331,12 @@ def export(result: dict, meta: dict) -> bytes:
             node = node.child(step["code"], step["title"])
         node.lines.append(l)
     roundtrip_rows = []
-    position_numbers = meta.get("positionNumbers") or {}
-    if position_numbers:
-        ws["J5"] = "No."
-        ws["J5"].font, ws["J5"].fill, ws["J5"].border = H_FONT, H_FILL, BOX
-        ws.column_dimensions["J"].width = 12
+    # Review C-23: Ref is each line's position number (the group rows keep their codes); it was the group code
+    # on every line, with the number in an extra "No." column as text.
+    separator = str(meta.get("separator") or next((s.get("separator") for s in systems if s["id"] == primary and s.get("separator")), "."))
+    positions = meta.get("positionNumbers") or position_numbers(lines, primary, separator)
 
     def write_line(r, l, section):
-        c = l["codes"].get(primary) if primary else None
         flagged = l["quantity"] is None or bool(l.get("toConfirm"))
         notes = [*([to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []), *l.get("notes", [])]
         description = _description(l, primary)
@@ -327,7 +351,7 @@ def export(result: dict, meta: dict) -> bytes:
         if not issue and (reason := l.get("overridden", {}).get("reason")):
             if not any(reason in note for note in notes):
                 notes = [*notes, "Reason: " + reason]
-        _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
+        _row(ws, r, [_ref(positions.get(l["key"])), description, l["unit"], l["quantity"], None,
                      f"=IF(OR(D{r}=\"\",E{r}=\"\"),0,D{r}*E{r})", l["source"], "; ".join(notes)],
              NORMAL, FLAG_FILL if flagged else None, wrap_cols=(2, 8), formula_cols=(6,))
         ws.cell(row=r, column=4).number_format = _qfmt(l["quantity"])
@@ -336,8 +360,6 @@ def export(result: dict, meta: dict) -> bytes:
         ws.cell(row=r, column=5).number_format = NUM
         ws.cell(row=r, column=6).number_format = NUM
         roundtrip_rows.append((r, l["key"], section))
-        if position := position_numbers.get(l["key"]):
-            ws.cell(r, 10, str(position)).data_type = "s"
 
     def write_group(group, r, depth):
         """A section's heading, its lines, its sub-sections and its subtotal. SUBTOTAL skips the nested
@@ -375,7 +397,7 @@ def export(result: dict, meta: dict) -> bytes:
          Font(name=F, size=11, bold=True), formula_cols=(6,))
     ws.cell(row=r, column=6).number_format = NUM
     if meta.get("boqId"):
-        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows, grouping)
+        annotate(wb, str(meta["boqId"]), primary, roundtrip_rows, grouping, separator)
 
     if issue:
         cover = wb.create_sheet("Cover", 0)
