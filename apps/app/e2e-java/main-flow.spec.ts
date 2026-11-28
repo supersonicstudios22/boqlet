@@ -105,6 +105,14 @@ test("main flow: project, Duplex uploaded from the browser, BoQ generated, sheet
   expect(opened!.headers()["x-robots-tag"]).toBe("noindex, nofollow");
   await expect(pub.getByTestId("share-title")).toHaveText("Tender BoQ");
   await expect(pub.getByTestId("share-line").first()).toBeVisible();
+  // Review C-26: at a phone's width and a desktop's the quantities stay on screen.
+  for (const width of [390, 1280]) {
+    await pub.setViewportSize({ width, height: 844 });
+    const quantity = pub.getByTestId("share-quantity").first();
+    await quantity.scrollIntoViewIfNeeded();
+    const box = (await quantity.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+  }
   // A line opens its explanation (F18-AC1; TF-085: the page crashed here).
   await pub.getByTestId("share-line").first().click();
   await expect(pub.getByTestId("share-detail")).toBeVisible();
