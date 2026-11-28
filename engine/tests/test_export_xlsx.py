@@ -285,3 +285,40 @@ def test_an_unedited_export_grouped_by_storey_or_rule_imports_as_nothing_to_appl
     wb.save(out)
     report = boq_import.read(out.getvalue(), info)
     assert [o["edit"] for o in report["overrides"]] == [{"lineKey": key, "codes": {"acme-cost-codes": "99"}}]
+
+
+def test_every_sheet_prints_landscape_one_page_wide_with_its_header_row_and_a_footer(duplex_parsed):
+    """Review C-21 (CAS-003, QS-016): the BoQ prints without page setup by hand: landscape, one page wide,
+    the header row on every page, only the visible columns, and a footer naming the bill and the page."""
+    result = run(duplex_parsed)
+    meta = {"boqId": "c-21", "project": "Duplex & Co", "boq": "Tender", "revision": "B",
+            "classifications": [{"id": "acme-cost-codes", "name": "ACME cost codes"}]}
+    book = load_workbook(BytesIO(export(result, meta)))
+    titles = {"BoQ": "$5:$5", "Calculation": "$4:$4", "Lines": "$1:$1", "Log": "$1:$1", "Questions": "$1:$1"}
+    for name, rows in titles.items():
+        sheet = book[name]
+        assert sheet.page_setup.orientation == "landscape", name
+        assert sheet.sheet_properties.pageSetUpPr.fitToPage, name
+        assert (sheet.page_setup.fitToWidth, sheet.page_setup.fitToHeight) == (1, 0), name
+        assert sheet.print_title_rows == rows, name
+        # "&" is a header/footer code: a project's own "&" is written doubled.
+        assert sheet.oddFooter.left.text == "Duplex && Co · Tender · B", name
+        assert sheet.oddFooter.right.text == "Page &P of &N", name
+        assert not sheet.oddHeader.center.text, name
+    boq = book["BoQ"]
+    # Ref to Notes: the hidden line key (I) is not printed.
+    assert boq.print_area == f"'BoQ'!$A$1:$H${boq.max_row}"
+
+
+def test_the_free_plan_watermark_is_on_every_printed_page_not_a_cell(duplex_parsed):
+    """Review C-21 (PRD-026, CAS-029): the watermark was one deletable cell, Cover!A19. It is the header of
+    every sheet now, and no cell says it."""
+    result = run(duplex_parsed)
+    meta = {"boqId": "c-21", "project": "Duplex", "boq": "Tender", "watermark": True,
+            "classifications": [{"id": "acme-cost-codes", "name": "ACME cost codes"}]}
+    book = load_workbook(BytesIO(export(result, meta)))
+    for sheet in book.worksheets:
+        if sheet.sheet_state == "visible":
+            assert sheet.oddHeader.center.text == "Made with boqlet (Free plan)", sheet.title
+    cells = [cell.value for sheet in book for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str)]
+    assert not any("Made with boqlet" in value for value in cells)

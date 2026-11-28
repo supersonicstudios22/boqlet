@@ -20,6 +20,8 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.page import PageMargins
+from openpyxl.worksheet.properties import PageSetupProperties
 
 from .sheets.boq_import import annotate
 from .trace_steps import describe as describe_step
@@ -40,6 +42,33 @@ THIN = Side(style="thin", color="D0D0D0")
 BOX = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
 NUM = '#,##0.00;-#,##0.00;"-"'
 WRAP = Alignment(wrap_text=True, vertical="top")
+
+
+WATERMARK = "Made with boqlet (Free plan)"
+
+
+def _hf(text: str) -> str:
+    """Text for a header or footer: "&" starts a code there (&P is the page), so the text's own is doubled."""
+    return text.replace("&", "&&")
+
+
+def _print_setup(ws, title_rows: str | None, columns: int, footer: str, watermark: str | None) -> None:
+    """Review C-21 (CAS-003, QS-016): every sheet prints without page setup by hand: landscape, one page wide
+    (as many pages down as it needs), its header row on every page, only the columns it shows, and a footer
+    with the bill and "Page x of y". The paper size is the printer's (no country's default). The Free plan's
+    watermark is the header of every printed page (PRD-026), not a cell that can be deleted."""
+    ws.page_setup.orientation = "landscape"
+    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+    ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, 0
+    ws.page_margins = PageMargins(left=0.4, right=0.4, top=0.6, bottom=0.6, header=0.25, footer=0.25)
+    ws.print_options.horizontalCentered = True
+    if title_rows:
+        ws.print_title_rows = title_rows
+    ws.print_area = f"A1:{get_column_letter(columns)}{max(ws.max_row, 1)}"
+    ws.oddFooter.left.text, ws.oddFooter.left.size = _hf(footer)[:200], 8
+    ws.oddFooter.right.text, ws.oddFooter.right.size = "Page &P of &N", 8
+    if watermark:
+        ws.oddHeader.center.text, ws.oddHeader.center.size = _hf(watermark)[:200], 9
 
 
 def _header(ws, row, cols, widths):
@@ -253,7 +282,7 @@ def export(result: dict, meta: dict) -> bytes:
                 f"derived or added by hand ({manual_count} manual line{'' if manual_count == 1 else 's'}).")
     ws["A4"].font = SMALL
     _header(ws, 5, ["Ref", "Description", "Unit", "Quantity", "Rate", "Amount", "Source", "Notes"],
-            [10, 70, 7, 12, 11, 14, 10, 50])
+            [10, 60, 7, 12, 11, 14, 9, 36])
     ws.freeze_panes = "A6"
     # Groups nest by the grouping code's path, every level, in the sheet's numeric order (F06 §3, TF-054).
     # A built-in grouping (C-07) puts each line under its storey or its rule, one level.
@@ -353,8 +382,6 @@ def export(result: dict, meta: dict) -> bytes:
         ]
         for row, (heading, value) in enumerate(((name, data) for name, data in details if data is not None), 3):
             _row(cover, row, [heading, value], wrap_cols=(2,))
-        if meta.get("watermark"):
-            _row(cover, 19, [meta["watermark"] if isinstance(meta["watermark"], str) else "Made with boqlet"], SMALL)
         wb.active = cover
 
     excluded = [line for line in lines if line.get("excluded")]
@@ -494,8 +521,15 @@ def export(result: dict, meta: dict) -> bytes:
         if not meta.get("publicLineDetail"):
             del wb["Calculation"]
             del wb["Lines"]
+    watermark = (meta["watermark"] if isinstance(meta["watermark"], str) else WATERMARK) if meta.get("watermark") else None
+    footer = " · ".join(str(x) for x in (meta.get("project"), meta.get("boq"), label) if x) or str(title)
+    footer += " · WORKING" if working else ""
+    titles = {"BoQ": "5:5", "Calculation": "4:4", "Excluded lines": "1:1", "Lines": "1:1", "Log": "1:1", "Questions": "1:1"}
     for sheet in wb.worksheets:
         sheet.sheet_view.showGridLines = False
+        # The BoQ prints Ref to Notes: its hidden line key (I) stays off the page.
+        columns = 8 if sheet.title == "BoQ" else max(sheet.max_column, 1)
+        _print_setup(sheet, titles.get(sheet.title), columns, footer, watermark)
     _text_only(wb)
     buf = io.BytesIO()
     wb.save(buf)

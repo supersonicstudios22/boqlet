@@ -1,6 +1,6 @@
 # F12 Exports
 
-> **Status (2026-11-25):** Built. The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
+> **Status (2026-11-28):** Built. The workbook prints landscape, one page wide, with repeated headers and a footer; the Free-plan watermark is the header of every printed page (review C-21). The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
 > **Not built / differs:**
 > - F12-AC1 is half automated: since review B-11 CI opens the run, saved-version and change-report workbooks in LibreOffice (printed to PDF, saved again with every formula recalculated; the recalculated amounts, subtotals and total equal the engine's, protection and the edits import survive). Opening them in Microsoft Excel is still a check by hand.
 
@@ -41,6 +41,14 @@
   answers. Generate the BoQ again to include them.") and a note in the BoQ sheet's header line; the API
   passes the revision's `pendingChanges` to the export job as `meta.pendingChanges`. Nothing is
   regenerated without asking.
+- **Printing** (review C-21): every sheet of the BoQ workbook prints with no page setup by hand:
+  landscape, one page wide (as many pages down as it needs), its header row repeated on every page,
+  the BoQ sheet's print area Ref to Notes (the hidden line key is not printed), and a footer
+  "project · BoQ · version (· WORKING)" with "Page x of y". The paper size is the printer's. The
+  Duplex BoQ prints on two landscape pages (checked in LibreOffice by `test_export_libreoffice.py`).
+- **Watermark** (`exportWatermark`, Free plan; review C-21, PRD-026): "Made with boqlet (Free plan)" in
+  the header of every sheet, so on every printed page. No cell carries it (it was Cover!A19). The
+  share page of such an org shows a small "Made with boqlet" note with a link (F18).
 - Locale: number formats and date formats from the project locale. Column headers are
   translated through the export's message catalogue (English in v1, P07).
 - Units: as in the run (metric or imperial per project).

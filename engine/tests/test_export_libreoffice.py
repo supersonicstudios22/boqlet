@@ -172,3 +172,30 @@ def test_a_saved_version_and_the_change_report_print_and_open_again(duplex_parse
     reopened = load_workbook(BytesIO(print_and_resave(soffice, tmp_path / "changes", "changes", report)))
     assert reopened.sheetnames == ["Summary", "Lines", "Elements"]
     assert reopened["Lines"].max_row == load_workbook(BytesIO(report))["Lines"].max_row
+
+
+def test_the_duplex_boq_prints_on_two_landscape_pages_with_its_header_row_on_each(duplex_parsed, soffice, tmp_path):
+    """Review C-21 (CAS-003): the BoQ sheet printed as LibreOffice prints it, with no page setup by hand: landscape,
+    one page wide, the Duplex bill on two pages (it was six portrait ones, quantities on other pages than the
+    descriptions), and the header row repeated on each page."""
+    import re
+
+    result = run(duplex_parsed)
+    book = load_workbook(BytesIO(export(result, {"boqId": "c-21", "project": "Duplex", "boq": "Tender", "revision": "A",
+                                                 "classifications": [CODES]})))
+    for name in book.sheetnames:
+        if name != "BoQ":
+            del book[name]
+    only = BytesIO()
+    book.save(only)
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    source = tmp_path / "boq-only.xlsx"
+    source.write_bytes(only.getvalue())
+    pdf = convert(soffice, tmp_path, source, "pdf").read_bytes()
+    boxes = [tuple(float(v) for v in box) for box in re.findall(rb"/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]", pdf)]
+    pages = len(re.findall(rb"/Type\s*/Page[^s]", pdf))
+    assert pages == 2, pages
+    assert boxes and all(x1 - x0 > y1 - y0 for x0, y0, x1, y1 in boxes), boxes
+    # The header row repeats on every page: LibreOffice reads the print titles (and writes them back).
+    again = load_workbook(BytesIO(convert(soffice, tmp_path, source, "xlsx:Calc MS Excel 2007 XML").read_bytes()))["BoQ"]
+    assert again.print_title_rows == "$5:$5" and again.page_setup.orientation == "landscape"

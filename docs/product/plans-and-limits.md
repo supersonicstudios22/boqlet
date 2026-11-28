@@ -100,7 +100,9 @@ The org settings show usage for the current month against limits (F14).
   excluded); `maxModelVersionMb` at upload; `maxModelsPerBoq` at BoQ inputs; `libraryOrgPresets`
   at preset create; `processingMinutesPerMonth` at job enqueue (`worker/Jobs.java`); the features
   `shareLinks` and `approvalWorkflow`. `exportWatermark` and `auditLogRetentionDays` are applied
-  (exports and share pages; maintenance purge). `exportWatermark` is named by its effect everywhere
+  (exports and share pages; maintenance purge). The watermark (review C-21): "Made with boqlet (Free
+  plan)" in the header of every sheet of an exported workbook, so on every printed page, and a small
+  "Made with boqlet" note on the org's share pages; never a cell of the workbook. `exportWatermark` is named by its effect everywhere
   ("Watermark on exports"; the admin plan editor's switch reads "On", not "Included", review A-42).
 - **Not built:** the trial by plan configuration (`trialPlanId`, `trialDays`; an admin can set
   `trialEndsAt` by hand, but no job drops the org to Free when it ends) and downgrade handling
