@@ -18,7 +18,7 @@ import { viewerModels } from "@/features/viewer/viewer-tab";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { cn } from "@/lib/utils";
 import { useLines } from "@/api/hooks/sheet";
-import { candidates, DEFAULT_THRESHOLD, elementLineChanges, engineChange, groupLines, groupsIn, passes, type ChangeFilters } from "./model";
+import { candidates, DEFAULT_THRESHOLD, elementLineChanges, engineChange, groupLines, groupsIn, hiddenByThreshold, passes, type ChangeFilters } from "./model";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat, type BoqFormatter } from "@/i18n/boq-format";
 import { InlineError } from "@/components/errors/inline-error";
@@ -116,6 +116,8 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
   const shown = useMemo(() => all.filter((l) => passes(l, filters, system)), [all, filters, system]);
   const grouped = useMemo(() => groupLines(shown, system), [shown, system]);
   const groups = useMemo(() => groupsIn(all, system), [all, system]);
+  // Changed lines under the threshold, which the table leaves out (review C-12).
+  const hidden = useMemo(() => hiddenByThreshold(all, filters.minDeltaPct), [all, filters.minDeltaPct]);
   const byChange = useMemo(() => {
     const out = { added: [] as string[], changed: [] as string[], removed: [] as string[] };
     for (const e of elements.data ?? []) out[e.change].push(e.guid);
@@ -164,6 +166,14 @@ function Report({ boq, toRunId, fromRunId, runs, message, base }: { boq: Boq; to
             <div key={key} className="flex flex-col" data-testid={`summary-${key}`} data-value={value ?? 0}>
               <dt className="label-caps text-muted-foreground">{t(`summary.${key}`)}</dt>
               <dd className="text-title tabular-nums">{n(value)}</dd>
+              {key === "linesChanged" && hidden > 0 && (
+                <dd className="text-muted-foreground" data-testid="summary-hidden" data-value={hidden}>
+                  {t("summary.hidden", { count: hidden, threshold: format.number(filters.minDeltaPct, { maximumFractionDigits: 2 }) })}{" "}
+                  <button type="button" className="text-link hover:underline" onClick={() => setFilters((f) => ({ ...f, minDeltaPct: 0 }))} data-testid="summary-show-hidden">
+                    {t("summary.showHidden")}
+                  </button>
+                </dd>
+              )}
             </div>
           ))}
         </dl>

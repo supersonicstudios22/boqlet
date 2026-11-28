@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ElementChange, LineChange } from "@/api/hooks/diffs";
-import { candidates, elementLineChanges, engineChange, groupLines, groupsIn, passes, DEFAULT_THRESHOLD } from "./model";
+import { candidates, elementLineChanges, engineChange, groupLines, groupsIn, hiddenByThreshold, passes, DEFAULT_THRESHOLD } from "./model";
 
 /** F08 §3–4, §6 in the Changes tab (FE-030): filters, grouping like the sheet, what to compare with. */
 
@@ -31,6 +31,20 @@ describe("filters (F08 §4)", () => {
     expect(passes(line("b", "added", null, 1), { ...f, change: "removed" }, "s")).toBe(false);
     expect(passes(line("b", "added", null, 1, "03"), { ...f, group: "03" }, "s")).toBe(true);
     expect(passes(line("b", "added", null, 1, "03"), { ...f, group: "02" }, "s")).toBe(false);
+  });
+});
+
+describe("C-12: the summary counts the changed lines the threshold hides (CAS-024)", () => {
+  const report = [line("a", "changed", 100, 100.5), line("b", "changed", 100, 110), line("c", "added", null, 1), line("d", "removed", 2, null)];
+  it("two changed, one under 1 %: one hidden, and the shown and hidden add up to the summary's count", () => {
+    expect(hiddenByThreshold(report, DEFAULT_THRESHOLD)).toBe(1);
+    const changed = report.filter((l) => l.change === "changed");
+    const shown = changed.filter((l) => passes(l, { minDeltaPct: DEFAULT_THRESHOLD }, null));
+    expect(shown.length + hiddenByThreshold(report, DEFAULT_THRESHOLD)).toBe(changed.length);
+  });
+  it("none hidden at 0 %, and added or removed lines never count", () => {
+    expect(hiddenByThreshold(report, 0)).toBe(0);
+    expect(hiddenByThreshold([line("c", "added", null, 0.001), line("d", "removed", 0.001, null)], 50)).toBe(0);
   });
 });
 

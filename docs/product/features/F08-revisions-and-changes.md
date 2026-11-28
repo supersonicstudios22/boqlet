@@ -1,6 +1,6 @@
 # F08 Revisions and change report
 
-> **Status (2026-11-22):** Built. Change report between runs and revisions (engine `diff` job, `apps/app/src/features/changes`, Java `boq/Diffs`) with its Excel export. An edited line whose engine quantity changed is in the report, with the engine's value under the edit (TF-093, C09).
+> **Status (2026-11-22):** Built. Change report between runs and revisions (engine `diff` job, `apps/app/src/features/changes`, Java `boq/Diffs`) with its Excel export. An edited line whose engine quantity changed is in the report, with the engine's value under the edit (TF-093, C09). The summary says how many changed lines the threshold hides, with a "Show" that sets it to 0 % (review WP-C3, C-12).
 > **Not built / differs:**
 > - F08-AC4 timings have no automated test.
 
@@ -14,6 +14,8 @@ answer only what is new, and show exactly what changed and why.
 - As an estimator, after saving version A I swap the new Architecture version into the working
   version, regenerate, answer the two new questions and see the change report against version A.
 - As an approver (when approval is on), I review version B by reading the change report first.
+- As a manager with read-only access (project viewer), I open the Changes tab to see what moved
+  since the last saved version, and export it (review C-14).
 - As an estimator, I compare any two runs (e.g. rule set X vs Y on the same models) to see the
   effect of a preset choice.
 

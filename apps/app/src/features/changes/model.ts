@@ -50,6 +50,14 @@ export function passes(l: LineChange, f: ChangeFilters, system: string | null): 
   return true;
 }
 
+/**
+ * Changed lines the threshold alone keeps out (review C-12): the summary's "Lines changed" counts every
+ * changed line, so it says how many of them the table hides ("2 changed (1 under 1 % hidden)").
+ */
+export function hiddenByThreshold(lines: readonly LineChange[], minDeltaPct: number): number {
+  return lines.filter((l) => l.change === "changed" && !passes(l, { minDeltaPct }, null)).length;
+}
+
 /** A changed line with the same description and unit (only its quantity moved). */
 const sameText = (l: LineChange) => l.before?.description === l.after?.description && l.before?.unit === l.after?.unit;
 

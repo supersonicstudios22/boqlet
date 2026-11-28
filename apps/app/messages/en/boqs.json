@@ -703,7 +703,9 @@
       "inputs": "What differs: {what}.",
       "sameInputs": "Same inputs: the same model versions, presets, answers and line edits.",
       "byModel": "{model}: {added} added, {removed} removed, {changed} changed",
-      "churn": "More than 50% of elements changed id. Check the export settings of the authoring tool."
+      "churn": "More than 50% of elements changed id. Check the export settings of the authoring tool.",
+      "hidden": "{count, plural, one {# under {threshold} % hidden} other {# under {threshold} % hidden}}",
+      "showHidden": "Show"
     },
     "inputs": {
       "inputs_models": "model versions",
