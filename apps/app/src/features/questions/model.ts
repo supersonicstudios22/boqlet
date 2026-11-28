@@ -9,6 +9,8 @@ import type { EngineMessage } from "@/i18n/engine-message";
 export type AnswerState = "unanswered" | "answered" | "all";
 export interface QuestionFilters {
   kind?: string;
+  /** A model of a federated run (`ModelReport.id`, review C-19): questions naming its elements. */
+  model?: string;
   state: AnswerState;
 }
 
@@ -25,7 +27,9 @@ export function sortQuestions<Q extends Pick<Question, "id" | "kind" | "blocking
 }
 
 export function filterQuestions(list: readonly Question[], f: QuestionFilters): Question[] {
-  return list.filter((q) => (!f.kind || q.kind === f.kind) && (f.state === "all" || (f.state === "answered") === !!q.decision));
+  return list.filter(
+    (q) => (!f.kind || q.kind === f.kind) && (!f.model || !!q.modelIds?.includes(f.model)) && (f.state === "all" || (f.state === "answered") === !!q.decision),
+  );
 }
 
 /**
@@ -183,4 +187,25 @@ export function searchTerms(terms: readonly Term[], q: string, category?: string
  */
 export function decisionMessage(d: Pick<Decision, "questionId" | "summary" | "questionCode" | "questionParams">): EngineMessage {
   return { code: d.questionCode ?? null, params: (d.questionParams as Record<string, unknown> | undefined) ?? null, message: d.summary ?? d.questionId };
+}
+
+/** A group of the Questions tab by model (review C-19): one model's, several models' (`"several"`) or none (`"none"`). */
+export interface ModelGroup<Q> {
+  model: string;
+  questions: Q[];
+}
+
+/**
+ * Questions grouped by the model their elements are in, in the run's model order; a question in several models
+ * (an overlap, copies that disagree) under "several", one naming no element under "none", both last.
+ */
+export function groupByModel<Q extends Pick<Question, "modelIds">>(list: readonly Q[], order: readonly string[]): ModelGroup<Q>[] {
+  const groups = new Map<string, Q[]>([...order, "several", "none"].map((m) => [m, []]));
+  for (const q of list) {
+    const ids = q.modelIds ?? [];
+    const key = ids.length === 0 ? "none" : ids.length > 1 ? "several" : ids[0]!;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(q);
+  }
+  return [...groups].filter(([, qs]) => qs.length).map(([model, questions]) => ({ model, questions }));
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Question, Term } from "@/api/hooks/decisions";
-import { bulkKey, counts, decisionMessage, describeAnswer, elementCount, termLabel, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
+import { bulkKey, counts, decisionMessage, groupByModel, describeAnswer, elementCount, termLabel, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
 
 const decision = (answer: string | number | boolean | null): NonNullable<Question["decision"]> => ({
   id: "d",
@@ -153,5 +153,18 @@ describe("review C-18: a decision reads like its question", () => {
       code: "question.unknown_name", params, message: "What is 'Alu' (material)?",
     });
     expect(decisionMessage({ questionId: "name:material:Alu" })).toEqual({ code: null, params: null, message: "name:material:Alu" });
+  });
+});
+
+describe("review C-19: questions by model", () => {
+  const list = [q("arch", { modelIds: ["a"] }), q("both", { modelIds: ["a", "s"] }), q("str", { modelIds: ["s"] }), q("code")];
+  it("filters by a model of the run", () => {
+    expect(filterQuestions(list, { state: "all", model: "s" }).map((x) => x.id)).toEqual(["both", "str"]);
+    expect(filterQuestions(list, { state: "all" })).toHaveLength(4);
+  });
+  it("groups in the run's model order, several and none last", () => {
+    expect(groupByModel(list, ["s", "a"]).map((g) => [g.model, g.questions.map((x) => x.id)])).toEqual([
+      ["s", ["str"]], ["a", ["arch"]], ["several", ["both"]], ["none", ["code"]],
+    ]);
   });
 });

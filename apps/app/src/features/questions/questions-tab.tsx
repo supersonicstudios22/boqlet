@@ -17,7 +17,7 @@ import { useUnit } from "@/i18n/units";
 import { cn } from "@/lib/utils";
 import { AnswerControl, type AnswerContext } from "./answer-control";
 import { useAnswerFlow } from "./answer-flow";
-import { counts, describeAnswer, elementCount, filterQuestions, initialValue, kindsOf, NOT_RELEVANT, selectable, splitByEffect, termPath, type AnswerState } from "./model";
+import { counts, describeAnswer, elementCount, filterQuestions, groupByModel, initialValue, kindsOf, NOT_RELEVANT, selectable, splitByEffect, termPath, type AnswerState } from "./model";
 import { PromoteDialog } from "./promote-dialog";
 import { useAnswerContext } from "./use-answer-context";
 import { InlineError } from "@/components/errors/inline-error";
@@ -42,13 +42,24 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
   const canPromote = orgCan("promoteDecisions");
 
   const [kind, setKind] = useState("");
+  // review C-19: a federated run's questions by model
+  const [model, setModel] = useState("");
+  const [byModel, setByModel] = useState(false);
+  const models = run?.models ?? [];
+  const federated = models.length > 1;
+  const modelName = (id: string) => {
+    if (id === "several") return t("filters.severalModels");
+    if (id === "none") return t("filters.noModel");
+    const m = models.find((x) => x.id === id);
+    return m ? `${m.discipline} · ${m.fileName}` : id;
+  };
   const [state, setState] = useState<AnswerState>("unanswered");
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [toDictionary, setToDictionary] = useState(true);
   const [promoting, setPromoting] = useState<string[] | null>(null);
 
   const list = useMemo(() => questions.data ?? [], [questions.data]);
-  const shown = useMemo(() => filterQuestions(list, { state, ...(kind ? { kind } : {}) }), [list, state, kind]);
+  const shown = useMemo(() => filterQuestions(list, { state, ...(kind ? { kind } : {}), ...(model ? { model } : {}) }), [list, state, kind, model]);
   // review C-15: questions whose answer changes nothing come last, collapsed ("For information")
   const groups = useMemo(() => splitByEffect(shown), [shown]);
   const selection = useMemo(() => list.filter((q) => selected.has(q.id)), [list, selected]);
@@ -110,6 +121,25 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
                 ))}
               </NativeSelect>
             </label>
+            {federated && (
+              <>
+                <label className="flex items-center gap-2">
+                  <span className="label-caps text-muted-foreground">{t("filters.model")}</span>
+                  <NativeSelect value={model} onChange={(e) => setModel(e.target.value)} data-testid="questions-model">
+                    <option value="">{t("filters.allModels")}</option>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {modelName(m.id)}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={byModel} onChange={(e) => setByModel(e.target.checked)} className="accent-[var(--link)]" data-testid="questions-by-model" />
+                  <span>{t("filters.groupByModel")}</span>
+                </label>
+              </>
+            )}
             <label className="flex items-center gap-2">
               <span className="label-caps text-muted-foreground">{t("filters.show")}</span>
               <NativeSelect value={state} onChange={(e) => setState(e.target.value as AnswerState)} data-testid="questions-state">
@@ -166,9 +196,22 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
               </Button>
             </div>
           )}
-          <ul className="flex flex-col" data-testid="questions-list">
-            {groups.main.map(row)}
-          </ul>
+          {federated && byModel ? (
+            groupByModel(groups.main, models.map((m) => m.id)).map((g) => (
+              <section key={g.model} aria-label={modelName(g.model)} data-testid="questions-model-group" data-model={g.model}>
+                <h4 className="label-caps pt-3 text-muted-foreground">
+                  {modelName(g.model)} · {g.questions.length}
+                </h4>
+                <ul className="flex flex-col" data-testid="questions-list">
+                  {g.questions.map(row)}
+                </ul>
+              </section>
+            ))
+          ) : (
+            <ul className="flex flex-col" data-testid="questions-list">
+              {groups.main.map(row)}
+            </ul>
+          )}
           {groups.info.length > 0 && (
             <details className="mt-3" data-testid="questions-info">
               <summary className="cursor-pointer py-2 text-muted-foreground">{t("infoGroup", { count: groups.info.length })}</summary>

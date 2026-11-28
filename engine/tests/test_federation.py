@@ -321,3 +321,22 @@ def test_a_material_difference_asks_without_blocking():
     _, _, questions, _ = _combine([("arc", "architecture", _el("P", material="metal.steel", material_raw="Steel")),
                                    ("str", "structure", _el("P"))])
     assert [(q["params"]["fields"], q["blocking"], q["suggestion"]) for q in questions] == [(["material"], False, "structure")]
+
+
+# ------------------------------------------------------------------ questions by model (review C-19)
+def test_questions_name_the_models_their_elements_are_in():
+    models = scene()
+    r = run(models)
+    ids = [m["id"] for m in models]
+    owner = {e["id"]: m["id"] for m in models for e in m["parsed"]["elements"]}
+    with_elements = [q for q in r["questions"] if q.get("guids")]
+    assert with_elements
+    for q in with_elements:
+        assert q["modelIds"] and set(q["modelIds"]) <= set(ids), q["id"]
+        assert q["modelIds"] == sorted(q["modelIds"], key=ids.index)
+        assert {owner[g] for g in q["guids"] if g in owner} <= set(q["modelIds"])
+
+
+def test_a_single_model_run_names_no_models():
+    r = run(parsed("Architecture"))
+    assert not any("modelIds" in q for q in r["questions"])

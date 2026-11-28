@@ -2605,6 +2605,13 @@
             "type": "string"
           },
           "description": "For unknown_name: up to 3 term ids that fit the name, best first, from the words of the name against the terms' labels, translations and aliases, and from the elements' IFC data (class, IsExternal) (review C-16). Offered as one-click answers; never used without an answer."
+        },
+        "modelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "In a federated run: the models (`ModelReport.id`) whose elements the question names, in model order (review C-19), so questions can be filtered and grouped by discipline. Absent in a single-model run."
         }
       },
       "required": [

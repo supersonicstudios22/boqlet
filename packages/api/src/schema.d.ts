@@ -4056,6 +4056,7 @@ export interface components {
             affectedLineCount?: components["schemas"]["affectedLineCount"];
             noEffect?: components["schemas"]["noEffect"];
             candidates?: components["schemas"]["candidates"];
+            modelIds?: components["schemas"]["modelIds"];
             decision?: components["schemas"]["Decision"];
             /** @description The project's answer differs from the one this run was generated with (answered, changed or cleared after the run): it applies on the next run (F05 §1, §3). */
             answeredAfterRun: boolean;
@@ -4719,6 +4720,8 @@ export interface components {
         noEffect: boolean;
         /** @description For unknown_name: up to 3 term ids that fit the name, best first, from the words of the name against the terms' labels, translations and aliases, and from the elements' IFC data (class, IsExternal) (review C-16). Offered as one-click answers; never used without an answer. */
         candidates: string[];
+        /** @description In a federated run: the models (`ModelReport.id`) whose elements the question names, in model order (review C-19), so questions can be filtered and grouped by discipline. Absent in a single-model run. */
+        modelIds: string[];
         /**
          * @description Existing warning codes are also used by consumers to filter warnings.
          * @enum {string}

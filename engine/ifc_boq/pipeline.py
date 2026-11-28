@@ -158,6 +158,19 @@ def affected_lines(questions: list[dict], lines: list[dict]) -> None:
         q["affectedLineCount"] = len(hit)
 
 
+def question_models(questions: list[dict], models: list[dict]) -> None:
+    """In a federation, each question naming elements lists the models they are in (review C-19), in model order: both
+    for an overlap or copies of one GlobalId that disagree."""
+    where: dict[str, set[int]] = defaultdict(set)
+    for n, m in enumerate(models):
+        for e in m["parsed"]["elements"]:
+            where[e["id"]].add(n)
+    for q in questions:
+        if q.get("guids"):
+            found = sorted({n for g in q["guids"] for n in where.get(g, ())})
+            q["modelIds"] = [models[n]["id"] for n in found]
+
+
 def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]], dictionaries: list[dict],
             resolution: dict | None = None, decisions: list[dict] | None = None,
             rule_library: dict[str, dict] | None = None, federation: dict | None = None,
@@ -434,6 +447,8 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         bl.setdefault("codes", {})
         out_lines.append(bl)
     affected_lines(questions, out_lines)
+    if len(models) > 1:
+        question_models(questions, models)
     blocking = [q for q in questions if q["blocking"]]
     status = "needs_input" if blocking else "complete"
     answered = answered_ids(answers, rv)

@@ -33,7 +33,12 @@
     "show": "Show",
     "unanswered": "Unanswered",
     "answered": "Answered",
-    "all": "All"
+    "all": "All",
+    "model": "Model",
+    "allModels": "All models",
+    "groupByModel": "Group by model",
+    "severalModels": "Several models",
+    "noModel": "No model"
   },
   "kinds": {
     "unknown_name": "Unknown name",

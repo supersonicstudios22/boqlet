@@ -299,6 +299,11 @@ export interface Question {
    * Offered as one-click answers; never used without an answer.
    */
   candidates?: string[];
+  /**
+   * In a federated run: the models (`ModelReport.id`) whose elements the question names, in model order (review
+   * C-19), so questions can be filtered and grouped by discipline. Absent in a single-model run.
+   */
+  modelIds?: string[];
 }
 
 /** A line a question's answer can move (review C-15). */
