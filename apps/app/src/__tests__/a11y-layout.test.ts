@@ -62,7 +62,9 @@ describe("TF-149, TF-168, TF-171, TF-172 widths", () => {
     expect(src("src/features/projects/project-header.tsx")).toContain('className="flex flex-wrap gap-x-6 gap-y-2"');
     expect(src("app/(app)/[org]/projects/[projectId]/boqs/[boqId]/page.tsx")).toContain("flex flex-wrap items-end gap-x-6 gap-y-1 border-b");
     expect(src("app/(app)/[org]/projects/[projectId]/boqs/[boqId]/page.tsx")).toContain('className="flex flex-wrap gap-x-6 gap-y-2"');
-    expect(src("src/features/shares/public-share.tsx")).toMatch(/whitespace-normal break-words/);
+    // The share sheet lives in its own component since review C-26; its quantity cell wraps too.
+    expect(src("src/features/shares/share-table.tsx")).toMatch(/whitespace-normal break-words/);
+    expect(src("src/features/shares/share-table.tsx")).toMatch(/text-right whitespace-normal tabular-nums/);
     expect(src("src/features/viewer/model-viewer.tsx")).toMatch(/min-w-0 flex-1 overflow-hidden/);
   });
 });
