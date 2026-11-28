@@ -6,6 +6,9 @@
   "field": "material",
   "raw": "AR | MW | KS 2,0-20",
   "occurrences": 1,
+  "guids": [
+   "1GMz8aBSVbw0csM2ir_LOx"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -13,11 +16,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'AR | MW | KS 2,0-20' (material)? Used 1 time(s).",
+  "message": "What is 'AR | MW | KS 2,0-20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040",
@@ -26,6 +31,14 @@
   "field": "type_name",
   "raw": "AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040",
   "occurrences": 1,
+  "guids": [
+   "3qt0Gyvdr2wfbDt$EIIsCs"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -33,10 +46,19 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040' (type name)? Used 1 time(s).",
+  "message": "What is 'AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040 | True |  | m2",
+    "description": "Wall, AR | Wand | KS 2,0 20 | EPS+PERI 420 x 3040, 420 mm",
+    "unit": "m2",
+    "quantity": 15.88
+   }
+  ],
+  "affectedLineCount": 1
  }
 ]

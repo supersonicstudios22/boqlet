@@ -36,18 +36,6 @@
   "elements": 4
  },
  {
-  "key": "slabs | Generic 150mm |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 150mm",
-  "unit": "m2",
-  "quantity": 123.91,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02"
-  },
-  "elements": 2
- },
- {
   "key": "slabs | Timber Suspended Floor |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Timber Suspended Floor",
@@ -696,18 +684,6 @@
   "elements": 20
  },
  {
-  "key": "slabs | Generic 300 |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 300",
-  "unit": "m2",
-  "quantity": 109.49,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "G.01"
-  },
-  "elements": 2
- },
- {
   "key": "slabs | Insitu Concrete |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete",
@@ -814,6 +790,30 @@
    "acme-cost-codes": "G.03"
   },
   "elements": 10
+ },
+ {
+  "key": "slabs | Generic 150mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 150mm",
+  "unit": "m2",
+  "quantity": 123.91,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Generic 300 |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 300",
+  "unit": "m2",
+  "quantity": 109.49,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01"
+  },
+  "elements": 2
  },
  {
   "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",

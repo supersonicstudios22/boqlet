@@ -41,7 +41,34 @@
    "unitError": false,
    "scale": null
   },
-  "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?"
+  "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the file says 0.55 m thick; the geometry measures 0.493 m (-10%; -16% to -10% across the 3). Until you answer, the stated value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
+    "description": "masonry.block, 193 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   },
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 743.82
+   },
+   {
+    "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
+    "description": "board.plasterboard, 16 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   },
+   {
+    "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
+    "description": "metal.steel.stud, 41 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   }
+  ],
+  "affectedLineCount": 4
  },
  {
   "id": "contradiction:volume:IfcWall:Party Wall - CMU Residential Unit Dimising Wall",
@@ -83,7 +110,34 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the volume stated in the file and the geometry disagree by +42% (e.g. 2.011 m3 from PSet_Revit_Dimensions.Volume vs 2.856 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+  "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the file gives the volume as 2.011 m3; the geometry measures 2.856 m3 (+42%). Until you answer, the stated value is used (a stated volume usually allows for joins). Which should we use?",
+  "affectedLines": [
+   {
+    "key": "wall-layers | wall.party | masonry.block | 0.193 | normal height | m2",
+    "description": "masonry.block, 193 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   },
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 743.82
+   },
+   {
+    "key": "wall-layers | wall.party | board.plasterboard | 0.016 | normal height | m2",
+    "description": "board.plasterboard, 16 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   },
+   {
+    "key": "wall-layers | wall.party | metal.steel.stud | 0.041 | normal height | m2",
+    "description": "metal.steel.stud, 41 mm (normal height)",
+    "unit": "m2",
+    "quantity": 157.67
+   }
+  ],
+  "affectedLineCount": 4
  },
  {
   "id": "name:space_name:Roof",
@@ -92,6 +146,10 @@
   "field": "space_name",
   "raw": "Roof",
   "occurrences": 1,
+  "guids": [
+   "0pNy6pOyf7JPmXRLgxs3sW"
+  ],
+  "noEffect": true,
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -99,11 +157,13 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Roof' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Roof' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:space_name:Room",
@@ -112,6 +172,13 @@
   "field": "space_name",
   "raw": "Room",
   "occurrences": 1,
+  "guids": [
+   "10mjSDZJj9gPS2PrQaxa4o"
+  ],
+  "noEffect": true,
+  "candidates": [
+   "space.living"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -119,10 +186,12 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Room' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Room' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  }
 ]

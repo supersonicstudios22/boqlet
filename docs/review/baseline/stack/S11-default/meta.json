@@ -30,7 +30,7 @@
    "S11": 1.6
   },
   "runSeconds": 1.6,
-  "totalSeconds": 11.4
+  "totalSeconds": 11.2
  },
  "runJob": "succeeded",
  "status": "needs_input",

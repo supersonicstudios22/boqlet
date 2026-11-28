@@ -6,6 +6,10 @@
   "field": "space_name",
   "raw": "Roof",
   "occurrences": 1,
+  "guids": [
+   "0CRPz_SEr94Ah74P8LhwLP"
+  ],
+  "noEffect": true,
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -13,11 +17,13 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Roof' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Roof' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:space_name:Roof MEP Space",
@@ -26,6 +32,15 @@
   "field": "space_name",
   "raw": "Roof MEP Space",
   "occurrences": 1,
+  "guids": [
+   "3YWx8nQAj0DhPfgLl9dDey"
+  ],
+  "noEffect": true,
+  "candidates": [
+   "space.bathroom",
+   "space.bedroom",
+   "space.circulation"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -33,11 +48,13 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Roof MEP Space' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Roof MEP Space' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:space_name:Room",
@@ -46,6 +63,13 @@
   "field": "space_name",
   "raw": "Room",
   "occurrences": 1,
+  "guids": [
+   "0CRPz_SEr94Ah74P8LhwD6"
+  ],
+  "noEffect": true,
+  "candidates": [
+   "space.living"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -53,10 +77,12 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Room' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Room' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  }
 ]

@@ -16,7 +16,9 @@
   "message": "1 x IfcBuildingElementProxy 'house - chimney' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:sand bedding",
@@ -35,7 +37,9 @@
   "message": "1 x IfcBuildingElementProxy 'sand bedding' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:composite_element_roof",
@@ -44,6 +48,10 @@
   "field": "material",
   "raw": "composite_element_roof",
   "occurrences": 2,
+  "guids": [
+   "0ZTBBPo6f6bxqV2K7Oelrq",
+   "12UVOn4wvAJPMUExKdZLb8"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -51,11 +59,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'composite_element_roof' (material)? Used 2 time(s).",
+  "message": "What is 'composite_element_roof' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:geo-reference",
@@ -64,6 +74,9 @@
   "field": "type_name",
   "raw": "geo-reference",
   "occurrences": 1,
+  "guids": [
+   "3Fit2Fad92zf2f6aWdJtF5"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -71,11 +84,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'geo-reference' (type name)? Used 1 time(s).",
+  "message": "What is 'geo-reference' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:house - chimney",
@@ -84,6 +99,9 @@
   "field": "type_name",
   "raw": "house - chimney",
   "occurrences": 1,
+  "guids": [
+   "3Fbgsvr8nAYfGs9y5keub0"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -91,11 +109,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'house - chimney' (type name)? Used 1 time(s).",
+  "message": "What is 'house - chimney' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:house - gross volume",
@@ -104,6 +124,9 @@
   "field": "type_name",
   "raw": "house - gross volume",
   "occurrences": 1,
+  "guids": [
+   "1yP7NInQz5uQzbiOpVFFJr"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -111,11 +134,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'house - gross volume' (type name)? Used 1 time(s).",
+  "message": "What is 'house - gross volume' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:house - outer wall - house left",
@@ -124,6 +149,14 @@
   "field": "type_name",
   "raw": "house - outer wall - house left",
   "occurrences": 1,
+  "guids": [
+   "0OfZwWc8j9QP5uX8xPTxDH"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.internal"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -131,11 +164,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'house - outer wall - house left' (type name)? Used 1 time(s).",
+  "message": "What is 'house - outer wall - house left' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | above limit | m2",
+    "description": "masonry.calcium_silicate, 200 mm (above limit)",
+    "unit": "m2",
+    "quantity": 27.51
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:type_name:house - outer wall - house right back",
@@ -144,6 +186,14 @@
   "field": "type_name",
   "raw": "house - outer wall - house right back",
   "occurrences": 1,
+  "guids": [
+   "3wdauVJT5Fx9drrREiDqA$"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.internal"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -151,11 +201,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'house - outer wall - house right back' (type name)? Used 1 time(s).",
+  "message": "What is 'house - outer wall - house right back' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | normal height | m2",
+    "description": "masonry.calcium_silicate, 200 mm (normal height)",
+    "unit": "m2",
+    "quantity": 8.93
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:type_name:house - outer wall - house right front",
@@ -164,6 +223,14 @@
   "field": "type_name",
   "raw": "house - outer wall - house right front",
   "occurrences": 1,
+  "guids": [
+   "1AQAupaRP1txwK1AGiN61V"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.internal"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -171,11 +238,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'house - outer wall - house right front' (type name)? Used 1 time(s).",
+  "message": "What is 'house - outer wall - house right front' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "wall-layers | None | masonry.calcium_silicate | 0.2 | above limit | m2",
+    "description": "masonry.calcium_silicate, 200 mm (above limit)",
+    "unit": "m2",
+    "quantity": 27.51
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:type_name:origin",
@@ -184,6 +260,9 @@
   "field": "type_name",
   "raw": "origin",
   "occurrences": 1,
+  "guids": [
+   "2F44QMqSH3TOkM$SZoqCBe"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -191,11 +270,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'origin' (type name)? Used 1 time(s).",
+  "message": "What is 'origin' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:sand bedding",
@@ -204,6 +285,9 @@
   "field": "type_name",
   "raw": "sand bedding",
   "occurrences": 1,
+  "guids": [
+   "3_4VN63S96DfWiJjgG8j1C"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -211,10 +295,12 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'sand bedding' (type name)? Used 1 time(s).",
+  "message": "What is 'sand bedding' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  }
 ]

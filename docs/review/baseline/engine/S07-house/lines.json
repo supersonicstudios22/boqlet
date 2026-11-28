@@ -91,19 +91,6 @@
   "elements": 1
  },
  {
-  "key": "slabs | Generic 150mm |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 150mm",
-  "unit": "m2",
-  "quantity": 123.91,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "B.02",
-   "demo-trades": "99"
-  },
-  "elements": 2
- },
- {
   "key": "slabs | Insitu Concrete 225mm |  | m2",
   "ruleId": "slabs",
   "description": "Slab, Insitu Concrete 225mm",
@@ -585,19 +572,6 @@
   "elements": 6
  },
  {
-  "key": "wall-layers | None | None | 0.22 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "-, 220 mm (normal height)",
-  "unit": "m2",
-  "quantity": 10.13,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "D.02",
-   "demo-trades": "99"
-  },
-  "elements": 1
- },
- {
   "key": "wall-layers | wall.partition | board.plasterboard | 0.01 | above limit | m2",
   "ruleId": "wall-layers",
   "description": "board.plasterboard, 10 mm (above limit)",
@@ -702,6 +676,19 @@
   "elements": 3
  },
  {
+  "key": "wall-layers | None | unspecified | 0.22 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "unspecified, 220 mm (normal height)",
+  "unit": "m2",
+  "quantity": 10.13,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "D.02",
+   "demo-trades": "99"
+  },
+  "elements": 1
+ },
+ {
   "key": "curtain-walls | SH_Curtain wall |  | m2",
   "ruleId": "curtain-walls",
   "description": "Curtain wall, SH_Curtain wall",
@@ -788,7 +775,7 @@
   "source": "measured",
   "codes": {
    "acme-cost-codes": "F.01",
-   "demo-trades": "07"
+   "demo-trades": "04"
   },
   "elements": 1
  },
@@ -817,19 +804,6 @@
    "demo-trades": "01"
   },
   "elements": 1
- },
- {
-  "key": "slabs | Generic 300 |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 300",
-  "unit": "m2",
-  "quantity": 109.49,
-  "source": "measured",
-  "codes": {
-   "acme-cost-codes": "G.01",
-   "demo-trades": "99"
-  },
-  "elements": 2
  },
  {
   "key": "slabs | Pad 2 |  | m2",
@@ -869,6 +843,32 @@
    "demo-trades": "05"
   },
   "elements": 10
+ },
+ {
+  "key": "slabs | Generic 150mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 150mm",
+  "unit": "m2",
+  "quantity": 123.91,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01",
+   "demo-trades": "06"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Generic 300 |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 300",
+  "unit": "m2",
+  "quantity": 109.49,
+  "source": "measured",
+  "codes": {
+   "acme-cost-codes": "H.01",
+   "demo-trades": "06"
+  },
+  "elements": 2
  },
  {
   "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",

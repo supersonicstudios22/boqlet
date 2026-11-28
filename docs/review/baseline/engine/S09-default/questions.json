@@ -39,7 +39,16 @@
    "unitError": true,
    "scale": "1000"
   },
-  "message": "1 x IfcSlab 'Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC': the volume stated in the file and the geometry disagree by -100% (e.g. 68713.556 m3 from BaseQuantities.GrossVolume vs 68.714 m3 measured). The stated value looks like a unit error (x1000); the measured value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC': the file gives the volume as 68713.556 m3; the geometry measures 68.714 m3 (-100%). The stated value looks like a unit error (x1000), so the measured value is used until you answer. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slabs | Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC |  | m2",
+    "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+    "unit": "m2",
+    "quantity": 146.2
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "contradiction:volume:IfcSlab:Simple floor",
@@ -81,67 +90,90 @@
    "unitError": true,
    "scale": "1000"
   },
-  "message": "1 x IfcSlab 'Simple floor': the volume stated in the file and the geometry disagree by -100% (e.g. 13243.372 m3 from BaseQuantities.GrossVolume vs 13.243 m3 measured). The stated value looks like a unit error (x1000); the measured value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Simple floor': the file gives the volume as 13243.372 m3; the geometry measures 13.243 m3 (-100%). The stated value looks like a unit error (x1000), so the measured value is used until you answer. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slabs | Simple floor |  | m2",
+    "description": "Slab, Simple floor",
+    "unit": "m2",
+    "quantity": 80.26
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:layer_material:Air",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "layer_material",
   "raw": "Air",
   "occurrences": 1,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWgQ"
+  ],
+  "suggestion": "unspecified",
+  "candidates": [
+   "air_gap"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "layer_material",
    "raw": "Air",
    "count": 1,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Air' (layer material)? Used 1 time(s).",
+  "message": "'Air' (layer material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:layer_material:Damp-proofing",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "Damp-proofing",
-  "occurrences": 1,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "Damp-proofing",
-   "count": 1,
-   "blocking": true
   },
-  "message": "What is 'Damp-proofing' (layer material)? Used 1 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [
+   {
+    "key": "slabs | Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC |  | m2",
+    "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+    "unit": "m2",
+    "quantity": 146.2
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Air",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "material",
   "raw": "Air",
   "occurrences": 1,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWgQ"
+  ],
+  "suggestion": "unspecified",
+  "candidates": [
+   "air_gap"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
    "raw": "Air",
    "count": 1,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Air' (material)? Used 1 time(s).",
+  "message": "'Air' (material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC |  | m2",
+    "description": "Slab, Floor-Grnd-Susp_65Scr-80Ins-100Blk-75PC",
+    "unit": "m2",
+    "quantity": 146.2
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Door - Handle",
@@ -150,6 +182,11 @@
   "field": "material",
   "raw": "Door - Handle",
   "occurrences": 3,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWYp",
+   "3cUkl32yn9qRSPvBJVyWaG",
+   "3cUkl32yn9qRSPvBJVyWax"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -157,31 +194,26 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'Door - Handle' (material)? Used 3 time(s).",
+  "message": "What is 'Door - Handle' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:material:Laminate, Ivory, Matte",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "material",
-  "raw": "Laminate, Ivory, Matte",
-  "occurrences": 1,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "material",
-   "raw": "Laminate, Ivory, Matte",
-   "count": 1,
-   "blocking": true
   },
-  "message": "What is 'Laminate, Ivory, Matte' (material)? Used 1 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [
+   {
+    "key": "doors | Doors_ExtDbl_Flush | 1810x2110mm | True |  | nr",
+    "description": "Door Doors_ExtDbl_Flush, 1810x2110mm",
+    "unit": "nr",
+    "quantity": 1.0
+   },
+   {
+    "key": "doors | Doors_IntSgl | 810x2110mm | False |  | nr",
+    "description": "Door Doors_IntSgl, 810x2110mm",
+    "unit": "nr",
+    "quantity": 2.0
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:material:Window Frame",
@@ -190,6 +222,12 @@
   "field": "material",
   "raw": "Window Frame",
   "occurrences": 4,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWcE",
+   "3cUkl32yn9qRSPvBJVyWdx",
+   "3cUkl32yn9qRSPvBJVyWe9",
+   "3cUkl32yn9qRSPvBJVyZTO"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -197,11 +235,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'Window Frame' (material)? Used 4 time(s).",
+  "message": "What is 'Window Frame' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "windows | Windows_Sgl_Plain | 1810x1210mm |  | nr",
+    "description": "Window Windows_Sgl_Plain, 1810x1210mm",
+    "unit": "nr",
+    "quantity": 4.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:space_name:Roof",
@@ -210,6 +257,10 @@
   "field": "space_name",
   "raw": "Roof",
   "occurrences": 1,
+  "guids": [
+   "09J5N7xMHBfQZeQGAEMota"
+  ],
+  "noEffect": true,
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -217,11 +268,13 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Roof' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Roof' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Plain",
@@ -230,6 +283,11 @@
   "field": "type_name",
   "raw": "Plain",
   "occurrences": 3,
+  "guids": [
+   "3cUkl32yn9qRSPvBJVyWfu",
+   "3cUkl32yn9qRSPvBJVyWfk",
+   "3cUkl32yn9qRSPvBJVyWgM"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -237,50 +295,19 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'Plain' (type name)? Used 3 time(s).",
+  "message": "What is 'Plain' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
- },
- {
-  "id": "name:type_name:Wall-Ext_102Bwk-75Ins-100LBlk-12P",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "type_name",
-  "raw": "Wall-Ext_102Bwk-75Ins-100LBlk-12P",
-  "occurrences": 3,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "type_name",
-   "raw": "Wall-Ext_102Bwk-75Ins-100LBlk-12P",
-   "count": 3,
-   "blocking": true
   },
-  "message": "What is 'Wall-Ext_102Bwk-75Ins-100LBlk-12P' (type name)? Used 3 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "element_type"
-  }
- },
- {
-  "id": "name:type_name:Wall-Partn_12P-70MStd-12P",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "type_name",
-  "raw": "Wall-Partn_12P-70MStd-12P",
-  "occurrences": 2,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "type_name",
-   "raw": "Wall-Partn_12P-70MStd-12P",
-   "count": 2,
-   "blocking": true
-  },
-  "message": "What is 'Wall-Partn_12P-70MStd-12P' (type name)? Used 2 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "element_type"
-  }
+  "affectedLines": [
+   {
+    "key": "coverings | CEILING | Plain |  | m2",
+    "description": "CEILING, Plain",
+    "unit": "m2",
+    "quantity": 76.11
+   }
+  ],
+  "affectedLineCount": 1
  }
 ]

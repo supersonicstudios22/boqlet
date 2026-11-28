@@ -41,7 +41,25 @@
    "unitError": false,
    "scale": null
   },
-  "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?"
+  "message": "3 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the file says 0.55 m thick; the geometry measures 0.493 m (-10%; -16% to -10% across the 3). Until you answer, the stated value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "walls | Party Wall - CMU Residential Unit Dimising Wall | True |  | m2",
+    "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
+    "unit": "m2",
+    "quantity": 78.83
+   },
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 712.68
+   }
+  ],
+  "affectedLineCount": 2,
+  "modelIds": [
+   "S05-duplex-architecture-ifc2x3"
+  ]
  },
  {
   "id": "contradiction:volume:IfcWall:Party Wall - CMU Residential Unit Dimising Wall",
@@ -83,7 +101,25 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the volume stated in the file and the geometry disagree by +42% (e.g. 2.011 m3 from PSet_Revit_Dimensions.Volume vs 2.856 m3 measured). The stated value is used; it usually allows for joins. Which should be used?"
+  "message": "1 x IfcWall 'Party Wall - CMU Residential Unit Dimising Wall': the file gives the volume as 2.011 m3; the geometry measures 2.856 m3 (+42%). Until you answer, the stated value is used (a stated volume usually allows for joins). Which should we use?",
+  "affectedLines": [
+   {
+    "key": "walls | Party Wall - CMU Residential Unit Dimising Wall | True |  | m2",
+    "description": "Wall, Party Wall - CMU Residential Unit Dimising Wall, 550 mm",
+    "unit": "m2",
+    "quantity": 78.83
+   },
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 712.68
+   }
+  ],
+  "affectedLineCount": 2,
+  "modelIds": [
+   "S05-duplex-architecture-ifc2x3"
+  ]
  },
  {
   "id": "name:space_name:Roof",
@@ -92,6 +128,11 @@
   "field": "space_name",
   "raw": "Roof",
   "occurrences": 2,
+  "guids": [
+   "0pNy6pOyf7JPmXRLgxs3sW",
+   "0CRPz_SEr94Ah74P8LhwLP"
+  ],
+  "noEffect": true,
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -99,11 +140,14 @@
    "count": 2,
    "blocking": false
   },
-  "message": "What is 'Roof' (space name)? Used 2 time(s). Not used by the current rules.",
+  "message": "What is 'Roof' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0,
+  "modelIds": []
  },
  {
   "id": "name:space_name:Roof MEP Space",
@@ -112,6 +156,15 @@
   "field": "space_name",
   "raw": "Roof MEP Space",
   "occurrences": 1,
+  "guids": [
+   "3YWx8nQAj0DhPfgLl9dDey"
+  ],
+  "noEffect": true,
+  "candidates": [
+   "space.bathroom",
+   "space.bedroom",
+   "space.circulation"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -119,11 +172,14 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Roof MEP Space' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Roof MEP Space' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0,
+  "modelIds": []
  },
  {
   "id": "name:space_name:Room",
@@ -132,6 +188,14 @@
   "field": "space_name",
   "raw": "Room",
   "occurrences": 2,
+  "guids": [
+   "10mjSDZJj9gPS2PrQaxa4o",
+   "0CRPz_SEr94Ah74P8LhwD6"
+  ],
+  "noEffect": true,
+  "candidates": [
+   "space.living"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -139,10 +203,13 @@
    "count": 2,
    "blocking": false
   },
-  "message": "What is 'Room' (space name)? Used 2 time(s). Not used by the current rules.",
+  "message": "What is 'Room' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0,
+  "modelIds": []
  }
 ]

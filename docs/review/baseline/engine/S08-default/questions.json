@@ -46,7 +46,28 @@
    "unitError": false,
    "scale": null
   },
-  "message": "8 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The measured value is used. Which should be used?"
+  "message": "8 x IfcSlab '600 x 600 x 900mm': the file says 0.6 m thick; the geometry measures 0.3 m (-50%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slab-concrete | 600 x 600 x 900mm |  | m3",
+    "description": "In-situ concrete, 600 x 600 x 900mm",
+    "unit": "m3",
+    "quantity": 0.86
+   },
+   {
+    "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
+    "description": "Edge formwork to slabs",
+    "unit": "m2",
+    "quantity": 5.76
+   },
+   {
+    "key": "slabs | 600 x 600 x 900mm |  | m2",
+    "description": "Slab, 600 x 600 x 900mm",
+    "unit": "m2",
+    "quantity": 2.88
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "contradiction:thickness:IfcSlab:3800 x 3800 x 600mm",
@@ -88,27 +109,28 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the thickness stated in the file and the geometry disagree by -74% (e.g. 3.8 m from Qto_SlabBaseQuantities.Width vs 1 m measured). The measured value is used. Which should be used?"
- },
- {
-  "id": "name:layer_material:Damp-proofing",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "Damp-proofing",
-  "occurrences": 3,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "Damp-proofing",
-   "count": 3,
-   "blocking": true
-  },
-  "message": "What is 'Damp-proofing' (layer material)? Used 3 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "message": "1 x IfcSlab '3800 x 3800 x 600mm': the file says 3.8 m thick; the geometry measures 1 m (-74%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slab-concrete | 3800 x 3800 x 600mm |  | m3",
+    "description": "In-situ concrete, 3800 x 3800 x 600mm",
+    "unit": "m3",
+    "quantity": 14.44
+   },
+   {
+    "key": "formwork-slab-edges | slab-concrete | 3800 x 3800 x 600mm |  | m3 | m2",
+    "description": "Edge formwork to slabs",
+    "unit": "m2",
+    "quantity": 15.2
+   },
+   {
+    "key": "slabs | 3800 x 3800 x 600mm |  | m2",
+    "description": "Slab, 3800 x 3800 x 600mm",
+    "unit": "m2",
+    "quantity": 14.44
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "name:layer_material:Rubble",
@@ -117,6 +139,11 @@
   "field": "layer_material",
   "raw": "Rubble",
   "occurrences": 3,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtZP",
+   "1cCK8nA61FduUezO75i8dB",
+   "3oN4I8xtfBqwV5AUrz94Vu"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "layer_material",
@@ -124,31 +151,50 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'Rubble' (layer material)? Used 3 time(s).",
+  "message": "What is 'Rubble' (layer material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:material:Softwood, Lumber",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "material",
-  "raw": "Softwood, Lumber",
-  "occurrences": 171,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "material",
-   "raw": "Softwood, Lumber",
-   "count": 171,
-   "blocking": true
   },
-  "message": "What is 'Softwood, Lumber' (material)? Used 171 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [
+   {
+    "key": "slab-concrete | Insitu Concrete |  | m3",
+    "description": "In-situ concrete, Insitu Concrete",
+    "unit": "m3",
+    "quantity": 35.94
+   },
+   {
+    "key": "slab-concrete | Insitu Concrete 250mm |  | m3",
+    "description": "In-situ concrete, Insitu Concrete 250mm",
+    "unit": "m3",
+    "quantity": 17.52
+   },
+   {
+    "key": "formwork-slab-edges | slab-concrete | Insitu Concrete |  | m3 | m2",
+    "description": "Edge formwork to slabs",
+    "unit": "m2",
+    "quantity": 18.21
+   },
+   {
+    "key": "formwork-slab-edges | slab-concrete | Insitu Concrete 250mm |  | m3 | m2",
+    "description": "Edge formwork to slabs",
+    "unit": "m2",
+    "quantity": 13.29
+   },
+   {
+    "key": "slabs | Insitu Concrete |  | m2",
+    "description": "Slab, Insitu Concrete",
+    "unit": "m2",
+    "quantity": 143.78
+   },
+   {
+    "key": "slabs | Insitu Concrete 250mm |  | m2",
+    "description": "Slab, Insitu Concrete 250mm",
+    "unit": "m2",
+    "quantity": 70.07
+   }
+  ],
+  "affectedLineCount": 6
  },
  {
   "id": "name:space_name:Area",
@@ -157,6 +203,10 @@
   "field": "space_name",
   "raw": "Area",
   "occurrences": 1,
+  "guids": [
+   "0wWrXKmlH9o9quybISZT88"
+  ],
+  "noEffect": true,
   "code": "question.unknown_name",
   "params": {
    "field": "space_name",
@@ -164,11 +214,13 @@
    "count": 1,
    "blocking": false
   },
-  "message": "What is 'Area' (space name)? Used 1 time(s). Not used by the current rules.",
+  "message": "What is 'Area' (space name)? Not used by the current rules.",
   "answer": {
    "kind": "term",
    "category": "space"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:CL_W1",
@@ -177,6 +229,22 @@
   "field": "type_name",
   "raw": "CL_W1",
   "occurrences": 9,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtuD",
+   "0NWseyvsH7_gBW225aGtyM",
+   "1RUi90wQT3ihQ$96bMNGiu",
+   "1RUi90wQT3ihQ$96bMNGvH",
+   "1RUi90wQT3ihQ$96bMNGrh",
+   "08srsdomPFpAjv$vKzIrvo",
+   "08srsdomPFpAjv$vKzIrvQ",
+   "3TxIfPTYb4LhjW_mMhaW$_",
+   "0TdQ3qJgP7IRf$P59Iqauf"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -184,10 +252,25 @@
    "count": 9,
    "blocking": true
   },
-  "message": "What is 'CL_W1' (type name)? Used 9 time(s).",
+  "message": "What is 'CL_W1' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "formwork-walls | m2",
+    "description": "Formwork to walls, both faces",
+    "unit": "m2",
+    "quantity": 651.81
+   },
+   {
+    "key": "walls | CL_W1 | True |  | m2",
+    "description": "Wall, CL_W1, 280 mm",
+    "unit": "m2",
+    "quantity": 325.91
+   }
+  ],
+  "affectedLineCount": 2
  }
 ]

@@ -26,11 +26,11 @@
  ],
  "timing": {
   "parseSeconds": {
-   "S07": 36.67,
-   "S08": 24.88
+   "S07": 51.97,
+   "S08": 51.16
   },
-  "runSeconds": 1.96,
-  "totalSeconds": 70.3
+  "runSeconds": 5.26,
+  "totalSeconds": 118.66
  },
  "outcome": "result",
  "status": "needs_input",
@@ -46,11 +46,11 @@
   "lines": 74,
   "flaggedLines": 15,
   "decisionsApplied": 0,
-  "questions": 115,
-  "blockingQuestions": 69,
-  "warnings": 18
+  "questions": 109,
+  "blockingQuestions": 59,
+  "warnings": 17
  },
- "peakMemoryMB": 1600.8,
+ "peakMemoryMB": 1587.8,
  "versions": {
   "python": "3.10.7",
   "ifcopenshell": "0.9.0"

@@ -16,7 +16,9 @@
   "message": "1 x IfcBuildingElementProxy 'ROOT nulpunt_(#23680)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:bellentableau_(#195505)",
@@ -35,7 +37,9 @@
   "message": "1 x IfcBuildingElementProxy 'bellentableau_(#195505)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193376)",
@@ -54,7 +58,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193376)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193475)",
@@ -73,7 +79,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193475)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#193630)",
@@ -92,7 +100,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#193630)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195596)",
@@ -111,7 +121,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195596)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195687)",
@@ -130,7 +142,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195687)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195778)",
@@ -149,7 +163,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195778)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195869)",
@@ -168,7 +184,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195869)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#195960)",
@@ -187,7 +205,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#195960)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#196051)",
@@ -206,7 +226,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#196051)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:brievenbussen_(#269096)",
@@ -225,7 +247,9 @@
   "message": "1 x IfcBuildingElementProxy 'brievenbussen_(#269096)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#178751)",
@@ -244,7 +268,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#178751)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182116)",
@@ -263,7 +289,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182116)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182207)",
@@ -282,7 +310,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182207)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182470)",
@@ -301,7 +331,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182470)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#182561)",
@@ -320,7 +352,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#182561)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#183352)",
@@ -339,7 +373,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#183352)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#183443)",
@@ -358,7 +394,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#183443)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#299018)",
@@ -377,7 +415,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#299018)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#321803)",
@@ -396,7 +436,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#321803)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#324409)",
@@ -415,7 +457,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#324409)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#325393)",
@@ -434,7 +478,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#325393)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#330495)",
@@ -453,7 +499,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#330495)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#330948)",
@@ -472,7 +520,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#330948)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#332254)",
@@ -491,7 +541,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#332254)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#333562)",
@@ -510,7 +562,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#333562)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#334868)",
@@ -529,7 +583,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#334868)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#39881)",
@@ -548,7 +604,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#39881)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#40694)",
@@ -567,7 +625,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#40694)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#40785)",
@@ -586,7 +646,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#40785)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#42091)",
@@ -605,7 +667,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#42091)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#42994)",
@@ -624,7 +688,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#42994)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#432025)",
@@ -643,7 +709,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#432025)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#44513)",
@@ -662,7 +730,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#44513)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446428)",
@@ -681,7 +751,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446428)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446690)",
@@ -700,7 +772,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446690)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446775)",
@@ -719,7 +793,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446775)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#446859)",
@@ -738,7 +814,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#446859)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#447121)",
@@ -757,7 +835,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#447121)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#447550)",
@@ -776,7 +856,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#447550)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#448855)",
@@ -795,7 +877,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#448855)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449117)",
@@ -814,7 +898,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449117)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449202)",
@@ -833,7 +919,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449202)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449292)",
@@ -852,7 +940,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449292)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449555)",
@@ -871,7 +961,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449555)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#449646)",
@@ -890,7 +982,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#449646)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#454708)",
@@ -909,7 +1003,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#454708)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#454971)",
@@ -928,7 +1024,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#454971)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#46029)",
@@ -947,7 +1045,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#46029)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#589390)",
@@ -966,7 +1066,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#589390)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600098)",
@@ -985,7 +1087,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600098)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600189)",
@@ -1004,7 +1108,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600189)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600274)",
@@ -1023,7 +1129,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600274)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600536)",
@@ -1042,7 +1150,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600536)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600799)",
@@ -1061,7 +1171,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600799)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#600884)",
@@ -1080,7 +1192,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#600884)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601146)",
@@ -1099,7 +1213,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601146)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601409)",
@@ -1118,7 +1234,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601409)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601672)",
@@ -1137,7 +1255,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601672)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#601757)",
@@ -1156,7 +1276,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#601757)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602623)",
@@ -1175,7 +1297,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602623)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602714)",
@@ -1194,7 +1318,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602714)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#602799)",
@@ -1213,7 +1339,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#602799)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#621600)",
@@ -1232,7 +1360,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#621600)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707142)",
@@ -1251,7 +1381,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707142)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707232)",
@@ -1270,7 +1402,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707232)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707843)",
@@ -1289,7 +1423,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707843)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#707928)",
@@ -1308,7 +1444,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#707928)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771480)",
@@ -1327,7 +1465,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771480)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771571)",
@@ -1346,7 +1486,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771571)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:hwa afvoer_(#771661)",
@@ -1365,7 +1507,9 @@
   "message": "1 x IfcBuildingElementProxy 'hwa afvoer_(#771661)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:kozijn_(#780325)",
@@ -1384,7 +1528,9 @@
   "message": "1 x IfcBuildingElementProxy 'kozijn_(#780325)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#274530)",
@@ -1403,7 +1549,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#274530)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#274659)",
@@ -1422,7 +1570,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#274659)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#275478)",
@@ -1441,7 +1591,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#275478)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#756704)",
@@ -1460,7 +1612,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#756704)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#756925)",
@@ -1479,7 +1633,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#756925)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757142)",
@@ -1498,7 +1654,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757142)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757359)",
@@ -1517,7 +1675,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757359)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757613)",
@@ -1536,7 +1696,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757613)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757742)",
@@ -1555,7 +1717,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757742)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#757959)",
@@ -1574,7 +1738,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#757959)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#758176)",
@@ -1593,7 +1759,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#758176)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#758393)",
@@ -1612,7 +1780,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#758393)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:vent. rooster_(#87620)",
@@ -1631,7 +1801,9 @@
   "message": "1 x IfcBuildingElementProxy 'vent. rooster_(#87620)' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:01 Hout - dak",
@@ -1640,6 +1812,14 @@
   "field": "material",
   "raw": "01 Hout - dak",
   "occurrences": 6,
+  "guids": [
+   "2jxBJ7Wpb9U8cyu46HsGM6",
+   "0XDsFuUEn0_wZIBkdtUY7l",
+   "1dDlItqX1BGe$tYuTx52B0",
+   "1jbA0IeET1Ne3fl4U1t1pJ",
+   "324mh_q7n58uaygLiFVqnk",
+   "0WW8MCGG1FORL5OwtMiDFZ"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1647,11 +1827,20 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is '01 Hout - dak' (material)? Used 6 time(s).",
+  "message": "What is '01 Hout - dak' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "windows | None | None |  | nr",
+    "description": "Window -, -",
+    "unit": "nr",
+    "quantity": 259.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:01 Hout - stelkozijn",
@@ -1660,6 +1849,149 @@
   "field": "material",
   "raw": "01 Hout - stelkozijn",
   "occurrences": 141,
+  "guids": [
+   "1e1TMS88vBfRbg_I2ithoR",
+   "0pIv0hWZfBiA$_CRu76FSy",
+   "1zjlZrbzbBS8ly$f1KAnNn",
+   "0H3zj6jMvAdhGj8GrIl$s$",
+   "1eugkmFzzBBRkg4KebLPbm",
+   "26PEnhIRP84w9lRBxOMn4B",
+   "2Iywgx9NL3COQsECzlNa7k",
+   "2awR$Krn55xBl1usT02m1h",
+   "2_uvu2uCr0F9ALtUmmMeA_",
+   "1RCelxXQHEquV$blyKtcDr",
+   "3qOlkor2HBSvpamf_gJPd_",
+   "2$aVgOHSD2PfsdmqgQAmjX",
+   "2f$790Hcz969otqqc5DRNE",
+   "27pFf1NVr8U8_Uo1jtbjaP",
+   "1ouOynhDzAJxZsRUJcuK50",
+   "35WlnsUf99ZR3kVbT6cE2j",
+   "31iMbvdzzF5v0jCoFAGjsv",
+   "29L5nEyQT4UBEQFH4EVPW_",
+   "0IRIjldlL2MQ47SiY$bPnI",
+   "3K9QAYfJnCigI_U3Aa5ZGT",
+   "1sjN$ROi55eQi38LFNtaix",
+   "0nM8hgtAvBe86VkOTwLJsO",
+   "19KFf_kzDEigi2BNHjEY$n",
+   "3T6NXncNvBXx7h2iCZANrZ",
+   "2ocDFGALz5b8ewo6rsffUj",
+   "1__2Oqjbv5XAxtPkC13kkD",
+   "2DqYWqOXXF_OkO0XhzIbjE",
+   "03EsVWJLz4DP5qdjaBI8E0",
+   "0qC0BjM$LEihw9rhaU6soM",
+   "0gLFztMZT6kB3AGpbabR0y",
+   "0urQIRDLnF6Pf2S8VV_tQJ",
+   "2vlI$QeTP4G9YIWk86NFAi",
+   "2Jwj7CPxf6Pv_NhzDSpOzC",
+   "1bZOp7EYv1LPmsDGrxk0Df",
+   "0iF69O0izB3P0oGDoyQCk2",
+   "36luv8eiv6T8p4FqtPI9Cy",
+   "2nPLk4yavBremgrANqr6AV",
+   "35tbku5k197AncrC67czOQ",
+   "1WOqi8lsr82QR9BFfyxMwD",
+   "0dMjugeQj6X9iOeqRaS5Ij",
+   "1JRydtVc97cvwHAKXmm4q6",
+   "2HU8K_V9v2Hw2ctUl4$hFK",
+   "2r36KpN6z5Yvkd6nZ3NvOF",
+   "2EWHr2vvLEXhiQuQ0EXmUD",
+   "0D7Id7MzH2uxJt4hcUb5uK",
+   "0H2ypHDCr0BRCn4DQCiDdN",
+   "1SQtV9eAn5_Q1IsAvSwY8I",
+   "0T$nAC26PBZfnA7kWSCytO",
+   "04PDIFJZXAA8R34kAXRvCn",
+   "03AldB3qrAAvfaa6RuJUzJ",
+   "1libdzZgnFD9Jik7_pv1u9",
+   "3FNr31KWz2POCkPE9OKDKd",
+   "3_dXL6FOT84BeRzI_st3H3",
+   "2OWc8$FWTD0RKVkzPjU2UF",
+   "0UcKNxAODBLvKDpd549zVh",
+   "3Q1RvU_YPBVg$Q1fKA0eMk",
+   "0fzgTqKXHB7u3sFJJEDAXx",
+   "3iuBHxrKLCNfmlduXhwGgW",
+   "27S5Z02wD8Dh7lg8C2vlgJ",
+   "3zWU$Qpn54oQZO60lbqx8V",
+   "2vPCtDLZLDcO0yiEWImdtY",
+   "0bKWaI$nX7GQh$HO6fqkXR",
+   "0cXyHjurv1a9c0jJJ_GcGw",
+   "3cdRRIm555dRPBMjJlk_ly",
+   "1cLb84f5z659GgMLiRbePM",
+   "0MI_K98an83PrNYwGXJnMb",
+   "1BT$$cAnb7EfcxwOANzS8Q",
+   "1JaSVauAr3DuKBcZP1OHya",
+   "0BtjZMmBr4jQ$h_8YbD1eu",
+   "3gV8F00ur6Ug8wwy5lEayU",
+   "2NDMTI7EX3N9zowDzHR3mx",
+   "1S2GR1o9j8YBiff39xtQy4",
+   "2lN0e9NQj07BUORa4OgEsw",
+   "1ZT9k4UNT1uQXO_7BsO2dw",
+   "1V6WFum2502gB6Zpmwm91M",
+   "3I9BnxcE99HvourdcNNGQn",
+   "112ucQSn96heulyu_JquBp",
+   "3hWN7HRI14y8dBCtT2U0Fy",
+   "23PPVxY3T3$9WMI7xRyiw7",
+   "2AV9CmkGLBoPAD47NTlJ5D",
+   "1L7IjJxMz0KuG_7cct04DA",
+   "2QpwEAY59F7vX8Hu9BWoCt",
+   "3xUCf3I8z6TePb1neOodQ2",
+   "3_7jpp_uPEjeUvO6JFf81Z",
+   "2cBVMLlz1Axw0htVN4j_Ke",
+   "2WR4cWLb9AgP1JWXSg$1W$",
+   "13e7YbeSj0_RcuesS2nQBY",
+   "2jI6R332zEEvmdVodKiU2J",
+   "3EqNXW8gr5TgY3dS5yL3qB",
+   "0BQ8TICb59bQmDvNJPlay5",
+   "2SzxIt2_1BdgncHgRlEfr5",
+   "3Nq$U_14nDdfiBMaLzbhNG",
+   "2$JdFRWsbBIP3FjyBuGbvq",
+   "2soLCWpMz1yAcFT7cTbLdU",
+   "16ECXJNHv5vwopJkcy9S2C",
+   "0$2Sm65ETFnewuSwYXFB7c",
+   "0SSxKQTLr3Mfar3nsvj2sL",
+   "2IrOQBpMH1Au54WvTNJzko",
+   "0KeeaFaBb1sPc3vENkFIPg",
+   "0HW1lrWU5A0Adx8y0h4tNx",
+   "1rmUI_MzvCFBqXNy27VuJP",
+   "3cAlml7i1AbfXBfjlvzyF1",
+   "1FzwFic1rExOaZJAf0B49i",
+   "0sIcMfLcD8uPgh2OyJjLjg",
+   "0trARgofL6qhbHmfkcd8uu",
+   "3yh1cFmADE5BCLgkhTM09S",
+   "1uQIhb98z4owXmKBinBuNB",
+   "1KAxLNjXHEW9vvbvrFXmAL",
+   "01i225Zu912x4i0_d9ndRQ",
+   "1DSrV1NmzDsOFC2B7sgDZp",
+   "0pWvvSDFz8IgsrdBf_cjUJ",
+   "2xYWXUDbT4tvMDtBQ4Ozca",
+   "18Fq9tXj1BqfwBSwkhBL9E",
+   "2YkYWM2HT9PgN0j7s0athM",
+   "3tvFlUIPT5$fIi_9R0DTyu",
+   "2K8ZUQh1b52wykckodSuUf",
+   "3n8U7gD5bFPQBGJuBBZyez",
+   "02qFi5dEH0$Q61urORyM31",
+   "1ebZ4At2n50erKIkGzq26v",
+   "0PlRE4Ii52PviyywtXdEaS",
+   "28CEomXyDEYPtMMAm_3yyq",
+   "3h3rm8a1H8UArxBi_BZ7RP",
+   "17P2BjQBr7DgNAGE_cbD2D",
+   "2Ke9Y94rXDhAnC9iBEYiAj",
+   "3dWdsFnyrFJwiBaTTCZVqx",
+   "1U5753XdLBnxZmF2o6NTuz",
+   "15aUjHH_zDFwnyYb4ICa27",
+   "27IuZvI5vCTRtMhO_GFOxL",
+   "2OOXHvCG51YeBgQ2jZ7CbB",
+   "3BDtepfGL9reOcQA0rj4UQ",
+   "0VM7lXhNz1lP1kHY7Raqie",
+   "2$8H3Tz8X5yB2XpDW0lpsm",
+   "104jchuGb5CQILanyKVN06",
+   "2Ne4ZiwNn5IQDnoNVbgtDB",
+   "0DxAZgm9r5fPzJJ1Cxp6l5",
+   "31VQoYVW9Bh8tlVfSbrUH4",
+   "0EI4VcwrP4cugfy37C71Uo",
+   "0bY94plmv9fQykS2LxZIhN",
+   "0P03HpiGnEb9_0bPNOY$bN",
+   "1Hop7C_uL2NwEiyQMadOw5",
+   "0X9NHFByPEEuoRYN$4mN72"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1667,11 +1999,26 @@
    "count": 141,
    "blocking": true
   },
-  "message": "What is '01 Hout - stelkozijn' (material)? Used 141 time(s).",
+  "message": "What is '01 Hout - stelkozijn' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "windows | None | None |  | nr",
+    "description": "Window -, -",
+    "unit": "nr",
+    "quantity": 259.0
+   },
+   {
+    "key": "doors | None | None | False |  | nr",
+    "description": "Door -, -",
+    "unit": "nr",
+    "quantity": 205.0
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:material:01 Hout C",
@@ -1680,6 +2027,16 @@
   "field": "material",
   "raw": "01 Hout C",
   "occurrences": 8,
+  "guids": [
+   "0FyMAWzxbBawFadYkECtei",
+   "0wgFUC16L8Xv1IzjR0JB_u",
+   "2MtlItV3D4awUFvxmyJJHJ",
+   "3dXJU2$BfAfRpHg_D2WQtL",
+   "305So0SFb5Dgx_ESNlSQBg",
+   "0wJbP8NSj9fe0ZTV_QZREL",
+   "3x6s11hAXEGQ7qyuP86J0g",
+   "2v6BsH2_n95Bd6yB2BW8r4"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1687,11 +2044,20 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is '01 Hout C' (material)? Used 8 time(s).",
+  "message": "What is '01 Hout C' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:01 plaatmateriaal - multiplex",
@@ -1700,6 +2066,154 @@
   "field": "material",
   "raw": "01 plaatmateriaal - multiplex",
   "occurrences": 146,
+  "guids": [
+   "1k2RoSczPBFAWrl0Ju7O4I",
+   "3uNghveZ5AihDwN0quDhH5",
+   "2QG3JJQojF6xOsfWQL177d",
+   "3fC$PNTSn2FgFiT9F1LJZ5",
+   "2JI2Vmk8T8suMaFb5SAEjq",
+   "1v_pDcrDXCTPzmqd3ZRi5o",
+   "1CkaLDJKL468fAXTlP10J8",
+   "09PjpLOMb3oOqywlkDOrjl",
+   "1VTTmSV6f6cevwx3o1FUZv",
+   "1qPGssPd59qRwrFY12sSY9",
+   "3q4SQU7r9ByuqNHoMOkqjg",
+   "2HeP5tiWbEkQWeynxY6g35",
+   "1HOR_Hm891fB0ED3zYydv9",
+   "07cG4vr152GgBk2Q72_UbX",
+   "3$dmuTcdjCdRaU$JDZZi4l",
+   "2qJbh2R6XFeedp9zHT1Cqt",
+   "1SHqXY7hz3yx0l5DAuN8P3",
+   "3GF8AZDW9FaeCxJMHszCT9",
+   "0qcOYgOKn4w8o5HZbgyr_c",
+   "2_ee9r$6LClh4Ml_ZciuP6",
+   "0psdW$WVD6RPdjoLutbr58",
+   "3FG5IkFKH09BSSh1NN2fea",
+   "2iiZjkleTB988AWvXWwZ9L",
+   "2JESpL9AP3iOsevVnVxMD_",
+   "0boHo_WQLCVwG27hWJcNSn",
+   "0Inul6BZT9KQDHQRkSQY8i",
+   "0EAi1gUu96Uxfkd3wt$Iv9",
+   "2K9vPQ0yHBYe2e6QGahWT4",
+   "3MXn4t7D589fmFZst_zB8a",
+   "3cxZu884rDF8t6ZLyoajZU",
+   "2BlfTaQFT9OwPbssKIKK0t",
+   "3LuOo_MQT3E8nfe9eT2Qkb",
+   "0389hWwJ11AACIBzwAdhnt",
+   "3MGiyWAG95rvc4RUfL5l2C",
+   "284J$03YLFXPGkHkz$vFaY",
+   "0vmwxsqzzFRBGbD3IEWCdn",
+   "0uvK6LIQHAPA2ojN5Kgzqw",
+   "0fzg76vdD0cww37HCpBMZ2",
+   "1ty8RjYRn53wJA8Y2sySNX",
+   "11g7yz38D8gRURxRKGgwtM",
+   "1bjPfm5OD5sQYyFJU70PUm",
+   "1A3P8e92f9EQCZlIaLUQrq",
+   "0PiJb3_L1FIQEV3As345uO",
+   "2hjOYT9eT8qeiaKOfwHZOM",
+   "0yvv9KZmfCgxwgMryfcS2_",
+   "3Gxt9wdyf0CP81hz3n6B$I",
+   "1$$sLFtS1Fquud_AL06huE",
+   "3nt5yZBfzEhO2s4LtBCXiy",
+   "0RYpA7Yb1C1Pwv3FB31h2i",
+   "0GSCEc2jz2QQHsY7vU6wah",
+   "3DSayuD19FMAxyeSl4WzCB",
+   "2_KAmB$JbBc8f9puZ0mA$z",
+   "3lzeIrqN94Ww4su1Zq9ZXj",
+   "0UDCtE1Aj4tAN8iRhUlBaW",
+   "1YEEjcQN11Yf4O3N_3JwcZ",
+   "0KuhnZDYbDihBdzJZR4g85",
+   "2orFMc7z55Ledw0w2xPJ4T",
+   "0nDujAB69DS9izGKLeFxu1",
+   "29GZ6UygDF4RaquOFEe97t",
+   "04HuHpaEr2YQBTFV26LX4x",
+   "1efX1E12v5PQgP2pnfnIE3",
+   "259rQffD1FiuK7tJlkY_ul",
+   "3nNl1y1n567hYW1_dUplEG",
+   "1hPzwRz_b4gOFuZ5IEFcao",
+   "0174oh3CD24hvU1Ow5D36B",
+   "2yf6QUuVP55es90rWR9_DK",
+   "1dsyX66qnAUeNaJ79P2gCX",
+   "3GtXFK1fL6m9znlxMsk0KJ",
+   "1mlGJs8VjD4RqOIlGby3sz",
+   "3PmsKf4ULBex3edICeQCTn",
+   "1r0g4WN7zBEe0sgBHzI7xa",
+   "3W_f$_t31F1AZIMnyxvnz3",
+   "2hSDQZVSXB0OP_sxGPlI$3",
+   "1ZYqmkojXA0eSWxyoXZcuM",
+   "2fMfndVnD2R9TUrXx88o9_",
+   "2wZ0w$0nnE0hkxuN_V9cNP",
+   "00sumIw9D9EgZWxEasSnKE",
+   "3cTQcv0s15GfzCPjkGJaYv",
+   "1LujJ2JKPCUvhhv13WeOEC",
+   "2tyRmYRr9099C9ulYUFK7P",
+   "1MwDW$fNz22BsoZbMfGJsg",
+   "3jmsVb5uH3FPXcq40x_bWq",
+   "2BQTHsYRj3893SNFcRy6nx",
+   "2d0EwSJ_jFARE4XWmR_yXi",
+   "3MpYrJoiT4lB3xA9vEInd9",
+   "17LFRtNpr0B8BU1cbJvHTO",
+   "10UbotO614gApuD5JK7dxs",
+   "0zwR9xaGn7BxncDjegQ$Vi",
+   "1iwScpO8XACOnN5xfumRZT",
+   "3DikP7Fyn6mga5pYELjb_F",
+   "0WqoeJqfn9Kuuom7ThgQaj",
+   "335pFYveDBgup6qcnaZBcv",
+   "1pC_xQUIb8GfQBVHKWpf_Y",
+   "0a4xf8In1DgQB4mv2juU7d",
+   "2gEgsjJGbDvAb7rIJUzBwy",
+   "2onbc2PE91U9DaDKupfklS",
+   "2dMnxMElvAVhCC5iUCkyUv",
+   "2QkQ9BlLjFFvcmEALLehcI",
+   "0YFEQngbT9KPwMNOn2b1fn",
+   "3bclNNzVb6D9EU2SL1$Zt6",
+   "3Y0_4gGtL44hRbmRrghGkI",
+   "0_drwVPRL7SOL3NsieV7Sz",
+   "2pbsBQC4D6Mv5AWK1paMPT",
+   "0HZpgsBv5E$Pwl7aN8abMh",
+   "1nC2$ouM1B$epj6kAfWHhy",
+   "0BhOIQrAL0ZAdIKC7oBr2z",
+   "229n$0qm16we0kq0RUmBDe",
+   "2AHadhzcz6ehrU9RR2suK3",
+   "04DbHnX6n11hlNJ3LMFYwE",
+   "2hktZm_nPCJfHHxPZV74WL",
+   "1f7aM0GNn1mOYsXpF6NKyV",
+   "3Ro16kI2fEVg3V_LuK9_tc",
+   "0CUI0BVhTDtQ6o9QKFgd7J",
+   "3iTU5x_7H2ROja$dgYiICT",
+   "2rU778hnn17RLqAy8pcldQ",
+   "3zxpVdOwz7_OiVwJu4wqcL",
+   "34ngXpjWTDMuxnTqkXJuOs",
+   "2oHf5xu9rCShA2vk8e$X0R",
+   "3zfa17c2jFkPWyt7IRJfIA",
+   "2wcsSj3aD4rAlnEuPyjW$X",
+   "3XrKPuV1j0wehIKQYpB8BR",
+   "0L1zhN9vf9PxJ5PoCj828n",
+   "2r5DpMjcD2SxKJHMBYmpD8",
+   "31JLFNEGDDSeD8NYWY3eO5",
+   "1tcuaQ1v532AZVF0EkQRv6",
+   "2YXtbr2nr3yOwKw8mP6duX",
+   "3Js2CkhUz8Wvt1TkaIilzA",
+   "2wy3VKvk12o9RmHjJMAIIK",
+   "2WI7ATKxvDdQ9EyJ0yZVJ$",
+   "1AFDBV3d96TgkinAIpUq1_",
+   "1UewjSaaD5J9Bw9QMvil8d",
+   "0jo4iKeAH5wAIqbBvltbXI",
+   "1mCnWNPjj5uP2imcL40Lmh",
+   "0msuzkNVv9QehlFe8gngO8",
+   "2nmmJqpn59two1OXHa1gqi",
+   "012R$oLYX6rQycbz9$kJUO",
+   "15GSSYOO92mhAIQLtrHtmj",
+   "1B0WWwSU9Ebgf_zPwgOSBm",
+   "1Zr50aqRX2wAja7XgxWUro",
+   "0kNgaxdV9Fhuyu5r_qJZ8l",
+   "1i6IN8Uv14vfgk48fzU80N",
+   "3nVqQsuY5B4O4ocypzjuS1",
+   "3tBu6dK258ax0Int5dfgqm",
+   "1slaIgq$56dPYIGwNcrU3Z",
+   "2CnyhRKh1AdQxqW75pCDME",
+   "3Y6GEPRLv979pJKNW51a7e"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1707,11 +2221,38 @@
    "count": 146,
    "blocking": true
   },
-  "message": "What is '01 plaatmateriaal - multiplex' (material)? Used 146 time(s).",
+  "message": "What is '01 plaatmateriaal - multiplex' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   },
+   {
+    "key": "windows | None | None |  | nr",
+    "description": "Window -, -",
+    "unit": "nr",
+    "quantity": 259.0
+   },
+   {
+    "key": "doors | None | None | False |  | nr",
+    "description": "Door -, -",
+    "unit": "nr",
+    "quantity": 205.0
+   },
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 4
  },
  {
   "id": "name:material:01 plaatmateriaal - platsica 10mm",
@@ -1720,6 +2261,38 @@
   "field": "material",
   "raw": "01 plaatmateriaal - platsica 10mm",
   "occurrences": 30,
+  "guids": [
+   "1sh$ifVSLA6RYfid5choHO",
+   "3aQsoEgG93ohC5MRDNZZMc",
+   "0qSZe0_MXD0h6j88Hoo0$w",
+   "3K0wSSa5bE79buUWIwnSLF",
+   "1CetqsUbj30BJWYHjEAeBN",
+   "1YyMrzW3n4De5C3QpM8aa1",
+   "0OPuzLKYP5cAFy9Mc0z_iW",
+   "0MBnkyGtPBhh7xfg7kkue8",
+   "3dNK$MS_vFigw1VrT3aJfX",
+   "1jx9hrqQ98O925iBvf_Qbw",
+   "07tfatRKrA9BmkUXErIkBf",
+   "1AM3ZHs3T7z9DgOs8RIl4C",
+   "0ctJNNlRTB29yMz_ZAH14t",
+   "28e$0NOwv6WOcXk2dUHCkW",
+   "3Xi9AQQg142gwDpRUwabTS",
+   "2cgvvvRS1A0BHV5hE3Oclj",
+   "3RzxXsiJ9BFO2QiBiFB2Th",
+   "28C3C0nKX5oe7G5ZHCYUkz",
+   "1M4OBHINXA7Qhb7YIoCViT",
+   "22sxE$jUzFQfMY1EZZ_z5X",
+   "3xwdNmzhH5SeS3gc5hwKKI",
+   "26YEJQRn934g6aGgKMbbi3",
+   "3m$dMUHcP0FO6luDBFWVhI",
+   "3zQSZtv7D6G8GWYLCPDbpt",
+   "15qtvAV097Wgw4dDsb8qgY",
+   "2Xc16ilQjAe9wRRP2LPHQF",
+   "14ojugUiD4vBjmgyxGR1B$",
+   "0xMCZmReHAYRBskhEoYg7K",
+   "0jcoj19Ff8neZ2Pb17u4S1",
+   "2SUDvyP5b6eBHK_QpRynIZ"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1727,11 +2300,20 @@
    "count": 30,
    "blocking": true
   },
-  "message": "What is '01 plaatmateriaal - platsica 10mm' (material)? Used 30 time(s).",
+  "message": "What is '01 plaatmateriaal - platsica 10mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:01 plaatmateriaal - promatect brandwerend",
@@ -1740,6 +2322,13 @@
   "field": "material",
   "raw": "01 plaatmateriaal - promatect brandwerend",
   "occurrences": 5,
+  "guids": [
+   "3WDsHDSk90AecD23X$EHGI",
+   "11Gewmyez0y9VwQXPm5Z9i",
+   "1HQ9R8Li1AnhxWHsw9XlYX",
+   "0fLzSn3X5BbQ$WMxh4zlvW",
+   "0Njg0ASUDC2xhqoAYbc2qW"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1747,11 +2336,20 @@
    "count": 5,
    "blocking": true
   },
-  "message": "What is '01 plaatmateriaal - promatect brandwerend' (material)? Used 5 time(s).",
+  "message": "What is '01 plaatmateriaal - promatect brandwerend' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:033 - constructief staal",
@@ -1760,6 +2358,64 @@
   "field": "material",
   "raw": "033 - constructief staal",
   "occurrences": 56,
+  "guids": [
+   "3K0ZfH$5P9$AY9tdZGvNY_",
+   "2_RPGurtHDWvGWEyfSnyy2",
+   "0AjFifcjjCxe8St8Gse3kP",
+   "3ygkl7Rbj3xxKyM$asM5nz",
+   "1cCLRMnSDBSgsvWBhFtU_C",
+   "3zx$z0u55CYQj_kWxCGVBc",
+   "23Mq28EZ13deDunTR6nhTn",
+   "1qH_7MkY5B3ux_0cHoPcDE",
+   "21ColbAuv9Zw7JF05ieMXg",
+   "2aAnaagKP00AAAFHmSZ85z",
+   "1LljT4IMz9DAXxo6Y2d2bV",
+   "3IVPmAwpjD_BddoGZSdPVq",
+   "08R3lPOGvCcf7AYlmpMhCv",
+   "3QNU7vkTX9ARFFfQl$Hb8O",
+   "0P5qmlJqXEv9D8QZVKJt_m",
+   "2LGRmo_jT1UO2tvroPYTPK",
+   "3b177Jvur7NuvG3thvpdpB",
+   "1FfPzdxjP0$x42$Q_Qa5Ch",
+   "1YQ23DCc5DrAXQTAxqmFTN",
+   "3a7rERGcH42uCPJ5KdfkXU",
+   "3jn9oagCH8ShuPhdDQTcb2",
+   "1IkMAufiDA4vqrjcPl5Z57",
+   "0072BkD$fDP9svdiwlWliC",
+   "2YR$saAx9BXv5egdnvPRhc",
+   "1smYPHs_19kQG0RCmc8mGP",
+   "0v9VBDJOfAE82myFsD1Yrq",
+   "3y_xPwrs58VfLn7mec6uSK",
+   "1DzdotTEjBFwCsyuoZOcf1",
+   "2r_rbF5BHDsvim7OmE_08i",
+   "0tJiihhSf5fQTh3OlemKlY",
+   "3Yyu04GkTEQxN4HyryDW2H",
+   "3HMuq0r5r2wRP4UKf59sGC",
+   "0opKvn$Kn92Ba4iSG3fr1O",
+   "0Efuey12H6FPv9Y6VQe0Np",
+   "1KL7epqoT8nBX1xchX2VLG",
+   "1pQ12lBrLDAwKd3Ht3owRz",
+   "2PXnpw6jTD$hRhNn0s2C6_",
+   "1y_UtPM950gOVxQi0e4jJ3",
+   "2LpkQ0bbn6kQuRiiUXpap$",
+   "02WUemOwr2_OacqKsqoKQe",
+   "3DidM0BvXC8A0EOxsKrNC7",
+   "28iGOAB4L2VARaniZOboqL",
+   "21ZsmR1Mn0gR7CxhpatUXH",
+   "30jl1edBvBPfebRtaHDGsW",
+   "2O09s1CPX5GR4lx$acabJc",
+   "3Fk7zTycf9ehrJpzoRhyDE",
+   "1SrTDKsxHBiQZ0Mf0wFQjg",
+   "10DA_O$ij9whYdcET9A4SK",
+   "0Kwt3OA8X77OnTON8a6MSI",
+   "0ZTgjhXhzBJwVNBDN0RKg0",
+   "2Kg$0oQ9HBGxYBfGG2XtcP",
+   "0KrbTvACP1o8$oUv3feFDh",
+   "18TCg0QD5DYuypYkEnhzS_",
+   "3KNK09BnrEV99yKW$y8NFG",
+   "3qPs3XF1LC4wUY0O9jSNmi",
+   "27MsSi4UTAiOhwkwKNa5Bn"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1767,11 +2423,32 @@
    "count": 56,
    "blocking": true
   },
-  "message": "What is '033 - constructief staal' (material)? Used 56 time(s).",
+  "message": "What is '033 - constructief staal' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   },
+   {
+    "key": "linear-other | IfcColumn | None |  | m",
+    "description": "IfcColumn, -",
+    "unit": "m",
+    "quantity": 38.15
+   },
+   {
+    "key": "linear-other | IfcMember | None |  | m",
+    "description": "IfcMember, -",
+    "unit": "m",
+    "quantity": 19.5
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "name:material:04 vloertegels 200x200",
@@ -1780,6 +2457,9 @@
   "field": "material",
   "raw": "04 vloertegels 200x200",
   "occurrences": 1,
+  "guids": [
+   "2u8JaHmHXBxgK4Prdx7347"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1787,11 +2467,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is '04 vloertegels 200x200' (material)? Used 1 time(s).",
+  "message": "What is '04 vloertegels 200x200' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:05 Staal - RAL 7016",
@@ -1800,6 +2489,84 @@
   "field": "material",
   "raw": "05 Staal - RAL 7016",
   "occurrences": 76,
+  "guids": [
+   "1qWfbRwbT55R6UZM54lizh",
+   "1dvWk_zfz56uvSpgmdhxb0",
+   "12ts$iQlDEjxmK1U7TdTyZ",
+   "14bEcGLXv2evykeLhVH0kt",
+   "2feLeCaq51VhN$mUrgaKfE",
+   "2evj3ASODFAhcPVnoOQn6K",
+   "3ubWWxg$90TflRwndSzFsS",
+   "3QGwsd7lb5fxnjWZV2S3kN",
+   "3CiIaTSIHDTPgiH36XEMgK",
+   "3dzWhxcj50L85v5wKlRTco",
+   "2dnsSb7Nv1x9CCD95$L0vT",
+   "2BLEkhtQfDnuyajFgspGIm",
+   "1oJEZrj9v6IhrUAqdC7sW7",
+   "0SFB$1mSf7x8dSTg9A2V34",
+   "2wAQ62bPP0MP48eIkqsCbc",
+   "2h2syGAWr1h9XBf4JKxO_$",
+   "1INQK35Fr6svvemgEC5lb3",
+   "05OQDdgs53vheydKRQ5oSp",
+   "20lXcjrev4dx5uwiwcMI3U",
+   "2b$_mtp3PC1e3qY2l19Y2w",
+   "1X9r8GGlL6vgiLrcpHgb77",
+   "3XWigLhEf1Nx3aD7Qf6l8G",
+   "3F9obV8i1Ftw1lNx$KsHKp",
+   "3vuXEuxKX7aA6d2W2LQNXW",
+   "1lAwLDq2X2gOF53EFxwaLL",
+   "10ksTjMfH40hh9RH9cLJYv",
+   "2o4vIu1KH7Z9sLTl8KQ9yq",
+   "3fZNyWc5n65R3JBp_3llSL",
+   "09wE0OA1LDdAgYk484ujp7",
+   "2ewmzHbvT4EBgBwlOkTIzy",
+   "3Ditv67mT2Pfw__8Bd3vvk",
+   "1MGVNnZiPEMwSsCWOIDuNH",
+   "2QNQCg9RPF_uQws6jyDcQf",
+   "2KkKvIaIP09PpwnMQZ9eHf",
+   "0u56ZAb$f80x8mVL73jSmA",
+   "3CCGIcQi5BEeukR1mc9R$5",
+   "04skE2Zwn66w4agRMQ7MO7",
+   "3tYqpmeLz7VPllaCIBmSCW",
+   "0PQig9OETE7QwMmL2lzZvM",
+   "31uS9RqG1F_eviiFXW54iU",
+   "35mY$4Wwv8_AbyV4E0Pekr",
+   "2Ba9ZKwEDBtw2UYJzJtLXZ",
+   "3WGOvcG$HA3eExi0jSYFp3",
+   "2vvMC_F5vA1gIC_FkJbHUP",
+   "28UZR$ySX8pBLOiJc4wzN_",
+   "0UHSF3BIzBFPm027TmVGtZ",
+   "3FjN355ZH6M9LGlkuak3JL",
+   "1N9nOIk1X1j8h$dos5$5gn",
+   "2mZygOXtb4F9QwUdSpluB4",
+   "2E7rcxY6X1FgTBvHYvhrNq",
+   "0Z3Amr1k1CsexN_wsfwB3H",
+   "1MZ455QvTAiQUl0tuOre0R",
+   "0HMYOmAmH84QINGbCd_b3i",
+   "1Fq2aoh7z7fuaxK1pSjSsM",
+   "0gxDDKMcrCqgqFPAEFhW4Q",
+   "1sBcFUPBPDKAtoAZo$p6LR",
+   "0sgUevh4z8nwvOBTscX$7s",
+   "064CqdplHA$xkMWx0cCwJV",
+   "3wxE23l5j5wAEhq5LgYg8m",
+   "1oAWu063bFzQB_LYVhb_kX",
+   "0TM1c83ij8PRfEL_ahiPNo",
+   "3zKdFcDUbDNO9FD_S6KGpI",
+   "0gnU31eDP5K9TbRoAnU6vl",
+   "243JmwjbPBSx9aM9vFDHFH",
+   "3J3PtjYtX0vxhQtdB4KBFn",
+   "16oKz$knLD2wOlmQ6hOI_V",
+   "3mddO2BEv6zuAqVBN9Kyaf",
+   "0w1YXrS896RwCvMp4O5DII",
+   "3dzfK_RgD02BRclnGJBPG8",
+   "3lWfkBEGvEvvQsatstweZf",
+   "1eY9K8xKv58gmullO7Xkzs",
+   "1YmqX1x2z4xO24K7hdauv0",
+   "3hYgSXCpL5OgR8fKqHdccC",
+   "1M48cg3qD9198vhldhYp6w",
+   "2_xToC4k5FDx3XzaHDVP9A",
+   "3wmbeszkXCtAcU4jbPw0Kq"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1807,11 +2574,32 @@
    "count": 76,
    "blocking": true
   },
-  "message": "What is '05 Staal - RAL 7016' (material)? Used 76 time(s).",
+  "message": "What is '05 Staal - RAL 7016' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   },
+   {
+    "key": "linear-other | IfcColumn | None |  | m",
+    "description": "IfcColumn, -",
+    "unit": "m",
+    "quantity": 38.15
+   },
+   {
+    "key": "railings | None |  | m",
+    "description": "Railing -",
+    "unit": "m",
+    "quantity": 112.82
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "name:material:05 Staal C",
@@ -1820,6 +2608,21 @@
   "field": "material",
   "raw": "05 Staal C",
   "occurrences": 13,
+  "guids": [
+   "1vHBlPqgf34x2Wmz$irRwL",
+   "0nQ4Dijzv2WBMU6_9ln2vB",
+   "0Wbd9w1evF6PLXASXTbCQU",
+   "2MKjW_Kr11cvGqQ8kH3ero",
+   "2qc2UR2kvD7eaA5HmPGK6h",
+   "3DuywnQyD9lRX7HApvFXio",
+   "1tP4G1cob3vPSJQupVJDMY",
+   "2yMX_P0br629pet1j7Vw8z",
+   "0hsVA8xsXBPP0PKide8rLs",
+   "0WWmk1yuf40R2wCBYqi3Vy",
+   "00yIRg_C5019yAS4ijNRtZ",
+   "1HJaFEy4D8oxzr92S9sa0h",
+   "0$Cvr_NRDCYPjO36ILpvXN"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1827,11 +2630,20 @@
    "count": 13,
    "blocking": true
   },
-  "message": "What is '05 Staal C' (material)? Used 13 time(s).",
+  "message": "What is '05 Staal C' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "railings | None |  | m",
+    "description": "Railing -",
+    "unit": "m",
+    "quantity": 112.82
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:05 Staal_bordes_hoeklijnen",
@@ -1840,6 +2652,18 @@
   "field": "material",
   "raw": "05 Staal_bordes_hoeklijnen",
   "occurrences": 10,
+  "guids": [
+   "3yoTxCjJD6kAPvhJTex6Tn",
+   "3bTx1G6U54TQIZtLNXjTQH",
+   "2hW9wzkE5EJeXvs_DcLwhz",
+   "0chuM_qeX64v3JqdG4JWUo",
+   "2aqTHwx1f1bO2emqa$pcJ3",
+   "2xH50i7i9AmA6rTyNOCLq1",
+   "3PtSykjgv1GBR8Xm$jWt42",
+   "0_DdjdGT55KQDHvTqIyjLj",
+   "1MYVOLhebAH9Tcc992722s",
+   "3Vgwi1LbnC_QP5m_nRc3PH"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1847,11 +2671,20 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is '05 Staal_bordes_hoeklijnen' (material)? Used 10 time(s).",
+  "message": "What is '05 Staal_bordes_hoeklijnen' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "railings | None |  | m",
+    "description": "Railing -",
+    "unit": "m",
+    "quantity": 112.82
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:60 RVS",
@@ -1860,6 +2693,44 @@
   "field": "material",
   "raw": "60 RVS",
   "occurrences": 36,
+  "guids": [
+   "3i9YYw3LLF3uvjI2rq6cGg",
+   "1XfjlNr$H5SBLVT47aOqJF",
+   "1tyz7oTqn5k9_zlDXIWHc4",
+   "0IUmw014v41A$pFagegCcN",
+   "3ZL_NRU7f1Cxf23xJScxOr",
+   "3EkNIGtVX6RBZr5KIt73X_",
+   "3pJ$Qd_XPB2vkL40RLYagA",
+   "3B$EuqV156LvX_4X8mldme",
+   "3CBMv$blbDM8qjhWWKR7gZ",
+   "21p6o8P$TEYgLtHEImxqfG",
+   "1_3kYuINr5TwsP6Q2Upxmr",
+   "2j1BRncxH4DgiaelU6Q2V2",
+   "2kXG_6BBP8CQEd_yJ90zE$",
+   "1REmJCRk51$QTXP$ogF_AS",
+   "2o9w$kzxHCpOQrbnwHEF9T",
+   "1gm4$Iv619OfFnFvyIyfZT",
+   "3byU80ZV94IRJ9OiQvEXbi",
+   "1mLHtFxejFswyEDsN7gBn5",
+   "13alXc_4nFwOM2OrL_8ao3",
+   "0FiGs_kA97ZPerIeXUVwGr",
+   "3b0f1ahbD8e89ZNVxjtf9b",
+   "30dWkZvUT6UOYZK$6qBgBD",
+   "0IOD4J2g15aetV4apvOA_u",
+   "1gR_7F$Kf9IwYWOiw_08O6",
+   "0XVIEjk8j8hRYHgCRmyLc2",
+   "33yXJZhWD7x9tfJ9y9DWJs",
+   "0gR8OQ$9rFrRO453pw0q4k",
+   "3M8megtGL73e1skmtB2pUf",
+   "2vn42Vk9v22OFhZQ1mzu$X",
+   "0PW_b4BLvEeRoppB8WwkbN",
+   "2qhwZ3sdTBvwVobagNU94I",
+   "21K6IvJcD6S8LpzzqSjjCL",
+   "15jopka3bA$fhzYPWcpr5Q",
+   "0MBbjJaMX2N8x5EjwwkSJp",
+   "0QOizPQWHBZQ2D2tvdfZ6N",
+   "2xvA_r$qvFC9zCBpYoYZKC"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1867,11 +2738,20 @@
    "count": 36,
    "blocking": true
   },
-  "message": "What is '60 RVS' (material)? Used 36 time(s).",
+  "message": "What is '60 RVS' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "doors | None | None | False |  | nr",
+    "description": "Door -, -",
+    "unit": "nr",
+    "quantity": 205.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:99 Brandwering",
@@ -1880,6 +2760,109 @@
   "field": "material",
   "raw": "99 Brandwering",
   "occurrences": 101,
+  "guids": [
+   "3DzHh2hEf2cfG2rBco17le",
+   "1oTrIpqvD5i9QOfaTVL_KY",
+   "1Jd$UPtZ91UumSoKgf6Kks",
+   "0eOS_CgEDAGxJvCAAJBPmq",
+   "3wrnt8$YL0XecVy87yHbrX",
+   "0_z_dLam5EW8sIRTDFw93Q",
+   "2B2wqw_iz4S8IkEl6$0m00",
+   "1_gOOeEw173gIkBpewt3OJ",
+   "3uscPz6g58Lf4$suAbdYsy",
+   "1rRCF0SgL19AEmjpHfV73R",
+   "1thprsRGfBleAf536xKqt4",
+   "2EquGb3TX4URxlWwPq0NbB",
+   "2EGn4phsv6z9n9nE3wcCKJ",
+   "20axJRTaP46xkRQ$mG48p$",
+   "0ZwY2vKunC0PS5ueiC0Boq",
+   "1afRA_IvrBDxaDxS2TvvLw",
+   "2ogVefi7bAVRDAOZHGD0zy",
+   "2gKzaJfDT5lBoT8CKgNpqQ",
+   "1WdOPdj1T1W9TG670pJxXE",
+   "1BY5lMd7H25AGvz9gOaPdD",
+   "2LQ61OyKDARB15Oysd7aF_",
+   "2cPh8cwNr9ZuY7oE7Tk85V",
+   "3mDJURzU9CuemNu7w3s2nJ",
+   "2Pj2cNBgH2i8$jkiTDK_qz",
+   "2H5avzyFr1XvekNdB24Kdh",
+   "0uzVjh2hXAsOEg7Xr2P86C",
+   "3iBXKzDj9CPBG60H5ixg4P",
+   "1IG_Hytrj0MAlPDgzQuiD4",
+   "2ovGvtN3n7pgZFTlYFRvQg",
+   "2E98bzcan3mRy$eLihDuc0",
+   "29spCToV58A8XeHSiIVFwN",
+   "3Dcgwq7hP4GxwKJvbolsEQ",
+   "3k77qhfLv6DxMv0fXGL7qx",
+   "0MCZeh61j1duOZWSrkWag4",
+   "3y6E6yh8592fM3$ayq$OoR",
+   "02YbAeZO99WudU7JNQu$X5",
+   "3v9f6hyuXEZO47w9tI31vI",
+   "0u8YQEcs95QPqh8cc9sccU",
+   "2qJWDUoqP1YAjg3ATgIara",
+   "3V8TPgayPFcxx07K7N43RN",
+   "1O7QkDQEfDuBShxE9Rz6Sr",
+   "2FcT$DufrDig5JK0gdv42a",
+   "0pLd602hnBR8h223o7DOf7",
+   "0VHAvxjKb7qgjc7Krp2fwk",
+   "0cuiNn1XX568KRe4zlopfD",
+   "16JgvXb5v26Re$9PXWbGYJ",
+   "1ZAfqFd4D5fR4nVdjNalPu",
+   "1YR6kBMw18Xv47YdTbW0ob",
+   "1ApgrPcv9CIONDoMW8hGfL",
+   "06eNbAxqT5dRT$9YsyVQy2",
+   "1V13QYvODBa9uW1amKQPhT",
+   "2G9o6gixn4hxdV2YeCaESS",
+   "1KT4KC8xXFpRlZd_IKq4gU",
+   "0BJNdd9oH5pfWkFa2lD4pf",
+   "3xzEe0T8bCWBjU_VXTmQ6b",
+   "37jDaf3PnEKhPH8PdjYeA$",
+   "1m3NQvVIv5QOxVfXM8jYmA",
+   "17McJc9Aj8ses0poulkaZY",
+   "1hWVbUH8jAOPFfk5XrZUvA",
+   "2UeGgdPyvAXvzdxRUCYB9r",
+   "1d0FvsWa5CEPL0M9RwjZNq",
+   "3zKp2PwF5Bvvh$728TMz0R",
+   "2eUvgGABX6XOOfshOo_JMi",
+   "3_6d3pDCzBe9EH_eJDHg5n",
+   "3b1s3MDiz0hQvVUVbnYC9M",
+   "3btFwVhA57yelaqB$cWiBv",
+   "2Iko$V6$n8OPc$hb1aDvfp",
+   "1TCChn1M96QfdlGXe4OAJA",
+   "3_bKi_5Jv5hwiBweLWKXXJ",
+   "3TNOY4gIv78wIoJDhbIbt_",
+   "3bjzHk9DP1iBfUsdJhlrYV",
+   "2SJufVxzHDTQ5lfyfmAWqP",
+   "1fHG_ii4n2pRrwduW1UELL",
+   "1Bk3EE7zf6gQi0i$AY3xdC",
+   "1N2adTPyHFBuHfjb91hRDU",
+   "0O0iZ_Nqj89eqfJxywmDAi",
+   "3YgskUV0X57fhhG7IRsNHW",
+   "337kmTE5b1jfFLGOBunLoF",
+   "1L2FRJ1VDDH80vpoiHFTCP",
+   "2MC9yQ0IP0k8zL2iN0JcEI",
+   "3g4QlkdmLCZgDmW6AUrdzw",
+   "0G9M8bsxzAsRokyFf93eLw",
+   "1R2esXTU1CHOFX9dxcwrV$",
+   "0PrLZhp21BWQOt7ZlSIgwv",
+   "3QOl3CfsTB0hYaOrxYTuHc",
+   "333xBd8krAqxuPdcigF0Cj",
+   "2qrrvag8v7VuqjGEUPFkEH",
+   "0XndCByeDFUvfpTDEI0XgZ",
+   "3P3LwW$Df2RhawOG4YYlAf",
+   "2n5B7k2vj25fw5eMPXsio5",
+   "12b11r68DFSfbdlcosDAmo",
+   "1Lpyxg9Sz6jBUKP6fi6qdI",
+   "0V_1moyCXC7Qf60R0gdL3G",
+   "1vy5_GoZL7qgmMhK9NRrFS",
+   "0Flm$rmUTCC9ruDnWGPWId",
+   "0Z7VhvtO9EQwgHzDx5f16y",
+   "2Vm432W6D5ov0hm4pAXHgA",
+   "3OZerwuyj5HOFBw_h9ie2C",
+   "12IE6QeEr0aRyqMRlozjpv",
+   "3nuZBqIJf0aQghu9vJTCMz",
+   "2yudVvusXBjwBK3hgLvUi8"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1887,11 +2870,20 @@
    "count": 101,
    "blocking": true
   },
-  "message": "What is '99 Brandwering' (material)? Used 101 time(s).",
+  "message": "What is '99 Brandwering' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:99 Isolatie - Glaswol 190mm",
@@ -1900,6 +2892,21 @@
   "field": "material",
   "raw": "99 Isolatie - Glaswol 190mm",
   "occurrences": 10,
+  "guids": [
+   "1ixbiFNKT3ufaLmPGJQqn2",
+   "3qHBA56WH1UR$rtfY8Nv6K",
+   "3vG5IKYn18qA5yp5VMwNOo",
+   "36jRv89_fAqwYrlrE7AD4f",
+   "3bjj6piQXBFhseXOZsJdx2",
+   "0Pbqta6Xr32OXw1kF3fR7b",
+   "16m5u7wR99KQ_6omnGpYqt",
+   "0nXJlfC59CeveUqCwYU7Q6",
+   "0KoZBUtSrCSAjuDXhgunPk",
+   "1jOVIj7rT1oArg8YF30mMx"
+  ],
+  "candidates": [
+   "glass"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1907,11 +2914,32 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is '99 Isolatie - Glaswol 190mm' (material)? Used 10 time(s).",
+  "message": "What is '99 Isolatie - Glaswol 190mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   },
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   },
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "name:material:Hout C",
@@ -1920,6 +2948,12 @@
   "field": "material",
   "raw": "Hout C",
   "occurrences": 4,
+  "guids": [
+   "1aosfa1i1FE8Yy19Vu7K8F",
+   "0ekbFk1v17_RdKwDCAIChx",
+   "1Ix30zFZz3d92sIz$T_XCL",
+   "2D0kiGPOL269V91_yWkgm2"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1927,11 +2961,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'Hout C' (material)? Used 4 time(s).",
+  "message": "What is 'Hout C' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "windows | None | None |  | nr",
+    "description": "Window -, -",
+    "unit": "nr",
+    "quantity": 259.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC schoonloopmat",
@@ -1940,6 +2983,9 @@
   "field": "material",
   "raw": "IFC schoonloopmat",
   "occurrences": 1,
+  "guids": [
+   "2t0BPMQkfEqR_b_MF6PudW"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1947,11 +2993,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC schoonloopmat' (material)? Used 1 time(s).",
+  "message": "What is 'IFC schoonloopmat' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_HSB_155_wandelement_Rc=3,67",
@@ -1960,6 +3015,44 @@
   "field": "material",
   "raw": "IFC_HSB_155_wandelement_Rc=3,67",
   "occurrences": 36,
+  "guids": [
+   "2bZUIKwQHF5PDY9bZ_2mh7",
+   "1UZR28p6z1mumGYdO_LpE$",
+   "2Sn6DXP25CiuZf0ZShDTAu",
+   "1kh8rgvuvEVwnH4WjW$QZd",
+   "0YyxK0145BpRhJoP06q5y$",
+   "1_2Y8nej99pBLxM7nVXO70",
+   "16UdHAg5H03u7h0XT_7m_A",
+   "1YC4fx0RL0$QKFm01Do8Ic",
+   "3B_JtEaIP61vhDS6S61at7",
+   "2kYHgvyszBMfe1Xhb7WnWC",
+   "3sDUiUZg54Yh$cnk3AYEx8",
+   "31W5MRhZ17dPM0aQiieHiF",
+   "2tugTGOAL0wf$FJMu9gThe",
+   "3BumRr7MzCXwoh_v9NTKQr",
+   "1_ya2nowT3vOnK17WW90s$",
+   "32l4cTkjD4_v4C70M0cRme",
+   "1Roz_vSfz9uupNSSNZNAdc",
+   "3ljU7IVhT5mAbVh6e8_dn1",
+   "3SYyft5FP4aQqaa2OTeQ8s",
+   "36ftD7V2n6Y8eJP$lgdMSP",
+   "0ahGt2HSjEIewzk7ZwwmgQ",
+   "2543dQ0Tz9YPJVNxuATx3K",
+   "1KWIJUln99evCp1C$lloVv",
+   "13kaAgvlDCJ9o25$Di8Xh1",
+   "3q83jWutb7qRCrCzqnsoAf",
+   "2yX8HtBU50og_TK61tr6hP",
+   "1DQiRAmRz2ou8JO9In73sG",
+   "3GfsVCyR5DjRUKWs$3uu0R",
+   "32HShEuQfD09HjFMMMsPqE",
+   "2fMcdfIZv8RwJg1v$IzR0Q",
+   "0bLvANLd51XeWtCdn2Qa6y",
+   "23qpZk_x94U8zB8dDHDWaW",
+   "3iU8UnUFP8zg6yU2N2oBOo",
+   "39b2PMOxf0iv5CZWsUnDgP",
+   "15azcyoI1Aeho4D8p2aqdT",
+   "13PTXlwuf4OgJuWyf_fbN9"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1967,11 +3060,20 @@
    "count": 36,
    "blocking": true
   },
-  "message": "What is 'IFC_HSB_155_wandelement_Rc=3,67' (material)? Used 36 time(s).",
+  "message": "What is 'IFC_HSB_155_wandelement_Rc=3,67' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_HSB_155_wandelement_ongeisoleerd_multiplex",
@@ -1980,6 +3082,30 @@
   "field": "material",
   "raw": "IFC_HSB_155_wandelement_ongeisoleerd_multiplex",
   "occurrences": 22,
+  "guids": [
+   "0KmuK853f2WOrUV_GwRnMt",
+   "3gfqcrza1DfBBZrEzldAP5",
+   "2pIuDJtPDFYePvbd5us9Zi",
+   "08GmLIIbD9Gv4Lh5iMS0aH",
+   "2_lPXzjqf7OOUv8tIcaEhQ",
+   "2UsuW1PNf64er7jm4Dr5OS",
+   "3cXPbzMyL9_gFggj0DyAUj",
+   "1jFetWOOr1TheGATM0kcLr",
+   "1b33UyDQP86RJSEXZ2pmzt",
+   "0$AcAYUPP2$QPnfHcRBtcj",
+   "2SI_bzQ1f2FgMu53XW780p",
+   "1xF_6ipYH1l80frykVQhgA",
+   "3l3cpgOQn1yAKnPPzWu3Dt",
+   "3MaKNca5D9NxozJcHxwAu_",
+   "2BGt2OAvnFGh9Z6NoPBMDI",
+   "0uIVmTBL577vAW9YErJsAt",
+   "0MrT8FdBnANveYjR_f$Z_v",
+   "04Z2ugpOL0gwQY5QNaQRiO",
+   "1f9ryZDbLAQhztXywuJjTY",
+   "3M1J2_Htb9tgKTb$ge49Mq",
+   "1jIDtfXv5AzhLNo4RRXfnm",
+   "0dhENjX2zCGh9SRNMZatoI"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1987,11 +3113,20 @@
    "count": 22,
    "blocking": true
   },
-  "message": "What is 'IFC_HSB_155_wandelement_ongeisoleerd_multiplex' (material)? Used 22 time(s).",
+  "message": "What is 'IFC_HSB_155_wandelement_ongeisoleerd_multiplex' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_HSB_184_wandelement_Rc=3,67",
@@ -2000,6 +3135,16 @@
   "field": "material",
   "raw": "IFC_HSB_184_wandelement_Rc=3,67",
   "occurrences": 8,
+  "guids": [
+   "001o5TqMvANhp3GwslDnKF",
+   "0$J9JKLZ54oOnag8rZroCV",
+   "09R7lY7vT2ne5aKCGeKUcj",
+   "0l_o8cY5n2yeZUdUXnUOJR",
+   "0VtrL_QTT0xPo9uY84zr0I",
+   "0XxwPhwGXA7huPIHopX3zH",
+   "2NkDJXmUX158pAbB8b$8Eq",
+   "3JmASI_z93Ugd7v1MN9J_i"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2007,11 +3152,20 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'IFC_HSB_184_wandelement_Rc=3,67' (material)? Used 8 time(s).",
+  "message": "What is 'IFC_HSB_184_wandelement_Rc=3,67' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_HSB_70mm",
@@ -2020,6 +3174,15 @@
   "field": "material",
   "raw": "IFC_HSB_70mm",
   "occurrences": 7,
+  "guids": [
+   "3886c3FhD89umMed05RH0n",
+   "1vbuGXLSP4wBUk1eHvqgnB",
+   "1Nelmnc7f7KRKQrhSlE5_h",
+   "2_$WncjfP2wR5$_AjQ72MS",
+   "1K6xEYJ6f2h8mtuCOg6NBx",
+   "1BpaHdqOP6AeSJN4pOhKqO",
+   "18wNjfhsj0LegxjOryWpD9"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2027,11 +3190,20 @@
    "count": 7,
    "blocking": true
   },
-  "message": "What is 'IFC_HSB_70mm' (material)? Used 7 time(s).",
+  "message": "What is 'IFC_HSB_70mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_125x20",
@@ -2040,6 +3212,12 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_125x20",
   "occurrences": 4,
+  "guids": [
+   "1c87fM3RL3MgIERmZjw13M",
+   "2cskRqjCD2iRezsTx4gySA",
+   "3Q8aDABXn4deXSYmEWYpu3",
+   "2sVbyubFHCPvaPob4oCnQK"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2047,11 +3225,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_125x20' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_125x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_220x20",
@@ -2060,6 +3247,10 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_220x20",
   "occurrences": 2,
+  "guids": [
+   "3G6FmOngj9jR4mLr4NsUrv",
+   "0XSqg6KPTDPeRgL4W6dybN"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2067,11 +3258,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_220x20' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_220x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_240x20",
@@ -2080,6 +3280,12 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_240x20",
   "occurrences": 4,
+  "guids": [
+   "22aoBs1fj3TfUxsneiLbnH",
+   "0uO7vcnDf4LQ3NJsaFO5YM",
+   "31xtW0Jej0R9Zh3pr3g4B0",
+   "1SHo8l3Hb0SO8L1Lv7qzl8"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2087,11 +3293,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_240x20' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_240x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_260x20",
@@ -2100,6 +3315,12 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_260x20",
   "occurrences": 4,
+  "guids": [
+   "1F6okEDDbBVxEidOsByRiq",
+   "0lLGXK3k5EHv$yuGVVwU8S",
+   "22SpWbNtP8RvA0nRd8IlCe",
+   "055PvXlG96$B4Qrhlq343b"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2107,11 +3328,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_260x20' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_260x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_300x20",
@@ -2120,6 +3350,49 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_300x20",
   "occurrences": 41,
+  "guids": [
+   "2mPumzdbP7Xws7NgqN0lcD",
+   "3NAxdGW4fCtvzAAdfuHhtz",
+   "0KCrAR2JX2VQjqrYsdLh7W",
+   "3eRQ3E7tb2p8DXGNBN8azC",
+   "35FzWoDJj5TOyrX9JP$IHa",
+   "2xDzlFDsH9tQZ8rFBaSecZ",
+   "33cVRTCDjA5PZsbDVyUYO4",
+   "1eeeZEVf13HPgD6ULkZR2H",
+   "1O1veHQ2P2Xg1VykNFEQZ4",
+   "0U1ctZlnT5Bhm$0BGvp7Ly",
+   "05G1l0IWfE0eF_3r_lwa7k",
+   "3BbJ7WGPvEARNjh2rDfhbp",
+   "3GKphnI2PCkfDXib2XbJ9i",
+   "21k4z6p096MQrRq$i32Emx",
+   "3Y2HQ87oH5KwgCILEn$ogO",
+   "1Bg1ujHVf0lA5D9f5j4NRR",
+   "1kdmmAS054aglkb2iLq1ly",
+   "0_6kZChDn31vvkLWNdw2rR",
+   "0VsPcb$r91C9xpB4W9Gco4",
+   "1SFU0FBenD58_GFu0GdDVf",
+   "096em1pGX5h8xIyXruIh2a",
+   "3rQ_RVOdLFew6YPbZ0RdrP",
+   "26tnfL2eD5evlUkzrtnIzA",
+   "2g5jDwtAvC4R7_pdzRb$ZM",
+   "0zR0o20QT2ZuDNdo9bg68h",
+   "2wroSJYHP7VfqM4DhAxEsl",
+   "0lOUttH79EIg_gPDyUmj$u",
+   "3stjnLnUH8RBxcY1oaVTaf",
+   "2CpS3oLuj1PQR007IfyA5C",
+   "0_h0L$dzjDKONdfW$KHufy",
+   "1WAK1N6mf6BBrVunKZ_EdT",
+   "2fMgNMAdb80OJwW_1P77kg",
+   "3PEDo3jg925A2pzMcFAIbS",
+   "1lcVL6ETrDhe$hMidwgfQC",
+   "1x0$M9MBb39vfxwH$KFO1Q",
+   "2KSUaUfPD5sOw8qDeflOd1",
+   "2SjJanMlf4ZwqV8gx_Hrr2",
+   "1hsySBl7LEQg5cAq1Xaf1M",
+   "29GhVE6Pv67Br2qBst3d6v",
+   "3EVSZgW2LBDPe57xvkiHmZ",
+   "2Ia55aOL1EZBuBZMRUzLI_"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2127,11 +3400,20 @@
    "count": 41,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_300x20' (material)? Used 41 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_300x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Holonite_vensterbank_320x20",
@@ -2140,6 +3422,12 @@
   "field": "material",
   "raw": "IFC_Holonite_vensterbank_320x20",
   "occurrences": 4,
+  "guids": [
+   "2Q1ZZ_F2rE7xnFYZCum85l",
+   "0iaK$Q7jL0PfLmHKan2ieJ",
+   "3PrZVA$9b9jw7hC3HymcMx",
+   "2BEwjvUAv6bhFsUll1$y26"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2147,11 +3435,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_Holonite_vensterbank_320x20' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_Holonite_vensterbank_320x20' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Roval_waterslag_ type_Elegance_15gr/168",
@@ -2160,6 +3457,28 @@
   "field": "material",
   "raw": "IFC_Roval_waterslag_ type_Elegance_15gr/168",
   "occurrences": 20,
+  "guids": [
+   "3n_UPfEY50aQnpoEhLihEh",
+   "2awIG1uTT1WeyLi3xdfb0w",
+   "2aFeg3GHf64OZmjviIK9pe",
+   "3f$$eC_JT5J8IAfq0pTIIi",
+   "2q2F6jrqH1qP4jAL1_xUE9",
+   "2emoc8Gxj9SwzUvC_5voiL",
+   "3KgvHpu5j9hBGR0api7FCx",
+   "2$lF6XFtH2jvc$UZhpKvYM",
+   "2XkODrmEPBd9J3xltH_SSS",
+   "0z6SKcuffCLvDFuQJKayWS",
+   "0TrTdRbqb6JAV4DIfR4UEa",
+   "2WQ_9nALz7HxDRPqLXD2Y2",
+   "3s8JQrfqzDtQrAHqTVGT1a",
+   "3e6C6o_AH1rODEFqk7DJ$n",
+   "10VH6L2kLDH9bGD0qtuQjr",
+   "1pXnqmSW9Ew85ndKy3G7w$",
+   "2xqA5La09EBwLmdVRi_dsZ",
+   "3GHqQ5rEv57hfF5aDHHT1A",
+   "3ApSSqUd92XPrdWHb9A7Uf",
+   "2KC6aYkkbFfu4vHcrW3VJ2"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2167,11 +3486,20 @@
    "count": 20,
    "blocking": true
   },
-  "message": "What is 'IFC_Roval_waterslag_ type_Elegance_15gr/168' (material)? Used 20 time(s).",
+  "message": "What is 'IFC_Roval_waterslag_ type_Elegance_15gr/168' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Roval_waterslag_type_Elegance_15gr/138",
@@ -2180,6 +3508,22 @@
   "field": "material",
   "raw": "IFC_Roval_waterslag_type_Elegance_15gr/138",
   "occurrences": 14,
+  "guids": [
+   "2Sqs$ai2P2_Ps1sphRuNzB",
+   "0XVr$xJIz6cQ2NPTIshUYp",
+   "1wOMna_U191Awr3T0uBiKT",
+   "2_0GyEXiT3dO7fAPOybm6a",
+   "2j6pEkk$XCEwpQ0sfLiyZA",
+   "04Qfbc6W10pOiCsRJ2bIy5",
+   "0M8Sn$rujDPvPPs7Ky01MN",
+   "0e5G1O$ZX95OIyDPA$0pmj",
+   "2Pj5OK93PCNPtN7WmKvV_n",
+   "1my7w8HGvA7f1bObWbSZml",
+   "3wIgOn_cf2qfJ8oAjCQwFD",
+   "0iWFxUye50Vu1GMKXvirEO",
+   "3P13dfRev6$h$iefSjJxiu",
+   "2SURB3aTb5fASgS4f_MpPD"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2187,11 +3531,20 @@
    "count": 14,
    "blocking": true
   },
-  "message": "What is 'IFC_Roval_waterslag_type_Elegance_15gr/138' (material)? Used 14 time(s).",
+  "message": "What is 'IFC_Roval_waterslag_type_Elegance_15gr/138' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo afdekker AB 80/106x300",
@@ -2200,6 +3553,18 @@
   "field": "material",
   "raw": "IFC_Vebo afdekker AB 80/106x300",
   "occurrences": 10,
+  "guids": [
+   "3jAqpCbZ5BZgfx_7te3yGX",
+   "3IjHPauEj5FuXRrnjZiBjc",
+   "3WVs7bYiv3q99tB5Zb77_R",
+   "1iFbuwO2zAdeqsgBWxtTnr",
+   "3mPK0nx8TE0QLlRNYWpvJ2",
+   "17hjpq_pjELgDcIq7GfdNQ",
+   "2yGqdBf5P9fOVEaEtNjaHH",
+   "2pugBAXlr1W8YgfhQKA9s8",
+   "28TOUy8jvBGhmSM_FOhHFZ",
+   "3SO2uOUiP3Dgcarf4b7c6I"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2207,11 +3572,20 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo afdekker AB 80/106x300' (material)? Used 10 time(s).",
+  "message": "What is 'IFC_Vebo afdekker AB 80/106x300' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo_kantplank_KP250x50",
@@ -2220,6 +3594,22 @@
   "field": "material",
   "raw": "IFC_Vebo_kantplank_KP250x50",
   "occurrences": 14,
+  "guids": [
+   "26joghz8TBsOaP2ODbHqsr",
+   "1PkWZXAJH909OZThTSMllD",
+   "02QNhwMY59d8$KW9fAbcqC",
+   "3JgDQorcX1mu9ciyYp80ax",
+   "0nME$LgfP9QO0fnBRtNyge",
+   "1GfAVoWTTB0AIzgrmNeDkH",
+   "3Owrw4R9X5ghcyqui1xKqX",
+   "2KSTG8xEnBBhrwJ79moNkA",
+   "0w8pgg_fzBFR8pZ5EovTOM",
+   "0PYg1jLiP8bRMjadxzK2Tt",
+   "0ApNJB8DnALhWyk5FqDIfA",
+   "0NyyKmovvCJeBOl6OPYdXU",
+   "2WctufR59BtvTZpNotWe9n",
+   "1gm7UbE1b63Qn1KBRi9Vzn"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2227,11 +3617,20 @@
    "count": 14,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo_kantplank_KP250x50' (material)? Used 14 time(s).",
+  "message": "What is 'IFC_Vebo_kantplank_KP250x50' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo_raamdorpel_RD 60/100x160",
@@ -2240,6 +3639,33 @@
   "field": "material",
   "raw": "IFC_Vebo_raamdorpel_RD 60/100x160",
   "occurrences": 25,
+  "guids": [
+   "2987RLfw145RKuiCftF0$O",
+   "0NZrsPlUTFZQ5$Muf9tdCR",
+   "3NHxfcZTX9GfzFovo$Bhix",
+   "1dZpN2Xtn9BOsk3ldkP1$N",
+   "3wLiaV$L97$9RbAq2K0R7Y",
+   "2zY5gVSlTBOwnxMo9ylzSY",
+   "1GhIDJO1jBFAzwdlwEn8p8",
+   "2nkicD$ID6LRE5exlJDxaw",
+   "0La_XWVmr7khgqce4pmsPn",
+   "3N9YGx8k56Dw0PF7pm2EU0",
+   "2ktoiEn2LEl8SpB6EWezSB",
+   "3H0BSYMLb5CAu8Lvn81Hva",
+   "2P69r8mQTByfrn_lszgdl8",
+   "3qNOMW3nHA7vQazEQ_BNVX",
+   "3F7z2gJ516rvF0LxBFxeCd",
+   "1eHMYPlnrCl8J592siHREc",
+   "1vYCK45m567ueTvj682V04",
+   "29ZumM9rz1iR3BEefdbcJY",
+   "0BK6$B8zz4jfVJhrFyaBW9",
+   "1axca$ueb8CxaWSuuwk2jH",
+   "2VWBQKtWzEovHR0E9obUV8",
+   "3LFHiNS1TAkBG7nZEeyw2o",
+   "38DULnd2L2zxVsQf4JXiBm",
+   "1bPiFfHNbFs80oaZSGcLK4",
+   "2N_BeykHX0RPOI$To6OPYp"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2247,11 +3673,20 @@
    "count": 25,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo_raamdorpel_RD 60/100x160' (material)? Used 25 time(s).",
+  "message": "What is 'IFC_Vebo_raamdorpel_RD 60/100x160' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo_spekband_SB 60/70x150",
@@ -2260,6 +3695,67 @@
   "field": "material",
   "raw": "IFC_Vebo_spekband_SB 60/70x150",
   "occurrences": 59,
+  "guids": [
+   "3tbJ$QqQv4wwYaBIZEbTMZ",
+   "2a5w436wX8Zgk$74QE0e2b",
+   "0STRgvG211BQdM1w3Jgm5r",
+   "0AWH4hgV993glHIn40Vyze",
+   "36DJnw$fbDgRhi3bdKblzg",
+   "1_xi$0bgXAqOZLJFmeDuDr",
+   "33CJhx151BCBr5WFiOfLYg",
+   "3ineOj4Z93Yu9WRNRHjlZ9",
+   "2bCDehW7b00RjKT6ARTe84",
+   "2UPGtWTUHBrPfJSF41a4$G",
+   "29HypZdpb0Ew4EeVghRd0P",
+   "2cLy9YDRT8F9vlApRBmjLr",
+   "1OE_lKdmzDeQKxEfP$8aZN",
+   "3XAqiUFELATwENxS2rIkhs",
+   "1FdDaiTa9AdeLiC_aqIM1n",
+   "0iiggvlPr5qwAeZUvVpqtu",
+   "3jgNLU7tXFwRBmJq1Hu9k0",
+   "3kV6di9nT6t86j7lp9KPji",
+   "3Tnygp0ZL1uQe7YRn_cEcN",
+   "17i49CUrL9ouqUgMNWl4V5",
+   "3j6a8QOBT4uxXVmE5WDuSN",
+   "3d0Hknqez1_ew5dGNcuRjC",
+   "3gioiJMb53H85CfewNCYmV",
+   "3nkjy1s2n6Pv4neIu7jk4t",
+   "1LLtgUlQj78fZ4Ax0jFqgc",
+   "0k4pln4wPAsu0ZWxJFdPB3",
+   "0dCaAffyP67PI6wRDHkbKN",
+   "2D41kqiQL39gCLXCuaiAp1",
+   "0sdGxkLd5CVg1m7gx0G4fC",
+   "138ZPJA0TEw9JPqHLjKgE8",
+   "2r2wdhZ1989RwFI5ZJSCnC",
+   "2iXR7_Tej3DxAq$KVdqrUV",
+   "1Ja8HhWrT1Mv5CbhZPPUBt",
+   "25EivngmX5HgjwnL_VejfZ",
+   "270OHaczH2QuY0lEgCw2YK",
+   "163WneOcPBCvnqa4ow7gzd",
+   "0VWoWLTvTFQeFPpLMbWisx",
+   "3jImn1cJ1E9vzlfCg$kH2k",
+   "02b$G_7DPCl9hQnX1YzRg8",
+   "0lzmyU2qz2ZPxdJTZAXYHn",
+   "1JsGWI44T4x8qNT$I2oMRS",
+   "3dnAonMmP2kxHiIiLOpybJ",
+   "0IG5iOpobFIwd4v_TFypCc",
+   "3OkzPa_Br4FgSncbRCiAG4",
+   "2iU6N1i053PRakTVZAG4DX",
+   "3f0ieUWDfAvAnt$bBKhE_W",
+   "1U1UJaoXv8XgzXXBkC9DuX",
+   "3zdtzGI8D8be36FZpV4Tj_",
+   "1b_EIHiCv62OY4ydUzseN0",
+   "0nufDFqyn90Arikl7B1V3x",
+   "13$R02K5bDZg19hg5xEbN_",
+   "0SOlL11kz359rZ8V_HJtMM",
+   "3qAJO$9Cz9VwWzT_sPAYwE",
+   "1o7NA_T0PFQvFZJBfZxtwl",
+   "16ZDNpZ9f9SOCP8Wm1tTRR",
+   "3wYvwwpmz84A446Nxfeqdv",
+   "3TdRd8Fjz3duWeCGv$l0Sm",
+   "1crbfO8nX48efoIC51wkmL",
+   "20DBfbUG56cxVp9edraE1C"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2267,11 +3763,20 @@
    "count": 59,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo_spekband_SB 60/70x150' (material)? Used 59 time(s).",
+  "message": "What is 'IFC_Vebo_spekband_SB 60/70x150' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo_staallatei_L150B",
@@ -2280,6 +3785,39 @@
   "field": "material",
   "raw": "IFC_Vebo_staallatei_L150B",
   "occurrences": 31,
+  "guids": [
+   "0iFMbV8sL4nf9WVdq8tGzc",
+   "1JvhXgKdrA9f$ihQ6BVwRu",
+   "1HjDHDVv17gOxwsUWfqZEx",
+   "0tDHTIAFHAExG9bv38sVSZ",
+   "1RucBYpjbA89nKCk9MMR64",
+   "1z6I$GHqj3aQM8jBdt_j1h",
+   "1VOOdZVXTCfOZQQhMP0MqU",
+   "3Qrkx4gFvENxRu4ycu9R6P",
+   "1cnVNGx8L6x8atU0FW4aSj",
+   "2G4x53nKT0oRIjHSPxqaLE",
+   "28hgQDPRrDdABTTnaoc_cc",
+   "3DypDEq_nBvAS5s5Uyj$ZL",
+   "2fxjjvzMX8NPHkfNj6ZCdn",
+   "0MrU6VvOj8U8pPVkvaTjD0",
+   "20m0Rl3qTEV8jruV1PXOay",
+   "2sm5UhjjP0NvfUsdScXytC",
+   "3G01sUtwv54fTx0BOSRner",
+   "2129ZF6ZjEKhfG1l9$lZA3",
+   "2ulfOfmNz05AgBtVrK1wUp",
+   "0fqMgB66D5ghqNQ_PcyJzD",
+   "0fuya1KN1Avw89aKnt9B1G",
+   "3iQVpi1yf0ouXPllLv7rhi",
+   "3LN0iSrUv2NPXruCBpKVlO",
+   "1PPE5kaHH5lug0R_epfByi",
+   "361RE6wEjBt847f05MaNvo",
+   "3E2$yTPJnDYRkEL8oF2ny5",
+   "05UAi6xjHFYv$BOaOrwqvv",
+   "1KdxcZ8ov18QIAxDoHJjXY",
+   "3gGleO2rr92gpIdEtmMunw",
+   "3bU78D$x131BDVbcXUJtKG",
+   "0NA_WA$Vz56ebibBvXTCAx"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2287,11 +3825,20 @@
    "count": 31,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo_staallatei_L150B' (material)? Used 31 time(s).",
+  "message": "What is 'IFC_Vebo_staallatei_L150B' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_Vebo_staallatei_L200B",
@@ -2300,6 +3847,12 @@
   "field": "material",
   "raw": "IFC_Vebo_staallatei_L200B",
   "occurrences": 4,
+  "guids": [
+   "1CwUP_iaf3Bx7R_7Dzj17e",
+   "10EEAhIqfCrPpzj8GLXD8Z",
+   "0SgYb3qDb5JhBJAEma$A_L",
+   "03DuUvzkn2wAF3R5RRBAOU"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2307,11 +3860,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_Vebo_staallatei_L200B' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_Vebo_staallatei_L200B' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_baksteen_kopergeel_100mm_liggend",
@@ -2320,6 +3882,38 @@
   "field": "material",
   "raw": "IFC_baksteen_kopergeel_100mm_liggend",
   "occurrences": 30,
+  "guids": [
+   "2pyH8xd0X0$PI9L7$Mba5Q",
+   "1dLVLZIJP5YBAh_eqUFF79",
+   "07M$ThLCP43hf8Zt2gb$fn",
+   "0nwg885n19OwZBThKAKneT",
+   "1wYx$zg0X0owZJrcm6pqZf",
+   "3YoKr_dqL1ie7FYvjw15Mm",
+   "3p1u9HPpP6gflaoGKooh5l",
+   "3hiPsZuu9389GtwNxdc7Dh",
+   "2oTpRewGXCwhVfdMf_qF3m",
+   "2a_NvX7hDAmxWweg0hFdem",
+   "3FkUCZDZX309bRcSqt_DRs",
+   "04iScL2Kn3cv3CSwJZjP8B",
+   "3QxjfEscPDhPkdVJWVsxmu",
+   "2xhzt9_Rz9BvhrrngnoMSr",
+   "2XYDPgjxjEcuARwDFI1t80",
+   "0Cwv3S2wr1YQqV_n3sIl16",
+   "04tRsiCGj1ygrf4yhoVJ97",
+   "395IZrUWHFvBe_ub3Vugcy",
+   "07pJqL0VX6bvf_jwM3Uanq",
+   "2YBvbqrbr20h5_M1j2Ngem",
+   "13z0lujtTASOiWBBvoob6M",
+   "3fROHsDaD7HfUhvvQOQ7vU",
+   "3mgVJLEanCfgmjO$pluCjd",
+   "09ryfO4QvCLRE9pcIkAqtW",
+   "01SeNahTz68PhRseYTy_SX",
+   "03yEjYRQTD9xbuMEJQLOAc",
+   "12coIr0ez7DBxWzujlCd3J",
+   "1J1bt_N5D54u3p23$jwgJU",
+   "399Wm2yVXF3vWPA3hWsM2R",
+   "2kv_iL0Y53vgLdCj4vu32A"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2327,11 +3921,20 @@
    "count": 30,
    "blocking": true
   },
-  "message": "What is 'IFC_baksteen_kopergeel_100mm_liggend' (material)? Used 30 time(s).",
+  "message": "What is 'IFC_baksteen_kopergeel_100mm_liggend' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_baksteen_kopergeel_100mm_staand",
@@ -2340,6 +3943,47 @@
   "field": "material",
   "raw": "IFC_baksteen_kopergeel_100mm_staand",
   "occurrences": 39,
+  "guids": [
+   "04Q0fmnG9Df8HggeAZ9tbV",
+   "1G$_ZVxgPF2ePaS5Y10vI1",
+   "0bxSGRIwf6ce_WD8QYcthH",
+   "3FwUH$fCn718uP9zN0kIIS",
+   "3oESOiTpb4Zgc2wKuxOO2c",
+   "1yymXQTJf6UAnCoEh6N2G8",
+   "0Wsr0TFin2KweZYCpJpqu0",
+   "2WmmNa7LX6O9ovg1PGvc7S",
+   "1V4LGAdV1D9wai7noPWq3a",
+   "3irj2GUHT0HQY1upcUqHh7",
+   "34sLTcMl16YeLy46r40LfR",
+   "1wmui85rn3YBeyZytiHXa6",
+   "3N9KfSoub0pAj5$b2bgePd",
+   "3MtXEklonAfeO4KDU9KrtH",
+   "3lRH6RoO19GuPtrDJRmqXh",
+   "30urJWDHrFaRJjpQUZwzVn",
+   "3$iLCyTLb5JwiMuaFCmJA5",
+   "06TZIMFjv36Bf$_rLS5van",
+   "24mqy2DxH9shTalJgSQQ8D",
+   "2cqxFrHJXEcuPvMGKW4D7$",
+   "2mzgPNd5v0fB92hyv_o1qz",
+   "3s05o8PbL4ueXWQ21Y8mks",
+   "1hKGxAEIj189p06hsuoUuN",
+   "2s7MsMrrX1YfWVCC3MzwE1",
+   "2JXGWja3L9Jec_IO_e9ODP",
+   "20RX05dOfBvh7Q6Gx2oAdA",
+   "1B4$Tq4vL9hwfDZMRaIRTS",
+   "3Ia3UwQH50r9EgM7E8i64p",
+   "2vOuifpOf0Bf9RKCCJ8oh3",
+   "1$hI2rGrLA_OVT0eI6CpHq",
+   "1UOsFdIxbCfeKietopFMsd",
+   "2XrX0P4Hf9D9l_3dwkLQEY",
+   "3nh7CIcuD4lPilEdIneNOg",
+   "3$zERKNDD0rA_VlE_NOhFb",
+   "3ExMtTdDzFDgE9eIPl$xYv",
+   "2AxUfGkSTE2R2C0UHV$eAY",
+   "2$OU5UaMjFjR3zAH51dVly",
+   "0F7Vy$0GD6OgIbJB_f58xT",
+   "08PHwoNcr4zAufr84q_aUz"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2347,11 +3991,20 @@
    "count": 39,
    "blocking": true
   },
-  "message": "What is 'IFC_baksteen_kopergeel_100mm_staand' (material)? Used 39 time(s).",
+  "message": "What is 'IFC_baksteen_kopergeel_100mm_staand' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_baksteen_roodbruin_100mm_liggend",
@@ -2360,6 +4013,208 @@
   "field": "material",
   "raw": "IFC_baksteen_roodbruin_100mm_liggend",
   "occurrences": 200,
+  "guids": [
+   "07$Xa6lifDbPVfEzYMVW1c",
+   "2S3aRkWJH1hBZYiuGiegy9",
+   "16tQHA4RHCGPfrK8pB4zOi",
+   "1YoDLVnx10VeKSiKFxF84M",
+   "3uEw9HExrDvOT_r_QRFjM$",
+   "3bDpFy13r2NfkeIFQ0G_MM",
+   "3MtabSy8f4puHZkXog0Z3d",
+   "0KuKV3MtH0Xf7AJ9ZGBMFq",
+   "1xDjOvENX8CuNRr96uJOdr",
+   "1l0HAWjmr8qfAufnFdmLdZ",
+   "14b$VL57bDzwWdGySqWb9n",
+   "12Ir6WJNL3lBuUu81v4OAd",
+   "02l5BIlT593fcbPD$yLga7",
+   "1Y6tFnqY9EMhTA7jP29Mti",
+   "0CdxE0ABz5EgdxP6nOFCrc",
+   "0RhhmGXM97gQB63Q6wE1Ml",
+   "1X8tFy41b4mPL703mJGEpR",
+   "1ICYuuuyr7YQLO48yHogRo",
+   "1LWtdLUnT4PviAa$k2TSaS",
+   "083sSiLcDDjQuLPF7VNdaP",
+   "242fm2EOH2fAIscQ1QB9u1",
+   "21J$w3vc5ERBHpACCkklfd",
+   "1xHykd1OX6EgKTOIIHNqS1",
+   "3Lm3mYQlbF$uOLLYkj8Mm7",
+   "0yaAVS1Q13OBZEWrPKyD8P",
+   "0svEgl2SPC4Aa$cdLZ86bH",
+   "0h4bPFBRL2w9neQ3IgSD9I",
+   "2Hz4R1LgD5JfhOhVv2GAWG",
+   "1HMA2tfjr6aRwDxhDbbmWe",
+   "1USOISjXrBuOW_HozfBLrO",
+   "1dbaNnuAT3EBWElV6xZQZZ",
+   "0A3X74_S1DcxNzVPQGwptL",
+   "0ozXv5Fzj23Q0AwfuxDbyH",
+   "3ZgcQKDfTEBeMyWEf2uKX2",
+   "0AIVef4vfFSfjHr4cnH95r",
+   "01RB6Q__v0Fg$eBVnK5H8p",
+   "0a9e8g4Tr31vC7QsaAEAbt",
+   "3wEOZa7WX0Kgfc4wZlFgQa",
+   "2HIlLKLfTBcREoZAZ184fN",
+   "19GAHbi8z3n9_Yw78TLakn",
+   "1wnkl1qIH8JOvItktWh7KG",
+   "3nbQ5roOj8Sh4vZ8jqPRYw",
+   "1Etsp5RxHADAIMcmDPE2PE",
+   "0sx_niOSn8PwGIqUCQhIZR",
+   "39ZipXcnHCZRaXOV5ybdVC",
+   "17EFWx1vD1Hum5L7gdoSJE",
+   "04EF5LiTfA4RZLf0tCb8WH",
+   "1tfv3CLEz7vePhoqUnnuwC",
+   "3I6o0g8NP88eHPndAy9gn4",
+   "11ZB6hVIz4yeF6qGGTqsTK",
+   "0ZcrzLUALApwXBXSTgkf$5",
+   "3lIwNee1X4IP63DyM1rJ34",
+   "0e$OqtqJL9KResUxnDIPU4",
+   "1vrVk4JPD3GuriNJv3_fsU",
+   "0e8WMeryvERuCp52l$OpMX",
+   "2bwbX1D1XARBfofMf2OOEb",
+   "0g2kzxn4X2Nv2bryk8DrCs",
+   "28yUvb2sr1C86YpLm1I9Rh",
+   "3DFpyyngv1WBQdB9BEI0nU",
+   "1JsZEGO116pABACRYwLaXG",
+   "05n126i49269b5MIBTFosu",
+   "2OlOGa2dLBCQPfTNehEdNZ",
+   "0HyMROW8H8Ew9jbzVzav62",
+   "2JMMiVFGj3tQKHV6RHbtxb",
+   "3p$cvH7L55Rwg$bkoxwztc",
+   "14SyrheZz51ubXGZgVreJs",
+   "0Vdioymb53rwDlMFXfB5Kt",
+   "2s_vDlv1X3iwizWuRnmjqN",
+   "0GO1TtT4vCm9LdZ0V5HODl",
+   "0JwKQt9d53DPWNvPH3WQf2",
+   "2cRHAnuOPF0R2b9szL17ra",
+   "2yHF1PUZj1A8WD1VAeNiiu",
+   "2cpYjRrtv7ggWGJ1eKIfqh",
+   "3ijx2kT49BVvFZhWoW37WY",
+   "0esKzrSij0lhwYi0xL9t4m",
+   "2wzB9QtGr2Eu6odwcvuSii",
+   "0diEFMaHf7SwXf4XlCfAXQ",
+   "2Y6ETnHMT3BAPh3B2KE7uk",
+   "3yTN0URKf82Baf1aBhr$Le",
+   "1x7gt0i25E6RNFvK$em9sq",
+   "0yzQUXhUj8FA9tVZ4YFuNy",
+   "3st7cKBzTCWgljW4IsFWpM",
+   "22Sl1Ys15Ak9izFQHt3Xjb",
+   "1wvM6dGsLFa9wMo0HG48jA",
+   "2QRYg3PC10TBxVMbFNE276",
+   "2pvzg_qiLDQxPZNnL$VpwL",
+   "1pZaADAbLDyA52TG3wBVJw",
+   "1iNmaGUQb5XxAL2MkOY_CS",
+   "1EY6VmZt19Luaa9bwzTajP",
+   "0StTONVtj4MuWepP3qrf5k",
+   "3A49M9XoT41xT2ZQVzBDWL",
+   "0OBGU3H9r9MeeqXzjcg_e9",
+   "0w_ZzqJmnFMf_q_OCzrRwH",
+   "15eGh3wdXF29bOL6WA_2wn",
+   "1D2LMFeBTD1O8HGDxrb4uu",
+   "2w5MZnqM92XuNMytix6kLu",
+   "3ywRQ6ixr3hvgtDjaHCRj4",
+   "39T2PMczHEShUCZFMQCKI0",
+   "3vfq_dNPz2PhF_xyOt50tU",
+   "1BHzCMtjjBC8asZ9T0VrsS",
+   "3zs1rF7wj5A9QSEQUJWdk3",
+   "3VPWj0tZv1CwA4FaapRHk8",
+   "3rqIt9iFj5JRQ7G0NCVg_m",
+   "08NZbjMiv5Cvdp1jxMGvEM",
+   "052dUpMfPD09pzHEkKEfal",
+   "1n2Zaq$mr8eRtRsO2P_09$",
+   "2sM0L0tOr14BlQdZu1IWeD",
+   "2qy6bnjn5FLRNXlTqRgJVC",
+   "1Djrw09F13cQKRU8ISI2kC",
+   "1RgQmb7jvAARVMAAOA_kBa",
+   "3FzeO9yGf8A9FLBPDcYq3_",
+   "30uYnUWw96UgaLTFZhVO9d",
+   "0kYSHGeDT2Qx7vvOrSnNqC",
+   "3Abfu4cxb8me5idsmMiuQW",
+   "3iUHJHQ9zF8gILnAjHa3c9",
+   "1SaukUG7b2JfOoMpg0fQVf",
+   "0sF1FH13n3LQlSifZTj$AH",
+   "28hE_GME90gOeiOpncYgBl",
+   "0838XCL_58NBTo3HgLCu4x",
+   "2UGbrtE819$RpVxRBStSXy",
+   "3mxmp$OGL5oBnRrAF_J3Sy",
+   "3U9OcXRwP2AQ7Ad7iCJ3tN",
+   "1AoJ3T7OTBER2JzYuTjuP_",
+   "0adT30PHv4i8taKC6as7nH",
+   "08XtAm3$vDWgi_7y6ulIPC",
+   "3I6WFLMoH4BQnVbrxp8YFH",
+   "1hNaKtcxj9wxmiikXXSM_e",
+   "3V7wCvGQb5Hv_dWX9Cx9I9",
+   "2qAJRLSDH1mRzHry$41TLy",
+   "1FKZU$I3z6mgK33edG0XgU",
+   "1GCTie0n53gxkfA0nycqLg",
+   "3acIgTTGT709YBbxCqZCHf",
+   "0ji6u6o8f27AeatVQYnTEJ",
+   "0uT0bd8cLD2xCQ17w8tRgN",
+   "1Vd7lIQuD0IvTtiESc5HnX",
+   "0fnlBS4WT5YObpwRlc47kt",
+   "3QYLuI0_D4ghCSXdkMZO_a",
+   "1SWI$ktEn3vemlN$Vwv$pm",
+   "021xjbImv84AygesbUu2eu",
+   "3QRSFTS7r9xxL90rDUu7c0",
+   "0Vro5DfuD1uub36PL13XHw",
+   "3qF8_gYkPEHO9EFami0n5A",
+   "1iVV3zLNT1lutCRZZNGVVr",
+   "0$iNwbByT5Ku3CV0b4a0eM",
+   "0pvJHe_1TF3uamv39zsAi4",
+   "29Q6H0KdP8uf6ThO9NTUjx",
+   "276uAwNc1Bgx397zPc9BmN",
+   "0oyrKL_jDA_8iX_TxeeCnF",
+   "04fhfSt4T1qRfl8q3iTuNI",
+   "3QZISXoHr9$hvsg2xLOEUM",
+   "1UDfO$bCn5sg2tKU1yLDyO",
+   "2fSYawgL58TBjq77DdgW2z",
+   "0IjoC$YGr1owBTbEC6Dd02",
+   "2_737O1cjAuOjeEexuNQ9v",
+   "1_ZsbXqpL7KvThcKETnS0E",
+   "1FlIsn2Nv5Yum77LTm8DHd",
+   "0pd6Cfl2nAZRZ2ploevLOa",
+   "0iE1Eqgmn9E8stK3zRCp01",
+   "07fOtSaj11QPFmisggihNq",
+   "22z$XNREX7bQ1ULjUXW42c",
+   "2TVnWtUYDAwf9RnfQo$DCJ",
+   "26Nn2i4Uz1ou9Cm2_O6idc",
+   "1FLrjIoVr7CPVfHWcI10j$",
+   "0sQmzo7enCLfXHIypfh$1a",
+   "2g0mfB_yfACAJ3ELkcyOeP",
+   "25alHEpV9Fy9FgIS3aNU3B",
+   "3YWRD74YrD1vLAqzcHD7cn",
+   "2l0iiHz$PAOv2nW0ZHJ92l",
+   "25bdnNS$n97ApPYYyQPIQa",
+   "11Bn9tBWnEnuOYjlKlznrL",
+   "1L10RT0mz5QOE29c9VX2hN",
+   "1cPvrklGT54ByMl1ZYOk20",
+   "15_tPfJ3L93gIqWkveCaPg",
+   "1cqRsS82rDHRAw1T3EKPj9",
+   "07MveRYifDtvDtGByz3RSU",
+   "1XEk8EGhr1Oe_0G$5xq44e",
+   "0gm_ZglM1FDgN6dFRr5CkC",
+   "35wAcUBGn6P9T$1$sniLeZ",
+   "1ElKUEhuf7fuEfm5K9A5AG",
+   "0lWjShJtb7bOj9vvQJ9Hzq",
+   "2j8afBJ858CfPX1yRaqz6M",
+   "1k2VyDGm5A0gYb88Fr1FUK",
+   "1KLlDtZGzBhhJ0x7OyXZHj",
+   "2eYP33F6T7m8b76mRXxQFO",
+   "3BHapMTKzCg9L9QdK71yqp",
+   "3k2KZUKO5FJ95TBybThCAO",
+   "0IE5_R1VD1SR7bLjGY_tVb",
+   "1g7h13eLH1VxfPFdAHVIvT",
+   "3xoEcuK0bFXepqz_4k$n4S",
+   "3LkFEXG0fAH8PJkanLTzRG",
+   "2s2YO7J3T5dxapGz_HuW2G",
+   "0tln9z$8X5IOHdH0kjIMqC",
+   "1GxMbAsIj49RQmwFHOt72L",
+   "3$0xRNYjr66ASddHtfiBaB",
+   "053cGJu3j5cQZFXeS3DSSe",
+   "3hi2Dp0mf3$ecBvBeFKxnj",
+   "26h3lF_TnFMxhMddwzXqDB",
+   "0euiVzTxjACgpGPntynuxM",
+   "3QhIAU4yD9mQrkcm7yIkO7",
+   "1bATYIbqnEYgE3N9vyATSO"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2367,11 +4222,20 @@
    "count": 200,
    "blocking": true
   },
-  "message": "What is 'IFC_baksteen_roodbruin_100mm_liggend' (material)? Used 200 time(s).",
+  "message": "What is 'IFC_baksteen_roodbruin_100mm_liggend' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_baksteen_roodbruin_100mm_staand",
@@ -2380,6 +4244,106 @@
   "field": "material",
   "raw": "IFC_baksteen_roodbruin_100mm_staand",
   "occurrences": 98,
+  "guids": [
+   "1wa9S4OOn4dQHlQyJZR0do",
+   "1z6TD193rE7v7ytRXLHb$s",
+   "15EjPocPjBOfjKwlixZDyv",
+   "2GewgmOv5BDuHyyugLQFq3",
+   "04BIPn4Vj07PbeokJ$I0NE",
+   "0UIVzi8kf8MhtMP4oPULPc",
+   "3PvLJ0ODb5nv71rSP2QVl6",
+   "3gaK_nAdLFSBoj7jgT3$_h",
+   "21tNqV4E12ie6TlaOe0z26",
+   "1rkR56eY13FPTTYa4_tBHj",
+   "2je0Pq0hv8zv4f7rHg6dYb",
+   "2QaXazz291og35Rlkykw$t",
+   "0G6jFDTXj1wOBP0F9H9SED",
+   "3el8tDToH5svKQZisGkf92",
+   "1$w3MIah1C$AOoap8FZzZv",
+   "1AS5IWZnP6q8vLG4XSO3k9",
+   "0Q11ZpILnD1Aa9jRVMcuKg",
+   "0nrGDtpSjErR5HQWktOidD",
+   "3VH5ewJd99YfGV2kN70uQC",
+   "2SBJuBgCn4AQqFCEQV71Uc",
+   "1dnNXQmA1AUfnohL10MnTR",
+   "03hw6sI0T5WAAyPeFWiKeJ",
+   "2vGz$FwdvA5wqaZTt8o43Y",
+   "0N1xD5a2XEHR$r6vNKL4JX",
+   "0ugHUDn7PAvujie7rFvm2z",
+   "3iiX_lGDf3bgdMyj8QyhkI",
+   "0tjgsgjnj1$gtyZETVKyQ$",
+   "32fESqOsPDwQr2cWHWmaGH",
+   "10Jrzi_Zj4dQj$i8Fnsa8O",
+   "2vgBJIXs91bfrWS8iYLoGq",
+   "2vlwZ4xpT6VgQFk3ZQ2Hs3",
+   "11xL$wE6jFYhflLbEGr4p5",
+   "1b4hHvNSv0zxwVYk1kt96t",
+   "1EV9zTsaL0yxlb3DEB$hy_",
+   "090AJIP5v5lfwCtTvD43M7",
+   "3Mjyz7y4bF_QgyiKwuh_P4",
+   "25463Pd5508PNhGLFOORUC",
+   "1eS5t2nsD9JOt343g1WDC1",
+   "3izThBAdvEGQvL$H6tXp$t",
+   "0mD_EVF2jDRgVe5$GfJFVf",
+   "3loeE7QNXFlfq5K0hK2y8b",
+   "3e5TClO0PBvx7PccmbCOiS",
+   "0ma4kDnDzAWua1U0OKMVnO",
+   "31uawuebbF1R4QdHOxz1lK",
+   "08xSNTVEH29fpKd3DE2RFb",
+   "1cq0MTrRf5VPp9MFpxkv4h",
+   "0vlqD5_HT1EAAlAlWZ4gHw",
+   "1NRU6D55P2sAaswW0dc$RN",
+   "3aJ2w1jHL6_QqBYg6Tn9f1",
+   "2c_YmX2a5Aq91B6H13rWOS",
+   "0GUNGMgEP6ueMi4r2GDaq$",
+   "1b4ADoh3z58xNjkyvkCob2",
+   "2O4x6FBVTBfvu4o3DSSwhd",
+   "1FVFCYeIn3WwD4TI6kEyRA",
+   "1Zi2Qw2ov0mAVaTuxbQ8NG",
+   "2w2n$CHvPEY8uDGrJqRfX9",
+   "28TYrc5Uf7UPYYM1xu6vpP",
+   "0cNAXv_mT0Uf5lCEIxz05_",
+   "3HwnMf0ur9XwemrH13bV74",
+   "0QNpcXCi9A0RUHQLKZvbmG",
+   "2A1oTXhTL2DhJTqBb5V6gf",
+   "36Gb8ytS18QfPDfsefSMBA",
+   "0Ldy0tzOD9ivZhA8OckzK$",
+   "0Y8ypf5LnBwhB4_9FZeASn",
+   "1R2NFWYRH7bACrOafQw8$M",
+   "3u5jvNUKHC68SCzoztZx1d",
+   "3HPExUpxD0GuDr30Yz0mEz",
+   "3_kmy$0_1Eq9yPAlL7tuv7",
+   "3EcN$TRLn65QyTMds3_6sa",
+   "1bON6A6u9CDwRLC6Q49OLI",
+   "3kx3QmU9L04PVOIn7OaHK7",
+   "3_0uH90HPA4R0f3RFUb7a9",
+   "3E1dJQ5$j66g5Tsk3dUPsa",
+   "1dd$3UEIH5avQpc1mCzFzU",
+   "282lMKEF155fu34pjnw0km",
+   "0FXqFzb8PF0vkqNU19rdEL",
+   "0843Q59En589p1me17430_",
+   "38ZdMST9P36PPEPXFE9$u0",
+   "01_RjRM4v2DAIiEwPBMhgT",
+   "2iSyyDHUX5NuFr_pjAOT9I",
+   "3_r1Xrmxb3b8cTbjzLqaYZ",
+   "2CZ8PyRYPDu9ePZA6szy5R",
+   "2dfOp2CSjF_uuw39m19qLR",
+   "2w61otjs5CqewcPHCpJdcb",
+   "3VR8PhEQ92Ju0JrKg3XGRn",
+   "2H5izOOmP4ZvgArgAI25rH",
+   "33gtlsDIL87PIYyhkDX$Rk",
+   "3JbaWwH89DxP0TZOlKQ58z",
+   "3Y5MkcXw1BDvLwnisgAe4r",
+   "1y9rvMwVn7EOjiiiitQl3W",
+   "1oe1qexavFCRP8CdcoHdvv",
+   "01zmAbDtb2Ow3xBTdVwnPQ",
+   "3iSNqAasn72hqbK$rH9BLF",
+   "3O_i13qDz1TAJIYRBIEK3t",
+   "2Rp6CRXSH7VOmvnh8PzCRC",
+   "0GsXAKHBXA6QU2AOiF_BnM",
+   "3Jafi4655B1wT7dZgHd4MX",
+   "2$Xse0CZf9QQMHap0MSd1q"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2387,11 +4351,20 @@
    "count": 98,
    "blocking": true
   },
-  "message": "What is 'IFC_baksteen_roodbruin_100mm_staand' (material)? Used 98 time(s).",
+  "message": "What is 'IFC_baksteen_roodbruin_100mm_staand' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonlatei_200x250",
@@ -2400,6 +4373,15 @@
   "field": "material",
   "raw": "IFC_betonlatei_200x250",
   "occurrences": 4,
+  "guids": [
+   "2nIX6Ii5r5thLY4vdkyK64",
+   "0MGiIdPGj6Dw47j1gUVoAK",
+   "13unX9T111luvxOpfHTnHJ",
+   "2G2JBxIZD0EAnBmLQXO_hv"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2407,11 +4389,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_betonlatei_200x250' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_betonlatei_200x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_150x315",
@@ -2420,6 +4411,23 @@
   "field": "material",
   "raw": "IFC_betonopstort_150x315",
   "occurrences": 12,
+  "guids": [
+   "1R8wvSBdj0nxw$u3qzf7DP",
+   "3PWGV6t999FwJIpAuRAXEk",
+   "0PeQJ7XO5FCez3vnkBjyBq",
+   "0TS1pLnKD4PAKmrsFzF4KF",
+   "18d3mlRdjCdQZN5$wTakyV",
+   "3ezuEHz6XFHwANFIAgNksw",
+   "06pbOYRBH47ggM7v8Z4QIY",
+   "3ZlvAOowH1V8p2VDDOxbzq",
+   "0zpQ3hQHb6z9ILCBaxQLE1",
+   "2CbRGCrHHAVhOahgXUdmJv",
+   "2$8EUcBs16IuI_ajPbP8Lb",
+   "3VWt6e5xX0QQNjKh6N8IFF"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2427,11 +4435,20 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_150x315' (material)? Used 12 time(s).",
+  "message": "What is 'IFC_betonopstort_150x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_220x315",
@@ -2440,6 +4457,19 @@
   "field": "material",
   "raw": "IFC_betonopstort_220x315",
   "occurrences": 8,
+  "guids": [
+   "2nGF21ODz3XRuB8OGTFDs8",
+   "1Mf8LrlnDF0xbzfYfBIyj6",
+   "09pyb7tm5As9QgZNoN_nNK",
+   "0NZhTGcY5A1wAScTLireiF",
+   "3chAZP2urEphTNqEJGiwF1",
+   "0VHbn4bVf7iOqD4KIp1EkT",
+   "3YUdL1_$rDcfMmTETvlfJD",
+   "02kic5NYL5Y8L2X6WG8k5m"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2447,11 +4477,20 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_220x315' (material)? Used 8 time(s).",
+  "message": "What is 'IFC_betonopstort_220x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_220x345",
@@ -2460,6 +4499,15 @@
   "field": "material",
   "raw": "IFC_betonopstort_220x345",
   "occurrences": 4,
+  "guids": [
+   "16FVmRsQb85vEIXQ_DW6Lp",
+   "1naZcReNz7PvhQAmj6Jq3I",
+   "0_tiSIYEr4yRRHYXKfPTdj",
+   "1Auz_7ZqL7AAig2gL0Pvj2"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2467,11 +4515,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_220x345' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_betonopstort_220x345' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_220x965",
@@ -2480,6 +4537,13 @@
   "field": "material",
   "raw": "IFC_betonopstort_220x965",
   "occurrences": 2,
+  "guids": [
+   "0ZOrCFqKrF_Ox7WOTGyQmt",
+   "3GQbn3RLT7AR7GWCGsipbZ"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2487,11 +4551,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_220x965' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_betonopstort_220x965' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_300x650",
@@ -2500,6 +4573,14 @@
   "field": "material",
   "raw": "IFC_betonopstort_300x650",
   "occurrences": 3,
+  "guids": [
+   "1CJwrAhq9Ed94DRX3trP2o",
+   "2Y$eh0ohrDEepO4_LPdoEr",
+   "0B0Q1ghLnCxvbIfuSwz9wK"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2507,11 +4588,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_300x650' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_betonopstort_300x650' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_330x315",
@@ -2520,6 +4610,15 @@
   "field": "material",
   "raw": "IFC_betonopstort_330x315",
   "occurrences": 4,
+  "guids": [
+   "1rWCWMKXXDR9pJJ453yeU9",
+   "0oKN4Spcn5Bfa3Lqj0jpzQ",
+   "2OwZUPMe9A_OUbNu4p$vK$",
+   "3nmvJwVyTCiucZBALa8U32"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2527,11 +4626,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_330x315' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_betonopstort_330x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_350x660",
@@ -2540,6 +4648,12 @@
   "field": "material",
   "raw": "IFC_betonopstort_350x660",
   "occurrences": 1,
+  "guids": [
+   "0_I_33wYPDQ82UT6BIK_07"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2547,11 +4661,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_350x660' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonopstort_350x660' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_370x315",
@@ -2560,6 +4683,17 @@
   "field": "material",
   "raw": "IFC_betonopstort_370x315",
   "occurrences": 6,
+  "guids": [
+   "0OrpQP1yf3kPlM24ca1IEy",
+   "3Sbe78uxbEwRPG8jsMr$cF",
+   "1UP3VfHvHA_gIZN9WnsRQ9",
+   "3hMx_hmGLC1f_YoPoAVXz7",
+   "1YK0PSziv5GO8pr83weXaP",
+   "1hKluOE6bDMhJ0clWE$jN$"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2567,11 +4701,20 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_370x315' (material)? Used 6 time(s).",
+  "message": "What is 'IFC_betonopstort_370x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_370x965",
@@ -2580,6 +4723,12 @@
   "field": "material",
   "raw": "IFC_betonopstort_370x965",
   "occurrences": 1,
+  "guids": [
+   "2BvIWOGA18JuJGl8rylXFV"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2587,11 +4736,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_370x965' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonopstort_370x965' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_450x315",
@@ -2600,6 +4758,13 @@
   "field": "material",
   "raw": "IFC_betonopstort_450x315",
   "occurrences": 2,
+  "guids": [
+   "2KczfJ5o5FKxUSb6pascny",
+   "16eOLt9QP0$OsMuPdUbLi8"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2607,11 +4772,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_450x315' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_betonopstort_450x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_520x315",
@@ -2620,6 +4794,12 @@
   "field": "material",
   "raw": "IFC_betonopstort_520x315",
   "occurrences": 1,
+  "guids": [
+   "1lZhfwQ$j6Th34b5Sidges"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2627,11 +4807,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_520x315' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonopstort_520x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_600x315",
@@ -2640,6 +4829,16 @@
   "field": "material",
   "raw": "IFC_betonopstort_600x315",
   "occurrences": 5,
+  "guids": [
+   "3aoUNqsM1FGhb_SiPhOfAR",
+   "0MQhyBS6f8CB_MlOiBxhFK",
+   "15fhpEUvT7HuRQ7K9Gnzeq",
+   "2zgzThNuf0e8VhKUE39TOO",
+   "2IGwSZD4XD0v_U7kK$pAw4"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2647,11 +4846,20 @@
    "count": 5,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_600x315' (material)? Used 5 time(s).",
+  "message": "What is 'IFC_betonopstort_600x315' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonopstort_620x965",
@@ -2660,6 +4868,12 @@
   "field": "material",
   "raw": "IFC_betonopstort_620x965",
   "occurrences": 1,
+  "guids": [
+   "2rxEfS5c1BRBMAjC9Weumf"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2667,11 +4881,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonopstort_620x965' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonopstort_620x965' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonpoer_1600x300",
@@ -2680,6 +4903,12 @@
   "field": "material",
   "raw": "IFC_betonpoer_1600x300",
   "occurrences": 1,
+  "guids": [
+   "1KASldv$r8FgJ_cnX$UWsD"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2687,11 +4916,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonpoer_1600x300' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonpoer_1600x300' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonvloer_ihw",
@@ -2700,6 +4938,12 @@
   "field": "material",
   "raw": "IFC_betonvloer_ihw",
   "occurrences": 1,
+  "guids": [
+   "2suAfAznz6Ivjo25ZP3UBB"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2707,11 +4951,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonvloer_ihw' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonvloer_ihw' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonvloer_ihw_300mm",
@@ -2720,6 +4973,12 @@
   "field": "material",
   "raw": "IFC_betonvloer_ihw_300mm",
   "occurrences": 1,
+  "guids": [
+   "3iHy1LOhfAtfLt80$LZBqn"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2727,11 +4986,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonvloer_ihw_300mm' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonvloer_ihw_300mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_betonvloer_prefab_200mm",
@@ -2740,6 +5008,12 @@
   "field": "material",
   "raw": "IFC_betonvloer_prefab_200mm",
   "occurrences": 1,
+  "guids": [
+   "1jk8OpHc99xQwyc0U_9bCH"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2747,11 +5021,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_betonvloer_prefab_200mm' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_betonvloer_prefab_200mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_breedplaat_betonvloer_ihw_200mm",
@@ -2760,6 +5043,13 @@
   "field": "material",
   "raw": "IFC_breedplaat_betonvloer_ihw_200mm",
   "occurrences": 2,
+  "guids": [
+   "38N5mTyOnEVeM6yQoncQmg",
+   "3zIqfRtO9BmheHy5$ThcRA"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2767,11 +5057,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_breedplaat_betonvloer_ihw_200mm' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_200mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_breedplaat_betonvloer_ihw_220mm",
@@ -2780,6 +5079,12 @@
   "field": "material",
   "raw": "IFC_breedplaat_betonvloer_ihw_220mm",
   "occurrences": 1,
+  "guids": [
+   "2mVx_Nvtr0dPMOQ1Q4ltlf"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2787,11 +5092,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_breedplaat_betonvloer_ihw_220mm' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_220mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_breedplaat_betonvloer_ihw_290mm",
@@ -2800,6 +5114,14 @@
   "field": "material",
   "raw": "IFC_breedplaat_betonvloer_ihw_290mm",
   "occurrences": 3,
+  "guids": [
+   "39JSiDRVn129zigzhEYY$S",
+   "1IB8kYBAvESxAWXwIJ_2w0",
+   "363rGfuvnC9uECPY0SM5fF"
+  ],
+  "candidates": [
+   "concrete"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2807,11 +5129,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_breedplaat_betonvloer_ihw_290mm' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_breedplaat_betonvloer_ihw_290mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_breedplaat_schil_60mm",
@@ -2820,6 +5151,60 @@
   "field": "material",
   "raw": "IFC_breedplaat_schil_60mm",
   "occurrences": 52,
+  "guids": [
+   "0kcEVHhj1F3wuUcEqEIond",
+   "2Yxd8eJpLABBcbG7nKsjJw",
+   "2H5JkLRvL72vEqp8Y2fUif",
+   "30jSkX$tjBEeqQuzhSL0OU",
+   "0ohHkzSbL3tPl3e9teTFmk",
+   "0FCVoLpqrDWRf1ksXAa3WR",
+   "0dwqShrVz93QvHd406cIav",
+   "0qgDSAOeT2fxhqBfBeelkk",
+   "0uS$tE2Ev4JuyQYSjkkTMS",
+   "0jGdybIvD2L9kzXTyU9qjU",
+   "0n857hg7fEUeAfDVvHfBma",
+   "1B5CUaozvD0fIlYgOxOoKr",
+   "3D9PZJvFbCHu6gHrVLs2L5",
+   "1cHbmhl7r50vWkvBHrEoNe",
+   "2YAybmMtrDFQDm_gIIz$0q",
+   "0NZSUpMXL1hwtLAxUnTTws",
+   "0PI87xBsv0COQuzD73vKkt",
+   "3pzXXQSR984OjBXsGsFREx",
+   "204yhYTyXB9RoXYX4jVyl1",
+   "1lOEDq6Jr2hvWD_Fklmhxz",
+   "0T7PQVV694xgM1DyvzhAH1",
+   "27OXjbvNj2Eu9aSbkEqSNx",
+   "1Z9jhi0_TAhgfRjYwB7pGE",
+   "3zWICSvR1BhgORGDsiwJRb",
+   "1tq_AX8QP05fuFtyITI7_4",
+   "0b3vVFe8TADRmeWrlqGMgE",
+   "0Q$4njmzvCVAmF$RuCztvV",
+   "1HdZSWPLD4jQVyucbKIHhv",
+   "2OO$knNqn9MOhj2spyV4zN",
+   "2hI0ldtkv9dA1HH6UF1NJ$",
+   "2y2Fefv9H6gvHTJ84_X039",
+   "12ZjsATRDFReOezU0yxRuU",
+   "1TdfPGOL54LQe7rw9XqwUC",
+   "32BEGS3LrAzhwBfKhh8jrg",
+   "1VVbHrqPb57vx9uoV2hilE",
+   "3CSW95pvf1ixAfWAqJB5iT",
+   "0a1b72Jb1749N$P4B_b_xb",
+   "2VjiQ5s0L3OBnLrPWoB8Gw",
+   "1z$oK3vhTAx833bEMYZSDm",
+   "3HtaBz3bLBMe$a5C6JzJ$q",
+   "1_Fbx6yOHAneq5GCJxADqC",
+   "3fLrbe1Or8Xh1B0EwGqhA1",
+   "2dljI_2vL6u95oyWMcI5ss",
+   "0dq5E7j9zFV8gkjDgPaVJn",
+   "1xgGiCdKH1hO3JtJDOhSNI",
+   "1FcQub$Nv6ZgAjECrDs2mc",
+   "2s1aVwNu5BTBI4gjJKtTe8",
+   "1FvwoXWtj1JBBcupCe_RKr",
+   "1cBd9MqWP11vIiMTdtlmdt",
+   "0tfHOFz8rDOgs9b2zOoEcK",
+   "2HUYt04MX2uficFkE7lBys",
+   "34p77acpL1uAnk9BKSfGjq"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2827,11 +5212,20 @@
    "count": 52,
    "blocking": true
   },
-  "message": "What is 'IFC_breedplaat_schil_60mm' (material)? Used 52 time(s).",
+  "message": "What is 'IFC_breedplaat_schil_60mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_cellenbeton_100mm",
@@ -2840,6 +5234,14 @@
   "field": "material",
   "raw": "IFC_cellenbeton_100mm",
   "occurrences": 6,
+  "guids": [
+   "2oI8wfZVj999gj0sN_KMFH",
+   "3uYQusysnA99CFaWo72lSe",
+   "30Udr7lOT8KQStL3F8xdvs",
+   "0tZ$$qSr17fOu7f4dpqVE8",
+   "0myMIWCKTEtPWTOXUV0uVv",
+   "1ERvL07fTDBPORXRNz4f53"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2847,11 +5249,20 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'IFC_cellenbeton_100mm' (material)? Used 6 time(s).",
+  "message": "What is 'IFC_cellenbeton_100mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakkapel_dakelement",
@@ -2860,6 +5271,15 @@
   "field": "material",
   "raw": "IFC_dakkapel_dakelement",
   "occurrences": 7,
+  "guids": [
+   "13wYuvVp5E99Ha5XniyO7A",
+   "3nl$BL1hLC2h8CXwhf0rBN",
+   "0SbGFRlyz1hhrTMtnEnu9c",
+   "3FTdXoVy17_PmiHoY1I6g6",
+   "220RvfccH7ihFuR8vCgUrK",
+   "3bD2D1P4zBKwbG_Vv_7u7N",
+   "3hxM8VEr17TOeX1vM3NFmW"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2867,11 +5287,20 @@
    "count": 7,
    "blocking": true
   },
-  "message": "What is 'IFC_dakkapel_dakelement' (material)? Used 7 time(s).",
+  "message": "What is 'IFC_dakkapel_dakelement' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakkapel_dakelement_lift",
@@ -2880,6 +5309,9 @@
   "field": "material",
   "raw": "IFC_dakkapel_dakelement_lift",
   "occurrences": 1,
+  "guids": [
+   "0M7LGkeqH9Iew8pHUXBW1k"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2887,11 +5319,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_dakkapel_dakelement_lift' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_dakkapel_dakelement_lift' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakkapel_zijwang",
@@ -2900,6 +5341,32 @@
   "field": "material",
   "raw": "IFC_dakkapel_zijwang",
   "occurrences": 24,
+  "guids": [
+   "31$Sshly16cwmKoX44gmz2",
+   "1hVRU6ACT3IwR614nRlvbY",
+   "1CGNvPuFf9aBZ4FqVd7WEv",
+   "1M2dKqEwD2bhzz3dp5rdLQ",
+   "3Cyd7KMP5FDP0S1B4dioqP",
+   "3FOkZnh7XCVeD8wx8spI9y",
+   "1xx7imdr9BRgU7_Gg0dJKA",
+   "1mzaKMrTT7gQv6Krg_W6mA",
+   "2zhOMDrU9EN8NwQ7Oa5cXY",
+   "3ajgOb4ETBG8396i0kNCsK",
+   "3SoIwrrZ13_hUHe3yX2ag_",
+   "1cwY85R_z82OWjG9BraKNk",
+   "0SNt27Z5P4B941KWx44kGj",
+   "2sU_NbQSr5qhJNM1CU05UH",
+   "01IStZOr14ROgMXPYMVX$s",
+   "0oGnWwyoHEbgKXCNsMAqpE",
+   "1jJj0w4zD7_gSEScB3ghVA",
+   "1lwimHBy5Akg4TAfP8GO7s",
+   "1JrRwbsIr3QfE81yLFV4sQ",
+   "2_0CQY2In60w0KBejfP8ig",
+   "3nz7Yr8ZTBzu54a18_IJui",
+   "3jlXwIZG90dgqWy93TfldD",
+   "3K7b0wUa10BeEvaFnKfT65",
+   "2Rj_vl0Yz6NhNsv48Gpmnu"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2907,11 +5374,20 @@
    "count": 24,
    "blocking": true
   },
-  "message": "What is 'IFC_dakkapel_zijwang' (material)? Used 24 time(s).",
+  "message": "What is 'IFC_dakkapel_zijwang' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakopstand_laagbouw_hout_38x120",
@@ -2920,6 +5396,11 @@
   "field": "material",
   "raw": "IFC_dakopstand_laagbouw_hout_38x120",
   "occurrences": 3,
+  "guids": [
+   "3Nsm4$LW5AXA5KO$QJdly8",
+   "0EBKfFE5XFKgGk5WO7Xupi",
+   "3ENH4rGs59QRKNdrP94cUw"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2927,11 +5408,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x120' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x120' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakopstand_laagbouw_hout_38x95",
@@ -2940,6 +5430,13 @@
   "field": "material",
   "raw": "IFC_dakopstand_laagbouw_hout_38x95",
   "occurrences": 5,
+  "guids": [
+   "3uAb_m08HECP0nHNWbMSkR",
+   "1G9dbX4aj6O9lT0sel9ACO",
+   "0SuvegnQ19p8hZpGO4OVt7",
+   "3DL$mZXKP1I9_2TLhSMenY",
+   "0qwgBAy8rFaxA0G62qJzc8"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2947,11 +5444,20 @@
    "count": 5,
    "blocking": true
   },
-  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x95' (material)? Used 5 time(s).",
+  "message": "What is 'IFC_dakopstand_laagbouw_hout_38x95' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakopstand_laagbouw_rekwerk_met_boeideel",
@@ -2960,6 +5466,10 @@
   "field": "material",
   "raw": "IFC_dakopstand_laagbouw_rekwerk_met_boeideel",
   "occurrences": 2,
+  "guids": [
+   "3ZIaKuXLHEvxHvNsFlXiED",
+   "2cHxs9pEvAggbP3NjCt0$3"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2967,11 +5477,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_dakopstand_laagbouw_rekwerk_met_boeideel' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_dakopstand_laagbouw_rekwerk_met_boeideel' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakpan_Coramic_301_leipan_vlak",
@@ -2980,6 +5499,22 @@
   "field": "material",
   "raw": "IFC_dakpan_Coramic_301_leipan_vlak",
   "occurrences": 14,
+  "guids": [
+   "1SuTK8M3v35APOdkg4zwPz",
+   "3KXNctQPXFVAo5ta839t8y",
+   "32C$PZzCLAWA34iy5p2x7T",
+   "0dCZiEk_rF6Rf4wvfRiLSm",
+   "3LzYJ3ELv42QRtjK3m2bZp",
+   "1xvfOOKW1CnfgQKC1ueVfv",
+   "2khwqV6hr46O9K5EcuBFz1",
+   "1DqS0YHf90hBqPCNOVQzgV",
+   "0i0BxAJjb07PSuS44CDtdW",
+   "0Al4i$Xj52ig$p_$4xXXor",
+   "26GXJJrYL2FRXhIKPjujED",
+   "0IwUcmFEXDpBH4Xfn6nuwy",
+   "1SOSgxsFD7exEYHzEJKFy7",
+   "0drLh9u4f3BfkszL5aeq94"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -2987,11 +5522,20 @@
    "count": 14,
    "blocking": true
   },
-  "message": "What is 'IFC_dakpan_Coramic_301_leipan_vlak' (material)? Used 14 time(s).",
+  "message": "What is 'IFC_dakpan_Coramic_301_leipan_vlak' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakplaat_100_overstek_geisoleerd",
@@ -3000,6 +5544,11 @@
   "field": "material",
   "raw": "IFC_dakplaat_100_overstek_geisoleerd",
   "occurrences": 3,
+  "guids": [
+   "3gBzrckDH7B9A4CqX9qFrN",
+   "3dzerjmND3hhftBhAUGaaJ",
+   "0vzZoDssr9jQgBdIf9gAkB"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3007,11 +5556,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_dakplaat_100_overstek_geisoleerd' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_dakplaat_100_overstek_geisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakplaat_131_overstek_geisoleerd",
@@ -3020,6 +5578,12 @@
   "field": "material",
   "raw": "IFC_dakplaat_131_overstek_geisoleerd",
   "occurrences": 4,
+  "guids": [
+   "2U9F4ZsZT00uwGABsPQbnY",
+   "2klJ3SiNf18eM1CPnCqsM5",
+   "1uocOGOnD5lB8n641LQU1a",
+   "0sFOpA2Ib48uVK0LKZr5tC"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3027,11 +5591,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_dakplaat_131_overstek_geisoleerd' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_dakplaat_131_overstek_geisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakplaat_195_overstek_ongeisoleerd",
@@ -3040,6 +5613,25 @@
   "field": "material",
   "raw": "IFC_dakplaat_195_overstek_ongeisoleerd",
   "occurrences": 17,
+  "guids": [
+   "0HjyW6X1z3LhtdgFs2DcXh",
+   "3onB16nzH1ygpfHET4EV6D",
+   "1793zZ1eT9x8FPsLItAJGd",
+   "0Ib8oJ1f96NR0ukHsVyt5H",
+   "2q6N5AE2bD4OFLs82PpRR4",
+   "3G8EArBWjCQP_LgDmqwQFJ",
+   "2sGcTxDPzBq9p3pgTG1OTc",
+   "1PaVaSXw558PYFXqQAso7s",
+   "0i1uvtXc13cBqB1qGONdSP",
+   "3cYNhTd2L9iA_vBEFWjPUB",
+   "2fDZddcePBz9WQ5zhJ4Gfu",
+   "31BE9W8$LB2wqtaM6E9J_t",
+   "3xajNY_XX8PudCt99cR7Gd",
+   "1cDUcNSfD4WP4McL_WaxKb",
+   "0K0jZX5sr5X902ymOtBcjh",
+   "1kqK1LobLB0REIBni$08kg",
+   "2OPu3E7AT7bvGLxE_pO4wy"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3047,11 +5639,20 @@
    "count": 17,
    "blocking": true
   },
-  "message": "What is 'IFC_dakplaat_195_overstek_ongeisoleerd' (material)? Used 17 time(s).",
+  "message": "What is 'IFC_dakplaat_195_overstek_ongeisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dakplaat_geisoleerd_Rc=4,00",
@@ -3060,6 +5661,28 @@
   "field": "material",
   "raw": "IFC_dakplaat_geisoleerd_Rc=4,00",
   "occurrences": 20,
+  "guids": [
+   "0oGtY479DDqvnx9MRfchHC",
+   "2Dxcml_Vv0PPpQfk_APUy4",
+   "1SZzryfSDFOvzxnRysRDiW",
+   "3Qh92125H7HA7aX2tle9Jf",
+   "1_9EImMv9BRR2PVPI0vJUe",
+   "1TD9MFQS95Kh$3Jk6JFBwT",
+   "3rCQNwCYvAWws7WUOWtZmh",
+   "0uHYZNLavBIu_xeFPJsAyO",
+   "2vJgUwJuvB5AFxi8D5lCK$",
+   "3nzElfxgf4gQeXM$tjm7W3",
+   "3bH_QIK9f8MvqDylUyjNYt",
+   "1b0DWnqPHDXwj$brtZalry",
+   "0GNemG32P7mwKVmlcwq_15",
+   "1o7x_Z9cL3WRprnzWf68$G",
+   "19sEGNuxzCyhlHGdkPQQLs",
+   "0hzHwhpZX3_wBZUtwNLESV",
+   "1CXN1N6xrEI87tn$ECu__r",
+   "0neheKds9F4ugB0ADjHqyP",
+   "0N162Cd0L9ze8epQ9p85PN",
+   "1dLyNMLJ154QP8T7H38voz"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3067,11 +5690,20 @@
    "count": 20,
    "blocking": true
   },
-  "message": "What is 'IFC_dakplaat_geisoleerd_Rc=4,00' (material)? Used 20 time(s).",
+  "message": "What is 'IFC_dakplaat_geisoleerd_Rc=4,00' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dekvloer",
@@ -3080,6 +5712,34 @@
   "field": "material",
   "raw": "IFC_dekvloer",
   "occurrences": 26,
+  "guids": [
+   "0NtafGmzL82x3uEoqD1sGj",
+   "3Bzv1yVKr98P0zaHpcCX3R",
+   "2BIiOpBbX6r82zNVqC_hHf",
+   "34HAwEQ2H7bw2aYHzDRd$G",
+   "18AXZPY416iPDc4sTxp$gV",
+   "1GPVTuvHr9tgp9fITUrAiX",
+   "35oWQYCm92oegd_0DMgz35",
+   "1lpmpYlbPE_QJB4isYBtbF",
+   "18n2CK$TfAkgECLOWah6C$",
+   "10RKrxCkv5rQvd7ngtcodH",
+   "2bXx1qErX3BQOxVuvQp9mQ",
+   "3ltE84VHfFEBUGWxjveNUz",
+   "2MqU3yDHPFd8QjuADTtSVZ",
+   "11hngCopn5hfimgovxmoKF",
+   "1pcw2qWEP9LPCS$XyKJckd",
+   "0L5fGhlhv3VPpemPiOVQwl",
+   "16m3R6VlX8Jf_U5EOhneGC",
+   "1iWo73Me57HvuwVxC6QKY9",
+   "0y_1JK34L0S9UbeV6I5FfW",
+   "0GFFCwDMT2av0aaFp7zv3V",
+   "0mH6E_Hd10jQooCrpSIM72",
+   "1hXcPUbp55SBgnVhI7wOGU",
+   "1hUJrkgMz9zRgxs8ZQZTtH",
+   "0tSwYd9yD6WR0dAINz$akG",
+   "0dC84HL7L9jQjaJrXGOlGr",
+   "0vTawmiu5BABIgCN8TJOZt"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3087,11 +5747,20 @@
    "count": 26,
    "blocking": true
   },
-  "message": "What is 'IFC_dekvloer' (material)? Used 26 time(s).",
+  "message": "What is 'IFC_dekvloer' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_dekvloer_zwevend",
@@ -3100,6 +5769,60 @@
   "field": "material",
   "raw": "IFC_dekvloer_zwevend",
   "occurrences": 52,
+  "guids": [
+   "0fTuHyHNLDXutbq6ZwgMFr",
+   "0lAaBfJYz35x9JF$ZAEXlI",
+   "31lwos_AH7wBoc0NyZG904",
+   "3DsioGn3j7EwXbSwu1cX4$",
+   "0hdMRCSej8RBD7BDc6iwUp",
+   "114rjKrCXEiuVotOR9UZoR",
+   "1_w5qaTJ10lR4aHbBSTBxZ",
+   "13qPMixqzEdu$1X4SGAsXV",
+   "1TAzrsBU51EfDGKnb2ajKE",
+   "3u9fAmoFv21A2s9lkTC8an",
+   "33f55tPKH1gABrld08RKTa",
+   "14QMV67hf0fADiYu0uFaVT",
+   "2k37GVrs11hgAhpOCzdBCA",
+   "1VBRYxvmP7XuNvc2Wt3Z4Y",
+   "3qlouHIa5ESuj7xw1xQkoU",
+   "2eev3L741D0xyF002A3f_z",
+   "3JZXkPV7j5ShctN5hOOQ2x",
+   "2QCJw9$611Wv0EDy1frN3J",
+   "0u_OTJqobB6xfa5qC6yfCU",
+   "2bIAMEvMv7uu8TvIr6N51M",
+   "1UZrjiKB59jR1oTxiUoUgH",
+   "0$U7ev6_T089hm35hpW4sc",
+   "0Xj8EFNGP6Z8pqEwga41uD",
+   "1et99pSlzC5QogCgbrUv8g",
+   "1iN1LF4ef9FQv3RV8t$$Wk",
+   "0O98mQJfTBT962usPZG91b",
+   "2fJKVgdX9DEAm$umjGwWuj",
+   "17fa3ysjn4AR9k0o387aVc",
+   "3JhONpgf1AZh_bavz4qnqk",
+   "37KaAGvgv4N9_58PnlDS_B",
+   "3eOg3_oWH2rxOdkHI72JW$",
+   "1KJzqP8ND7C8hHCTPu3J85",
+   "1MhwOzf9fEUBhGxttF5gkm",
+   "3GgOlJcR12LwwbCaq7d1oG",
+   "38KDMqRAz1D9PJHI1FbRwX",
+   "2pPRRm1WD4bunTefjgFXe3",
+   "3KOu3bZMjE7PXrjK8O1kz5",
+   "3fanX9djzFOPInK6tTaZ9c",
+   "0m8aRc2AXAwwBPUT$2GAtr",
+   "0KcwMNdojE9BTTatRkUPKy",
+   "2T58Q1pAP3CAiCZN0WJmfY",
+   "09hmLteZnAvPsUdwjOGAhV",
+   "2YKfa7ZEn0vh1MHp1vCPlP",
+   "0RlQWXlav2wA81eI3oYaSM",
+   "3ZYRjqp_LDNhpqPEdyrkza",
+   "04btEiP0P41uVksA7vGqFx",
+   "3nvzKL5Bv78hrLFG_KWGv5",
+   "2BcFj5j118GfdkqX0gigOl",
+   "2ErZlgTjH44QKn4oJvtm1F",
+   "2ggGlzvgLCjRoaXWvCPLPW",
+   "3QRtjQrR9A5fZA6ehH3D8z",
+   "0B0i407en55u5wK3vcogkv"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3107,11 +5830,20 @@
    "count": 52,
    "blocking": true
   },
-  "message": "What is 'IFC_dekvloer_zwevend' (material)? Used 52 time(s).",
+  "message": "What is 'IFC_dekvloer_zwevend' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_gipsblokken_70mm",
@@ -3120,6 +5852,11 @@
   "field": "material",
   "raw": "IFC_gipsblokken_70mm",
   "occurrences": 3,
+  "guids": [
+   "0RqSaiGRb23h6XBScX8$Kk",
+   "046Orv8Pz6$RfrlErYQV4a",
+   "2jmRRVQeDDxf3e1EPa$xvA"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3127,11 +5864,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_gipsblokken_70mm' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_gipsblokken_70mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_gipsplafond_2*12,5",
@@ -3140,6 +5886,11 @@
   "field": "material",
   "raw": "IFC_gipsplafond_2*12,5",
   "occurrences": 3,
+  "guids": [
+   "3P9CgPPZL3bwIcKiU0t_ZO",
+   "1ROU019B5BAxcHX_OSaLaP",
+   "21BudIqNrF4wXRveIf8hT5"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3147,11 +5898,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_gipsplafond_2*12,5' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_gipsplafond_2*12,5' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_gootconstructie_rekwerk_ongeisoleerd",
@@ -3160,6 +5920,20 @@
   "field": "material",
   "raw": "IFC_gootconstructie_rekwerk_ongeisoleerd",
   "occurrences": 12,
+  "guids": [
+   "00th1wvnTBsAMYdU_bZK7W",
+   "3PuVrl_vb9$whNBe379ut_",
+   "2EReEiaJL6DBLoGRSiozZw",
+   "0kFkQ_9pjBYARhwCCs8H5f",
+   "0Lp3IQAqDCegMnuPUPX$TD",
+   "1ShI_qQ897CBR815ZMInzM",
+   "3OQDwyzTf1CQEf13p$Llo8",
+   "2vmlzyJ3X3C97pn7F_yja2",
+   "0ZSHOCu4vDIB0o00vNSNYI",
+   "3mV5XKE0n5Heeu$$bLo96q",
+   "0qZPdq8bbC5RjNclnNVfyC",
+   "1tih4fekL1YO3l4DX7d6IX"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3167,11 +5941,20 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'IFC_gootconstructie_rekwerk_ongeisoleerd' (material)? Used 12 time(s).",
+  "message": "What is 'IFC_gootconstructie_rekwerk_ongeisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_isolatie_110mm_glaswol",
@@ -3180,6 +5963,13 @@
   "field": "material",
   "raw": "IFC_isolatie_110mm_glaswol",
   "occurrences": 2,
+  "guids": [
+   "3zaIWtl1164ODDOMKPXAPD",
+   "1mxtkANs9AIxzJfMD63Vpg"
+  ],
+  "candidates": [
+   "glass"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3187,11 +5977,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_isolatie_110mm_glaswol' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_isolatie_110mm_glaswol' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_isolatie_115mm_glaswol",
@@ -3200,6 +5999,192 @@
   "field": "material",
   "raw": "IFC_isolatie_115mm_glaswol",
   "occurrences": 181,
+  "guids": [
+   "0zyUt7Op92ohmvaFcxHw_H",
+   "0EQOjr5hb6w8lSyND6HZPK",
+   "2_4WuY1Gn8EQF5jIb5rID7",
+   "0hxErwwGD1IgfPUTpt_YFZ",
+   "3Co909rBL3yQJjks5zCZqc",
+   "3koZ27axXFzQvW$ENWLZtV",
+   "3SXjiq_mj5HRWNw4pATINu",
+   "1S9Fkoo0j4k9IifkGVL2TZ",
+   "2BjJOswdDEiOfA7oxw7hoz",
+   "2QJsBa0nbELgLhBIsHvlB2",
+   "328fhyXNr0FhSRKmjcz_su",
+   "3NPsOU7PDDIOVW7AroOwhL",
+   "0C6ozaXt18zQvcK555HqYd",
+   "0z9mRaPFzFmOlRwk7ZjAhJ",
+   "1CyErGzI96U93GN5exTq_9",
+   "1zrU5SfyLAjfiHLSgzdu$K",
+   "3Pl_ZwQkzBNgpZrMh4LYJU",
+   "24$8uEXp90fOBkj5c_CO99",
+   "2O1LpgiVfAN9DfWPF87qP1",
+   "0HJH8uQ_1EvALkdIiK7ZRU",
+   "2CIj4$1Kv0jQgH7YXY2YQT",
+   "1C8xFYHWvEd91ma3tFs1I6",
+   "1h_skjd_96o9z2xpXLO5a7",
+   "2bmkQE4dT7tfuMwMKPpSMp",
+   "01YSfL4e98PhstuNP5Bum8",
+   "1EvSFj$XT1muHGTfnX3muY",
+   "0uh5DvU6rEyPXNRSeLQCtd",
+   "2gDV5sSXTF0OPWJbFa_ZXv",
+   "3t6Xkmh8jCZ8I_DBIhB9AS",
+   "1jpTWWZTDA6QFl3jj0$k6a",
+   "3KQlPnVdrAmuZXnGKvXrJD",
+   "0$y5pKD05Aiev90EOGwO5w",
+   "1SmEwfKC97OQ0cK0wnqxUI",
+   "02nlTK0f58h86n6RKnLadO",
+   "3sWKAdj0L3quFVxHiOPJb0",
+   "1IAalOcdrC2gcNxJ3hxGTi",
+   "2OBkJTFKDD9h_4t$MaViGh",
+   "1w3Ix3PDL60eyf5MPCaIiM",
+   "1kYj_28pfAORcw3aleILxA",
+   "1sDmyoEv99oOdOxdYk_meG",
+   "3mVVCkzLXD1BYPwifevvy5",
+   "2TKsHAjtP1UQJnDE9DJG7Y",
+   "2vbp5r9_zDAwAFQvDttz5o",
+   "3L1oqz7lnBgAbuQUNiqIO$",
+   "00QZwLLXT7$AXr0$Fp9mG3",
+   "1sjvIxzZP3qRN12RQ5L$gv",
+   "25QDP9jZ10JBB0pzUOKMRZ",
+   "3CnvfLhW11BxyBHK9SV6KN",
+   "1JZCp8DJD2Au$Fnj1_hGg6",
+   "2hG3FcIAv9NPOLMMpvftH1",
+   "0ZKP7kp499kO5vDBqLnciq",
+   "2u75eMzrn3ffkHJzGyr8sT",
+   "1X1VYF2yb4gu1Q_2Shpdbx",
+   "0auCS3Y2f2Pf3arLeptjuW",
+   "3DeHIcNVX1MxkaFNY77wmW",
+   "38e4w2QEXA6QCQzBybfoWO",
+   "2xW71HA1L0gBwGWUpEIK1K",
+   "309U4dIaX7xg3VVKhfssl_",
+   "0J7sQ9MO13hQcKghm2OKKD",
+   "3CLLK6DyHCF9L$QMzVxJiM",
+   "11UZdmN$P7Vxf4eVNCRG$W",
+   "0$tEk4H017lPnOOWFueABt",
+   "3tdIitXT53qebUTfqeO2_J",
+   "0z4Tz9aUnCSwKXthISIuCk",
+   "3Nz_fhtsXFMwVv5nV31cDF",
+   "2$IjO_19zDaQ2H36EGeNJJ",
+   "0kCyCUhqbEGQsGQn3wN9WZ",
+   "3MAFZbPdvErBB09QeVPG5W",
+   "0C9h0ruN50huAfwPv5tCUj",
+   "2L$WBuI4X4CvPc6SoOozV6",
+   "3_4JS4S$1DA8VO8n66LFe3",
+   "3HLB9JVfX1yfUQGpx$y9Rk",
+   "3KZHmQtgP4zRlp8Tf0iyQj",
+   "1CxkOPrBXA5OMtWM4j$bHX",
+   "2FeZDGIbv5PgV4OnbT2mYz",
+   "0LAzr5N652b9oYcfmqtFPs",
+   "0dd6fnWDH17Qzq7cG2tHzp",
+   "3EWpAk2WX9Z83S5gF$iZ25",
+   "1cfhfDdTvDH8qFAC6Dpp2n",
+   "1tTapMJkH1nRtFHgWgzqBw",
+   "10N6TnnrbFxel7Gm1GLz7B",
+   "2QRfqwVx5CFhwpOhlJDiFk",
+   "05eaSAT1D5yxr1twqrkLkB",
+   "1bKklYsbvCgQCOQ$n0WbCR",
+   "2Sb1ZwHcH8lQJjEOWzsdV8",
+   "2fzXdbj359y8ATTeCtEU6l",
+   "39r4B6n3nCH89wqwJJrEY$",
+   "3grLLoNwLFSRf8I40VPDcs",
+   "0ZcFQL3FfAFPGWU3UQWR6D",
+   "2jVz5cFen0oBBN358qpX2u",
+   "3rlhLSQfTDYgNJA8p8xu$T",
+   "3c$NqAJmDEeA5cbYE2Ztba",
+   "0VxnCsuUb4HgBzNWWYcUst",
+   "1GO5i84Rz8AQheS9xaLv$F",
+   "0Jb0XQeZL38vBinCpgKpr0",
+   "2y6MOJvVrAfx_iS7vuLEHe",
+   "1NGpHzdqXCWhs71uuOtaSk",
+   "0dO8FbfjH4ieve2iltxhwz",
+   "2MYsr4up103AH5JhE8J2Pw",
+   "11juUFTqn1BvBH1nlZc_dZ",
+   "1Af6b3HT1B8e27_eiSWOT2",
+   "1bw2ITPjL21gZ5emQrpZVt",
+   "3bPSJysDPE3BCn4KxdTlt9",
+   "2FbmpLR9XEZPcjg6_Mjw0h",
+   "1NDRapF9X5G9BGOvruwT3q",
+   "3lUiu9HOTC9h_2BwdX4CVN",
+   "2APtnCzGzEBeOA01U7wFWx",
+   "37vXUGzij8xBdyvIJyBYX4",
+   "31wJgXyQTCaAiC21nxPCRs",
+   "0GvSecT8PCSvgOPO9q2uS0",
+   "2GKF8L6oT3KvGo4lGKwX3q",
+   "2ynAyIhAn6qBrN6gBD8TqV",
+   "2ZXjWWQy9EwQRx1W9aUkGz",
+   "1VUmLqDnP058AfvsJDsrYC",
+   "1BQJ$ZUnPAQhckNmFsp52I",
+   "1NbsnLsET4FeIl4onj8z4K",
+   "3abUrq3$XAvOi6P9Q9v97o",
+   "38ecQOnRb7$uqOG_nwoSCJ",
+   "22u7tOg9f0LvI5o70vRLgb",
+   "2g92oIkvL0nugbl0zQunx7",
+   "28ypLezUT1QhGgA3OkxZfe",
+   "3NcVSnrXPA7OMcPhs2Z3Mc",
+   "0Kj3msfqf7Tuth1vAXcKAy",
+   "3Bf0L9Rw912AP7SBw5vVk9",
+   "0p85EkT8X9xPh4QTppM4n1",
+   "1E6y_k8d16QhLY6bCE9Klg",
+   "3snnpWM$59JPCvy04zRZjn",
+   "1HWTnDCSrBGe5lULAuVzDV",
+   "2qaWW0G4r7e8hs22Dmnm7N",
+   "1KX$W5psX7FekszUFLQLt6",
+   "2nAW_fDsj1lOyKoEti_MUw",
+   "20nyg1Hij9nwe7_ILJXTQs",
+   "3C_y$5hZr1egQtILCeCEpJ",
+   "1WRsfJRqD8fgT2uhlY$pDW",
+   "0_RlMpTbH9NBuNzmukGMOl",
+   "35Jo5nQ6r3QhZBq7iUMctM",
+   "1j04uMYZP9sQIAf6AibI$W",
+   "08lQZklt1179DAY9MVNot7",
+   "1pXlWbCMP5If9yL7tCP3KM",
+   "0DJzX6e692ZwkckIS5wshf",
+   "0yqHPLwqH83fVJhdTeGA7K",
+   "2yT87Nv0nF2RhB8tTeZyqq",
+   "3h03m1DIT8HPpRQ1b8V0fH",
+   "2hgWXX7Gv2IQofn8Wp1mpX",
+   "1bbry7gLnCjxclf3UEeGx$",
+   "2U85wUSBP2lOf5pvz2n85e",
+   "2PLBLPXBL3U9CXk1nkQmsW",
+   "0eYULD3qfCT8dMjKzY2Ncs",
+   "3qJlkFt119Ce0YcS$hqnoL",
+   "3GwAB1$xv5sPKO3olNobad",
+   "1ynIsYUOH6_vtTUiKrFcAE",
+   "37ykuHBdXAvuSXE$SL318_",
+   "3s_knxY6b8KQfbKTj6kuEf",
+   "3Wsy19S5H0tgDdbhWKMoKP",
+   "35rMnYyKH7RwX5WjsSdCyr",
+   "3UeaYlWZr2BOorVE0C5tF$",
+   "1YaXVL6_vA9xJO8hOlYYJk",
+   "3dhvBgBGTEzgpJux4FZcLf",
+   "0txDkbNhX2HOdZnBk1XJUf",
+   "1aUUQH_11AmfAV7BlAHpDd",
+   "0EgpWYhGPAvvJqAdz2uJS2",
+   "3ybL80a093AODhzFfXFKQq",
+   "1yP5JgRp15UO6aUIhZDMzF",
+   "37Gg_ewib1ohOO0mWR8O61",
+   "2zGRDRAHX1vOWgUTEZHouY",
+   "0vzH22J1f8BP1y0oYIw2r8",
+   "3sYXnLvyfE$RJjUT1EBCUd",
+   "29X5ERvcT4eQv3Sq4DWy6s",
+   "1tNxEjoN562f63ZNhGXq71",
+   "0ci7V20EX7QQ4QgCKD_Udk",
+   "1$RyfS6V19r8vOeWD2pkpn",
+   "22$Unh$C534wwWiZbboQVR",
+   "3lEGzoZx12ZBK2UTzFVUmE",
+   "3lf37W9U52Ren4zhCiqHVU",
+   "1TotQmXU52Wg9DdiLoqcon",
+   "0eehhruxDCFwMly_GRmXVd",
+   "0zp9XYz0zAHhCZPkXLU0Aa",
+   "1crR78f4r8DQUinHHraa$K",
+   "3bh0g0KjT2ag8kdz77X2xi",
+   "153MA9QB54UOyzuN14y4Yg",
+   "0490J7_WH1XxmmzTYXXR1b"
+  ],
+  "candidates": [
+   "glass"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3207,11 +6192,20 @@
    "count": 181,
    "blocking": true
   },
-  "message": "What is 'IFC_isolatie_115mm_glaswol' (material)? Used 181 time(s).",
+  "message": "What is 'IFC_isolatie_115mm_glaswol' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kalkzandsteen_100mm",
@@ -3220,6 +6214,61 @@
   "field": "material",
   "raw": "IFC_kalkzandsteen_100mm",
   "occurrences": 53,
+  "guids": [
+   "3VlnC7dc97dO6MEL6ot9DA",
+   "2m$4lxx_nA_uJrYZl2FAoL",
+   "0ov1ZuLuLFhBZgJEfbhres",
+   "1Tuny4Ign34eqIi5HGYE4z",
+   "0pnfzvFyT3ZRWgkysu2fqY",
+   "2EFLO_78v1SOQdqaL4XU67",
+   "08Jam2RmP4vAeb$XRAvxSP",
+   "3D7_AAAd16h9YPbCXyhXNJ",
+   "2QF9F9$Vv6SgRBKotcWzTb",
+   "0YGb$6oz5BkQ_KhiMK7$i6",
+   "1LX0xTezz1jglYOl0AYX7X",
+   "0ycm5c8Ev7dhDrO8oRDmnB",
+   "0Vbtq2j6X82RExaAwEU_iY",
+   "1aqAJbn2P899FboRJr7t0V",
+   "1pyhWwJM5FTxyI9YEh5zgZ",
+   "371cdh0rH00xaGwzwWbiwN",
+   "18SY9vDyX7jQ9oW8fKj6eM",
+   "2NdywtnRH3EvSJlKwcP_5p",
+   "2tEhHLtCvCjRLJ6uEWmtZ8",
+   "2IzKm$bXX0H9gUIZj9O0Rk",
+   "3mYwsEeg5CBv3RfaMaEs17",
+   "2cgcdbxx5F2gsFRZa09Mok",
+   "3kG6Bbq3v2RgEQ_PjVqdOE",
+   "1eoDwTzFv75xeGY7pZkd$1",
+   "1df_$aS99658kxRi$_pMBY",
+   "0ypFaLaqP5IQQ0orqlpa5G",
+   "3KqVpbIX5DLRGvQfP6Dzv6",
+   "3am9hv8bzC0uDu2JwjCxEH",
+   "3QfmBSizvAEhDn0BPeWL$a",
+   "1N8UdYuOrAExGoPbE5uMa0",
+   "3q6ecBMKbDDgwYOZe0HfJ7",
+   "3_I7SfUS1CCPsZeXOzGAho",
+   "0_ZLdMJDn81O6gaWcsA8xA",
+   "2$1BEN7TzFsfUNrS9Qqmop",
+   "1hCleXzxD6jRE_KrEGrlKi",
+   "0oCS_A4BrCIua9gel4uBLk",
+   "2GsCNhv3b0cRh3O7Dl6PYO",
+   "1f9lVTH2DDZ8eV_Q6E$Eqa",
+   "01Gx$Lae106ua0gqnyVJrv",
+   "2Jka5mO29BgRNBbvd0LgAe",
+   "0R69HoRWz0C9s$TSI4WT3Z",
+   "2eUGgnxUXF0RJQZi7ey1aP",
+   "0r9rZEa2HEifN_Vf4vrBuF",
+   "2gSzfhTzjCkutSogmAtpkP",
+   "2mUBHykl91Ue0vPS8ztnuL",
+   "0a9cZXxw90NeDBZVMZehqL",
+   "2jY38900rBxgAUCQMOtLuU",
+   "1EWidDAVz66hylOSXB1Kjk",
+   "3lS26ArA5DmhnFkrAY8JJj",
+   "3kp8yBgj5BreEI464Vtha8",
+   "2D_6Rg4dz6$PEfPb1fvJzF",
+   "397vy$qeXCzhtQ8tWx7ugf",
+   "2dZoQCc5DCZgv8Awdt2fe6"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3227,11 +6276,20 @@
    "count": 53,
    "blocking": true
   },
-  "message": "What is 'IFC_kalkzandsteen_100mm' (material)? Used 53 time(s).",
+  "message": "What is 'IFC_kalkzandsteen_100mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kalkzandsteen_120mm",
@@ -3240,6 +6298,17 @@
   "field": "material",
   "raw": "IFC_kalkzandsteen_120mm",
   "occurrences": 9,
+  "guids": [
+   "1zU524sib8cBkPbr6jdlpL",
+   "0n3uFweoDDvekPpYzTttt4",
+   "3AIlZm7mP9Lwy7UXwHt_R2",
+   "0QAxgekTb9WfzW9F8Bsvuk",
+   "2iPHXKEgfAxwWGEHx4Xlhl",
+   "3Ib3hlDqD07wwdmR0Gsgk9",
+   "2gVZvoKdP7EhCo$LQE72LZ",
+   "3yDIWBjxL7iPrwH_n3zABM",
+   "0MZ80xhrfC8Of_TLN4u0$W"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3247,11 +6316,20 @@
    "count": 9,
    "blocking": true
   },
-  "message": "What is 'IFC_kalkzandsteen_120mm' (material)? Used 9 time(s).",
+  "message": "What is 'IFC_kalkzandsteen_120mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kalkzandsteen_175mm",
@@ -3260,6 +6338,20 @@
   "field": "material",
   "raw": "IFC_kalkzandsteen_175mm",
   "occurrences": 12,
+  "guids": [
+   "0yZP$GbDz6feNuYZ2CFjmv",
+   "2zzHhSG7LBDhmMfXYkHlJe",
+   "2odgrV509EaBRBfz5g8pOe",
+   "1OSOGCDr93ZuZbzUWiy9mv",
+   "24GpXxxWHAaRMQzevX52uf",
+   "3$M_waUn52SQy0orEvg4bt",
+   "2odYdIJWj0u9fmqvXVuMeY",
+   "0VhNCIGlzFZPSO4F0$6tr6",
+   "1EJ1sK_bL90BJJq4qtCZ8Q",
+   "2yvoxeyG1AQf7JeLoAjkI$",
+   "17m1M5xjD2quzH65SYBmD6",
+   "2RZCg53Cj7D8pWvZ4YbcD4"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3267,11 +6359,20 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'IFC_kalkzandsteen_175mm' (material)? Used 12 time(s).",
+  "message": "What is 'IFC_kalkzandsteen_175mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kalkzandsteen_214mm",
@@ -3280,6 +6381,94 @@
   "field": "material",
   "raw": "IFC_kalkzandsteen_214mm",
   "occurrences": 86,
+  "guids": [
+   "2Z_O5EyOvEZx7it22WH8bw",
+   "3vH7rOh491IA5x0G8XpLDm",
+   "3aDNQ8THHFderksY8ayZfX",
+   "1oV1IaAx17z8tBkTjfXF60",
+   "3DDClYMsL2AASvvYqZ_JM1",
+   "1ojaKtktn2JR939OXn12cI",
+   "0ie65Ax7XBOPSqsSxPVRXk",
+   "2_R3np1pLEDgQ05WlSUD2C",
+   "1D1obslj52We4OK_e5G8ml",
+   "3Su7TnlEbDshgzpvGHSFqA",
+   "2p8zoY07P56gPq3dxrTu_7",
+   "2NJMxOkDjAbPq2mPCmb$Tz",
+   "2akHq8OeTET8JpsEILF1jT",
+   "3SRwCFjO12V9_chkablR1X",
+   "3moPDBSqT9tQAX9t$XC0Mf",
+   "2xaAuZy$j1MPDmvqwW02cS",
+   "3qtA4vx5fA2fOZ_ZR8hgUR",
+   "3Zt0FLcYL4RgSIzGozCQ4j",
+   "1TTdcewYHCLOuZn9Sq2Tlr",
+   "1nYK_SKrPFleOepo0zUd1t",
+   "1N9eZ1oW9DI80pDJ$Ya6CR",
+   "1Bz3I7okXAHw8puP$lJT0A",
+   "1ECyv_LgL3fPs4JEOCrBoh",
+   "1C67bmEkH3Dxo5WFZaVV$A",
+   "3v70tug0vEOAnFvTfPIezE",
+   "2uu7JMK0L2Me5JVcRe3Mxw",
+   "2R8R9nG0H5Eg4lCPHavU8z",
+   "1MXa9ip812qfw3nIUgyg_y",
+   "0_Kdz$80jBWeLR$argk68k",
+   "0PjwLczO98n8jd9oU7MTWC",
+   "1lMrzi1vbFyRmg6D1j8307",
+   "1p4gvUL959Yv3fXRRzXoxO",
+   "1JMhCfhCH6tAp5AycdPv90",
+   "0eA$$I6uvA18h6OuHeQjac",
+   "1t0aT3UZv68ht_dspGMAcB",
+   "2wStaLW$X0ggOxWmx1BXDs",
+   "0Of_tLnnDDDBztwYUiQu5W",
+   "0RzDkqdV1AgR4L2pPBsjry",
+   "2vv5tTSN1DSwooVhwaarl8",
+   "2yp$KWHkj6hhHf$RYAg_ly",
+   "3odIHAP2f2UOiuFMkf$itN",
+   "0xXnGVWPb3yf7_kBd9o44e",
+   "0Wl4SXrZ16Zh1CMzZL5qR0",
+   "0uy7z2IUf33AZ8IbNtgOt8",
+   "1rnRdHzWXFfhe7uX1D8EY8",
+   "3JiNiluJ15rPnjiwPFFPBN",
+   "2GDMjCFcz0Ift$gJUtkQgE",
+   "0F1hDclgz9pfFXXiGsFOej",
+   "1t7qGuhtnFFQXm3VQONy5C",
+   "3Bm$omdjT7MgMHmm7t14so",
+   "2GTwJrGhDAzvI7WZJUCeZE",
+   "3efbZsQjDBnvX1Nel9vLkg",
+   "2S5Igt8Qf29QRRUJRmIhin",
+   "3KTvEkvwTDKP7PtLveLJcc",
+   "1eRl2liwHDeRQQSgHLZV3n",
+   "2RRsAyX6DCC9p6hnzBN$jr",
+   "2zmO18lR17RAcVGPkDckDa",
+   "3bicWR9hLBVOMYk9$GUZ45",
+   "1Rh0f_fMfFP9XZOrfDJjvD",
+   "26l4ytgtvElwAEevrRQgyE",
+   "2O_q1QglH9N93GVE_GksoX",
+   "2OhlyE5f54h9z73okj5rxI",
+   "1hOt1qz9rCD8InnfJ7P6MI",
+   "2zRN8QypH3BfLHX4rjKN5M",
+   "2_h9juv2PD1hCVEkmVDTBL",
+   "09gqpaNFTERwbh6QmQ6NeY",
+   "2Pt9srKKH118FD28U2AfuD",
+   "33EhRvkXD0Aw5_k1lgtF4G",
+   "3VBEOZDHTC5PiJHB6GNRaz",
+   "358wEhlsX0$BDmI7_k3GV6",
+   "0stWdKWA91xO4WISjIT44k",
+   "29tkuox9H1vQQMhUoYH64H",
+   "3LrgyGWc5Ebv4JytR4MHc9",
+   "15O5KvoN92DuXcQX5Ggc8Z",
+   "3U14rZDfrBevR5lmp6FbzC",
+   "06rEryZbLB88WmgibQHkvK",
+   "0NOqcJEST8S8_3ibmquXd_",
+   "0Lq86iLmnEmvk0UTmqG0A9",
+   "0kS6wEmzbD2va78wYRyOFc",
+   "2yuH6VNer7FfZqybdIaAyu",
+   "1qSygSJAf1FwTO1RCAcXhe",
+   "2_FTqRoILC8PSx1r9k89tN",
+   "3wjlilZk9FDxQvYaetKXzH",
+   "0WlKkI$8f3Z9ar1qpx5RQ9",
+   "25afYsEKX8TeAvB6WjzawS",
+   "32C885zb10HfXKt8SE$4Dm"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3287,11 +6476,20 @@
    "count": 86,
    "blocking": true
   },
-  "message": "What is 'IFC_kalkzandsteen_214mm' (material)? Used 86 time(s).",
+  "message": "What is 'IFC_kalkzandsteen_214mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kalkzandsteen_300mm",
@@ -3300,6 +6498,30 @@
   "field": "material",
   "raw": "IFC_kalkzandsteen_300mm",
   "occurrences": 22,
+  "guids": [
+   "23TTW6cOXFG8iTd$PVxAFI",
+   "1vtyYlUzr5Hu7P8PAUN7Yy",
+   "0j$NmwhIv3_Ayu22JoYAY1",
+   "3VQRxgydb2EvOc2VIpL55W",
+   "1Ys2c46sr2beJpJG$rwfh2",
+   "14LKX9qmDFFP1niQktAjGc",
+   "3zllf2stH5dxYtyv$76i1m",
+   "1RnZoYMIz0HPNeJTWrDGhJ",
+   "0scb2py45E_A5xr$zrNTSI",
+   "2CnGfHxyX0owTlCu3MK8bQ",
+   "2FCWYfifTFHAD$wDDAFobO",
+   "21MsPvw5P8VAF5cToU5KQb",
+   "2DEtMgAhX44wXgFxu6wvqF",
+   "2k1dKn$Z969en2nbWWEIv$",
+   "1B4P9hKV55g8IGH6YvOQ0U",
+   "3knI8hvTP5Hxnc3oRXkaaD",
+   "2Sfg0xZs50wOhEjhw4SKHo",
+   "1wqk_4xJD1eAujggRaBDWj",
+   "2xm1gPdw936hA8VzExnSc9",
+   "0T9TML53z2M9tqUTJR5zbo",
+   "2X6zatWpb6thw8oJmRFtVT",
+   "09RlGWYzX4B8kxgUitfNsa"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3307,11 +6529,20 @@
    "count": 22,
    "blocking": true
   },
-  "message": "What is 'IFC_kalkzandsteen_300mm' (material)? Used 22 time(s).",
+  "message": "What is 'IFC_kalkzandsteen_300mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_knieschot_geisoleerd_Rc=4,00",
@@ -3320,6 +6551,19 @@
   "field": "material",
   "raw": "IFC_knieschot_geisoleerd_Rc=4,00",
   "occurrences": 11,
+  "guids": [
+   "1o64nvFor3vwWFp$EblRZG",
+   "1X4Yji3tH9xxLWl4ILvn$2",
+   "1agU0iZrf1rPYNTp6mTIF4",
+   "0Wi9mscSb8Kwm2UEIcVZPE",
+   "3C1s5mk6DDwf8LyVijNmKa",
+   "2Ip16r4tzALxXGi1BtDPJA",
+   "1T_pevD$HFSPkT7Cw5nDet",
+   "1e8qLwvmb4Mg1lYRCb5xi4",
+   "1LU$keuuL1dfUlVLOcaeKV",
+   "0FFGCLfbPBP9XKoLUfh8E9",
+   "3RPys0HZX3o9z6OQ_cB7V2"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3327,11 +6571,20 @@
    "count": 11,
    "blocking": true
   },
-  "message": "What is 'IFC_knieschot_geisoleerd_Rc=4,00' (material)? Used 11 time(s).",
+  "message": "What is 'IFC_knieschot_geisoleerd_Rc=4,00' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_knieschot_ongeisoleerd",
@@ -3340,6 +6593,40 @@
   "field": "material",
   "raw": "IFC_knieschot_ongeisoleerd",
   "occurrences": 32,
+  "guids": [
+   "1V3hVJioTBi9UrXQM9C8F3",
+   "29WKzhrFnChxXFYv_svavh",
+   "15nryqndvEwvYqiq9N6znB",
+   "3bWZl$5Ff7s8Rge2vu6vmb",
+   "2TX4unKXLD48z3Iyr2JtgE",
+   "2FUUH9YxT8bPsGpTKZ8ZuE",
+   "0Pir0Qulz4dQnBDS2Ax4Tu",
+   "0iD32WBZ5Esx09Sx6UHgnc",
+   "3la_8lAer5DRQlO2A6x295",
+   "0JDgMgnCLA9g1JYmau0G2d",
+   "0ItV9_jNjBAfmukQ9onJ6Y",
+   "24uLe590P1KAl71cKKKZfc",
+   "0QmEepKtzCKRpE0Jb9V4_t",
+   "3ZdEL57EnCaQBtn28RndK5",
+   "0XtV5c5B12uQ_tsrF8eAw1",
+   "0vU8iQM3zCIhr5l6nk8l8y",
+   "2omZSlNFrDFPjUy1fb5BSl",
+   "1sc6T7h399wwny7wp01A6D",
+   "0SVB35BQ13nhBkIASMfEc4",
+   "3VpjJaTqX46x_RLyU2kFr$",
+   "0Pw4azGw9Aqxtox9Y3qY4H",
+   "0YWTFnh4f2UOkVHlJSLJAy",
+   "2L$npnOYrDSuBHJpPXne7u",
+   "3RjneTQyHE$uLYI_CMEZXG",
+   "1T1M$4WM5AkfnIqN1dZlPy",
+   "1BFreACEf3YAwpGoZtcy9j",
+   "3TMUg$Rrn1ohTnzA3tvINC",
+   "0H1MCEKm17yOfvoqf0Ggro",
+   "1BcyFo5iD1EPsyujQ0ZL93",
+   "0eVH670hH65Qip6r1kopAm",
+   "2s_TVx93LCNhQG2WPyS$KE",
+   "1Jhs6ES9j8Axhy1XWriB3c"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3347,11 +6634,20 @@
    "count": 32,
    "blocking": true
   },
-  "message": "What is 'IFC_knieschot_ongeisoleerd' (material)? Used 32 time(s).",
+  "message": "What is 'IFC_knieschot_ongeisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_kozijn_90x114",
@@ -3360,6 +6656,11 @@
   "field": "material",
   "raw": "IFC_kozijn_90x114",
   "occurrences": 3,
+  "guids": [
+   "3jzp0$2Rr0DB1IRH6cx$lR",
+   "0tGFDPrBz1x8GT7B3ggGdz",
+   "0TqwB_tNf3IRXB_H3ieIlh"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3367,11 +6668,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_kozijn_90x114' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_kozijn_90x114' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | None | False |  | m2",
+    "description": "Wall, -, 100 mm",
+    "unit": "m2",
+    "quantity": 2074.8
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_plastica_gevelbekleding_10mm",
@@ -3380,6 +6690,20 @@
   "field": "material",
   "raw": "IFC_plastica_gevelbekleding_10mm",
   "occurrences": 12,
+  "guids": [
+   "0DkB$K5OX8IwKgjary8NgC",
+   "2xjoZjPmX8ofpv9GgAs95i",
+   "0vPAGBLz91owB5o9cTFDzI",
+   "0VUFRCWYz7a9p84p2PrUHf",
+   "3N_v6bLk90ohUiekjvwfUg",
+   "2Z3HxXa894BPPjdtbbkjn5",
+   "3gfqbsYlL5ugfoMiSI7zVP",
+   "3RqzpgxRP5o8I3joEa28qO",
+   "3q7HCyQc94Su4x32PpzdBP",
+   "1UdBtJPnHE$9Nlfy70PCXp",
+   "2mus5Sthj7uw17x7DTtkqi",
+   "1hQVKgoz59LBmHmNo3LREu"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3387,11 +6711,20 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'IFC_plastica_gevelbekleding_10mm' (material)? Used 12 time(s).",
+  "message": "What is 'IFC_plastica_gevelbekleding_10mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_plat_dak_geisoleerd",
@@ -3400,6 +6733,14 @@
   "field": "material",
   "raw": "IFC_plat_dak_geisoleerd",
   "occurrences": 6,
+  "guids": [
+   "215GRKGvf6LR4RZR1KskIY",
+   "1CL2FlTt10axV9mGn3C9a_",
+   "0jNFrN6dH92RBTOZmIKFmW",
+   "1QzTZ20Lr0lxMTzRrqHfru",
+   "33AU9CDsz2UeNkLzh_zBHf",
+   "3Jwf7sTfn2uQcdOI99Fy$F"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3407,11 +6748,20 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'IFC_plat_dak_geisoleerd' (material)? Used 6 time(s).",
+  "message": "What is 'IFC_plat_dak_geisoleerd' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_stalen_ligger_L100x10",
@@ -3420,6 +6770,14 @@
   "field": "material",
   "raw": "IFC_stalen_ligger_L100x10",
   "occurrences": 6,
+  "guids": [
+   "13QTm8v1f0xgK97x0ONTHQ",
+   "2of4OlUUfEJxBlLeFaixGl",
+   "1mv_0saPPBCPD2XOUJU6KT",
+   "1t2w6GPuT4hxRI4oWpzqsF",
+   "1EkLgLcpL7Xh2Ujn5sza1f",
+   "1zAHmmZzDFkQHE_GTm2tCW"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3427,11 +6785,20 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'IFC_stalen_ligger_L100x10' (material)? Used 6 time(s).",
+  "message": "What is 'IFC_stalen_ligger_L100x10' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_1000x250",
@@ -3440,6 +6807,12 @@
   "field": "material",
   "raw": "IFC_strookfundering_1000x250",
   "occurrences": 4,
+  "guids": [
+   "3x8FpcNtn5dhlulWMrejSh",
+   "0vDPjO0AzA2RjW5bZfipZc",
+   "3SLFVhErbETg7vkVqhJmtW",
+   "3J_1it95T5gfMFEztXNCUR"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3447,11 +6820,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_1000x250' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_strookfundering_1000x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_1200x250",
@@ -3460,6 +6842,11 @@
   "field": "material",
   "raw": "IFC_strookfundering_1200x250",
   "occurrences": 3,
+  "guids": [
+   "1rmhw$lQ96KvGwXixf1ieA",
+   "1Asg_4IIzBJRAZjWOOBoop",
+   "26byCAFGr1I8W5h9B84Q16"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3467,11 +6854,20 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_1200x250' (material)? Used 3 time(s).",
+  "message": "What is 'IFC_strookfundering_1200x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_1400x250",
@@ -3480,6 +6876,10 @@
   "field": "material",
   "raw": "IFC_strookfundering_1400x250",
   "occurrences": 2,
+  "guids": [
+   "1ei90H7Bb5_fZwEyprK4wB",
+   "2J6c62A5XD2QcGjShzZgXq"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3487,11 +6887,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_1400x250' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_strookfundering_1400x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_2600x550",
@@ -3500,6 +6909,10 @@
   "field": "material",
   "raw": "IFC_strookfundering_2600x550",
   "occurrences": 2,
+  "guids": [
+   "2mDRqz_0n11QrR8$KLRplg",
+   "3eW1ejUUD8Z83etxIha2Q6"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3507,11 +6920,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_2600x550' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_strookfundering_2600x550' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_500x250",
@@ -3520,6 +6942,18 @@
   "field": "material",
   "raw": "IFC_strookfundering_500x250",
   "occurrences": 10,
+  "guids": [
+   "2vDGAiCMz1EgMACLLW94wj",
+   "3hyBmIA9vBAAbnFe7JERse",
+   "1uEzbhHRDA98l7q7eTPW6W",
+   "3e$rrJY7D1Rhx1v_XSSOhd",
+   "3mVuN59AD7ZOorZUKionH9",
+   "1olNo2H6j18AMsF6vNwyOJ",
+   "28n152n4TDhfCgPSt939HS",
+   "2wgL5LHzz2E8w8G68rTVPh",
+   "2wRDzVfR9EwhluR32nQMBE",
+   "1htIOmH4b7Tf006E86T$VI"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3527,11 +6961,20 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_500x250' (material)? Used 10 time(s).",
+  "message": "What is 'IFC_strookfundering_500x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_600x250",
@@ -3540,6 +6983,10 @@
   "field": "material",
   "raw": "IFC_strookfundering_600x250",
   "occurrences": 2,
+  "guids": [
+   "36OAgfylj3i8B$_ULHcQpS",
+   "1zQYOrUqP5TAaFPeCmMGH$"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3547,11 +6994,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_600x250' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_strookfundering_600x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_800x250",
@@ -3560,6 +7016,15 @@
   "field": "material",
   "raw": "IFC_strookfundering_800x250",
   "occurrences": 7,
+  "guids": [
+   "29BOVlph15px1swoAw3ZkS",
+   "3QPQ0M3XLDPQT3whn6YFzl",
+   "2TjPlUWNf9yOVI0lQMOSNy",
+   "397U34bofE49REjBsbvQCB",
+   "3P7_03M9j4qfTpY82oA7qG",
+   "2F6KORhx58_911OMinsiC1",
+   "3qqefgPMbCKOfgM2m0OEf4"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3567,11 +7032,20 @@
    "count": 7,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_800x250' (material)? Used 7 time(s).",
+  "message": "What is 'IFC_strookfundering_800x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_strookfundering_900x250",
@@ -3580,6 +7054,9 @@
   "field": "material",
   "raw": "IFC_strookfundering_900x250",
   "occurrences": 1,
+  "guids": [
+   "0wc9xUAq1D8gPTinpIsyhl"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3587,11 +7064,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_strookfundering_900x250' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_strookfundering_900x250' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "linear-other | IfcBeam | None |  | m",
+    "description": "IfcBeam, -",
+    "unit": "m",
+    "quantity": 499.06
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_underlayment_dakbeschot_22mm",
@@ -3600,6 +7086,18 @@
   "field": "material",
   "raw": "IFC_underlayment_dakbeschot_22mm",
   "occurrences": 10,
+  "guids": [
+   "3xAt$sHNj6iRoQtt8PqdvX",
+   "26GjYkT7L4vvQxOG2vocp$",
+   "3VM9LfW0LB1PdD7vQi9L68",
+   "0v5VUmnvfB9Omc2J3sV9T$",
+   "1dhosC1$LBsBgsBtrg3cws",
+   "0vqH9qGDL5PPGZ2v8DFoXC",
+   "1hViymJzbDqefYDmD3VgLb",
+   "3YwpGM7RXFIhxQQgWAEwwx",
+   "0WLW53CNLEWRv8dAJ4lbo4",
+   "04EDgLehfE6fp4pcauJ41Y"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3607,11 +7105,20 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is 'IFC_underlayment_dakbeschot_22mm' (material)? Used 10 time(s).",
+  "message": "What is 'IFC_underlayment_dakbeschot_22mm' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_ventilatierooster_DucoFIT_50_ZR",
@@ -3620,6 +7127,17 @@
   "field": "material",
   "raw": "IFC_ventilatierooster_DucoFIT_50_ZR",
   "occurrences": 9,
+  "guids": [
+   "0sEWuC$e5F4BMb9D6srV$y",
+   "2kuyCrcqr9fRvnAcO2UEXq",
+   "14W2ODD9D2ugsAl1GpdsKE",
+   "0K9EicRfbCixHbvBpi6dVW",
+   "2jIs0UFez78OFa7lfe8vj9",
+   "3BQjcHoSHBiOZNfps25yDJ",
+   "3hBKRY1W52L8sPliSZ3g3L",
+   "2jT7ByFNrFcAUythG4AQhq",
+   "2JCDyo9X9799WRv73riZQB"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3627,11 +7145,13 @@
    "count": 9,
    "blocking": true
   },
-  "message": "What is 'IFC_ventilatierooster_DucoFIT_50_ZR' (material)? Used 9 time(s).",
+  "message": "What is 'IFC_ventilatierooster_DucoFIT_50_ZR' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:IFC_ventilatierooster_Ducomax_Corto_20_ZR",
@@ -3640,6 +7160,12 @@
   "field": "material",
   "raw": "IFC_ventilatierooster_Ducomax_Corto_20_ZR",
   "occurrences": 4,
+  "guids": [
+   "1XKgtme1X4fP2K4OJnNfqe",
+   "3CIoeQG715PeDqJQrPUad5",
+   "0C2_YzlMD418fDXrk79$Fl",
+   "1vfh9Px09BSxpXZRKc744y"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3647,11 +7173,13 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_ventilatierooster_Ducomax_Corto_20_ZR' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_ventilatierooster_Ducomax_Corto_20_ZR' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:IFC_verlaagd_plafond",
@@ -3660,6 +7188,10 @@
   "field": "material",
   "raw": "IFC_verlaagd_plafond",
   "occurrences": 2,
+  "guids": [
+   "3wSOdnl4f3svaQozB42Rje",
+   "23kKMBhsH2O9cv7k75Gdat"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3667,11 +7199,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_verlaagd_plafond' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_verlaagd_plafond' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00",
@@ -3680,6 +7221,54 @@
   "field": "material",
   "raw": "IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00",
   "occurrences": 46,
+  "guids": [
+   "0acBaRI85B4hnhrBIaaP2h",
+   "2GWRHvB9HDJP45jLAA60l1",
+   "1mbjnpt0P4EwksF__iiijr",
+   "0ZIlPt9Vv7uhzBI8nl4J_D",
+   "2JxkOvhoH3KhADGZVTstt6",
+   "1tlRVPawH3$wkBWpre762q",
+   "0fzORJLYrENAgMB8OLjsOO",
+   "1aRr_gAVH6awo1vV5RNWmH",
+   "2H9rDR7tT9VgdaRvZdqXc8",
+   "1TqK$4QF52cx7vR0PaY7pK",
+   "38LmlQQRH0qQXWi4jy1laF",
+   "2d0FlCvW14QBtK2U8zcwsd",
+   "3ruTV5vprF5RrvtPBVK5rt",
+   "0Spt7ezXP0C92h3tqsSzZO",
+   "0kSl8zzkbBewxxwDOeCZR6",
+   "2FbKQGA1LD9gZ1z1HbX$xs",
+   "1uO5mJ02D4fvWAKKhkEIK3",
+   "2XT0UEPbz7ZebdMDb8miEM",
+   "3G3BFDm557QB5q3dxElp3E",
+   "0z0KHW4RTBRgDFKufJohtz",
+   "0eDt_F7Df8VANFmhAQmZQp",
+   "3qCKpI3KP9HPWAr6Y2CsuH",
+   "1XlmV2BWn24QpsvysH6cel",
+   "1sOo8V1290ER5_FhzQZISS",
+   "2Y8SeV34D1ZQVEVKPyRYR8",
+   "2OUbnN7r5AZ8f0dBVpUfAs",
+   "1qgrdeLwP6WB8ZQXpvS6nv",
+   "2u21sJRdT0Me24l6eBI1mv",
+   "2dZlkSpErE_QgPFdvoW15P",
+   "2fZciyqH5CtxCyv75URUfU",
+   "3c_5zKZLj8hOsbf7eeZxCQ",
+   "1303_Vcxj61RfLw0YZeEtY",
+   "3HYlG_VlbDuxKXxMpRWZ6_",
+   "1$zPZrWrf1HAm_FXqpSajo",
+   "0$f$cZfxfEU93zwGnsyEm2",
+   "2LcFDUf1PBJPasceenEGF9",
+   "1ahDDH0TbCyBbhhknDlSS3",
+   "2uuGMM2uD3KfSOiP5EOgU0",
+   "0drktYqJD0ogOWskNKHyF$",
+   "1UXcTqQ4fEL9TNKOFHs6cw",
+   "1jGPE_m8HFvuDyQMHt6r8P",
+   "20j5cti6HFEARfyiibGa0h",
+   "3Pi9DNYXD05O5MKhokJLYT",
+   "24ajIczRDEpwyyLmsbT65C",
+   "1cr7h5DUT96RNuEzoMFK6k",
+   "3HRtnO_5j5DBSPdJ7DpOmn"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3687,11 +7276,20 @@
    "count": 46,
    "blocking": true
   },
-  "message": "What is 'IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00' (material)? Used 46 time(s).",
+  "message": "What is 'IFC_vloer_geisoleerde_kanaalplaat_Rc=3,00' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "slabs | None |  | m2",
+    "description": "Slab, -",
+    "unit": "m2",
+    "quantity": 2568.87
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_vloertegels_200x200",
@@ -3700,6 +7298,28 @@
   "field": "material",
   "raw": "IFC_vloertegels_200x200",
   "occurrences": 20,
+  "guids": [
+   "3sZmfx4$zF6QJdb6AkUwb5",
+   "1vBhdCjRH4GQjZ_gW0nDpM",
+   "2HzIxJIynC9gnfSsQvMGdh",
+   "2Ew_JkzNHFKR2ZmaVEHBMC",
+   "2vauZnqDT7eARsn623l9v2",
+   "1C0wwhYU93Iu55G$wYnQ2p",
+   "1HmifdimP7FRu7kZsPr0op",
+   "1qkBDfSur35w0iyDXljLrD",
+   "0TWzSGl_13Gx3ZOU$j_XHn",
+   "1qgNkuSsTB5gtENb3XiQuu",
+   "3MBMvhJcf8ifQCA38AQKfV",
+   "3XktW7dubCNwcST9vl0vhC",
+   "3K85YvIMbBEAIoR_5dFfMA",
+   "1nbyGllLv2BAGt3xGCI$1V",
+   "1phf3i$NLAmQXA_04$Je_p",
+   "2J6v6HTZXFl9uKBhJNqShn",
+   "3IISogIMLFyuW$9e8EjxXp",
+   "3ycEcwb1T3yvGBt0F_vjpk",
+   "1q6Yhr5OPEhOXSCiC_$nd8",
+   "1xAjp$vhzF8gyBAWltyLkA"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3707,11 +7327,20 @@
    "count": 20,
    "blocking": true
   },
-  "message": "What is 'IFC_vloertegels_200x200' (material)? Used 20 time(s).",
+  "message": "What is 'IFC_vloertegels_200x200' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_wandtegels_250x200",
@@ -3720,6 +7349,129 @@
   "field": "material",
   "raw": "IFC_wandtegels_250x200",
   "occurrences": 121,
+  "guids": [
+   "29yI8Mmq18Bg1NUzUVW3NP",
+   "1RqgWtCSr6lAsuRJ5utuxr",
+   "2Y0mAz5Q56dAORfwpOyUsR",
+   "0AGfyLU4jB9B9l7dd3WJLx",
+   "3UpYbTFZT2xv_gzWagnt9F",
+   "1fvSZV3018gxiE0a30PdwF",
+   "3gnRFSx2jCKejA_1APkTHw",
+   "1AjWKYJiDCfgeubn03LyDm",
+   "00LgPc5m51cw8o_sUWcu49",
+   "0Hai4X7IfAcOXUxRRAz6SG",
+   "33VNF1xsDCshniThtCvI5L",
+   "1M5tBg$Hz2axcS3mjxBRJ1",
+   "27$iY83sv7lfIdIyjwRFCw",
+   "1DVQnQr$L1JQaU9u_I0Hu5",
+   "17koHkOd9BNOMpnONWrKPu",
+   "30Xaa1DMbB_xgx46rJYq72",
+   "1dE4YdK5L3v9jzYzU8RgOY",
+   "0Kl$pCBXPC8OkQHlyxRGO7",
+   "1bGpEjRob1RRPP_hpDyHjC",
+   "0DrTJm2cL1bOyy5xIHVESM",
+   "1J69rweMzCzhLC_bSPu1dt",
+   "2lxICkMU16J8h7iSoWpbKU",
+   "0QxMuP0oD0YvtXZuMakUew",
+   "1i5ogZ4K1AxvzSOEoA0oNn",
+   "3B0cImQo95AfLsdJUYrJMh",
+   "3S2Pvwt9T9OPbJeTxCxDaO",
+   "2PTNT3DwLCO9bi_vB8A6Oz",
+   "1xTEdklNfBnOKmE_Q1qkHL",
+   "1pkKYO9CPDOwIsKuWmvAkd",
+   "3aHo4k_WH15OYQFJvM8WnZ",
+   "0y2eBH13fBTxYwpnotEMB9",
+   "3aUmd5HunAVeBiml2cUJMr",
+   "0PDOKgUUD4BwqmovJax3J1",
+   "3iMYQ$kH19KBtP5YkYaF39",
+   "2tyM7GhvjDrefPtYO3Cx4L",
+   "2bdCfmt$jCe8cUXLuK4ux6",
+   "0yrhGeugHFU8rlb8uAFtF3",
+   "1isb45ef56VPzDWkSWXxBw",
+   "1cVUx1gMr8s8iQ6gUJklt7",
+   "1H3cqL7DH4lgI1yqgD77W6",
+   "2ZVcPSkO12Lxl7AF0iKrk1",
+   "2_w2o8buT8b9cc0WI_7qk0",
+   "1ehtmWT0jFqw6aNKNLmQXJ",
+   "0odOF7FKLCcBT34nsWNJH4",
+   "2KVPUZ2l15BewVT9mkx3S0",
+   "2Pf5DivxHCsgFhCfhFsA$c",
+   "3fCE0LXxX1sem_TH32jUaz",
+   "3q9ILP5ET8Y9pJofOHVdiN",
+   "2NK0rfdAjDlx6YaZ4e2hHS",
+   "1qXU2fJHr1P99UrTV053_a",
+   "31RJ75aj92vgFSHUtEPR1g",
+   "0YSfFVRVr3Ve61BcSX_hs3",
+   "2_NerlNSb1$wMRM0__v0YC",
+   "2YxsdLelD8Yuw7xkEWrxE5",
+   "0pM1GX991AHf$TYF89Km6h",
+   "1QFIEZdMjF1AzLXyaMrmj$",
+   "0CZhMwst97LP_5JWK_YPA7",
+   "3gdFOJiHT5uhottb1zyGPN",
+   "2rW9t945n0YwYXvUMQ7vR_",
+   "0D3_miUmr8ovKL_C57Kjd_",
+   "3sRGr_wz98auwRbKj0VYSm",
+   "3DSfp0y_9B8PHNpy_ieXBE",
+   "1$7mn1TX17au9vf_yua6PG",
+   "18USLjF15BZ8u15COgJ54C",
+   "1tfQtCiTLBg9MLjx9XDuQv",
+   "1D8huOOi50xB2kSs0LusLo",
+   "10ByiOfPnExBnH3MKQxIjs",
+   "1iNLydj3PBVA931qJA43zq",
+   "3owjacuiv85898_EgncjaI",
+   "1FYIbUqhTAQfiNpZ5rbSnY",
+   "0zBMdR_BHEifNTy3ynHLRJ",
+   "2JxikpdAHDvesKRmfEL6ln",
+   "3ZWe5D9X55APDLP9z2WFkM",
+   "0vu17vLk5FxgE9dnpZbco1",
+   "3cD3TWla167B9CU$TxnqHX",
+   "0fjAR$axrC9f4JQIx4UcgL",
+   "047_ueS7b1veWoAvfGBwGx",
+   "2LSvkY6Qr93x$SXRCPx5dr",
+   "1bczZW$a5Cn8iiSVwkfksG",
+   "1ieWJ577TAxhN9z7fSfHTT",
+   "2rHICjc8j76uLlPDt9k0C4",
+   "0rgLfhIcP3X92WBhMWvFXj",
+   "1A2oXlg4rBHuWRgt1b5Nbl",
+   "0nctGurr15vO20MJCt5U0t",
+   "0x0HOjcrD9LwiHo27DIdCI",
+   "2Zq1K$UjbBVhXG0ZDLFj_I",
+   "2L3I38DC10DwaH6zCCeyOm",
+   "08AYo5o1vAXuhlij$fNLLj",
+   "29cEynWWDFkx5x1iPW_DJE",
+   "2r4XVXJ5L7swMQA2RNgeQB",
+   "2F$lW_i7jAQedW2ljdASy_",
+   "2qP4ZjogfCABFdn45E1t21",
+   "3PSBfLjjn1T8ATSBW9oi2C",
+   "2$9LlY1EH6S9jkcdCUi7z1",
+   "1$F$k4V5D2AhN7gNr72bSh",
+   "2Ta1T_KuLFSut6k3O5MLEL",
+   "2c6D4JDRH7PvnuSIWZawXA",
+   "3gBaI2LfPEThXm6s0SHMk8",
+   "3C3towheDBqwd3SRAaXjAG",
+   "0raOvV7pPAwO55dlw3EXMk",
+   "1EAothq6v9IgJ6bcszYkTM",
+   "2vcVWRTRP75O_rvv0Z35PJ",
+   "2FMkSfhyLF190MqoYfsDmc",
+   "2EAe9OT$91F8c0$g8QQ9zN",
+   "1po4zKasX9ufD5pHW4piVF",
+   "0AV4irvIv1LA8PncXFGY73",
+   "3WqXbVSMf3IONoPr1S$VjD",
+   "3c9eyOobP1aQBMg3h9R$Ee",
+   "3eu01_wIL0LPTymtHeMDmL",
+   "2HXF9P0T98TPz_mCDmVMBa",
+   "0p7ZPvycXC9vAWrFVY2gsz",
+   "3cCOiqxGvAxesww1jbde5M",
+   "3oXcPJv055ceWky2Hn3IjV",
+   "0TvkrhGCX1GB0IE0uKNIGM",
+   "2SkKNeC7jDqRVGZ4CDq_QV",
+   "1Y9HnWdIX5TQa42qpM9b8p",
+   "0o1wbSaxjFxPZ$HGpNp7Ih",
+   "167rd1pVX3nhAYqdokTCr2",
+   "3_0NNuP$v8oxiOEkC4U8X1",
+   "1AuylWPvvAOB0NxR0sk5nX",
+   "0IKYJcQUPDCRms8J3yZEOx"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3727,11 +7479,20 @@
    "count": 121,
    "blocking": true
   },
-  "message": "What is 'IFC_wandtegels_250x200' (material)? Used 121 time(s).",
+  "message": "What is 'IFC_wandtegels_250x200' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_zinken_afdekker_hoogbouw_achter",
@@ -3740,6 +7501,12 @@
   "field": "material",
   "raw": "IFC_zinken_afdekker_hoogbouw_achter",
   "occurrences": 4,
+  "guids": [
+   "06b3QgaqP6yBLkgbTXyTL8",
+   "0R5wGHHLz0tAmLCaJw8lU8",
+   "1A344MWP50jRy2YUUISU3X",
+   "3lexsa_aT0xRxuG8mGm8kh"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3747,11 +7514,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_zinken_afdekker_hoogbouw_achter_lift",
@@ -3760,6 +7536,9 @@
   "field": "material",
   "raw": "IFC_zinken_afdekker_hoogbouw_achter_lift",
   "occurrences": 1,
+  "guids": [
+   "1sEOUw$6T9$R5nY2N_3r4_"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3767,11 +7546,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter_lift' (material)? Used 1 time(s).",
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_achter_lift' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_zinken_afdekker_hoogbouw_voor",
@@ -3780,6 +7568,13 @@
   "field": "material",
   "raw": "IFC_zinken_afdekker_hoogbouw_voor",
   "occurrences": 5,
+  "guids": [
+   "1nWe3dD6XFJB1h2MXCX2h2",
+   "3hw9h60OT19hCbcr6MU2xG",
+   "2I9T5aZwzDEhGlia21IrSS",
+   "1laiMuaAnEmxdEWXeApRm4",
+   "3OXEW2f89DQ9GsfpqEYjEr"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3787,11 +7582,20 @@
    "count": 5,
    "blocking": true
   },
-  "message": "What is 'IFC_zinken_afdekker_hoogbouw_voor' (material)? Used 5 time(s).",
+  "message": "What is 'IFC_zinken_afdekker_hoogbouw_voor' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_zinken_afdekker_laagbouw",
@@ -3800,6 +7604,10 @@
   "field": "material",
   "raw": "IFC_zinken_afdekker_laagbouw",
   "occurrences": 2,
+  "guids": [
+   "0hTqRztT5F5QlyGVpce904",
+   "1D9NVksfDCKhbLCCTWCze4"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3807,11 +7615,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'IFC_zinken_afdekker_laagbouw' (material)? Used 2 time(s).",
+  "message": "What is 'IFC_zinken_afdekker_laagbouw' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:IFC_zinken_afdekker_lifttop",
@@ -3820,6 +7637,12 @@
   "field": "material",
   "raw": "IFC_zinken_afdekker_lifttop",
   "occurrences": 4,
+  "guids": [
+   "0ruE8tjeX53ATJZUhm6nA2",
+   "0_EHYMTn9Cxw2ZityROGMX",
+   "2tpGqMj3fCzhgvYCg1CamW",
+   "2AL95GGQP6cOlPEU6oA8fg"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3827,11 +7650,20 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'IFC_zinken_afdekker_lifttop' (material)? Used 4 time(s).",
+  "message": "What is 'IFC_zinken_afdekker_lifttop' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | None | None |  | m2",
+    "description": "--",
+    "unit": "m2",
+    "quantity": 1523.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Lege arcering (2)",
@@ -3840,6 +7672,9 @@
   "field": "material",
   "raw": "Lege arcering (2)",
   "occurrences": 1,
+  "guids": [
+   "2zFL9Er6D3Tx6ycPBo58gY"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -3847,10 +7682,12 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Lege arcering (2)' (material)? Used 1 time(s).",
+  "message": "What is 'Lege arcering (2)' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  }
 ]

@@ -468,6 +468,18 @@
   "elements": 3
  },
  {
+  "key": "roofs | SG Metal Panels roof |  |  | m2",
+  "ruleId": "roofs",
+  "description": "Roof, SG Metal Panels roof",
+  "unit": "m2",
+  "quantity": 173.14,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "04"
+  },
+  "elements": 1
+ },
+ {
   "key": "windows | M_Skylight | 1180 x 1170mm |  | m2",
   "ruleId": "windows",
   "description": "Window M_Skylight, 1180 x 1170mm",
@@ -576,6 +588,30 @@
   "elements": 10
  },
  {
+  "key": "slabs | Generic 150mm |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 150mm",
+  "unit": "m2",
+  "quantity": 123.91,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "06"
+  },
+  "elements": 2
+ },
+ {
+  "key": "slabs | Generic 300 |  | m2",
+  "ruleId": "slabs",
+  "description": "Slab, Generic 300",
+  "unit": "m2",
+  "quantity": 109.49,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "06"
+  },
+  "elements": 2
+ },
+ {
   "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",
   "ruleId": "coverings",
   "description": "CEILING, 3000 x 3000mm Grid",
@@ -586,18 +622,6 @@
    "demo-trades": "06"
   },
   "elements": 2
- },
- {
-  "key": "roofs | SG Metal Panels roof |  |  | m2",
-  "ruleId": "roofs",
-  "description": "Roof, SG Metal Panels roof",
-  "unit": "m2",
-  "quantity": 173.14,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "07"
-  },
-  "elements": 1
  },
  {
   "key": "roofs | Warm Roof - Timber |  |  | m2",
@@ -622,30 +646,6 @@
    "demo-trades": "99"
   },
   "elements": 9
- },
- {
-  "key": "slabs | Generic 150mm |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 150mm",
-  "unit": "m2",
-  "quantity": 123.91,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "99"
-  },
-  "elements": 2
- },
- {
-  "key": "slabs | Generic 300 |  | m2",
-  "ruleId": "slabs",
-  "description": "Slab, Generic 300",
-  "unit": "m2",
-  "quantity": 109.49,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "99"
-  },
-  "elements": 2
  },
  {
   "key": "slabs | Pad 2 |  | m2",
@@ -694,18 +694,6 @@
    "demo-trades": "99"
   },
   "elements": 10
- },
- {
-  "key": "wall-layers | None | None | 0.22 | normal height | m2",
-  "ruleId": "wall-layers",
-  "description": "-, 220 mm (normal height)",
-  "unit": "m2",
-  "quantity": 9.37,
-  "source": "measured",
-  "codes": {
-   "demo-trades": "99"
-  },
-  "elements": 1
  },
  {
   "key": "wall-layers | None | board.plasterboard | 0.013 | above limit | m2",
@@ -850,5 +838,17 @@
    "demo-trades": "99"
   },
   "elements": 6
+ },
+ {
+  "key": "wall-layers | None | unspecified | 0.22 | normal height | m2",
+  "ruleId": "wall-layers",
+  "description": "unspecified, 220 mm (normal height)",
+  "unit": "m2",
+  "quantity": 9.37,
+  "source": "measured",
+  "codes": {
+   "demo-trades": "99"
+  },
+  "elements": 1
  }
 ]

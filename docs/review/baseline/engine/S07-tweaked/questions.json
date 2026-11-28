@@ -40,7 +40,16 @@
    "unitError": false,
    "scale": null
   },
-  "message": "2 x IfcSlab 'Pad 2': the area stated in the file and the geometry disagree by -53% to -52% (e.g. 320.539 m2 from Qto_SlabBaseQuantities.NetArea vs 149.422 m2 measured). The measured value is used. Which should be used?"
+  "message": "2 x IfcSlab 'Pad 2': the file gives the area as 320.539 m2; the geometry measures 149.422 m2 (-53%; -53% to -52% across the 2). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slabs | Pad 2 |  | m2",
+    "description": "Slab, Pad 2",
+    "unit": "m2",
+    "quantity": 436.76
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "contradiction:thickness:IfcSlab:600 x 600 x 900mm",
@@ -92,7 +101,28 @@
    "unitError": false,
    "scale": null
   },
-  "message": "11 x IfcSlab '600 x 600 x 900mm': the thickness stated in the file and the geometry disagree by -50% (e.g. 0.6 m from Qto_SlabBaseQuantities.Width vs 0.3 m measured). The measured value is used. Which should be used?"
+  "message": "11 x IfcSlab '600 x 600 x 900mm': the file says 0.6 m thick; the geometry measures 0.3 m (-50%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "slabs | 600 x 600 x 900mm |  | m2",
+    "description": "Slab, 600 x 600 x 900mm",
+    "unit": "m2",
+    "quantity": 3.96
+   },
+   {
+    "key": "slab-concrete | 600 x 600 x 900mm |  | m3",
+    "description": "In-situ concrete, 600 x 600 x 900mm",
+    "unit": "m3",
+    "quantity": 1.19
+   },
+   {
+    "key": "formwork-slab-edges | slab-concrete | 600 x 600 x 900mm |  | m3 | m2",
+    "description": "Edge formwork to slabs",
+    "unit": "m2",
+    "quantity": 7.92
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "contradiction:area:IfcSlab:Warm Roof - Timber",
@@ -134,7 +164,9 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcSlab 'Warm Roof - Timber': the area stated in the file and the geometry disagree by +976% (e.g. 6.576 m2 from Qto_SlabBaseQuantities.GrossArea vs 70.788 m2 measured). The measured value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Warm Roof - Timber': the file gives the area as 6.576 m2; the geometry measures 70.788 m2 (+976%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "contradiction:thickness:IfcSlab:Monolithic Landing:220mm Thickness",
@@ -176,7 +208,9 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the thickness stated in the file and the geometry disagree by -95% (e.g. 6 m from Qto_SlabBaseQuantities.Width vs 0.294 m measured). The measured value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the file says 6 m thick; the geometry measures 0.294 m (-95%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "contradiction:area:IfcSlab:Monolithic Landing:220mm Thickness",
@@ -218,7 +252,9 @@
    "unitError": false,
    "scale": null
   },
-  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the area stated in the file and the geometry disagree by +1938% (e.g. 0.582 m2 from Qto_SlabBaseQuantities.GrossArea vs 11.85 m2 measured). The measured value is used. Which should be used?"
+  "message": "1 x IfcSlab 'Monolithic Landing:220mm Thickness': the file gives the area as 0.582 m2; the geometry measures 11.85 m2 (+1938%). Until you answer, the measured value is used. Which should we use?",
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "contradiction:thickness:IfcWall:SIP 202mm Wall - conc clad",
@@ -261,7 +297,22 @@
    "unitError": false,
    "scale": null
   },
-  "message": "2 x IfcWall 'SIP 202mm Wall - conc clad': the thickness stated in the file and the geometry disagree by -11% to -10% (e.g. 0.202 m from material layer set vs 0.18 m measured). The stated value is used. Which should be used?"
+  "message": "2 x IfcWall 'SIP 202mm Wall - conc clad': the file says 0.202 m thick; the geometry measures 0.18 m (-11%; -11% to -10% across the 2). Until you answer, the stated value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 698.33
+   },
+   {
+    "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+    "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+    "unit": "m2",
+    "quantity": 118.28
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "contradiction:thickness:IfcWall:Interior - Partition",
@@ -304,7 +355,22 @@
    "unitError": false,
    "scale": null
   },
-  "message": "2 x IfcWall 'Interior - Partition': the thickness stated in the file and the geometry disagree by -14% (e.g. 0.12 m from material layer set vs 0.104 m measured). The stated value is used. Which should be used?"
+  "message": "2 x IfcWall 'Interior - Partition': the file says 0.12 m thick; the geometry measures 0.104 m (-14%). Until you answer, the stated value is used. Which should we use?",
+  "affectedLines": [
+   {
+    "key": "walls | Interior - Partition | False |  | m2",
+    "description": "Wall, Interior - Partition, 120 mm",
+    "unit": "m2",
+    "quantity": 190.98
+   },
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 698.33
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Alex",
@@ -323,7 +389,9 @@
   "message": "1 x IfcBuildingElementProxy 'Alex' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Fine China - Plate",
@@ -349,7 +417,9 @@
   "message": "8 x IfcBuildingElementProxy 'Fine China - Plate' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Hawthorn - 25'",
@@ -368,7 +438,9 @@
   "message": "1 x IfcBuildingElementProxy 'Hawthorn - 25'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Honey Locust - 25'",
@@ -394,7 +466,9 @@
   "message": "8 x IfcBuildingElementProxy 'Honey Locust - 25'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Largetooth Aspen - 25'",
@@ -413,7 +487,9 @@
   "message": "1 x IfcBuildingElementProxy 'Largetooth Aspen - 25'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Lombardy Poplar - 40'",
@@ -432,7 +508,9 @@
   "message": "1 x IfcBuildingElementProxy 'Lombardy Poplar - 40'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:M_RPC Beetle",
@@ -451,7 +529,9 @@
   "message": "1 x IfcBuildingElementProxy 'M_RPC Beetle' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Built-under Dishwasher G 4101 U CS",
@@ -470,7 +550,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Built-under Dishwasher G 4101 U CS' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Fridge/Freezer KF 1911 Vi",
@@ -489,7 +571,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Fridge/Freezer KF 1911 Vi' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Induction Cooktop 6350 LPT",
@@ -508,7 +592,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Induction Cooktop 6350 LPT' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Microwave M 8260-2",
@@ -527,7 +613,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Microwave M 8260-2' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Oven H 5681 BP",
@@ -546,7 +634,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Oven H 5681 BP' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Tumble Dryer T 7944 C",
@@ -565,7 +655,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Tumble Dryer T 7944 C' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Miele Washing Machine W 5820 WPS",
@@ -584,7 +676,9 @@
   "message": "1 x IfcBuildingElementProxy 'Miele Washing Machine W 5820 WPS' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Rangehood DA-2210",
@@ -603,7 +697,9 @@
   "message": "1 x IfcBuildingElementProxy 'Rangehood DA-2210' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Red Ash - 25'",
@@ -622,7 +718,9 @@
   "message": "1 x IfcBuildingElementProxy 'Red Ash - 25'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Red Maple - 30'",
@@ -642,7 +740,9 @@
   "message": "2 x IfcBuildingElementProxy 'Red Maple - 30'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Scarlet Oak - 42'",
@@ -662,7 +762,9 @@
   "message": "2 x IfcBuildingElementProxy 'Scarlet Oak - 42'' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Solarworld Sunmodule Plus",
@@ -692,7 +794,9 @@
   "message": "12 x IfcBuildingElementProxy 'Solarworld Sunmodule Plus' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Vase (3)-with Flower",
@@ -711,7 +815,9 @@
   "message": "1 x IfcBuildingElementProxy 'Vase (3)-with Flower' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Walvit",
@@ -733,7 +839,9 @@
   "message": "4 x IfcBuildingElementProxy 'Walvit' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Water Glass",
@@ -759,7 +867,9 @@
   "message": "8 x IfcBuildingElementProxy 'Water Glass' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:White",
@@ -778,7 +888,9 @@
   "message": "1 x IfcBuildingElementProxy 'White' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:Wine Bottles",
@@ -797,7 +909,9 @@
   "message": "1 x IfcBuildingElementProxy 'Wine Bottles' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:YinYin",
@@ -818,7 +932,9 @@
   "message": "3 x IfcBuildingElementProxy 'YinYin' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:fire place hang",
@@ -837,7 +953,9 @@
   "message": "1 x IfcBuildingElementProxy 'fire place hang' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcBuildingElementProxy:water",
@@ -856,7 +974,9 @@
   "message": "1 x IfcBuildingElementProxy 'water' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcSystemFurnitureElement:hood enclosure",
@@ -875,7 +995,9 @@
   "message": "1 x IfcSystemFurnitureElement 'hood enclosure' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "unmatched:IfcSystemFurnitureElement:wardrobe",
@@ -895,127 +1017,81 @@
   "message": "2 x IfcSystemFurnitureElement 'wardrobe' not measured by any rule. Assign a rule or exclude.",
   "answer": {
    "kind": "rule"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:layer_material:Air",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "layer_material",
   "raw": "Air",
   "occurrences": 1,
+  "guids": [
+   "2hD3j_DmLBXxhCCy1gOWRm"
+  ],
+  "suggestion": "unspecified",
+  "candidates": [
+   "air_gap"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "layer_material",
    "raw": "Air",
    "count": 1,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Air' (layer material)? Used 1 time(s).",
+  "message": "'Air' (layer material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:layer_material:Carpet (1)",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "Carpet (1)",
-  "occurrences": 1,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "Carpet (1)",
-   "count": 1,
-   "blocking": true
   },
-  "message": "What is 'Carpet (1)' (layer material)? Used 1 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
- },
- {
-  "id": "name:layer_material:Damp-proofing",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "Damp-proofing",
-  "occurrences": 3,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "Damp-proofing",
-   "count": 3,
-   "blocking": true
-  },
-  "message": "What is 'Damp-proofing' (layer material)? Used 3 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [
+   {
+    "key": "walls | Cavity wall_sliders | False |  | m2",
+    "description": "Wall, Cavity wall_sliders, 280 mm",
+    "unit": "m2",
+    "quantity": 10.12
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:layer_material:Default",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "layer_material",
   "raw": "Default",
   "occurrences": 2,
+  "guids": [
+   "3t5Ey6FwDBbRFdkxqUP7z5",
+   "1LMg1ZkATBJwu7hODVWkcE"
+  ],
+  "suggestion": "unspecified",
   "code": "question.unknown_name",
   "params": {
    "field": "layer_material",
    "raw": "Default",
    "count": 2,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Default' (layer material)? Used 2 time(s).",
+  "message": "'Default' (layer material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:layer_material:SH_resin Floor",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "SH_resin Floor",
-  "occurrences": 4,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "SH_resin Floor",
-   "count": 4,
-   "blocking": true
   },
-  "message": "What is 'SH_resin Floor' (layer material)? Used 4 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
- },
- {
-  "id": "name:layer_material:Softwood, Lumber",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "layer_material",
-  "raw": "Softwood, Lumber",
-  "occurrences": 1,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "layer_material",
-   "raw": "Softwood, Lumber",
-   "count": 1,
-   "blocking": true
-  },
-  "message": "What is 'Softwood, Lumber' (layer material)? Used 1 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [
+   {
+    "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",
+    "description": "CEILING, 3000 x 3000mm Grid",
+    "unit": "m2",
+    "quantity": 154.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Acetal Resin, Black",
@@ -1024,6 +1100,14 @@
   "field": "material",
   "raw": "Acetal Resin, Black",
   "occurrences": 3,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzxDfN",
+   "3Ut0AFdIb6Mh5zrboS1nCa",
+   "3vi8Xy_cHA1R$gUoZ0tWMO"
+  ],
+  "candidates": [
+   "finish.resin"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1031,31 +1115,50 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'Acetal Resin, Black' (material)? Used 3 time(s).",
+  "message": "What is 'Acetal Resin, Black' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Air",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "material",
   "raw": "Air",
   "occurrences": 1,
+  "guids": [
+   "2hD3j_DmLBXxhCCy1gOWRm"
+  ],
+  "suggestion": "unspecified",
+  "candidates": [
+   "air_gap"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
    "raw": "Air",
    "count": 1,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Air' (material)? Used 1 time(s).",
+  "message": "'Air' (material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | Cavity wall_sliders | False |  | m2",
+    "description": "Wall, Cavity wall_sliders, 280 mm",
+    "unit": "m2",
+    "quantity": 10.12
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Black Plastic",
@@ -1064,6 +1167,9 @@
   "field": "material",
   "raw": "Black Plastic",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx06M"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1071,11 +1177,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Black Plastic' (material)? Used 1 time(s).",
+  "message": "What is 'Black Plastic' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Buttons",
@@ -1084,6 +1192,10 @@
   "field": "material",
   "raw": "Buttons",
   "occurrences": 2,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx1Ur",
+   "3vi8Xy_cHA1R$gUoZ0tZjz"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1091,11 +1203,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Buttons' (material)? Used 2 time(s).",
+  "message": "What is 'Buttons' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Chair Fabric",
@@ -1104,6 +1218,10 @@
   "field": "material",
   "raw": "Chair Fabric",
   "occurrences": 2,
+  "guids": [
+   "1N_4TwOEH5194SbNmRTFml",
+   "20nhVaBTTAJguMI9o6oDPn"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1111,11 +1229,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Chair Fabric' (material)? Used 2 time(s).",
+  "message": "What is 'Chair Fabric' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Chrome-Kohler-CP-Polished_Chrome",
@@ -1124,6 +1244,9 @@
   "field": "material",
   "raw": "Chrome-Kohler-CP-Polished_Chrome",
   "occurrences": 1,
+  "guids": [
+   "28i3i5WDD8Ju0YHnzXOm__"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1131,31 +1254,55 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Chrome-Kohler-CP-Polished_Chrome' (material)? Used 1 time(s).",
+  "message": "What is 'Chrome-Kohler-CP-Polished_Chrome' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "mep-items | IfcDistributionElement | None | None |  | nr",
+    "description": "IfcDistributionElement - -",
+    "unit": "nr",
+    "quantity": 9.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Default",
   "kind": "unknown_name",
-  "blocking": true,
+  "blocking": false,
   "field": "material",
   "raw": "Default",
   "occurrences": 2,
+  "guids": [
+   "3t5Ey6FwDBbRFdkxqUP7z5",
+   "1LMg1ZkATBJwu7hODVWkcE"
+  ],
+  "suggestion": "unspecified",
   "code": "question.unknown_name",
   "params": {
    "field": "material",
    "raw": "Default",
    "count": 2,
-   "blocking": true
+   "blocking": false,
+   "placeholder": true
   },
-  "message": "What is 'Default' (material)? Used 2 time(s).",
+  "message": "'Default' (material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",
+    "description": "CEILING, 3000 x 3000mm Grid",
+    "unit": "m2",
+    "quantity": 154.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Door - Frame",
@@ -1164,6 +1311,15 @@
   "field": "material",
   "raw": "Door - Frame",
   "occurrences": 7,
+  "guids": [
+   "1PDnLIM013wvkZO9Lb4$s7",
+   "1$p8tACJ938vr1_lKOJJ9g",
+   "0lntrd6l1AGwfcnKJK5qoH",
+   "0lntrd6l1AGwfcnKJK5qpS",
+   "0lntrd6l1AGwfcnKJK5qii",
+   "0lntrd6l1AGwfcnKJK5qjQ",
+   "0ELdlxJuP1AwzgUXpRT7eB"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1171,11 +1327,20 @@
    "count": 7,
    "blocking": true
   },
-  "message": "What is 'Door - Frame' (material)? Used 7 time(s).",
+  "message": "What is 'Door - Frame' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "doors | Single-Flush | 800 x 2100 | False |  | nr",
+    "description": "Door Single-Flush, 800 x 2100",
+    "unit": "nr",
+    "quantity": 7.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Door - Panel",
@@ -1184,6 +1349,12 @@
   "field": "material",
   "raw": "Door - Panel",
   "occurrences": 4,
+  "guids": [
+   "2MWqvKy9535viQk_YsG9Xh",
+   "2pfAHb2EL46hq_sMVbImEN",
+   "2wm6PO6TX9IxXwLP21HyWr",
+   "2wm6PO6TX9IxXwLP21HySo"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1191,11 +1362,26 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'Door - Panel' (material)? Used 4 time(s).",
+  "message": "What is 'Door - Panel' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "doors | M_Double-Flush | 1730 x 2134mm | None |  | nr",
+    "description": "Door M_Double-Flush, 1730 x 2134mm",
+    "unit": "nr",
+    "quantity": 1.0
+   },
+   {
+    "key": "doors | Pocket_Slider_Door_5851 | 2.027 x 0.945 | False |  | nr",
+    "description": "Door Pocket_Slider_Door_5851, 2.027 x 0.945",
+    "unit": "nr",
+    "quantity": 3.0
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:material:Flower",
@@ -1204,6 +1390,9 @@
   "field": "material",
   "raw": "Flower",
   "occurrences": 1,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$tpF"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1211,11 +1400,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Flower' (material)? Used 1 time(s).",
+  "message": "What is 'Flower' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Herman Miller - Seat Fabric 8T07 Crossing Pumpkin",
@@ -1224,6 +1415,14 @@
   "field": "material",
   "raw": "Herman Miller - Seat Fabric 8T07 Crossing Pumpkin",
   "occurrences": 6,
+  "guids": [
+   "1hb7CWkynF4vPDja0y_oQN",
+   "1hb7CWkynF4vPDja0y_oEs",
+   "2PbrheIID1GfgGRPO3yxeK",
+   "2PbrheIID1GfgGRPO3yxeS",
+   "2PbrheIID1GfgGRPO3yxga",
+   "2PbrheIID1GfgGRPO3yxiy"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1231,11 +1430,13 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'Herman Miller - Seat Fabric 8T07 Crossing Pumpkin' (material)? Used 6 time(s).",
+  "message": "What is 'Herman Miller - Seat Fabric 8T07 Crossing Pumpkin' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Herman Miller - Veneer OU Walnut",
@@ -1244,6 +1445,10 @@
   "field": "material",
   "raw": "Herman Miller - Veneer OU Walnut",
   "occurrences": 2,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$si3",
+   "1mNYMX4dvDThNrJdPk$sho"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1251,11 +1456,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Herman Miller - Veneer OU Walnut' (material)? Used 2 time(s).",
+  "message": "What is 'Herman Miller - Veneer OU Walnut' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Herman Miller - Veneer Z5 Maple",
@@ -1264,6 +1471,20 @@
   "field": "material",
   "raw": "Herman Miller - Veneer Z5 Maple",
   "occurrences": 12,
+  "guids": [
+   "2PbrheIID1GfgGRPO3yaMM",
+   "2PbrheIID1GfgGRPO3yxjg",
+   "1mNYMX4dvDThNrJdPk$tmD",
+   "1mNYMX4dvDThNrJdPk$sEy",
+   "1mNYMX4dvDThNrJdPk$s$E",
+   "1mNYMX4dvDThNrJdPk$sud",
+   "1mNYMX4dvDThNrJdPk$su$",
+   "1mNYMX4dvDThNrJdPk$su_",
+   "1mNYMX4dvDThNrJdPk$suM",
+   "1mNYMX4dvDThNrJdPk$suL",
+   "1mNYMX4dvDThNrJdPk$suK",
+   "1mNYMX4dvDThNrJdPk$suR"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1271,11 +1492,13 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'Herman Miller - Veneer Z5 Maple' (material)? Used 12 time(s).",
+  "message": "What is 'Herman Miller - Veneer Z5 Maple' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Iron, Cast",
@@ -1284,6 +1507,19 @@
   "field": "material",
   "raw": "Iron, Cast",
   "occurrences": 11,
+  "guids": [
+   "1DaGnOS6v2iOJfBoPtVOcK",
+   "1v0G0fYgbCaRB8j$bCldej",
+   "0344_EjZb5chH4bVWlO1Dl",
+   "2ZlFFrvcbDavSm_g3LjLiI",
+   "1XYPH1jhn1UAOARoEEqzJ5",
+   "1XYPH1jhn1UAOARoEEqzG5",
+   "1XYPH1jhn1UAOARoEEqzNQ",
+   "1SDKa3RCzEzvwMoVlm1Auv",
+   "1SDKa3RCzEzvwMoVlm1A$s",
+   "0H7vgQcNjEo8efFHzwVqPR",
+   "0H7vgQcNjEo8efFHzwVqOu"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1291,11 +1527,20 @@
    "count": 11,
    "blocking": true
   },
-  "message": "What is 'Iron, Cast' (material)? Used 11 time(s).",
+  "message": "What is 'Iron, Cast' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "railings | SH_1100mm |  | m",
+    "description": "Railing SH_1100mm",
+    "unit": "m",
+    "quantity": 66.61
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Juice",
@@ -1304,6 +1549,16 @@
   "field": "material",
   "raw": "Juice",
   "occurrences": 8,
+  "guids": [
+   "0NrahGrur9Xw8sux415Ol2",
+   "0NrahGrur9Xw8sux415Ojw",
+   "0NrahGrur9Xw8sux415Oje",
+   "0NrahGrur9Xw8sux415OiU",
+   "0NrahGrur9Xw8sux415Oie",
+   "0NrahGrur9Xw8sux415Oik",
+   "0NrahGrur9Xw8sux415Oii",
+   "0NrahGrur9Xw8sux415OhI"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1311,11 +1566,13 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'Juice' (material)? Used 8 time(s).",
+  "message": "What is 'Juice' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Leather - Tan",
@@ -1324,6 +1581,14 @@
   "field": "material",
   "raw": "Leather - Tan",
   "occurrences": 6,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$s13",
+   "1mNYMX4dvDThNrJdPk$sTF",
+   "1mNYMX4dvDThNrJdPk$sQ8",
+   "1mNYMX4dvDThNrJdPk$sQD",
+   "1mNYMX4dvDThNrJdPk$sOO",
+   "1mNYMX4dvDThNrJdPk$sP3"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1331,11 +1596,13 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'Leather - Tan' (material)? Used 6 time(s).",
+  "message": "What is 'Leather - Tan' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Porcelain",
@@ -1344,6 +1611,12 @@
   "field": "material",
   "raw": "Porcelain",
   "occurrences": 4,
+  "guids": [
+   "0Qn0xDcrP0Ie69cIIE3wtB",
+   "0H7vgQcNjEo8efFHzwVpwh",
+   "2wm6PO6TX9IxXwLP21Hz7i",
+   "2wm6PO6TX9IxXwLP21Hyo6"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1351,51 +1624,13 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'Porcelain' (material)? Used 4 time(s).",
+  "message": "What is 'Porcelain' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
- },
- {
-  "id": "name:material:SH_resin Floor",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "material",
-  "raw": "SH_resin Floor",
-  "occurrences": 4,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "material",
-   "raw": "SH_resin Floor",
-   "count": 4,
-   "blocking": true
   },
-  "message": "What is 'SH_resin Floor' (material)? Used 4 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
- },
- {
-  "id": "name:material:Softwood, Lumber",
-  "kind": "unknown_name",
-  "blocking": true,
-  "field": "material",
-  "raw": "Softwood, Lumber",
-  "occurrences": 1,
-  "code": "question.unknown_name",
-  "params": {
-   "field": "material",
-   "raw": "Softwood, Lumber",
-   "count": 1,
-   "blocking": true
-  },
-  "message": "What is 'Softwood, Lumber' (material)? Used 1 time(s).",
-  "answer": {
-   "kind": "term",
-   "category": "material"
-  }
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:TV - Black",
@@ -1404,6 +1639,9 @@
   "field": "material",
   "raw": "TV - Black",
   "occurrences": 1,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$ta$"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1411,11 +1649,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'TV - Black' (material)? Used 1 time(s).",
+  "message": "What is 'TV - Black' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:material:Tankworks - Colorbond® - Pale Eucalypt®",
@@ -1424,6 +1664,10 @@
   "field": "material",
   "raw": "Tankworks - Colorbond® - Pale Eucalypt®",
   "occurrences": 2,
+  "guids": [
+   "05C5jBkCzCQwjdBruI5$pR",
+   "05C5jBkCzCQwjdBruI5$qW"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1431,11 +1675,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Tankworks - Colorbond® - Pale Eucalypt®' (material)? Used 2 time(s).",
+  "message": "What is 'Tankworks - Colorbond® - Pale Eucalypt®' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "mep-items | IfcDistributionElement | None | None |  | nr",
+    "description": "IfcDistributionElement - -",
+    "unit": "nr",
+    "quantity": 9.0
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:material:Water",
@@ -1444,6 +1697,12 @@
   "field": "material",
   "raw": "Water",
   "occurrences": 1,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGp7"
+  ],
+  "candidates": [
+   "membrane"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "material",
@@ -1451,11 +1710,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Water' (material)? Used 1 time(s).",
+  "message": "What is 'Water' (material)?",
   "answer": {
    "kind": "term",
    "category": "material"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:3000 x 3000mm Grid",
@@ -1464,6 +1725,10 @@
   "field": "type_name",
   "raw": "3000 x 3000mm Grid",
   "occurrences": 2,
+  "guids": [
+   "3t5Ey6FwDBbRFdkxqUP7z5",
+   "1LMg1ZkATBJwu7hODVWkcE"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1471,11 +1736,20 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is '3000 x 3000mm Grid' (type name)? Used 2 time(s).",
+  "message": "What is '3000 x 3000mm Grid' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "coverings | CEILING | 3000 x 3000mm Grid |  | m2",
+    "description": "CEILING, 3000 x 3000mm Grid",
+    "unit": "m2",
+    "quantity": 154.3
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:type_name:Alex",
@@ -1484,6 +1758,9 @@
   "field": "type_name",
   "raw": "Alex",
   "occurrences": 1,
+  "guids": [
+   "1Rg2y5brbBReiPZuQVS4Uv"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1491,11 +1768,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Alex' (type name)? Used 1 time(s).",
+  "message": "What is 'Alex' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:CL_W1",
@@ -1504,6 +1783,19 @@
   "field": "type_name",
   "raw": "CL_W1",
   "occurrences": 6,
+  "guids": [
+   "0NWseyvsH7_gBW225aGtuD",
+   "0NWseyvsH7_gBW225aGtwW",
+   "0NWseyvsH7_gBW225aGtx$",
+   "1RUi90wQT3ihQ$96bMNGiu",
+   "1RUi90wQT3ihQ$96bMNGvH",
+   "1RUi90wQT3ihQ$96bMNGrh"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1511,11 +1803,26 @@
    "count": 6,
    "blocking": true
   },
-  "message": "What is 'CL_W1' (type name)? Used 6 time(s).",
+  "message": "What is 'CL_W1' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | CL_W1 | True |  | m2",
+    "description": "Wall, CL_W1, 280 mm",
+    "unit": "m2",
+    "quantity": 227.71
+   },
+   {
+    "key": "formwork-walls | m2",
+    "description": "Formwork to walls, both faces",
+    "unit": "m2",
+    "quantity": 903.29
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:type_name:Cavity wall_sliders",
@@ -1524,6 +1831,14 @@
   "field": "type_name",
   "raw": "Cavity wall_sliders",
   "occurrences": 1,
+  "guids": [
+   "2hD3j_DmLBXxhCCy1gOWRm"
+  ],
+  "candidates": [
+   "wall.internal",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1531,11 +1846,20 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Cavity wall_sliders' (type name)? Used 1 time(s).",
+  "message": "What is 'Cavity wall_sliders' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | Cavity wall_sliders | False |  | m2",
+    "description": "Wall, Cavity wall_sliders, 280 mm",
+    "unit": "m2",
+    "quantity": 10.12
+   }
+  ],
+  "affectedLineCount": 1
  },
  {
   "id": "name:type_name:Fine China - Plate",
@@ -1544,6 +1868,16 @@
   "field": "type_name",
   "raw": "Fine China - Plate",
   "occurrences": 8,
+  "guids": [
+   "0NrahGrur9Xw8sux415P0D",
+   "0NrahGrur9Xw8sux415Ojx",
+   "0NrahGrur9Xw8sux415Ojf",
+   "0NrahGrur9Xw8sux415OiV",
+   "0NrahGrur9Xw8sux415Oif",
+   "0NrahGrur9Xw8sux415Oil",
+   "0NrahGrur9Xw8sux415Oij",
+   "0NrahGrur9Xw8sux415OhJ"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1551,11 +1885,13 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'Fine China - Plate' (type name)? Used 8 time(s).",
+  "message": "What is 'Fine China - Plate' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Hawthorn - 25'",
@@ -1564,6 +1900,9 @@
   "field": "type_name",
   "raw": "Hawthorn - 25'",
   "occurrences": 1,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcim"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1571,11 +1910,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Hawthorn - 25'' (type name)? Used 1 time(s).",
+  "message": "What is 'Hawthorn - 25'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Honey Locust - 25'",
@@ -1584,6 +1925,16 @@
   "field": "type_name",
   "raw": "Honey Locust - 25'",
   "occurrences": 8,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVc_e",
+   "2kYqvrv7r7Ee9Lf6DEVcrj",
+   "2kYqvrv7r7Ee9Lf6DEVctv",
+   "2kYqvrv7r7Ee9Lf6DEVcsP",
+   "2kYqvrv7r7Ee9Lf6DEVcny",
+   "2kYqvrv7r7Ee9Lf6DEVcm8",
+   "2kYqvrv7r7Ee9Lf6DEVclx",
+   "2kYqvrv7r7Ee9Lf6DEVclA"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1591,11 +1942,13 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'Honey Locust - 25'' (type name)? Used 8 time(s).",
+  "message": "What is 'Honey Locust - 25'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Largetooth Aspen - 25'",
@@ -1604,6 +1957,9 @@
   "field": "type_name",
   "raw": "Largetooth Aspen - 25'",
   "occurrences": 1,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcpT"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1611,11 +1967,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Largetooth Aspen - 25'' (type name)? Used 1 time(s).",
+  "message": "What is 'Largetooth Aspen - 25'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Lombardy Poplar - 40'",
@@ -1624,6 +1982,9 @@
   "field": "type_name",
   "raw": "Lombardy Poplar - 40'",
   "occurrences": 1,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcq_"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1631,11 +1992,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Lombardy Poplar - 40'' (type name)? Used 1 time(s).",
+  "message": "What is 'Lombardy Poplar - 40'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:M_RPC Beetle",
@@ -1644,6 +2007,9 @@
   "field": "type_name",
   "raw": "M_RPC Beetle",
   "occurrences": 1,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVfyc"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1651,11 +2017,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'M_RPC Beetle' (type name)? Used 1 time(s).",
+  "message": "What is 'M_RPC Beetle' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Built-under Dishwasher G 4101 U CS",
@@ -1664,6 +2032,9 @@
   "field": "type_name",
   "raw": "Miele Built-under Dishwasher G 4101 U CS",
   "occurrences": 1,
+  "guids": [
+   "3vi8Xy_cHA1R$gUoZ0tZjz"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1671,11 +2042,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Built-under Dishwasher G 4101 U CS' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Built-under Dishwasher G 4101 U CS' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Fridge/Freezer KF 1911 Vi",
@@ -1684,6 +2057,9 @@
   "field": "type_name",
   "raw": "Miele Fridge/Freezer KF 1911 Vi",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx2y0"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1691,11 +2067,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Fridge/Freezer KF 1911 Vi' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Fridge/Freezer KF 1911 Vi' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Induction Cooktop 6350 LPT",
@@ -1704,6 +2082,9 @@
   "field": "type_name",
   "raw": "Miele Induction Cooktop 6350 LPT",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx3_i"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1711,11 +2092,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Induction Cooktop 6350 LPT' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Induction Cooktop 6350 LPT' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Microwave M 8260-2",
@@ -1724,6 +2107,9 @@
   "field": "type_name",
   "raw": "Miele Microwave M 8260-2",
   "occurrences": 1,
+  "guids": [
+   "3vi8Xy_cHA1R$gUoZ0tWFN"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1731,11 +2117,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Microwave M 8260-2' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Microwave M 8260-2' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Oven H 5681 BP",
@@ -1744,6 +2132,9 @@
   "field": "type_name",
   "raw": "Miele Oven H 5681 BP",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx2MV"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1751,11 +2142,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Oven H 5681 BP' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Oven H 5681 BP' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Tumble Dryer T 7944 C",
@@ -1764,6 +2157,9 @@
   "field": "type_name",
   "raw": "Miele Tumble Dryer T 7944 C",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx0h8"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1771,11 +2167,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Tumble Dryer T 7944 C' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Tumble Dryer T 7944 C' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Miele Washing Machine W 5820 WPS",
@@ -1784,6 +2182,9 @@
   "field": "type_name",
   "raw": "Miele Washing Machine W 5820 WPS",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx1Ur"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1791,11 +2192,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Miele Washing Machine W 5820 WPS' (type name)? Used 1 time(s).",
+  "message": "What is 'Miele Washing Machine W 5820 WPS' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Rangehood DA-2210",
@@ -1804,6 +2207,9 @@
   "field": "type_name",
   "raw": "Rangehood DA-2210",
   "occurrences": 1,
+  "guids": [
+   "29jzdd0Ab5sOIOupfzx06M"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1811,11 +2217,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Rangehood DA-2210' (type name)? Used 1 time(s).",
+  "message": "What is 'Rangehood DA-2210' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Red Ash - 25'",
@@ -1824,6 +2232,9 @@
   "field": "type_name",
   "raw": "Red Ash - 25'",
   "occurrences": 1,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcw_"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1831,11 +2242,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Red Ash - 25'' (type name)? Used 1 time(s).",
+  "message": "What is 'Red Ash - 25'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Red Maple - 30'",
@@ -1844,6 +2257,10 @@
   "field": "type_name",
   "raw": "Red Maple - 30'",
   "occurrences": 2,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVcvD",
+   "2kYqvrv7r7Ee9Lf6DEVcn3"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1851,11 +2268,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Red Maple - 30'' (type name)? Used 2 time(s).",
+  "message": "What is 'Red Maple - 30'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Retaining - 300mm Concrete",
@@ -1864,6 +2283,23 @@
   "field": "type_name",
   "raw": "Retaining - 300mm Concrete",
   "occurrences": 10,
+  "guids": [
+   "3_T6_Ndub6XO_ef59N4DQX",
+   "3_T6_Ndub6XO_ef59N4DRY",
+   "3_T6_Ndub6XO_ef59N4DOF",
+   "2WEjrPJHb8ux9RBvH$Iq0S",
+   "2WEjrPJHb8ux9RBvH$Iq3g",
+   "2WEjrPJHb8ux9RBvH$IqPC",
+   "2WEjrPJHb8ux9RBvH$IqQR",
+   "2WEjrPJHb8ux9RBvH$IqSV",
+   "38BWtPCUX0VgAKmmGnoLFm",
+   "38BWtPCUX0VgAKmmGnoLCN"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1871,11 +2307,26 @@
    "count": 10,
    "blocking": true
   },
-  "message": "What is 'Retaining - 300mm Concrete' (type name)? Used 10 time(s).",
+  "message": "What is 'Retaining - 300mm Concrete' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "walls | Retaining - 300mm Concrete | True |  | m2",
+    "description": "Wall, Retaining - 300mm Concrete, 300 mm",
+    "unit": "m2",
+    "quantity": 193.08
+   },
+   {
+    "key": "formwork-walls | m2",
+    "description": "Formwork to walls, both faces",
+    "unit": "m2",
+    "quantity": 903.29
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:type_name:SIP 202mm Wall - conc clad",
@@ -1884,6 +2335,17 @@
   "field": "type_name",
   "raw": "SIP 202mm Wall - conc clad",
   "occurrences": 4,
+  "guids": [
+   "3lLx0gNe59vvExhby0Bfew",
+   "38NblWsDL1I8DljLvn67bV",
+   "38NblWsDL1I8DljLvn67cw",
+   "39NeMDaWPEh9g8$CxWwg0v"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1891,11 +2353,26 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'SIP 202mm Wall - conc clad' (type name)? Used 4 time(s).",
+  "message": "What is 'SIP 202mm Wall - conc clad' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 698.33
+   },
+   {
+    "key": "walls | SIP 202mm Wall - conc clad | True |  | m2",
+    "description": "Wall, SIP 202mm Wall - conc clad, 202 mm",
+    "unit": "m2",
+    "quantity": 118.28
+   }
+  ],
+  "affectedLineCount": 2
  },
  {
   "id": "name:type_name:Scarlet Oak - 42'",
@@ -1904,6 +2381,10 @@
   "field": "type_name",
   "raw": "Scarlet Oak - 42'",
   "occurrences": 2,
+  "guids": [
+   "2kYqvrv7r7Ee9Lf6DEVd2D",
+   "2kYqvrv7r7Ee9Lf6DEVctg"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1911,11 +2392,13 @@
    "count": 2,
    "blocking": true
   },
-  "message": "What is 'Scarlet Oak - 42'' (type name)? Used 2 time(s).",
+  "message": "What is 'Scarlet Oak - 42'' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Solarworld Sunmodule Plus",
@@ -1924,6 +2407,20 @@
   "field": "type_name",
   "raw": "Solarworld Sunmodule Plus",
   "occurrences": 12,
+  "guids": [
+   "05C5jBkCzCQwjdBruI5$mZ",
+   "3LY1kdnlj6bgwyZNgs$1bx",
+   "3LY1kdnlj6bgwyZNgs$1ac",
+   "3LY1kdnlj6bgwyZNgs$1ag",
+   "3LY1kdnlj6bgwyZNgs$1at",
+   "3LY1kdnlj6bgwyZNgs$1ar",
+   "3LY1kdnlj6bgwyZNgs$1a$",
+   "3LY1kdnlj6bgwyZNgs$1az",
+   "3LY1kdnlj6bgwyZNgs$1aU",
+   "3LY1kdnlj6bgwyZNgs$1aS",
+   "3LY1kdnlj6bgwyZNgs$1dc",
+   "3LY1kdnlj6bgwyZNgs$1da"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1931,11 +2428,13 @@
    "count": 12,
    "blocking": true
   },
-  "message": "What is 'Solarworld Sunmodule Plus' (type name)? Used 12 time(s).",
+  "message": "What is 'Solarworld Sunmodule Plus' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Vase (3)-with Flower",
@@ -1944,6 +2443,9 @@
   "field": "type_name",
   "raw": "Vase (3)-with Flower",
   "occurrences": 1,
+  "guids": [
+   "1mNYMX4dvDThNrJdPk$tpF"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1951,11 +2453,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Vase (3)-with Flower' (type name)? Used 1 time(s).",
+  "message": "What is 'Vase (3)-with Flower' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Wall - Timber Clad",
@@ -1964,6 +2468,21 @@
   "field": "type_name",
   "raw": "Wall - Timber Clad",
   "occurrences": 8,
+  "guids": [
+   "3lLx0gNe59vvExhby0Bff1",
+   "28i3i5WDD8Ju0YHnzXOzdu",
+   "1oPutv5ADAxgWEbAZbN6Wv",
+   "1PDnLIM013wvkZO9Lb4$wc",
+   "38NblWsDL1I8DljLvn67Sd",
+   "27lifGE4TF58A1JhY9194T",
+   "3rPRxvVIT7WRZKOFIc3wXL",
+   "2OulbipBrAkwQNv_KJRV9c"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.internal"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1971,11 +2490,32 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'Wall - Timber Clad' (type name)? Used 8 time(s).",
+  "message": "What is 'Wall - Timber Clad' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "paint-walls | m2",
+    "description": "Paint to plasterboard wall surfaces",
+    "unit": "m2",
+    "quantity": 698.33
+   },
+   {
+    "key": "walls | Wall - Timber Clad | True |  | m2",
+    "description": "Wall, Wall - Timber Clad, 202 mm",
+    "unit": "m2",
+    "quantity": 120.71
+   },
+   {
+    "key": "walls | Wall - Timber Clad | None |  | m2",
+    "description": "Wall, Wall - Timber Clad, 202 mm",
+    "unit": "m2",
+    "quantity": 42.75
+   }
+  ],
+  "affectedLineCount": 3
  },
  {
   "id": "name:type_name:Walvit",
@@ -1984,6 +2524,12 @@
   "field": "type_name",
   "raw": "Walvit",
   "occurrences": 4,
+  "guids": [
+   "0Qn0xDcrP0Ie69cIIE3wtB",
+   "0H7vgQcNjEo8efFHzwVpwh",
+   "2wm6PO6TX9IxXwLP21Hz7i",
+   "2wm6PO6TX9IxXwLP21Hyo6"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -1991,11 +2537,13 @@
    "count": 4,
    "blocking": true
   },
-  "message": "What is 'Walvit' (type name)? Used 4 time(s).",
+  "message": "What is 'Walvit' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Water Glass",
@@ -2004,6 +2552,16 @@
   "field": "type_name",
   "raw": "Water Glass",
   "occurrences": 8,
+  "guids": [
+   "0NrahGrur9Xw8sux415Ol2",
+   "0NrahGrur9Xw8sux415Ojw",
+   "0NrahGrur9Xw8sux415Oje",
+   "0NrahGrur9Xw8sux415OiU",
+   "0NrahGrur9Xw8sux415Oie",
+   "0NrahGrur9Xw8sux415Oik",
+   "0NrahGrur9Xw8sux415Oii",
+   "0NrahGrur9Xw8sux415OhI"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2011,11 +2569,13 @@
    "count": 8,
    "blocking": true
   },
-  "message": "What is 'Water Glass' (type name)? Used 8 time(s).",
+  "message": "What is 'Water Glass' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:White",
@@ -2024,6 +2584,9 @@
   "field": "type_name",
   "raw": "White",
   "occurrences": 1,
+  "guids": [
+   "0NrahGrur9Xw8sux415PTl"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2031,11 +2594,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'White' (type name)? Used 1 time(s).",
+  "message": "What is 'White' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:Wine Bottles",
@@ -2044,6 +2609,9 @@
   "field": "type_name",
   "raw": "Wine Bottles",
   "occurrences": 1,
+  "guids": [
+   "0NrahGrur9Xw8sux415PgG"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2051,11 +2619,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'Wine Bottles' (type name)? Used 1 time(s).",
+  "message": "What is 'Wine Bottles' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:YinYin",
@@ -2064,6 +2634,11 @@
   "field": "type_name",
   "raw": "YinYin",
   "occurrences": 3,
+  "guids": [
+   "1Rg2y5brbBReiPZuQVS4Sp",
+   "1Rg2y5brbBReiPZuQVS4HI",
+   "1Rg2y5brbBReiPZuQVS4JN"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2071,11 +2646,13 @@
    "count": 3,
    "blocking": true
   },
-  "message": "What is 'YinYin' (type name)? Used 3 time(s).",
+  "message": "What is 'YinYin' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:fire place hang",
@@ -2084,6 +2661,9 @@
   "field": "type_name",
   "raw": "fire place hang",
   "occurrences": 1,
+  "guids": [
+   "1DaGnOS6v2iOJfBoPtVOcK"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2091,11 +2671,13 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'fire place hang' (type name)? Used 1 time(s).",
+  "message": "What is 'fire place hang' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  },
  {
   "id": "name:type_name:water",
@@ -2104,6 +2686,9 @@
   "field": "type_name",
   "raw": "water",
   "occurrences": 1,
+  "guids": [
+   "1RUi90wQT3ihQ$96bMNGp7"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -2111,10 +2696,12 @@
    "count": 1,
    "blocking": true
   },
-  "message": "What is 'water' (type name)? Used 1 time(s).",
+  "message": "What is 'water' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [],
+  "affectedLineCount": 0
  }
 ]

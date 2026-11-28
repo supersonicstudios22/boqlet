@@ -6,6 +6,20 @@
   "field": "type_name",
   "raw": "Basic Wall:231 YV Betong 200",
   "occurrences": 7,
+  "guids": [
+   "gggggggggggggggggggggg",
+   "aaaaaaaaaaaaaaaaaaaaaa",
+   "bbbbbbbbbbbbbbbbbbbbbb",
+   "cccccccccccccccccccccc",
+   "dddddddddddddddddddddd",
+   "eeeeeeeeeeeeeeeeeeeeee",
+   "ffffffffffffffffffffff"
+  ],
+  "candidates": [
+   "wall.external",
+   "wall.foundation",
+   "wall.lining"
+  ],
   "code": "question.unknown_name",
   "params": {
    "field": "type_name",
@@ -13,10 +27,25 @@
    "count": 7,
    "blocking": true
   },
-  "message": "What is 'Basic Wall:231 YV Betong 200' (type name)? Used 7 time(s).",
+  "message": "What is 'Basic Wall:231 YV Betong 200' (type name)?",
   "answer": {
    "kind": "term",
    "category": "element_type"
-  }
+  },
+  "affectedLines": [
+   {
+    "key": "formwork-walls | m2",
+    "description": "Formwork to walls, both faces",
+    "unit": "m2",
+    "quantity": 362.71
+   },
+   {
+    "key": "walls | Basic Wall:231 YV Betong 200 | True |  | m2",
+    "description": "Wall, Basic Wall:231 YV Betong 200, 200 mm",
+    "unit": "m2",
+    "quantity": 155.49
+   }
+  ],
+  "affectedLineCount": 2
  }
 ]
