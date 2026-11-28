@@ -9,6 +9,7 @@ import com.boqlet.api.library.Library;
 import com.boqlet.api.library.PresetCatalog;
 import com.boqlet.api.org.OrgAccess;
 import com.boqlet.api.project.ProjectAccess;
+import com.boqlet.api.realtime.Notifications;
 import com.boqlet.contract.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,9 +38,10 @@ public class Decisions {
     private final BoqAccess access;
     private final Boqs boqs;
     private final AuditWriter audit;
+    private final Notifications notifications;
 
     Decisions(JdbcTemplate database, StoredJson json, ProjectAccess projects, OrgAccess orgs, Library library,
-              PresetCatalog presets, BoqAccess access, Boqs boqs, AuditWriter audit) {
+              PresetCatalog presets, BoqAccess access, Boqs boqs, AuditWriter audit, Notifications notifications) {
         this.database = database;
         this.json = json;
         this.projects = projects;
@@ -49,6 +51,7 @@ public class Decisions {
         this.access = access;
         this.boqs = boqs;
         this.audit = audit;
+        this.notifications = notifications;
     }
 
     record Saved(UUID id, UUID project, String key, String kind, JsonNode answer, String note, JsonNode question,
@@ -72,6 +75,8 @@ public class Decisions {
         var updated = new LinkedHashSet<String>();
         var rows = new ArrayList<Saved>();
         var additions = new ArrayList<Saved>();
+        // review C-17: a colleague's answer this request changes (asked first in the app, notified on save)
+        var replaced = new ArrayList<Saved>();
         OffsetDateTime at = OffsetDateTime.now(ZoneOffset.UTC);
         for (var input : request.getDecisions()) {
             // `answer: null` is an answer (dismiss: leave it, F05 §3); only a missing answer is refused.
@@ -88,6 +93,7 @@ public class Decisions {
             String note = input.getNote() == null || input.getNote().isBlank() ? null : input.getNote().strip();
             boolean answerChanged = existing == null || !same(existing.answer(), answer);
             if (answerChanged) updated.add(key);
+            if (answerChanged && existing != null && existing.actor() != null && !existing.actor().equals(actor)) replaced.add(existing);
             if (!answerChanged && Objects.equals(existing.note(), note)) {
                 rows.add(existing);
             } else {
@@ -116,9 +122,12 @@ public class Decisions {
                 library.publishDictionaryEntries(scope.getProjectDictionaryId(), actor, dictionary, "Project decisions");
             }
             withdraw(affected, actor);
+            notifyReplaced(scope, actor, replaced, rows);
         }
         if (!dryRun) affected.forEach(revision -> revision.setStatus(RevisionStatus.DRAFT));
-        return new UpsertDecisions200Response(rows.stream().map(this::view).toList(), affected);
+        return new UpsertDecisions200Response(rows.stream().map(this::view).toList(), affected)
+                .replacedDecisions(replaced.stream().map(this::view).toList())
+                .appliesTo(appliesTo(project, seen));
     }
 
     @Transactional
@@ -130,6 +139,7 @@ public class Decisions {
         }
         withdraw(affected(row.project(), Set.of(row.key())), actor);
         event(project, actor, "decision.cleared", row, Map.of());
+        if (row.actor() != null && !row.actor().equals(actor)) notifyReplaced(project, actor, List.of(row), List.of());
     }
 
     @Transactional
@@ -247,6 +257,67 @@ public class Decisions {
                            OR EXISTS(SELECT 1 FROM runs n, jsonb_array_elements(n.input_snapshot->'decisions') d
                                      WHERE n.id = ? AND d->>'questionId' = ?)
                         """, Boolean.class, item.run(), key, item.run(), key)))).map(Candidate::revision).toList();
+    }
+
+    /**
+     * The current versions of the project's working BoQs whose latest run asked or used one of these questions
+     * (review C-17): a decision is project-wide, so it applies to each of them.
+     */
+    private List<RevisionRef> appliesTo(UUID project, Set<String> keys) {
+        if (keys.isEmpty()) return List.of();
+        String[] ids = keys.toArray(String[]::new);
+        return database.query("""
+                SELECT b.id, b.name, r.id AS revision_id, r.label, r.status FROM boqs b
+                JOIN boq_revisions r ON r.id = b.current_revision_id
+                WHERE b.project_id = ? AND b.status = 'working' AND NOT b.archived AND r.current_run_id IS NOT NULL
+                    AND (EXISTS (SELECT 1 FROM run_questions q WHERE q.run_id = r.current_run_id AND q.question_id = ANY (?))
+                      OR EXISTS (SELECT 1 FROM runs n, jsonb_array_elements(n.input_snapshot->'decisions') d
+                                 WHERE n.id = r.current_run_id AND d->>'questionId' = ANY (?)))
+                ORDER BY b.name, b.id
+                """, (row, index) -> new RevisionRef(row.getObject("id", UUID.class), row.getString("name"),
+                    row.getObject("revision_id", UUID.class), row.getString("label"), RevisionStatus.fromValue(row.getString("status"))),
+                project, ids, ids);
+    }
+
+    /**
+     * Each person whose answer was replaced hears it once per request (review C-17): who replaced it, how many, and
+     * what the first one was about. In the app only (no email category); the link opens the project's decisions.
+     */
+    private void notifyReplaced(Project project, UUID actor, List<Saved> replaced, List<Saved> now) {
+        var byAuthor = new LinkedHashMap<UUID, List<Saved>>();
+        replaced.forEach(row -> byAuthor.computeIfAbsent(row.actor(), key -> new ArrayList<>()).add(row));
+        var by = access.user(actor);
+        String url = notifications.projectUrl(project.getOrgId(), project.getId()) + "/decisions";
+        for (var entry : byAuthor.entrySet()) {
+            Saved first = entry.getValue().getFirst();
+            var answer = now.stream().filter(row -> row.key().equals(first.key())).findFirst().map(Saved::answer).orElse(null);
+            var params = new LinkedHashMap<String, Object>();
+            params.put("by", by == null ? "" : by.getName());
+            params.put("project", project.getName());
+            params.put("count", entry.getValue().size());
+            params.put("subject", subject(first));
+            params.put("previous", text(first.answer()));
+            params.put("answer", text(answer));
+            notifications.send(entry.getKey(), project.getOrgId(), project.getId(), "decision.replaced", null, params,
+                    url, "decision", first.id());
+        }
+    }
+
+    /** What a question is about, for a person: the raw name, the element type or name, else its id. */
+    private static String subject(Saved row) {
+        JsonNode question = row.question();
+        if (question != null) {
+            if (question.path("raw").isTextual()) return question.path("raw").asText();
+            JsonNode params = question.path("params");
+            for (String field : List.of("typeName", "name", "description")) {
+                if (params.path(field).isTextual() && !params.path(field).asText().isBlank()) return params.path(field).asText();
+            }
+        }
+        return row.key();
+    }
+
+    private static String text(JsonNode answer) {
+        return answer == null || answer.isNull() ? "" : answer.asText();
     }
 
     private void withdraw(List<RevisionRef> revisions, UUID actor) {

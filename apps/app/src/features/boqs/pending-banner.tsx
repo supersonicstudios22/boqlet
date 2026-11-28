@@ -19,6 +19,7 @@ const SHOWN = 8;
 export function PendingBanner({
   edits,
   answers,
+  answeredBy = [],
   inputs,
   editsChanged,
   canApply,
@@ -28,6 +29,8 @@ export function PendingBanner({
 }: {
   edits: readonly PendingEdit[] | null;
   answers: number;
+  /** Who gave the answers not applied yet (review C-17). */
+  answeredBy?: readonly string[];
   /** Other inputs that changed (`BoqRevision.pendingChanges` keys besides decisions and adjustments). */
   inputs: readonly string[];
   /** `pendingChanges` has "adjustments": the line edits differ from the run's. */
@@ -84,7 +87,11 @@ export function PendingBanner({
             </li>
           ))}
           {listed.length > SHOWN && <li>{t("more", { count: listed.length - SHOWN })}</li>}
-          {answers > 0 && <li>{t("answersLine", { count: answers })}</li>}
+          {answers > 0 && (
+            <li data-testid="pending-answers">
+              {answeredBy.length ? t("answersBy", { count: answers, names: format.list(answeredBy, { type: "conjunction" }) }) : t("answersLine", { count: answers })}
+            </li>
+          )}
           {inputs.length > 0 && <li>{t("inputsLine", { what: format.list(parts.slice(parts.length - inputs.length), { type: "unit" }) })}</li>}
         </ul>
       )}

@@ -76,7 +76,12 @@
     "body": "{count, plural, one {This version goes} other {These versions go}} back to draft and must be submitted again:",
     "revision": "{boq}, version {label} ({status, select, in_review {in review} approved {approved} other {draft}})",
     "cancel": "Cancel",
-    "confirm": "Save and move to draft"
+    "confirm": "Save and move to draft",
+    "replaceTitle": "{count, plural, one {Replace a colleague’s answer?} other {Replace # answers by colleagues?}}",
+    "replaced": "{name} answered “{answer}” on {date}.",
+    "more": "… and {count} more.",
+    "appliesTo": "{count, plural, one {This answer applies to 1 BoQ in this project: {boqs}.} other {This answer applies to # BoQs in this project: {boqs}{more, plural, =0 {} other { and # more}}.}}",
+    "replace": "Replace"
   },
   "promote": {
     "title": "Promote {count, plural, one {this answer} other {# answers}} to a company dictionary",

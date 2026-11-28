@@ -155,7 +155,7 @@ export function DecisionsTable() {
           </TableBody>
         </Table>
       )}
-      {editing && <EditDialog decision={editing} terms={terms.data ?? []} busy={flow.busy} onSave={(answer, note) => flow.submit({ decisions: [{ questionId: editing.questionId, kind: editing.kind, answer, ...(note ? { note } : {}) }] }, () => setEditing(null))} onClose={() => setEditing(null)} />}
+      {editing && <EditDialog decision={editing} terms={terms.data ?? []} busy={flow.busy} onSave={(answer, note) => flow.submit({ decisions: [{ questionId: editing.questionId, kind: editing.kind, answer, ...(note ? { note } : {}) }] }, () => setEditing(null), [editing])} onClose={() => setEditing(null)} />}
       {promoting && <PromoteDialog orgId={org.id} projectId={project.id} decisionIds={[promoting]} open onOpenChange={(open) => !open && setPromoting(null)} />}
       {flow.dialog}
     </section>

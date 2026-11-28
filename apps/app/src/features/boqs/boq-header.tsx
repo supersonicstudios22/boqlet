@@ -86,6 +86,8 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
   const answersPending = revision.pendingChanges.includes("decisions");
   const questions = useQuestions(answersPending ? revision.currentRun?.id : undefined);
   const notApplied = answersPending ? counts(questions.data ?? []).notApplied : 0;
+  // review C-17: the banner names who answered (a cleared answer has no author left to name)
+  const answeredBy = answersPending ? [...new Set((questions.data ?? []).filter((q) => q.answeredAfterRun).flatMap((q) => (q.decision?.decidedBy?.name ? [q.decision.decidedBy.name] : [])))] : [];
   // Review C-08: the line edits and manual lines the run doesn't have, counted from the run's lines (the same cached
   // query as the sheet's; not for a server-grouped BoQ, which never loads every line: then they are named, not counted).
   const editsChanged = revision.pendingChanges.includes("adjustments");
@@ -285,6 +287,7 @@ export function BoqHeader({ boq, runs, base, canArchive, approval }: { boq: Boq;
           <PendingBanner
             edits={pendingEdits}
             answers={notApplied}
+            answeredBy={answeredBy}
             inputs={otherPending}
             editsChanged={editsChanged}
             canApply={can("editBoqs") && state.kind !== "active" && !boq.archived}

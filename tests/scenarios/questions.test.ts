@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Schemas } from "@ifc-boq/api";
 import { client, ROOT_URL, authentication } from "../support/env";
-import { allowProjects } from "../support/plans";
+import { allowProjects, allowSeats } from "../support/plans";
+import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
@@ -289,4 +290,44 @@ describe("names that can always be answered (review WP-C4, C-16)", () => {
     // the term "Not relevant" answers any name question
     expect((await search("not relevant")).map((t) => t.id)).toContain("unspecified");
   });
+});
+
+describe("replacing a colleague's answer (review WP-C4, C-17)", () => {
+  it("the dry run names whose answer is replaced and the BoQs it applies to; saving notifies that person", async () => {
+    const api = client(owner.token);
+    await allowSeats(orgId);
+    const email = uniqueEmail("questions-erin");
+    await api.POST("/orgs/{orgId}/invitations", { params: { path: { orgId } }, body: { email, role: "member" } });
+    const erin = await signUp("Erin Estimator", email);
+    await client(erin.token).POST("/invitations/{token}/accept", { params: { path: { token: await invitationToken(email) } } });
+    await api.POST("/projects/{projectId}/members", { params: { path: { projectId } }, body: { userId: erin.id, role: "estimator" } });
+
+    const terms = [...(await firstTerms(api)).values()];
+    const name = (await questionsOf(api, first.id)).find((q) => q.kind === "unknown_name" && q.answer.kind === "term")!;
+    const material = (await api.GET("/orgs/{orgId}/terms", { params: { path: { orgId }, query: { category: (name.answer as { category?: string }).category } } })).data!;
+    // two answers, neither the one already given (an unchanged answer keeps its author)
+    const [a, b] = [...material.map((t) => t.id), ...terms].filter((id) => id !== name.decision?.answer);
+    const body = (answer: string) => ({ decisions: [{ questionId: name.id, kind: "unknown_name", answer }], addToProjectDictionary: false });
+    const erinSaved = await client(erin.token).POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: body(a) });
+    expect(erinSaved.response.status, JSON.stringify(erinSaved.error)).toBe(200);
+
+    // The owner looks first: Erin's answer is named, and the BoQ whose run asks the question is listed.
+    const look = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId }, query: { dryRun: true } }, body: body(b) });
+    expect(look.response.status).toBe(200);
+    expect(look.data!.replacedDecisions!.map((d) => [d.questionId, d.answer, d.decidedBy?.name])).toEqual([[name.id, a, "Erin Estimator"]]);
+    expect(look.data!.appliesTo!.map((r) => r.boqId)).toContain(boq.id);
+    // A dry run changes nothing and tells nobody.
+    const before = (await client(erin.token).GET("/notifications", {})).data!.items.filter((n) => n.kind === "decision.replaced");
+
+    // Her own answer again replaces nobody's.
+    const own = await client(erin.token).POST("/projects/{projectId}/decisions", { params: { path: { projectId }, query: { dryRun: true } }, body: body(b) });
+    expect(own.data!.replacedDecisions).toEqual([]);
+
+    const saved = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId } }, body: body(b) });
+    expect(saved.response.status).toBe(200);
+    const after = (await client(erin.token).GET("/notifications", {})).data!.items.filter((n) => n.kind === "decision.replaced");
+    expect(after.length).toBe(before.length + 1);
+    expect(after[0]!.params).toMatchObject({ by: "Questions Owner", count: 1, subject: name.raw, previous: a, answer: b });
+    expect(after[0]!.url).toMatch(new RegExp(`/projects/${projectId}/decisions$`));
+  }, 120_000);
 });

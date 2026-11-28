@@ -73,4 +73,10 @@ describe("the pending banner (review C-08)", () => {
     expect(q(host, "pending-apply")).toBeNull();
     expect(q(host, "pending-banner")!.dataset.edits).toBeUndefined();
   });
+
+  it("names who gave the answers not applied yet (review C-17)", () => {
+    const { host } = render({ answers: 3, answeredBy: ["Erin Estimator", "Ana Lead"] });
+    act(() => q(host, "pending-toggle")!.click());
+    expect(q(host, "pending-answers")!.textContent).toBe("3 answers to questions, by Erin Estimator and Ana Lead");
+  });
 });

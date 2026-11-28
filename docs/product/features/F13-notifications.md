@@ -28,6 +28,7 @@
 | `revision.review_withdrawn` (approval on) | reviewers | ✓ | no |
 | `member.invited` (org) | invitee (email only) | — | yes |
 | `project_member.added` | the user | ✓ | yes |
+| `decision.replaced` (review C-17: someone changed or cleared your answer; one per request, with the count) | the previous author | ✓ | no |
 | `session.revoked` | the replaced session (SSE only) | signed-out message | no |
 | `vendor.invited` | vendor (email only) | — | yes |
 | `vendor.linked` | the inviting member | ✓ | no |

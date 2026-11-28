@@ -70,7 +70,7 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
     if (like) setSelected(new Set(shown.filter((q) => selectable([like], q)).map((q) => q.id)));
   };
   const save = (qs: Question[], answer: Answer, done?: () => void) =>
-    flow.submit({ decisions: qs.map((q) => ({ questionId: q.id, kind: q.kind, answer })), addToProjectDictionary: toDictionary }, done);
+    flow.submit({ decisions: qs.map((q) => ({ questionId: q.id, kind: q.kind, answer })), addToProjectDictionary: toDictionary }, done, qs.map((q) => q.decision));
 
   const row = (q: Question) => (
     <QuestionRow

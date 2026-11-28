@@ -6988,6 +6988,10 @@ export interface operations {
                     "application/json": {
                         decisions: components["schemas"]["Decision"][];
                         reopenedRevisions: components["schemas"]["RevisionRef"][];
+                        /** @description The project's current decisions, made by someone else, whose answer this request changes (review C-17): the app asks before replacing a colleague's answer; saving notifies each of them once (`decision.replaced`). */
+                        replacedDecisions?: components["schemas"]["Decision"][];
+                        /** @description The current versions of the project's working BoQs whose latest run asked or used any of these questions: decisions are project-wide, so an answer applies to all of them (F05, review C-17). */
+                        appliesTo?: components["schemas"]["RevisionRef"][];
                     };
                 };
             };

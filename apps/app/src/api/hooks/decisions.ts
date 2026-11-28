@@ -58,9 +58,16 @@ export interface AnswerRequest {
 }
 
 /** BR-23: the revisions a change would move back to draft (`?dryRun=true`, nothing is saved). */
-export async function reopenedBy(projectId: string, request: AnswerRequest): Promise<RevisionRef[]> {
+/** What saving would do (a dry run): the versions it sends back to draft, the colleagues' answers it replaces, the BoQs it applies to. */
+export interface AnswerImpact {
+  reopened: RevisionRef[];
+  replaced: Decision[];
+  appliesTo: RevisionRef[];
+}
+
+export async function answerImpact(projectId: string, request: AnswerRequest): Promise<AnswerImpact> {
   const { data } = await api.POST("/projects/{projectId}/decisions", { params: { path: { projectId }, query: { dryRun: true } }, body: request });
-  return data!.reopenedRevisions;
+  return { reopened: data!.reopenedRevisions, replaced: data!.replacedDecisions ?? [], appliesTo: data!.appliesTo ?? [] };
 }
 
 export function useAnswer(projectId: string) {

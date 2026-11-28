@@ -15,7 +15,8 @@
     "revision_review_withdrawn": "{by} withdrew the review of {boq}, version {revision}",
     "project_member_added": "{by} added you to {project}",
     "limit_near": "Your plan is nearly used up: {limit}, {current} of {max}",
-    "limit_reached": "Your plan's limit is reached: {limit}, {current} of {max}"
+    "limit_reached": "Your plan's limit is reached: {limit}, {current} of {max}",
+    "decision_replaced": "{by} changed {count, plural, one {your answer about “{subject}”} other {# of your answers}} in {project}"
   },
   "title": "Notifications",
   "bell": "{count, plural, =0 {Notifications} other {Notifications, # unread}}",

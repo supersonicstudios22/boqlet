@@ -887,7 +887,8 @@
       "codes": "code",
       "excluded": "excluded",
       "order": "order"
-    }
+    },
+    "answersBy": "{count, plural, one {# answer} other {# answers}} to questions, by {names}"
   },
   "palette": {
     "goQuestions": "Go to the questions"

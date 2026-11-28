@@ -1,6 +1,6 @@
 # F05 Questions and decisions
 
-> **Status (2026-11-28):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built. A run lists the questions it asked plus those its decisions answered (TF-137); a click on the preselected suggested answer accepts it (P54 Q60, TF-173); viewers see questions and decisions read-only (Q44). A `contradiction` above the resolution settings' block threshold (default 50 %) blocks; unit errors and implausible stated values recommend the geometry (review WP-A1, D71–D73). Copies of one object in two models that disagree raise a `duplicate_conflict` question per GlobalId, answered by naming the model whose copy is measured (review A-18, D86). Each question lists the lines its elements feed (review C-15, D121); contradictions read as "the file says …; the geometry measures … (−10 %)"; questions that change nothing (a name no rule reads) are under "For information", collapsed. Name questions can always be answered: "Not relevant" (the term `unspecified`), up to 3 fitting terms as one-click answers, a term search over translations and aliases; placeholders ("Default", "<By Category>") are asked without blocking (review C-16, D122).
+> **Status (2026-11-28):** Built. Questions, answers, bulk answer, dismiss, the decisions page with CSV and promotion to the org dictionary are built. A run lists the questions it asked plus those its decisions answered (TF-137); a click on the preselected suggested answer accepts it (P54 Q60, TF-173); viewers see questions and decisions read-only (Q44). A `contradiction` above the resolution settings' block threshold (default 50 %) blocks; unit errors and implausible stated values recommend the geometry (review WP-A1, D71–D73). Copies of one object in two models that disagree raise a `duplicate_conflict` question per GlobalId, answered by naming the model whose copy is measured (review A-18, D86). Each question lists the lines its elements feed (review C-15, D121); contradictions read as "the file says …; the geometry measures … (−10 %)"; questions that change nothing (a name no rule reads) are under "For information", collapsed. Name questions can always be answered: "Not relevant" (the term `unspecified`), up to 3 fitting terms as one-click answers, a term search over translations and aliases; placeholders ("Default", "<By Category>") are asked without blocking (review C-16, D122). Replacing a colleague's answer is asked first, names the BoQs it applies to and notifies them; the "not applied yet" banner names who answered (review C-17, D123).
 > **Not built / differs:**
 > - The questions tab filters by kind and answered state only; no model filter (`apps/app/src/features/questions/questions-tab.tsx`).
 
@@ -8,7 +8,10 @@
 
 The engine asks when it cannot decide: an unknown material name, a missing value, an element
 no rule measures, a contradiction in the file, two models claiming the same element. Answers
-are stored once per project and applied to every run, every BoQ and every new model version.
+are stored once per project and applied to every run, every BoQ and every new model version. That scope is
+shown where it matters (review C-17, DEC-43): before an answer replaces a colleague's, the app names them
+("Erin answered “Aluminium” on 23 Nov.") and the BoQs it applies to ("This answer applies to 3 BoQs in this
+project: …"), and the colleague is told (`decision.replaced`).
 
 ## Question kinds (engine `QuestionKind`) and their answer controls
 
