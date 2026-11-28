@@ -57,9 +57,14 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
 5. **Invite:** email + role. `seats` is checked when sending (`402 limit_reached` with
    `limit: "seats"`). Pending invitations count towards seats. Inviting an email that is
    already a member returns `409 already_member`. Invitations expire after 14 days and can be
-   resent (new token) or revoked.
+   resent (new token) or revoked. The email names the inviter, the org, the role and says in one
+   line what boqlet is (review C-31).
 6. **Accept:** the signed-in user's email must match the invitation email
    (case-insensitive). Otherwise the page explains it and offers "sign in with another account".
+   The invitation page names the inviter; for an address **without an account** its main action
+   is "Create your account and join": a name and a password, and the account is made, signed in
+   (C-28's `signIn`) and joined in one screen, then the org's page (review C-31). An address with
+   an account signs in to accept, as before (`hasAccount` on the invitation preview).
 7. **Roles:** see `docs/domain/permissions.md`. Changing one's own role is not allowed. The
    last owner can't be removed or demoted (`409 last_owner`).
 8. **Remove member:** their project memberships in this org are removed. Their past actions

@@ -102,24 +102,52 @@ class EmailDelivery {
         return true;
     }
 
+    /**
+     * An invitation (review C-31): who invited, to which org, in which role, and one line on what boqlet is,
+     * so a new person knows what they are joining.
+     */
     private Text invitation(Item item) {
         UUID nonce = UUID.fromString(item.payload().path("nonce").asText());
         return database.query("""
-                SELECT o.name, i.expires_at, o.settings->>'defaultLanguage' AS locale FROM org_invitations i
+                SELECT o.name, i.expires_at, i.role, u.name AS inviter, o.settings->>'defaultLanguage' AS locale
+                FROM org_invitations i
                 JOIN orgs o ON o.id = i.org_id AND o.status = 'active'
+                JOIN users u ON u.id = i.invited_by
                 WHERE i.id = ? AND i.org_id = ? AND i.delivery_nonce = ? AND i.email = ?
                   AND i.status = 'pending' AND i.expires_at > now()
                 """, (row, index) -> {
                     String name = row.getString("name");
+                    String inviter = row.getString("inviter");
+                    String role = row.getString("role");
                     String expiry = row.getObject("expires_at", OffsetDateTime.class).format(DateTimeFormatter.ISO_LOCAL_DATE);
                     String link = app + "/invite/" + invitations.deliveryToken(item.entity(), nonce);
-                    if (serbian(row.getString("locale"))) return new Text("Poziv za pristup organizaciji na boqlet-u",
-                            "Pozvani ste da se pridružite organizaciji " + name + ".\n\nPrihvatite poziv: " + link
-                            + "\n\nPoziv važi do " + expiry + ".");
-                    return new Text("Invitation to join an organisation on boqlet",
-                            "You've been invited to join " + name + ".\n\nAccept the invitation: " + link
-                            + "\n\nThe invitation expires on " + expiry + ".");
+                    if (serbian(row.getString("locale"))) return new Text(inviter + " vas poziva u " + name + " na boqlet-u",
+                            inviter + " vas poziva da se pridružite organizaciji " + name + " na boqlet-u, kao " + roleSr(role) + ".\n\n"
+                            + "boqlet pravi predmer iz modela zgrade (IFC), sa količinama koje tim može da proveri.\n\n"
+                            + "Prihvatite poziv: " + link + "\n\nPoziv važi do " + expiry + ".");
+                    return new Text(inviter + " invited you to " + name + " on boqlet",
+                            inviter + " invited you to join " + name + " on boqlet as " + roleEn(role) + ".\n\n"
+                            + "boqlet turns building models (IFC) into bills of quantities your team can check.\n\n"
+                            + "Accept the invitation: " + link + "\n\nThe invitation expires on " + expiry + ".");
                 }, item.entity(), item.org(), nonce, item.email()).stream().findFirst().orElse(null);
+    }
+
+    private static String roleEn(String role) {
+        return switch (role) {
+            case "owner" -> "an owner";
+            case "admin" -> "an admin";
+            case "library_editor" -> "a library editor";
+            default -> "a member";
+        };
+    }
+
+    private static String roleSr(String role) {
+        return switch (role) {
+            case "owner" -> "vlasnik";
+            case "admin" -> "administrator";
+            case "library_editor" -> "urednik biblioteke";
+            default -> "član";
+        };
     }
 
     /**

@@ -14,6 +14,7 @@ import { LIMITS } from "@/lib/limits";
 import { useHydrated } from "@/components/hydration";
 import { useRelativeTime } from "@/i18n/use-relative-time";
 import { ResetRequest, SignUpLink, SignUpRequest } from "./native-links";
+import { MIN_PASSWORD, passwordLength } from "../password-rule";
 
 const LOADING: Session = { status: "loading" };
 const ANONYMOUS: Session = { status: "anonymous" };
@@ -91,9 +92,6 @@ function useNativeSession() {
 
 type SignInOptions = { returnTo?: string; email?: string; reason?: string };
 
-/** The password rule (security.md): 15 to 128 characters, counted as the server counts them (code points). */
-const MIN_PASSWORD = 15;
-export const passwordLength = (value: string) => [...value].length;
 
 /** Which address a setup, reset or invitation link is for (`POST /auth/setup-link`, review C-28); null until known. */
 function useLinkEmail(token: string | null | undefined): string | null {
@@ -130,6 +128,18 @@ export const nativeAuthAdapter: AuthAdapter = {
     } finally {
       window.location.assign(localAuthUrl(opts));
     }
+  },
+  async createAccountFromInvitation(token, name, password) {
+    // Review C-31: set the password from the invitation and sign in, in one call (C-28's `signIn`).
+    const response = await authPost("/auth/set-password", { token, name, password, signIn: true, deviceLabel: "Web browser" })
+      .catch(() => null);
+    if (!response) return { ok: false };
+    if (response.ok) {
+      requestSplash();
+      return { ok: true };
+    }
+    const failure = await response.json().catch(() => ({})) as { code?: string };
+    return { ok: false, code: failure.code };
   },
   appSession: () => sessionId === null ? null : { id: sessionId },
   bindAppSession(id) { sessionId = id; },

@@ -701,10 +701,19 @@ class NativeWorkerTest {
         for (int poll = 0; poll < 40; poll++) {
             var messages = json.readTree(NETWORK.send(request, HttpResponse.BodyHandlers.ofString()).body());
             for (var email : messages.path("items")) {
-                var link = token.matcher(email.path("Content").path("Body").asText());
+                // Quoted-printable: soft line breaks and `=3D`.
+                String body = email.path("Content").path("Body").asText().replaceAll("=\r?\n", "").replace("=3D", "=");
+                var link = token.matcher(body);
                 if (link.find()) {
-                    http.perform(get("/api/v1/invitations/" + link.group(1))).andExpect(status().isOk())
-                            .andExpect(jsonPath("$.email").value("new-pilot@example.test"));
+                    var preview = json.readTree(http.perform(get("/api/v1/invitations/" + link.group(1))).andExpect(status().isOk())
+                            .andExpect(jsonPath("$.email").value("new-pilot@example.test"))
+                            .andExpect(jsonPath("$.hasAccount").value(false))
+                            .andReturn().getResponse().getContentAsString());
+                    // Review C-31: the email names the inviter, the org, the role and what boqlet is.
+                    String inviter = preview.path("invitedBy").asText();
+                    assertThat(inviter).isNotBlank();
+                    assertThat(body).contains(inviter + " invited you to join Native on boqlet as a member.")
+                            .contains("bills of quantities");
                     return;
                 }
             }

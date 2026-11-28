@@ -155,11 +155,19 @@ public class Invitations {
         }
     }
 
+    /**
+     * What the invitation is, for the holder of its link: the inviter's name (no email), and whether the
+     * invited address has an account, so the page offers to create one or to sign in (review C-31).
+     */
     public PreviewOrgInvitation200Response preview(String token) {
         Row row = byToken(token);
         var invite = row.invitation();
+        boolean account = Boolean.TRUE.equals(database.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM users WHERE lower(email) = lower(?) AND deleted_at IS NULL)", Boolean.class,
+                invite.getEmail()));
         return new PreviewOrgInvitation200Response(row.orgName(), invite.getEmail(), invite.getRole(),
-                PreviewOrgInvitation200Response.StatusEnum.fromValue(invite.getStatus().getValue()));
+                PreviewOrgInvitation200Response.StatusEnum.fromValue(invite.getStatus().getValue()))
+                .invitedBy(invite.getInvitedBy().getName()).hasAccount(account);
     }
 
     @Transactional

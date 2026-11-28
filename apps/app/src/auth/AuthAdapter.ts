@@ -41,6 +41,11 @@ export interface AuthAdapter {
   SignUpPage?: ComponentType;
   /** Self-service password reset (P57), for providers whose passwords live in the app. */
   ResetPasswordPage?: ComponentType;
+  /**
+   * Makes the invited address's account from the invitation's token and signs it in, in one step
+   * (review C-31), for providers whose passwords live in the app. A failure carries the API's code.
+   */
+  createAccountFromInvitation?(token: string, name: string, password: string): Promise<{ ok: boolean; code?: string }>;
 }
 
 /**

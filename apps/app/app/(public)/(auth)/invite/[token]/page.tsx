@@ -10,6 +10,7 @@ import { useAuth, useSession } from "@/auth";
 import { openAppSession } from "@/auth/app-session";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Button } from "@/components/ui/button";
+import { JoinForm } from "@/features/orgs/join-form";
 import { rememberOrg } from "@/features/orgs/org-context";
 
 /** S03: accept an invitation (F01 §6). The signed-in email must match the invited one. */
@@ -73,14 +74,22 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
             <div className="flex flex-col gap-3">
               <p className="label-caps text-muted-foreground">{t("label")}</p>
               <h1 className="display text-display-sm">{t("title", { org: inv.orgName })}</h1>
-              <p className="prose-text">{t("body", { email: inv.email, role: roles.has(inv.role) ? roles(inv.role) : inv.role })}</p>
+              <p className="prose-text">
+                {inv.invitedBy
+                  ? t("bodyFrom", { inviter: inv.invitedBy, email: inv.email, role: roles.has(inv.role) ? roles(inv.role) : inv.role })
+                  : t("body", { email: inv.email, role: roles.has(inv.role) ? roles(inv.role) : inv.role })}
+              </p>
             </div>
             {inv.status !== "pending" && (
               <p role="alert" className="prose-text" data-testid="invitation-status">
                 {t(`status.${inv.status}`)}
               </p>
             )}
-            {inv.status === "pending" && session.status === "anonymous" && (
+            {/* Review C-31: an address without an account makes it and joins here, in one step. */}
+            {inv.status === "pending" && session.status === "anonymous" && inv.hasAccount === false && auth.createAccountFromInvitation && (
+              <JoinForm token={token} onSignIn={() => void auth.signIn({ returnTo, email: inv.email })} />
+            )}
+            {inv.status === "pending" && session.status === "anonymous" && !(inv.hasAccount === false && auth.createAccountFromInvitation) && (
               <div className="flex flex-col gap-2">
                 <p className="text-muted-foreground">{t("signInFirst")}</p>
                 <div>

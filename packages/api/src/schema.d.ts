@@ -195,6 +195,7 @@ export interface paths {
             };
             cookie?: never;
         };
+        /** @description What the invitation is, for whoever holds its link (the token was emailed to the invited address). `invitedBy` is the inviter's name; `hasAccount` whether the invited address has an account already, so the page offers "Create your account" (set a password and join in one step, review C-31) or "Sign in to accept". */
         get: operations["previewOrgInvitation"];
         put?: never;
         post?: never;
@@ -5380,6 +5381,10 @@ export interface operations {
                         role: components["schemas"]["OrgRole"];
                         /** @enum {string} */
                         status: "pending" | "accepted" | "revoked" | "expired";
+                        /** @description the inviter's name */
+                        invitedBy?: string;
+                        /** @description the invited address has an account */
+                        hasAccount?: boolean;
                     };
                 };
             };

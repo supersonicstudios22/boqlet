@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "./fixtures";
-import { apiAs, createOrg, invitationToken, newEmail, newPerson, setPasswordWithForm, useSession, waitFor } from "./helpers";
+import { PASSWORD, apiAs, createOrg, hydrated, invitationToken, newEmail, newPerson, resetAuthLimits, skipSplash, useSession, waitFor } from "./helpers";
 
 /**
  * Smoke against Java: live co-editing (F06 §14, criterion 10) through Java's realtime stream. An
@@ -25,12 +25,15 @@ test("F06-AC10: an invited colleague joins; two browsers on one BoQ see each oth
   const page2 = await other.newPage();
   await page2.goto(`/invite/${token}`);
   await expect(page2.getByTestId("invitation")).toContainText("Join Live Firm");
-  await page2.getByTestId("invite-sign-in").click();
-  await expect(page2).toHaveURL(/\/sign-in\?/);
-  await page2.getByRole("link", { name: "Set up your invited account" }).click();
-  await setPasswordWithForm(page2, "Carl Colleague", email, { landing: new RegExp(`/invite/${token}$`) });
-  await page2.getByTestId("accept-invitation").click();
+  // Review C-31: an address without an account joins in one screen: name, password, done.
+  await expect(page2.getByTestId("invitation")).toContainText("Olga Owner invited");
+  await hydrated(page2);
+  await page2.getByTestId("join-name").fill("Carl Colleague");
+  await page2.getByTestId("join-password").fill(PASSWORD);
+  await resetAuthLimits();
+  await page2.getByTestId("join-submit").click();
   await expect(page2).toHaveURL(new RegExp(`/${org.slug}$`));
+  await skipSplash(page2);
 
   const members = await apiAs<{ user: { id: string; email: string } }[]>(owner, "GET", `/orgs/${org.id}/members`);
   const colleague = members.find((m) => m.user.email === email)!.user;

@@ -88,12 +88,14 @@ describe("F01 invitations", () => {
     await invite(owner, org.id, invited);
     const token = await invitationToken(invited);
     const preview = await client(null).GET("/invitations/{token}", { params: { path: { token } } });
-    expect(preview.data).toMatchObject({ orgName: "Test Firm", email: invited, role: "member", status: "pending" });
+    // Review C-31: the preview names the inviter and says the address has no account yet.
+    expect(preview.data).toMatchObject({ orgName: "Test Firm", email: invited, role: "member", status: "pending", invitedBy: "Owner Person", hasAccount: false });
     const someoneElse = await signUp("Someone Else", uniqueEmail("wrong"));
     const refused = await client(someoneElse.token).POST("/invitations/{token}/accept", { params: { path: { token } } });
     expect(refused.response.status).toBe(409);
     expect(refused.error).toMatchObject({ code: "email_mismatch" });
     const right = await signUp("Right Person", invited.toUpperCase());
+    expect((await client(null).GET("/invitations/{token}", { params: { path: { token } } })).data?.hasAccount).toBe(true);
     const ok = await client(right.token).POST("/invitations/{token}/accept", { params: { path: { token } } });
     expect(ok.response.status).toBe(200);
     expect(ok.data!.role).toBe("member");
