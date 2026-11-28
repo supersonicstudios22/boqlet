@@ -22,10 +22,17 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format, t: Tr
     const lo = Number(p.minDifference ?? 0);
     const hi = Number(p.maxDifference ?? lo);
     const pct = (v: number) => format.number(v, { style: "percent", maximumFractionDigits: 0, signDisplay: "always" });
+    const reported = Number(p.reported);
+    const geometry = Number(p.geometry);
+    // the example's own difference (review C-15): the geometry against the file
+    const example = reported ? geometry / reported - 1 : lo;
+    // runs before WP-A1 have neither: the stated value was always used
+    const used = p.used === "geometry" ? "geometry" : "reported";
     return {
-      minPercent: pct(lo), maxPercent: pct(hi), same: Math.abs(hi - lo) < 0.005 ? "true" : "false",
-      // runs before WP-A1 have neither: the stated value was always used
-      used: p.used === "geometry" ? "geometry" : "reported", unitError: p.unitError === true ? "true" : "false",
+      minPercent: pct(lo), maxPercent: pct(hi), examplePercent: pct(Number.isFinite(example) ? example : lo),
+      same: Math.abs(hi - lo) < 0.005 || Number(p.count ?? 1) <= 1 ? "true" : "false",
+      used, unitError: p.unitError === true ? "true" : "false",
+      joins: used === "reported" && p.quantity === "volume" && p.unitError !== true ? "true" : "false",
       scale: typeof p.scale === "string" ? p.scale : "",
     };
   },

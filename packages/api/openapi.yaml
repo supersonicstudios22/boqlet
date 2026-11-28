@@ -3883,6 +3883,9 @@ components:
         raw: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/raw" }
         occurrences: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/occurrences" }
         suggestion: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/suggestion" }
+        affectedLines: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/affectedLines" }
+        affectedLineCount: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/affectedLineCount" }
+        noEffect: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/noEffect" }
         decision: { $ref: "#/components/schemas/Decision" }
         answeredAfterRun:
           type: boolean

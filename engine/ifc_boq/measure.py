@@ -930,20 +930,24 @@ def render_contradiction(q: dict) -> None:
     q["answer"] = {"kind": "choice", "options": [
         {"value": "reported", "label": f"Use the {what} stated in the file", "recommended": used == "reported"},
         {"value": "geometry", "label": f"Use the {what} measured from the geometry", "recommended": used == "geometry"}]}
-    spread = f"{lo:+.0%}" if abs(hi - lo) < 0.005 else f"{lo:+.0%} to {hi:+.0%}"
+    example = ge / st - 1 if st else lo
+    spread = f"{example:+.0%}" if abs(hi - lo) < 0.005 or q["occurrences"] <= 1 else         f"{example:+.0%}; {lo:+.0%} to {hi:+.0%} across the {q['occurrences']}"
     q["code"] = "question.contradiction"
     q["params"] = {"count": q["occurrences"], "ifcClass": cls, "typeName": type_name, "quantity": what,
                    "minDifference": lo, "maxDifference": hi, "reported": st, "geometry": ge, "source": src, "unit": unit,
                    "used": used, "unitError": scale is not None, "scale": scale_label(scale) if scale else None}
     if scale:
-        tail = f"The stated value looks like a unit error (x{scale_label(scale)}); the measured value is used. "
+        tail = f"The stated value looks like a unit error (x{scale_label(scale)}), so the measured value is used until you answer. "
     elif used == "geometry":
-        tail = "The measured value is used. "
+        tail = "Until you answer, the measured value is used. "
     else:
-        tail = "The stated value is used; it usually allows for joins. " if what == "volume" else "The stated value is used. "
-    q["message"] = (f"{q['occurrences']} x {cls} '{type_name or ''}': the {what} stated in the file and the geometry "
-                    f"disagree by {spread} (e.g. {fmt(round(st, 3))} {unit} from {src} vs {fmt(round(ge, 3))} {unit} measured). "
-                    + tail + "Which should be used?")
+        tail = ("Until you answer, the stated value is used (a stated volume usually allows for joins). " if what == "volume"
+                else "Until you answer, the stated value is used. ")
+    says = (f"the file says {fmt(round(st, 3))} {unit} thick" if what == "thickness"
+            else f"the file gives the {what} as {fmt(round(st, 3))} {unit}")
+    # review C-15: what the file says, what the geometry measures, the difference; the source is a detail (params)
+    q["message"] = (f"{q['occurrences']} x {cls} '{type_name or ''}': {says}; the geometry measures {fmt(round(ge, 3))} {unit} "
+                    f"({spread}). " + tail + "Which should we use?")
 
 
 def merge_question(existing: dict, q: dict) -> None:

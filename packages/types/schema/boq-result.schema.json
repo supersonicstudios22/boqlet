@@ -2583,6 +2583,21 @@
             "number"
           ],
           "description": "What the engine would use if nobody answers."
+        },
+        "affectedLines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AffectedLine"
+          },
+          "description": "The lines the question's elements feed in this run (review C-15), in BoQ order, at most 10: what an answer can move. Absent when the question names no elements (a code, an edit); empty when they feed no line."
+        },
+        "affectedLineCount": {
+          "type": "number",
+          "description": "How many lines the elements feed in all (`affectedLines` lists the first 10)."
+        },
+        "noEffect": {
+          "type": "boolean",
+          "description": "True when no answer changes a number or a code under the current rules (a name in a field no rule reads): the Questions tab lists it under \"For information\", collapsed (review C-15)."
         }
       },
       "required": [
@@ -2727,6 +2742,34 @@
         }
       ],
       "description": "What kind of answer a question expects; drives the UI control."
+    },
+    "AffectedLine": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "description",
+        "unit",
+        "quantity"
+      ],
+      "additionalProperties": false,
+      "description": "A line a question's answer can move (review C-15)."
     },
     "Warning": {
       "type": "object",

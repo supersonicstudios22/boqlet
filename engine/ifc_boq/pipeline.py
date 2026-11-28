@@ -138,6 +138,26 @@ def answered_ids(answers: _Answers, resolver) -> list[str]:
     return sorted({key for key in answers.used if not key.startswith("override:")} | names)
 
 
+AFFECTED_LINES = 10
+
+
+def affected_lines(questions: list[dict], lines: list[dict]) -> None:
+    """Each question naming elements lists the lines those elements feed (review C-15): what an answer can move.
+    Lines in BoQ order, the first AFFECTED_LINES of them, and how many in all."""
+    by_guid: dict[str, list[int]] = defaultdict(list)
+    for n, line in enumerate(lines):
+        for e in (line.get("trace") or {}).get("elements", []):
+            if e.get("guid") and (not by_guid[e["guid"]] or by_guid[e["guid"]][-1] != n):
+                by_guid[e["guid"]].append(n)
+    for q in questions:
+        if not q.get("guids"):
+            continue
+        hit = sorted({n for g in q["guids"] for n in by_guid.get(g, ())})
+        q["affectedLines"] = [{"key": lines[n]["key"], "description": lines[n]["description"], "unit": lines[n]["unit"],
+                               "quantity": lines[n].get("quantity")} for n in hit[:AFFECTED_LINES]]
+        q["affectedLineCount"] = len(hit)
+
+
 def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]], dictionaries: list[dict],
             resolution: dict | None = None, decisions: list[dict] | None = None,
             rule_library: dict[str, dict] | None = None, federation: dict | None = None,
@@ -223,8 +243,11 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     elements, model_reports, fed_questions, fed_warnings = combine(models, federation or {}, rv.expr, log, answers,
                                                                    resolution=resolution)
     distinct = {}
+    name_guids: dict[tuple, dict] = defaultdict(dict)       # the elements behind each name, in model order (C-15)
     for r in resolutions:
         distinct.setdefault((r["field"], r["raw"]), {**r, "count": 0})["count"] += 1
+        if r.get("guid"):
+            name_guids[(r["field"], r["raw"])][r["guid"]] = None
     for (field, raw), r in sorted(distinct.items(), key=lambda kv: (kv[0][0], kv[0][1] or "")):
         if r["term"]:
             log.detail("names", f"{field} '{raw}' -> {r['term']} ({r['method']} match, {r['layer']} layer, "
@@ -332,13 +355,16 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     for (field, raw), r in sorted(distinct.items(), key=lambda kv: (kv[0][0], kv[0][1] or "")):
         if r["term"] or not raw or not _worth_asking(r, resolution, rv.expr):
             continue
-        blocking = resolution.get("unresolved", "ask") == "ask" and field_needed.get(field, False)
+        needed = field_needed.get(field, False)
+        blocking = resolution.get("unresolved", "ask") == "ask" and needed
         questions.append({"id": f"name:{field}:{raw}", "kind": "unknown_name", "blocking": blocking,
                           "field": field, "raw": raw, "occurrences": r["count"],
+                          "guids": list(name_guids.get((field, raw), {})),
+                          **({} if needed else {"noEffect": True}),
                           "code": "question.unknown_name", "params": {"field": field, "raw": raw, "count": r["count"],
                                                                      "blocking": blocking},
-                          "message": f"What is '{raw}' ({field.replace('_', ' ')})? Used {r['count']} time(s)."
-                                     + ("" if blocking else " Not used by the current rules."),
+                          "message": f"What is '{raw}' ({field.replace('_', ' ')})?"
+                                     + ("" if needed else " Not used by the current rules."),
                           "answer": {"kind": "term", "category": "element_type" if field == "type_name" else
                                      ("space" if field == "space_name" else "material")}})
 
@@ -393,6 +419,7 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
         bl = {k: v for k, v in l.items() if k not in INTERNAL}
         bl.setdefault("codes", {})
         out_lines.append(bl)
+    affected_lines(questions, out_lines)
     blocking = [q for q in questions if q["blocking"]]
     status = "needs_input" if blocking else "complete"
     answered = answered_ids(answers, rv)

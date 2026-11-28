@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Question, Term } from "@/api/hooks/decisions";
-import { bulkKey, counts, describeAnswer, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, termPath } from "./model";
+import { bulkKey, counts, describeAnswer, elementCount, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
 
 const decision = (answer: string | number | boolean | null): NonNullable<Question["decision"]> => ({
   id: "d",
@@ -103,5 +103,20 @@ describe("term search", () => {
     expect(searchTerms(terms, "concrete").map((t) => t.id)).toEqual(["concrete", "concrete.in_situ"]);
     expect(searchTerms(terms, "", "space").map((t) => t.id)).toEqual(["room"]);
     expect(searchTerms(terms, "concrete in-situ").map((t) => t.id)).toEqual(["concrete.in_situ"]);
+  });
+});
+
+describe("review C-15: questions with no effect, one count", () => {
+  it("moves questions that change nothing to the information group, keeping the order", () => {
+    const list = [q("a"), q("b", { noEffect: true }), q("c", { blocking: true }), q("d", { noEffect: true })];
+    const { main, info } = splitByEffect(list);
+    expect(main.map((x) => x.id)).toEqual(["a", "c"]);
+    expect(info.map((x) => x.id)).toEqual(["b", "d"]);
+  });
+
+  it("counts distinct elements when the engine names them, else the occurrences", () => {
+    expect(elementCount(q("a", { guids: ["g1", "g2", "g1"], occurrences: 5 }))).toBe(2);
+    expect(elementCount(q("b", { occurrences: 3 }))).toBe(3);
+    expect(elementCount(q("c"))).toBeUndefined();
   });
 });

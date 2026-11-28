@@ -70,21 +70,27 @@ describe("engine messages (F15 §4, contract change C01)", () => {
   });
 
   it("writes the Duplex's questions in full", () => {
+    // Review C-15: what the file says, what the geometry measures, the difference, and what is used meanwhile
     expect(render({ code: "question.contradiction", params: EXAMPLES["question.contradiction"], message: "" }).text).toBe(
-      "3 × IfcWall “Party Wall”: the thickness stated in the file and the geometry disagree by -16% to -10% (e.g. 0.55 m from material layer set vs 0.493 m measured). The stated value is used. Which should be used?",
+      "3 × IfcWall “Party Wall”: the file says 0.55 m thick; the geometry measures 0.493 m (-10%; -16% to -10% across the 3). Until you answer, the stated value is used. Which should we use?",
     );
     // WP-A1 A-02: a stated value 1000 times the geometry is a unit error, and the geometry is used
     expect(render({ code: "question.contradiction", message: "", params: {
       count: 1, ifcClass: "IfcSlab", typeName: "Simple floor", quantity: "volume", minDifference: -0.999, maxDifference: -0.999,
       reported: 13243.372, geometry: 13.243, source: "BaseQuantities.GrossVolume", unit: "m3", used: "geometry", unitError: true, scale: "1000",
     } }).text).toBe(
-      "1 × IfcSlab “Simple floor”: the volume stated in the file and the geometry disagree by -100% (e.g. 13,243.372 m³ from BaseQuantities.GrossVolume vs 13.243 m³ measured). The stated value looks like a unit error (×1000); the measured value is used. Which should be used?",
+      "1 × IfcSlab “Simple floor”: the file gives the volume as 13,243.372 m³; the geometry measures 13.243 m³ (-100%). The stated value looks like a unit error (×1000), so the measured value is used until you answer. Which should we use?",
     );
-    expect(render({ code: "question.unknown_name", params: EXAMPLES["question.unknown_name"], message: "" }).text).toBe(
-      "What is “Roof” (space name)? Used 1 time. Not used by the current rules.",
+    expect(render({ code: "question.contradiction", message: "", params: {
+      count: 1, ifcClass: "IfcWall", typeName: "Basic Wall", quantity: "volume", minDifference: -0.12, maxDifference: -0.12,
+      reported: 5, geometry: 4.4, source: "Qto_WallBaseQuantities.NetVolume", unit: "m3", used: "reported", unitError: false,
+    } }).text).toBe(
+      "1 × IfcWall “Basic Wall”: the file gives the volume as 5 m³; the geometry measures 4.4 m³ (-12%). Until you answer, the stated value is used (a stated volume usually allows for joins). Which should we use?",
     );
+    // One count (the row shows the elements), and "not used by the rules" is the FYI group's heading, not the text
+    expect(render({ code: "question.unknown_name", params: EXAMPLES["question.unknown_name"], message: "" }).text).toBe("What is “Roof” (space name)?");
     expect(render({ code: "question.unknown_name", params: { field: "material", raw: "Beton", count: 3, blocking: true }, message: "" }).text).toBe(
-      "What is “Beton” (material)? Used 3 times.",
+      "What is “Beton” (material)?",
     );
     // WP-A5 A-18: both copies' values, in the order the engine sends them
     expect(render({ code: "question.duplicate_conflict", params: EXAMPLES["question.duplicate_conflict"], message: "" }).text).toBe(

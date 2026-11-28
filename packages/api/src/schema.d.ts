@@ -4042,6 +4042,9 @@ export interface components {
             raw?: components["schemas"]["raw"];
             occurrences?: components["schemas"]["occurrences"];
             suggestion?: components["schemas"]["suggestion"];
+            affectedLines?: components["schemas"]["affectedLines"];
+            affectedLineCount?: components["schemas"]["affectedLineCount"];
+            noEffect?: components["schemas"]["noEffect"];
             decision?: components["schemas"]["Decision"];
             /** @description The project's answer differs from the one this run was generated with (answered, changed or cleared after the run): it applies on the next run (F05 §1, §3). */
             answeredAfterRun: boolean;
@@ -4688,6 +4691,19 @@ export interface components {
         occurrences: number;
         /** @description What the engine would use if nobody answers. */
         suggestion: string | number;
+        /** @description A line a question's answer can move (review C-15). */
+        AffectedLine: {
+            key: string;
+            description: string;
+            unit: string;
+            quantity: number | null;
+        };
+        /** @description The lines the question's elements feed in this run (review C-15), in BoQ order, at most 10: what an answer can move. Absent when the question names no elements (a code, an edit); empty when they feed no line. */
+        affectedLines: components["schemas"]["AffectedLine"][];
+        /** @description How many lines the elements feed in all (`affectedLines` lists the first 10). */
+        affectedLineCount: number;
+        /** @description True when no answer changes a number or a code under the current rules (a name in a field no rule reads): the Questions tab lists it under "For information", collapsed (review C-15). */
+        noEffect: boolean;
         /**
          * @description Existing warning codes are also used by consumers to filter warnings.
          * @enum {string}

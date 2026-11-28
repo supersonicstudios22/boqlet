@@ -281,6 +281,26 @@ export interface Question {
   occurrences?: number;
   /** What the engine would use if nobody answers. */
   suggestion?: string | number;
+  /**
+   * The lines the question's elements feed in this run (review C-15), in BoQ order, at most 10: what an answer
+   * can move. Absent when the question names no elements (a code, an edit); empty when they feed no line.
+   */
+  affectedLines?: AffectedLine[];
+  /** How many lines the elements feed in all (`affectedLines` lists the first 10). */
+  affectedLineCount?: number;
+  /**
+   * True when no answer changes a number or a code under the current rules (a name in a field no rule reads):
+   * the Questions tab lists it under "For information", collapsed (review C-15).
+   */
+  noEffect?: boolean;
+}
+
+/** A line a question's answer can move (review C-15). */
+export interface AffectedLine {
+  key: string;
+  description: string;
+  unit: string;
+  quantity: number | null;
 }
 
 export interface Warning {

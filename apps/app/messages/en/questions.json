@@ -15,6 +15,11 @@
   "clearedAfterRun": "Answer cleared after this run",
   "suggested": "Suggested",
   "suggestion": "Suggested: {value}",
+  "affects": "Affects {lines}{more, plural, =0 {} one { and # more line} other { and # more lines}}.",
+  "affectsNone": "Its elements feed no line yet.",
+  "details": "Details",
+  "statedIn": "Stated in {source}",
+  "infoGroup": "For information: {count, plural, one {# question} other {# questions}} whose answer changes nothing under the current rules",
   "answerFor": "Answer: {question}",
   "dismiss": "Leave it",
   "clear": "Clear",
@@ -54,7 +59,7 @@
     "exclude": "Exclude from the BoQ",
     "use": "Use",
     "flag": "Flag the line",
-    "recommended": "Recommended"
+    "recommended": "Suggested"
   },
   "bulk": {
     "label": "Answer the selected questions",

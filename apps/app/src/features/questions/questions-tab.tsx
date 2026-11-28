@@ -13,10 +13,11 @@ import { Tag } from "@/features/boqs/boq-header";
 import { useOrg } from "@/features/orgs/org-context";
 import { showIn3dHref } from "@/features/viewer/viewer-tab";
 import { useEngineMessage } from "@/i18n/engine-message";
+import { useUnit } from "@/i18n/units";
 import { cn } from "@/lib/utils";
 import { AnswerControl, type AnswerContext } from "./answer-control";
 import { useAnswerFlow } from "./answer-flow";
-import { counts, describeAnswer, filterQuestions, initialValue, kindsOf, selectable, type AnswerState } from "./model";
+import { counts, describeAnswer, elementCount, filterQuestions, initialValue, kindsOf, selectable, splitByEffect, type AnswerState } from "./model";
 import { PromoteDialog } from "./promote-dialog";
 import { useAnswerContext } from "./use-answer-context";
 import { InlineError } from "@/components/errors/inline-error";
@@ -48,6 +49,8 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
 
   const list = useMemo(() => questions.data ?? [], [questions.data]);
   const shown = useMemo(() => filterQuestions(list, { state, ...(kind ? { kind } : {}) }), [list, state, kind]);
+  // review C-15: questions whose answer changes nothing come last, collapsed ("For information")
+  const groups = useMemo(() => splitByEffect(shown), [shown]);
   const selection = useMemo(() => list.filter((q) => selected.has(q.id)), [list, selected]);
   const n = counts(list);
 
@@ -69,6 +72,22 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
   const save = (qs: Question[], answer: Answer, done?: () => void) =>
     flow.submit({ decisions: qs.map((q) => ({ questionId: q.id, kind: q.kind, answer })), addToProjectDictionary: toDictionary }, done);
 
+  const row = (q: Question) => (
+    <QuestionRow
+      key={`${q.id}:${q.decision?.id ?? "open"}`}
+      question={q}
+      context={context}
+      canAnswer={canAnswer}
+      checked={selected.has(q.id)}
+      selectable={selectable(selection, q)}
+      onToggle={() => toggle(q)}
+      showIn3d={q.guids?.length && boq.currentRevision.currentRun ? showIn3dHref(`/${org.slug}/projects/${boq.projectId}/boqs/${boq.id}`, { guids: q.guids }) : undefined}
+      busy={flow.busy}
+      onAnswer={(answer) => save([q], answer)}
+      onClear={() => q.decision && flow.remove(q.decision)}
+      onPromote={canPromote && q.kind === "unknown_name" && typeof q.decision?.answer === "string" ? () => setPromoting([q.decision!.id]) : undefined}
+    />
+  );
   const nameQuestions = list.some((q) => q.kind === "unknown_name");
   const promotable = selection.filter((q) => q.kind === "unknown_name" && typeof q.decision?.answer === "string");
 
@@ -148,23 +167,14 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
             </div>
           )}
           <ul className="flex flex-col" data-testid="questions-list">
-            {shown.map((q) => (
-              <QuestionRow
-                key={`${q.id}:${q.decision?.id ?? "open"}`}
-                question={q}
-                context={context}
-                canAnswer={canAnswer}
-                checked={selected.has(q.id)}
-                selectable={selectable(selection, q)}
-                onToggle={() => toggle(q)}
-                showIn3d={q.guids?.length && boq.currentRevision.currentRun ? showIn3dHref(`/${org.slug}/projects/${boq.projectId}/boqs/${boq.id}`, { guids: q.guids }) : undefined}
-                busy={flow.busy}
-                onAnswer={(answer) => save([q], answer)}
-                onClear={() => q.decision && flow.remove(q.decision)}
-                onPromote={canPromote && q.kind === "unknown_name" && typeof q.decision?.answer === "string" ? () => setPromoting([q.decision!.id]) : undefined}
-              />
-            ))}
+            {groups.main.map(row)}
           </ul>
+          {groups.info.length > 0 && (
+            <details className="mt-3" data-testid="questions-info">
+              <summary className="cursor-pointer py-2 text-muted-foreground">{t("infoGroup", { count: groups.info.length })}</summary>
+              <ul className="flex flex-col">{groups.info.map(row)}</ul>
+            </details>
+          )}
         </div>
       )}
       {flow.dialog}
@@ -172,6 +182,9 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
     </section>
   );
 }
+
+/** Affected lines named in a row; the rest are counted (review C-15). */
+const SHOWN_LINES = 3;
 
 function QuestionRow({
   question: q,
@@ -202,7 +215,12 @@ function QuestionRow({
   const t = useTranslations("questions");
   const boqFormat = useBoqFormat();
   const message = useEngineMessage()(q);
+  const unitLabel = useUnit();
+  const count = elementCount(q);
   const initial = initialValue(q);
+  const affected = q.affectedLines ?? [];
+  const more = (q.affectedLineCount ?? affected.length) - Math.min(affected.length, SHOWN_LINES);
+  const source = typeof q.params?.source === "string" ? q.params.source : undefined;
   const [value, setValue] = useState<Answer | undefined>(initial.value);
   const answered = q.decision;
   const shownAnswer = answered ? describeAnswer(answered.answer, q.answer, { terms: new Map(context.terms.map((x) => [x.id, x])) }) : null;
@@ -223,7 +241,7 @@ function QuestionRow({
       <div className="flex min-w-0 flex-col gap-1">
         <p className="text-foreground" data-testid="question-message" data-message={message.source}>
           {message.text}
-          {q.occurrences ? <span className="text-muted-foreground"> — {t("elements", { count: q.occurrences })}</span> : null}
+          {count ? <span className="text-muted-foreground"> — {t("elements", { count })}</span> : null}
           {showIn3d && (
             <Link href={showIn3d} className="ml-2 text-link underline underline-offset-2" data-testid="question-show-in-3d">
               {t("showIn3d")}
@@ -241,8 +259,28 @@ function QuestionRow({
               {answered ? t("changedAfterRun") : t("clearedAfterRun")}
             </Tag>
           )}
-          {!answered && initial.suggested && <Tag className="border-muted-foreground text-muted-foreground">{t("suggested")}</Tag>}
+          {/* a choice marks its suggested option itself: one label, not two (review C-15) */}
+          {!answered && initial.suggested && q.answer.kind !== "choice" && <Tag className="border-muted-foreground text-muted-foreground">{t("suggested")}</Tag>}
         </div>
+        {q.affectedLines && (
+          <p className="text-muted-foreground" data-testid="question-affects">
+            {affected.length === 0
+              ? t("affectsNone")
+              : t("affects", {
+                  lines: affected
+                    .slice(0, SHOWN_LINES)
+                    .map((l) => (l.quantity === null || l.quantity === undefined ? l.description : `${l.description} (${boqFormat.quantity(l.quantity)} ${unitLabel(l.unit)})`))
+                    .join("; "),
+                  more,
+                })}
+          </p>
+        )}
+        {source && (
+          <details className="text-muted-foreground" data-testid="question-details">
+            <summary className="cursor-pointer">{t("details")}</summary>
+            <p>{t("statedIn", { source })}</p>
+          </details>
+        )}
       </div>
       {canAnswer && (
         <div className="col-span-3 flex flex-wrap items-center gap-2 lg:col-span-1 lg:justify-end">

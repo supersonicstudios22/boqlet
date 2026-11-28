@@ -27,6 +27,19 @@ export function filterQuestions(list: readonly Question[], f: QuestionFilters): 
   return list.filter((q) => (!f.kind || q.kind === f.kind) && (f.state === "all" || (f.state === "answered") === !!q.decision));
 }
 
+/**
+ * Review C-15: questions whose answer changes nothing under the current rules (`noEffect`, a name in a field no
+ * rule reads) go to a "For information" group; the rest stay in the main list. Order is kept.
+ */
+export function splitByEffect<Q extends Pick<Question, "noEffect">>(list: readonly Q[]): { main: Q[]; info: Q[] } {
+  return { main: list.filter((q) => !q.noEffect), info: list.filter((q) => q.noEffect) };
+}
+
+/** One count per question (review C-15): its distinct elements when the engine names them, else its occurrences. */
+export function elementCount(q: Pick<Question, "guids" | "occurrences">): number | undefined {
+  return q.guids?.length ? new Set(q.guids).size : q.occurrences;
+}
+
 /** Kinds present, in list order (for the kind filter). */
 export function kindsOf(list: readonly Question[]): string[] {
   return [...new Set(list.map((q) => q.kind))];
