@@ -29,8 +29,8 @@
   "parseSeconds": {
    "S09": 3.2
   },
-  "runSeconds": 1.6,
-  "totalSeconds": 12.9
+  "runSeconds": 1.7,
+  "totalSeconds": 13.1
  },
  "runJob": "succeeded",
  "status": "needs_input",

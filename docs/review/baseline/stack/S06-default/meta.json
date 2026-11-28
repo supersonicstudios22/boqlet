@@ -27,10 +27,10 @@
  },
  "timing": {
   "parseSeconds": {
-   "S06": 21.7
+   "S06": 20.2
   },
   "runSeconds": 1.6,
-  "totalSeconds": 32.3
+  "totalSeconds": 31.1
  },
  "runJob": "succeeded",
  "status": "complete",
