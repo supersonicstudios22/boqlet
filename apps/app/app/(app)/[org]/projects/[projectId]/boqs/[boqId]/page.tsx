@@ -118,7 +118,7 @@ export default function BoqWorkspacePage({ params }: { params: Promise<{ boqId: 
                 <span aria-hidden className={cn("ml-1.5 inline-grid h-4 min-w-4 place-items-center rounded-[var(--radius)] border px-1 font-bold tracking-normal", questionCounts.blocking > 0 ? "border-attention bg-attention text-on-fill" : "border-muted-foreground text-muted-foreground")} data-testid="open-questions-count">
                   {openQuestions}
                 </span>
-                <span className="sr-only">{" "}{t("tabs.openCount", { n: openQuestions })}</span>
+                <span className="sr-only">{" "}{t("tabs.openCount", { blocking: questionCounts.blocking, optional: openQuestions - questionCounts.blocking })}</span>
               </>
             )}
           </Link>

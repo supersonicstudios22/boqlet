@@ -61,9 +61,8 @@
     },
     "waiting": "Waiting to start",
     "notGenerated": "Not generated yet",
-    "summary": "{lines, plural, one {# line} other {# lines}} · {flagged, plural, =0 {nothing to confirm} other {# to confirm}} · generated {when}",
+    "summary": "{lines, plural, one {# line} other {# lines}} · generated {when}",
     "needsInput": "{count, plural, one {# question needs} other {# questions need}} an answer before this BoQ is complete",
-    "modelsToCheck": "{count, plural, one {# question about the models} other {# questions about the models}} to check",
     "openQuestions": "Open questions",
     "failed": "Generating failed: {message}",
     "lastGood": "The last complete run is still shown.",
@@ -83,7 +82,9 @@
       "run_error": "the engine could not build this BoQ.",
       "result_invalid": "the engine's result breaks a rule of the data (for example two questions with one id), so it could not be stored. Generating again gives the same result: change the rule set."
     },
-    "answersPending": "{count, plural, one {# answer} other {# answers}} not applied yet –"
+    "answersPending": "{count, plural, one {# answer} other {# answers}} not applied yet –",
+    "toConfirm": "{count, plural, one {# line to confirm} other {# lines to confirm}}",
+    "optional": "{count, plural, one {# optional question} other {# optional questions}}{models, plural, =0 {} other {, # about the models}}"
   },
   "actions": {
     "generate": "Generate",
@@ -115,7 +116,7 @@
     "changes": "Changes",
     "review": "Review",
     "exports": "Exports",
-    "openCount": "{n, plural, one {# question to answer} other {# questions to answer}}"
+    "openCount": "{blocking, plural, =0 {{optional, plural, one {# optional question} other {# optional questions}}, none blocking} one {# blocking question} other {# blocking questions}}{blocking, plural, =0 {} other {{optional, plural, =0 {} other {, # optional}}}}"
   },
   "sheet": {
     "empty": "Generate the BoQ to see its lines.",

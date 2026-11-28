@@ -29,6 +29,7 @@ import { headerState, nextStep, saveBlockedReason, type NextStep } from "./run-s
 import { useManualItems, useOverrides } from "@/api/hooks/edits";
 import { SERVER_GROUPED_ABOVE, useLines } from "@/api/hooks/sheet";
 import { notAppliedEdits } from "./pending";
+import { statusLine } from "./status-line";
 import { PendingBanner } from "./pending-banner";
 import { useRefocusWhenLost } from "@/lib/focus";
 import { useRouter } from "next/navigation";
@@ -319,26 +320,33 @@ function CurrentRunSummary({ run, base, relative }: { run: Run; base: string; re
   const t = useTranslations("boqs.run");
   const stats = run.stats;
   const questions = useQuestions(run.id);
-  const modelsToCheck = questions.data ? counts(questions.data).modelsToCheck : 0;
+  // review C-20: one line — complete or not, then what is left to look at
+  const status = statusLine(run, questions.data ? counts(questions.data) : undefined);
+  const summary = t("summary", { lines: stats?.lines ?? 0, when: relative(run.finishedAt ?? run.createdAt) });
   return (
     <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1 xl:flex-nowrap" data-testid="current-run" data-status={run.status} data-run={run.id}>
       {/* On one line with the name and the actions (review C-01): the figures give way first, in full on hover. */}
-      <span className="min-w-0 truncate tabular-nums" title={t("summary", { lines: stats?.lines ?? 0, flagged: stats?.flaggedLines ?? 0, when: relative(run.finishedAt ?? run.createdAt) })}>
-        {t("summary", { lines: stats?.lines ?? 0, flagged: stats?.flaggedLines ?? 0, when: relative(run.finishedAt ?? run.createdAt) })}
+      <span className="min-w-0 truncate tabular-nums" title={summary}>
+        {summary}
       </span>
-      {run.status === "needs_input" ? (
-        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="needs-input">
-          {t("needsInput", { count: stats?.blockingQuestions ?? 0 })}
-        </Link>
-      ) : (
+      {status.complete ? (
         <span className="label-caps shrink-0" data-testid="run-complete">
           <Check aria-hidden className="mr-1 inline size-3" />
           {t("status.complete")}
         </span>
+      ) : (
+        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="needs-input">
+          {t("needsInput", { count: status.blocking })}
+        </Link>
       )}
-      {modelsToCheck > 0 && (
-        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="models-to-check">
-          {t("modelsToCheck", { count: modelsToCheck })}
+      {status.toConfirm > 0 && (
+        <span className="shrink-0 tabular-nums text-muted-foreground" data-testid="run-to-confirm">
+          {t("toConfirm", { count: status.toConfirm })}
+        </span>
+      )}
+      {status.optional > 0 && (
+        <Link href={`${base}?tab=questions`} className="shrink-0 text-link hover:underline" data-testid="models-to-check" data-optional={status.optional} data-models={status.aboutModels}>
+          {t("optional", { count: status.optional, models: status.aboutModels })}
         </Link>
       )}
     </div>
