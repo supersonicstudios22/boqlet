@@ -14,6 +14,8 @@ import { Poster } from "@/components/poster";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useHydrated } from "@/components/hydration";
+import { CountryPicker, CurrencyPicker } from "@/features/orgs/code-pickers";
 import { rememberOrg } from "@/features/orgs/org-context";
 import { SLUG_PATTERN, suggestSlug } from "@/features/orgs/slug";
 import { LIMITS } from "@/lib/limits";
@@ -27,6 +29,9 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
+  // Review C-29: the web address follows the name; "Change" opens it for editing.
+  const [editingSlug, setEditingSlug] = useState(false);
+  const host = useHydrated() ? window.location.host : "";
   const [currency, setCurrency] = useState("");
   const [country, setCountry] = useState("");
   const [unitSystem, setUnitSystem] = useState<"metric" | "imperial">("metric");
@@ -36,8 +41,8 @@ export default function OnboardingPage() {
     mutationFn: async () => {
       const settings = {
         defaultUnitSystem: unitSystem,
-        ...(currency ? { defaultCurrency: currency.toUpperCase() } : {}),
-        ...(country ? { defaultCountry: country.toUpperCase() } : {}),
+        ...(currency ? { defaultCurrency: currency } : {}),
+        ...(country ? { defaultCountry: country } : {}),
       };
       return (await api.POST("/orgs", { body: { name: name.trim(), slug: effectiveSlug, settings } })).data!;
     },
@@ -51,7 +56,10 @@ export default function OnboardingPage() {
   });
 
   const slugTaken = isApiError(create.error) && create.error.code === "slug_taken";
-  const slugInvalid = effectiveSlug !== "" && !SLUG_PATTERN.test(effectiveSlug);
+  // A name with no letters a–z or digits (in another script) suggests no address: the person chooses one.
+  const slugMissing = name.trim() !== "" && effectiveSlug === "";
+  const slugInvalid = slugMissing || (effectiveSlug !== "" && !SLUG_PATTERN.test(effectiveSlug));
+  const slugOpen = editingSlug || slugEdited || slugTaken || slugInvalid;
   const otherError = create.error && !slugTaken ? message(create.error) : null;
 
   return (
@@ -72,30 +80,44 @@ export default function OnboardingPage() {
         <Field id="org-name" label={t("name")}>
           <Input id="org-name" maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} required autoFocus data-testid="org-name" />
         </Field>
-        <Field
-          id="org-slug"
-          label={t("slug")}
-          hint={t("slugHint", { slug: effectiveSlug || "…" })}
-          error={slugTaken ? t("slugTaken") : slugInvalid ? t("slugInvalid") : undefined}
-        >
-          <Input
+        {slugOpen ? (
+          <Field
             id="org-slug"
-            value={effectiveSlug}
-            onChange={(e) => {
-              setSlugEdited(true);
-              setSlug(e.target.value.toLowerCase());
-            }}
-            aria-describedby={describedBy("org-slug", slugTaken || slugInvalid)}
-            aria-invalid={slugTaken || slugInvalid || undefined}
-            data-testid="org-slug"
-          />
-        </Field>
-        <div className="grid grid-cols-3 gap-4">
+            label={t("slug")}
+            hint={t("slugHint", { address: `${host}/${effectiveSlug || "…"}` })}
+            error={slugTaken ? t("slugTaken") : slugMissing ? t("slugNeeded") : slugInvalid ? t("slugInvalid") : undefined}
+          >
+            <Input
+              id="org-slug"
+              value={effectiveSlug}
+              onChange={(e) => {
+                setSlugEdited(true);
+                setSlug(e.target.value.toLowerCase());
+              }}
+              aria-describedby={describedBy("org-slug", slugTaken || slugInvalid)}
+              aria-invalid={slugTaken || slugInvalid || undefined}
+              data-testid="org-slug"
+            />
+          </Field>
+        ) : (
+          <div className="flex flex-col gap-1.5" data-testid="org-address">
+            <p className="label-caps text-muted-foreground">{t("slug")}</p>
+            <p className="flex flex-wrap items-baseline gap-x-3">
+              <span className="text-muted-foreground">
+                {host}/<span className="text-foreground">{effectiveSlug || "…"}</span>
+              </span>
+              <button type="button" className="text-link hover:underline" onClick={() => setEditingSlug(true)} data-testid="org-slug-change">
+                {t("change")}
+              </button>
+            </p>
+          </div>
+        )}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field id="org-currency" label={t("currency")} hint={t("optional")}>
-            <Input id="org-currency" value={currency} maxLength={3} onChange={(e) => setCurrency(e.target.value)} />
+            <CurrencyPicker id="org-currency" value={currency} onChange={setCurrency} optional data-testid="org-currency" />
           </Field>
           <Field id="org-country" label={t("country")} hint={t("optional")}>
-            <Input id="org-country" value={country} maxLength={2} onChange={(e) => setCountry(e.target.value)} />
+            <CountryPicker id="org-country" value={country} onChange={setCountry} optional data-testid="org-country" />
           </Field>
           <Field id="org-units" label={t("units")}>
             <select

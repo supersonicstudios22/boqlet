@@ -9,6 +9,7 @@ import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import { useProjectMembers } from "@/api/hooks/projects";
 import { usePresetCatalogue, type RevisionInputs } from "@/api/hooks/boqs";
+import { CountryPicker, CurrencyPicker } from "@/features/orgs/code-pickers";
 import { OrderedPresets, RuleSetSection } from "@/features/boqs/setup-tab";
 import { NewerPresets } from "@/features/library/newer-presets";
 import { useErrorMessage } from "@/components/errors/use-error-message";
@@ -110,12 +111,12 @@ function GeneralForm() {
             <Input id="p-address" maxLength={LIMITS.text} value={form.address} onChange={set("address")} />
           </Field>
           <Field id="p-country" label={t("country")}>
-            <Input id="p-country" value={form.country} maxLength={2} onChange={set("country")} />
+            <CountryPicker id="p-country" value={form.country} onChange={(country) => setForm((f) => ({ ...f, country }))} optional />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Field id="p-currency" label={t("currency")}>
-            <Input id="p-currency" value={form.currency} maxLength={3} onChange={set("currency")} />
+            <CurrencyPicker id="p-currency" value={form.currency} onChange={(currency) => setForm((f) => ({ ...f, currency }))} />
           </Field>
           <Field id="p-units" label={t("units")} hint={t("unitsHint")}>
             <NativeSelect id="p-units" value={form.unitSystem} onChange={set("unitSystem")}>

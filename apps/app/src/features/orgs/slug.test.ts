@@ -8,6 +8,10 @@ describe("suggestSlug", () => {
     expect(suggestSlug("Bauplanung Müller GmbH")).toBe("bauplanung-muller-gmbh");
     expect(suggestSlug("Straße & Søn")).toBe("strasse-son");
     expect(suggestSlug("AB")).toBe("ab0");
+    // Review C-29: no name, or one with no letter a–z or digit, suggests no address (never "000").
+    expect(suggestSlug("")).toBe("");
+    expect(suggestSlug("  ")).toBe("");
+    expect(suggestSlug("株式会社")).toBe("");
     for (const name of ["Studio Demo", "AB", "x".repeat(80), "Ñandú Arquitectos"]) expect(suggestSlug(name)).toMatch(SLUG_PATTERN);
   });
 });

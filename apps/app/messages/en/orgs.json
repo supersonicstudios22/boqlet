@@ -14,8 +14,10 @@
     "title": "Create your organisation",
     "intro": "Your firm's space for projects, models and bills of quantities. You can invite colleagues next.",
     "name": "Organisation name",
-    "slug": "Address",
-    "slugHint": "Your organisation's address: /{slug}",
+    "slug": "Web address",
+    "slugHint": "Your organisation's web address: {address}",
+    "change": "Change",
+    "slugNeeded": "Choose a web address: 3 to 40 lower-case letters a–z, digits and hyphens.",
     "slugTaken": "That address is taken. Choose another one.",
     "slugInvalid": "Use 3 to 40 lower-case letters, digits and hyphens.",
     "currency": "Currency",
@@ -25,6 +27,14 @@
     "imperial": "Imperial",
     "optional": "Optional",
     "create": "Create organisation"
+  },
+  "codes": {
+    "country": "Country",
+    "currency": "Currency",
+    "notSet": "Not set",
+    "countryPlaceholder": "Type a country",
+    "currencyPlaceholder": "Type a currency",
+    "none": "Nothing matches. Type a name or a code."
   },
   "invite": {
     "loading": "Loading the invitation…",

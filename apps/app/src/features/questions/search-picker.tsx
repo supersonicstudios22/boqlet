@@ -28,6 +28,7 @@ export function SearchPicker({
   autoFocus,
   onDismiss,
   portal = false,
+  inputId,
   "data-testid": testId,
 }: {
   items: readonly PickItem[];
@@ -48,6 +49,8 @@ export function SearchPicker({
    * picker inside a virtualised row, whose own stacking would put the list under the next rows (TF-103).
    */
   portal?: boolean;
+  /** The input's id, for a `<label htmlFor>` (a form field). */
+  inputId?: string;
   "data-testid"?: string;
 }) {
   const id = useId();
@@ -94,6 +97,7 @@ export function SearchPicker({
     <div className={cn("relative min-w-56", className)}>
       <input
         ref={input}
+        id={inputId}
         role="combobox"
         aria-label={label}
         aria-expanded={open}

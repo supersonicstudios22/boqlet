@@ -46,7 +46,12 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
    the default plan (Free). A person may own as many orgs on the default plan as its
    `ownedOrgsPerUser` allows (Free: 1, P57); another is `402 limit_reached`, and a taken slug is
    still `409` first. Optional fields at creation: default currency, unit system and
-   country, used for project defaults.
+   country, used for project defaults. Onboarding shows the slug as the org's **web address**
+   (`booqlet.com/{slug}`), derived from the name as it is typed and editable behind "Change"; a
+   name with no letter a–z or digit suggests none and asks for one (never "000"). Country and
+   currency are searchable pickers by name in the person's language (`Intl.DisplayNames`) that
+   store the ISO code ("Ireland" → `IE`); org settings and the project forms use the same
+   pickers (review C-29).
 5. **Invite:** email + role. `seats` is checked when sending (`402 limit_reached` with
    `limit: "seats"`). Pending invitations count towards seats. Inviting an email that is
    already a member returns `409 already_member`. Invitations expire after 14 days and can be

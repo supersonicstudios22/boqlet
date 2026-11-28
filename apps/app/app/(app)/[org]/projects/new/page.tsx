@@ -12,6 +12,7 @@ import { Field } from "@/components/field";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CountryPicker, CurrencyPicker } from "@/features/orgs/code-pickers";
 import { useOrg } from "@/features/orgs/org-context";
 import { LIMITS } from "@/lib/limits";
 
@@ -79,12 +80,12 @@ export default function NewProjectPage() {
           <Input id="project-address" maxLength={LIMITS.text} value={form.address} onChange={set("address")} />
         </Field>
         <Field id="project-country" label={t("country")} hint={t("optional")}>
-          <Input id="project-country" value={form.country} maxLength={2} onChange={set("country")} />
+          <CountryPicker id="project-country" value={form.country} onChange={(country) => setForm((f) => ({ ...f, country }))} optional />
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Field id="project-currency" label={t("currency")}>
-          <Input id="project-currency" value={form.currency} maxLength={3} onChange={set("currency")} />
+          <CurrencyPicker id="project-currency" value={form.currency} onChange={(currency) => setForm((f) => ({ ...f, currency }))} />
         </Field>
         <Field id="project-units" label={t("units")}>
           <NativeSelect id="project-units" value={form.unitSystem} onChange={set("unitSystem")}>

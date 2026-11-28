@@ -29,6 +29,7 @@ import { rememberOrg, useOrg } from "@/features/orgs/org-context";
 import { SLUG_PATTERN } from "@/features/orgs/slug";
 import { LIMITS } from "@/lib/limits";
 import { useEntitlements } from "@/api/hooks/billing";
+import { CountryPicker, CurrencyPicker } from "@/features/orgs/code-pickers";
 
 type Settings = NonNullable<Schemas["Org"]["settings"]>;
 const THOUSANDS = [" ", " ", ",", ".", "'", ""] as const;
@@ -91,10 +92,10 @@ export function GeneralSettings() {
             <h2 className="label-caps">{t("defaults")}</h2>
             <div className="grid grid-cols-3 gap-4">
               <Field id="org-currency" label={t("currency")}>
-                <Input id="org-currency" value={settings.defaultCurrency ?? ""} maxLength={3} onChange={(e) => set("defaultCurrency", e.target.value.toUpperCase())} />
+                <CurrencyPicker id="org-currency" value={settings.defaultCurrency ?? ""} onChange={(code) => set("defaultCurrency", code)} optional />
               </Field>
               <Field id="org-country" label={t("country")}>
-                <Input id="org-country" value={settings.defaultCountry ?? ""} maxLength={2} onChange={(e) => set("defaultCountry", e.target.value.toUpperCase())} />
+                <CountryPicker id="org-country" value={settings.defaultCountry ?? ""} onChange={(code) => set("defaultCountry", code)} optional />
               </Field>
               <Field id="org-units" label={t("units")}>
                 <NativeSelect id="org-units" value={settings.defaultUnitSystem ?? "metric"} onChange={(e) => set("defaultUnitSystem", e.target.value as "metric" | "imperial")}>
