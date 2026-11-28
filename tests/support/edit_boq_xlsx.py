@@ -28,12 +28,13 @@ delete_row = next(r for r in rows if r not in (qty_row, move_row) and section[r]
 
 done = {
     "quantity": {"key": ws.cell(row=qty_row, column=KEY).value, "from": ws.cell(row=qty_row, column=4).value},
-    "moved": {"key": ws.cell(row=move_row, column=KEY).value, "to": ws.cell(row=target, column=1).value},
+    "moved": {"key": ws.cell(row=move_row, column=KEY).value, "to": section[target]},
     "deleted": {"key": ws.cell(row=delete_row, column=KEY).value},
     "added": {"description": "Site hoarding", "unit": "m", "quantity": 42},
 }
 ws.cell(row=qty_row, column=4, value=ws.cell(row=qty_row, column=4).value * 2)
-ws.cell(row=move_row, column=1, value=ws.cell(row=target, column=1).value)
+# Ref holds the line's position number (review C-23): the person types the other section's code.
+ws.cell(row=move_row, column=1, value=section[target])
 ws.delete_rows(delete_row)
 insert_at = qty_row + 1 if delete_row > qty_row else qty_row
 ws.insert_rows(insert_at)

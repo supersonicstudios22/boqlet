@@ -145,8 +145,9 @@ class PublicShares {
         metadata.put("status", "issued".equals(shown.status()) ? "issued" : "working");
         metadata.put("generatedAt", Objects.requireNonNullElse(run.getFinishedAt(), run.getCreatedAt()).toString());
         metadata.put("date", BoqExports.readableDate(Objects.requireNonNullElse(run.getFinishedAt(), run.getCreatedAt()),
-                database.query("SELECT settings->>'dateFormat' FROM orgs WHERE id = ?", (row, index) -> row.getString(1), link.org())
-                        .stream().findFirst().orElse(null), null));
+                // An org without a date format reads null: the locale's long date (findFirst() refuses a null).
+                database.queryForList("SELECT settings->>'dateFormat' FROM orgs WHERE id = ?", String.class, link.org())
+                        .stream().filter(Objects::nonNull).findFirst().orElse(null), null));
         metadata.put("classifications", run.getClassifications() == null ? List.of() : run.getClassifications());
         metadata.put("watermark", limits.enabled(link.org(), "exportWatermark"));
         if (options.getGroupBy() != null) metadata.put("groupBy", options.getGroupBy());

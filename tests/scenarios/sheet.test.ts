@@ -337,14 +337,15 @@ describe("run export (F12, FE-017)", () => {
     // Section headings: no Ref, no unit, no quantity, no line key (column I).
     const headings = rows.slice(5).filter((r) => r[1] && !r[0] && !r[2] && (r[3] === null || r[3] === "") && !r[8] && !String(r[1]).startsWith("Subtotal") && r[1] !== "TOTAL").map((r) => String(r[1]));
     expect(headings.filter((h) => storeys.has(h)).length).toBe(storeys.size);
-    // Every line is still there with its code in Ref and its position number (column J) from the first classification.
+    // Every line is still there with its position number in Ref (review C-23), from the first classification.
     const byKey = new Map(lines.map((l) => [l.key, l]));
     const lineRows = rows.slice(5).filter((r) => r[8] && byKey.has(String(r[8])));
     expect(lineRows.length).toBe(lines.filter((l) => !l.excluded).length);
     for (const r of lineRows) {
       const line = byKey.get(String(r[8]))!;
-      expect(r[0] ?? "").toBe(line.codes[SYSTEM]?.code ?? "");
-      if (line.positionNo) expect(String(r[9])).toBe(line.positionNo);
+      expect(String(r[0] ?? "")).toBe(line.positionNo ?? "");
+      expect(String(r[0] ?? "").startsWith(`${line.codes[SYSTEM]?.code ?? "0"}.`)).toBe(true);
+      expect(r[9] ?? null).toBeNull();
     }
   });
 
