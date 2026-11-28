@@ -134,20 +134,20 @@ describe("C-32 who may create projects", () => {
       return person;
     };
     const member = await join("Mira", "member");
-    const lead = await join("Luka", "member");
+    const lead = await join("Luka", "member"); // stays without a project of his own
     const admin = await join("Ada", "admin");
     // The default (not set) is every member, as before.
     expect((await createProject(member, org.id, "Before")).response.status).toBe(201);
 
     const patched = await client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { settings: { projectCreation: "leads_and_admins" } } });
     expect(patched.data!.settings.projectCreation).toBe("leads_and_admins");
-    const refused = await createProject(member, org.id, "Stray");
+    // Luka leads no project: refused, but a sample (training) stays open to him.
+    const refused = await createProject(lead, org.id, "Stray");
     expect(refused.response.status).toBe(403);
     expect(refused.error).toMatchObject({ code: "forbidden", details: { setting: "projectCreation" } });
-    // Mira led "Before": a lead of a project of the org may create; Luka leads nothing yet.
-    expect((await createProject(member, org.id, "Led by Mira")).response.status).toBe(201);
-    expect((await createProject(lead, org.id, "Stray too")).response.status).toBe(403);
     expect((await createProject(lead, org.id, "Training", { sample: "duplex" })).response.status).toBe(201);
+    // Mira leads "Before": a lead of a project of the org may create.
+    expect((await createProject(member, org.id, "Led by Mira")).response.status).toBe(201);
     expect((await createProject(admin, org.id, "By the admin")).response.status).toBe(201);
     expect((await createProject(owner, org.id, "By the owner")).response.status).toBe(201);
   });
