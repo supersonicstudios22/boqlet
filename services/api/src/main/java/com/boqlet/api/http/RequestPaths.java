@@ -33,7 +33,8 @@ public final class RequestPaths {
 
     /** The native sign-in routes anyone may POST to without a session (P50, P57); the Origin check still applies. */
     public static final java.util.List<String> AUTH_ACTIONS = java.util.List.of(
-            "/api/v1/auth/sign-in", "/api/v1/auth/set-password", "/api/v1/auth/sign-up", "/api/v1/auth/password-reset");
+            "/api/v1/auth/sign-in", "/api/v1/auth/set-password", "/api/v1/auth/setup-link", "/api/v1/auth/sign-up",
+            "/api/v1/auth/password-reset");
 
     public static boolean authAction(String path) { return AUTH_ACTIONS.contains(path); }
 }

@@ -104,25 +104,59 @@ class NativeAuthController {
             throw refused;
         }
         credentials.count("source-ok:" + address);
-        return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE,
-                ResponseCookie.from(SessionController.COOKIE, secret).secure(secure).httpOnly(true)
-                        .sameSite("Lax").path("/api/v1").build().toString())
+        return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, sessionCookie(secret))
                 .header(HttpHeaders.CACHE_CONTROL, "no-store").body(session);
     }
 
+    /**
+     * Sets the password from a link; with `signIn` (review C-28) the account is signed in in the same step,
+     * `201` with the session cookie, so the person goes on to onboarding or the invitation without a
+     * second sign-in.
+     */
     @PostMapping("/set-password")
-    ResponseEntity<Void> setPassword(@RequestBody Setup body, HttpServletRequest request) {
+    ResponseEntity<Session> setPassword(@RequestBody Setup body, HttpServletRequest request) {
         String address = NativeCredentials.hash(request.getRemoteAddr());
         credentials.requireUnder("source:" + address, NativeCredentials.FAILURES_PER_SOURCE);
         credentials.requireUnder("source-ok:" + address, NativeCredentials.SUCCESSES_PER_SOURCE);
+        if (body.deviceLabel() != null && body.deviceLabel().length() > 120) {
+            throw IdentityService.failure(HttpStatus.BAD_REQUEST, "invalid_body", "The device label is at most 120 characters.");
+        }
+        boolean signIn = Boolean.TRUE.equals(body.signIn());
+        String secret = signIn ? NativeCredentials.token() : null;
+        Session session = null;
         try {
-            credentials.setPassword(body.token(), body.password(), body.name());
+            if (signIn) {
+                String device = body.deviceLabel() == null || body.deviceLabel().isBlank() ? "Web browser" : body.deviceLabel().strip();
+                session = credentials.setPasswordAndSignIn(body.token(), body.password(), body.name(), secret, device);
+            } else {
+                credentials.setPassword(body.token(), body.password(), body.name());
+            }
         } catch (com.boqlet.api.http.ApiException refused) {
             if ("invalid_setup".equals(refused.body().code())) credentials.count("source:" + address);
             throw refused;
         }
         credentials.count("source-ok:" + address);
-        return ResponseEntity.noContent().header(HttpHeaders.CACHE_CONTROL, "no-store").build();
+        if (!signIn) return ResponseEntity.noContent().header(HttpHeaders.CACHE_CONTROL, "no-store").build();
+        return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, sessionCookie(secret))
+                .header(HttpHeaders.CACHE_CONTROL, "no-store").body(session);
+    }
+
+    /** Which address a link is for (review C-28); an unknown token counts as a failed attempt. */
+    @PostMapping("/setup-link")
+    ResponseEntity<com.boqlet.contract.model.SetupLink> setupLink(@RequestBody Link body, HttpServletRequest request) {
+        String address = NativeCredentials.hash(request.getRemoteAddr());
+        credentials.requireUnder("source:" + address, NativeCredentials.FAILURES_PER_SOURCE);
+        try {
+            return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store").body(credentials.setupLink(body.token()));
+        } catch (com.boqlet.api.http.ApiException refused) {
+            credentials.count("source:" + address);
+            throw refused;
+        }
+    }
+
+    private String sessionCookie(String secret) {
+        return ResponseCookie.from(SessionController.COOKIE, secret).secure(secure).httpOnly(true)
+                .sameSite("Lax").path("/api/v1").build().toString();
     }
 
     @ExceptionHandler(SessionConflict.class)
@@ -134,5 +168,6 @@ class NativeAuthController {
     record SignIn(String email, String password, String deviceLabel, boolean takeover) {}
     record SignUp(String email, String locale, String website, Long elapsedMs) {}
     record Reset(String email) {}
-    record Setup(String token, String password, String name) {}
+    record Setup(String token, String password, String name, Boolean signIn, String deviceLabel) {}
+    record Link(String token) {}
 }

@@ -16,7 +16,8 @@ vi.mock("next-intl", async () => {
   };
 });
 vi.mock("@/i18n/use-relative-time", () => ({ useRelativeTime: () => () => "5 minutes ago" }));
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams("email=ada%40example.test") }));
+let search = "email=ada%40example.test";
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(search) }));
 vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a> }));
 vi.mock("@/components/shell/wordmark", () => ({ Wordmark: () => null }));
 vi.mock("@/components/ui/button", () => ({
@@ -31,6 +32,7 @@ afterEach(() => {
   act(() => root?.unmount());
   root = null;
   vi.unstubAllGlobals();
+  search = "email=ada%40example.test";
 });
 
 describe("native sign-in form", () => {
@@ -59,6 +61,44 @@ describe("native sign-in form", () => {
     act(() => host.querySelector<HTMLButtonElement>("[data-testid=takeover-cancel]")!.click());
     expect(host.querySelector("[data-testid=takeover-question]")).toBeNull();
     expect(submit.textContent).toBe(auth.native.signIn);
+    host.remove();
+  });
+
+  it("C-28: the set-password form names the link's address, checks the length in words, and signs in", async () => {
+    search = `token=${"t".repeat(43)}`;
+    const calls: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push({ url: String(url), body: init?.body ? JSON.parse(String(init.body)) : {} });
+        if (String(url).endsWith("/auth/setup-link")) return Response.json({ email: "new@example.test", purpose: "setup" });
+        if (String(url).endsWith("/auth/set-password")) return Response.json({ id: "s", status: "active" }, { status: 201 });
+        return new Response("{}", { status: 401 });
+      }),
+    );
+    const { nativeAuthAdapter } = await import("./native");
+    const Page = nativeAuthAdapter.SignUpPage!;
+    const host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    await act(async () => root!.render(<Page />));
+    expect(host.querySelector("[data-testid=link-email]")!.textContent).toBe("For new@example.test");
+    const form = host.querySelector("form")!;
+    expect(form.noValidate).toBe(true);
+    expect(host.querySelector("[data-testid=password-rule]")!.textContent).toBe("0 / 15 characters: use at least 15.");
+
+    const password = host.querySelector<HTMLInputElement>('input[name="password"]')!;
+    password.value = "too short";
+    await act(async () => form.requestSubmit());
+    expect(host.querySelector("[data-testid=password-rule]")!.textContent)
+      .toBe("The password needs at least 15 characters; this one has 9.");
+    expect(password.getAttribute("aria-invalid")).toBe("true");
+    expect(calls.some((c) => c.url.endsWith("/auth/set-password"))).toBe(false);
+
+    password.value = "a long enough password";
+    await act(async () => form.requestSubmit());
+    const sent = calls.find((c) => c.url.endsWith("/auth/set-password"))!;
+    expect(sent.body).toMatchObject({ token: "t".repeat(43), password: "a long enough password", signIn: true });
     host.remove();
   });
 });

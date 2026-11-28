@@ -31,7 +31,7 @@ checks part of them (`tests/contract`, docs/testing/README.md).
   shared test suites use it with a test-only token decoder.
 - In `openapi.yaml` (C07): the security scheme `session` (cookie `boqlet_session`) is required on
   every secured operation; `bearer` is the alternative that goes with it only in OIDC mode.
-- Public endpoints (`security: []`): `POST /auth/sign-in`, `POST /auth/set-password`,
+- Public endpoints (`security: []`): `POST /auth/sign-in`, `POST /auth/set-password`, `POST /auth/setup-link`,
   `GET /plans`, invitation previews by token, `/public/shares/{token}/*` (F18) and the billing
   webhook. `tests/contract/auth.test.ts` checks that every other operation answers `401`
   without a session.

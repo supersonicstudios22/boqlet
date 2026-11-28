@@ -7,7 +7,9 @@ built; they are also listed in `docs/product/known-limitations.md`.
 
 **Native sign-in, decided (P50; this closes P10's "provider undecided").** Users sign in with
 email and password on the boqlet domain; the Java API owns the credentials:
-- `POST /api/v1/auth/sign-in`, `POST /api/v1/auth/set-password`, `GET`/`POST /api/v1/auth/sign-up`
+- `POST /api/v1/auth/sign-in`, `POST /api/v1/auth/set-password` (with `signIn` it opens the session
+  too, review C-28), `POST /api/v1/auth/setup-link` (which address a link is for; the token in the
+  body, not consumed; a refusal counts as a failed attempt), `GET`/`POST /api/v1/auth/sign-up`
   and `POST /api/v1/auth/password-reset` (`identity/NativeAuthController.java`), enabled by
   `BOQLET_NATIVE_AUTH=true` (local stack and pilot). Without it they answer `404 native_auth_disabled`.
 - Passwords are Argon2id hashes in `native_credentials` (`identity/NativeCredentials.java`,

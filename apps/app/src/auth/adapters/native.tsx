@@ -91,6 +91,25 @@ function useNativeSession() {
 
 type SignInOptions = { returnTo?: string; email?: string; reason?: string };
 
+/** The password rule (security.md): 15 to 128 characters, counted as the server counts them (code points). */
+const MIN_PASSWORD = 15;
+export const passwordLength = (value: string) => [...value].length;
+
+/** Which address a setup, reset or invitation link is for (`POST /auth/setup-link`, review C-28); null until known. */
+function useLinkEmail(token: string | null | undefined): string | null {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    if (!token) return;
+    let live = true;
+    authPost("/auth/setup-link", { token })
+      .then(async (r) => (r.ok ? ((await r.json()) as { email: string }).email : null))
+      .catch(() => null)
+      .then((value) => { if (live) setEmail(value); });
+    return () => { live = false; };
+  }, [token]);
+  return email;
+}
+
 function localAuthUrl(opts?: SignInOptions, setup = false) {
   const query = new URLSearchParams({ returnTo: safeReturnTo(opts?.returnTo) });
   if (opts?.email) query.set("email", opts.email);
@@ -146,6 +165,10 @@ function NativeForm({ setup }: { setup: boolean }) {
   const ts = useTranslations("auth.session");
   const relative = useRelativeTime();
   const [error, setError] = useState("");
+  // Review C-28: the rule is checked here, in words, not by the browser's bubble (the form is noValidate).
+  const [length, setLength] = useState(0);
+  const [tooShort, setTooShort] = useState(false);
+  const linkEmail = useLinkEmail(setup ? token : null);
   const session = useNativeSession();
   // Until React runs the form, its submit would be a native GET with the password in the URL (TF-188).
   const hydrated = useHydrated();
@@ -155,19 +178,27 @@ function NativeForm({ setup }: { setup: boolean }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const count = passwordLength(String(data.get("password") ?? ""));
+    if (setup && count < MIN_PASSWORD) {
+      setLength(count);
+      setTooShort(true);
+      return;
+    }
     setBusy(true);
     setError("");
-    const data = new FormData(event.currentTarget);
     try {
       const response = setup
-        ? await authPost("/auth/set-password", { token, password: data.get("password"), name: data.get("name") })
+        ? await authPost("/auth/set-password", {
+            token, password: data.get("password"), name: data.get("name"), signIn: true, deviceLabel: "Web browser",
+          })
         : await authPost("/auth/sign-in", {
             email: data.get("email"), password: data.get("password"), takeover: conflict, deviceLabel: "Web browser",
           });
       if (response.ok) {
-        // A sign-in opens the app with the logo animation; setting a password leads to sign-in first.
-        if (!setup) requestSplash();
-        window.location.replace(setup ? localAuthUrl({ returnTo, email }) : returnTo);
+        // A sign-in opens the app with the logo animation; setting a password signs in too (review C-28).
+        requestSplash();
+        window.location.replace(returnTo);
         return;
       }
       const failure = await response.json().catch(() => ({})) as { code?: string; message?: string; activeSession?: { deviceLabel: string; place?: string; lastSeenAt: string } };
@@ -189,9 +220,10 @@ function NativeForm({ setup }: { setup: boolean }) {
   return (
     <main className="flex flex-col gap-6">
       <h1 className="display text-display-sm">{t(reset ? "newPassword" : setup ? "setPassword" : "signIn")}</h1>
+      {setup && linkEmail && <p className="text-muted-foreground" data-testid="link-email">{t("forEmail", { email: linkEmail })}</p>}
       {/* Why one was signed out (`?reason=`) is shown above the form by the sign-in page. */}
       {setup && !token ? <p>{t("setupLink")}</p> : (
-        <form method="post" onSubmit={submit} onChange={() => {
+        <form method="post" noValidate={setup} onSubmit={submit} onChange={() => {
           setConflict(false);
           setActive(null);
         }} className="flex flex-col gap-4">
@@ -203,9 +235,20 @@ function NativeForm({ setup }: { setup: boolean }) {
           <label className="grid gap-2">
             {t("password")}
             <Input type="password" name="password" autoComplete={setup ? "new-password" : "current-password"}
-              minLength={setup ? 15 : undefined} maxLength={256} required />
+              maxLength={256} required={!setup} aria-invalid={setup && tooShort ? true : undefined}
+              aria-describedby={setup ? "password-rule" : undefined}
+              onChange={setup ? (e) => {
+                const count = passwordLength(e.currentTarget.value);
+                setLength(count);
+                if (count >= MIN_PASSWORD) setTooShort(false);
+              } : undefined} />
           </label>
-          {setup && <p className="text-muted-foreground">{t("passwordLength")}</p>}
+          {setup && (
+            <p id="password-rule" aria-live="polite" data-testid="password-rule"
+              className={tooShort ? "text-error" : "text-muted-foreground"}>
+              {tooShort ? t("passwordShort", { min: MIN_PASSWORD, count: length }) : t("passwordCount", { min: MIN_PASSWORD, count: length })}
+            </p>
+          )}
           {error && <p role="alert" className="text-error">{error}</p>}
           {conflict && active && (
             <div role="alert" className="flex flex-col gap-2 border-l-2 border-[var(--status-attention)] pl-3" data-testid="takeover-question">

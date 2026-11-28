@@ -222,9 +222,72 @@ class NativeAuthTest {
         http.perform(get("/api/v1/me").cookie(third)).andExpect(status().isUnauthorized());
     }
 
+    /**
+     * Review C-28: the set-password form learns which address a link is for (without using it up), and
+     * setting the password with `signIn` signs the account in at once: 201, the session cookie, `/me`
+     * answers. A reset that signs in ends the other session first (P22: one session, no takeover question).
+     * Without `signIn` the answer stays 204 for the scripts that sign in themselves.
+     */
+    @Test
+    void settingAPasswordSignsInAndTheLinkNamesItsAddress() throws Exception {
+        String email = "signs-in-at-once@example.test";
+        String setupToken = "c".repeat(43);
+        String resetToken = "d".repeat(43);
+        http.perform(link("e".repeat(43))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_setup"));
+        http.perform(link("not a token")).andExpect(status().isBadRequest());
+        issue(email, setupToken, "setup");
+        http.perform(link(setupToken)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email)).andExpect(jsonPath("$.purpose").value("setup"));
+        // Looking the link up doesn't use it.
+        http.perform(link(setupToken)).andExpect(status().isOk());
+
+        Cookie first = http.perform(setupSigningIn(setupToken, PASSWORD, "Signs In")).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.deviceLabel").value("Test browser")).andExpect(jsonPath("$.status").value("active"))
+                .andReturn().getResponse().getCookie("boqlet_session");
+        assertThat(first).isNotNull();
+        assertThat(first.isHttpOnly() && first.getSecure()).isTrue();
+        http.perform(get("/api/v1/me").cookie(first)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.email").value(email)).andExpect(jsonPath("$.user.name").value("Signs In"));
+        http.perform(link(setupToken)).andExpect(status().isBadRequest());
+
+        issue(email, resetToken, "reset");
+        http.perform(link(resetToken)).andExpect(status().isOk()).andExpect(jsonPath("$.purpose").value("reset"));
+        Cookie second = http.perform(setupSigningIn(resetToken, "a new password after the reset", null))
+                .andExpect(status().isCreated()).andReturn().getResponse().getCookie("boqlet_session");
+        http.perform(get("/api/v1/me").cookie(first)).andExpect(status().isUnauthorized());
+        http.perform(get("/api/v1/me").cookie(second)).andExpect(status().isOk()).andExpect(jsonPath("$.user.name").value("Signs In"));
+        assertThat(db.queryForObject("""
+                SELECT count(*) FROM sessions s JOIN users u ON u.id = s.user_id WHERE u.email = ? AND s.status = 'active'
+                """, Long.class, email)).isEqualTo(1);
+        // A too-short password is refused before anything is set, and no cookie is sent.
+        issue(email, setupToken, "reset");
+        http.perform(setupSigningIn(setupToken, "too short", null)).andExpect(status().isBadRequest())
+                .andExpect(header().doesNotExist("Set-Cookie"));
+    }
+
     private void issue(String token, String purpose) throws Exception {
+        issue(EMAIL, token, purpose);
+    }
+
+    private void issue(String email, String token, String purpose) throws Exception {
         var hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
-        db.update("INSERT INTO native_setup_links VALUES (?, ?, now() + interval '1 hour', ?)", EMAIL, hash, purpose);
+        db.update("""
+                INSERT INTO native_setup_links VALUES (?, ?, now() + interval '1 hour', ?)
+                ON CONFLICT (email) DO UPDATE SET token_hash = excluded.token_hash, purpose = excluded.purpose
+                """, email, hash, purpose);
+    }
+
+    private MockHttpServletRequestBuilder link(String token) throws Exception {
+        return post("/api/v1/auth/setup-link").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", token)));
+    }
+
+    private MockHttpServletRequestBuilder setupSigningIn(String token, String password, String name) throws Exception {
+        var body = new java.util.LinkedHashMap<String, Object>(Map.of("token", token, "password", password,
+                "signIn", true, "deviceLabel", "Test browser"));
+        if (name != null) body.put("name", name);
+        return post("/api/v1/auth/set-password").header("Origin", ORIGIN).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(body));
     }
 
     private MockHttpServletRequestBuilder setup(String token, String password) throws Exception {

@@ -49,6 +49,7 @@ describe.skipIf(isLocal())("native sign-in on a backend that doesn't run it", ()
   for (const [path, body] of [
     ["/auth/sign-in", { email: "someone@example.com", password: "a long enough password", deviceLabel: "Contract suite" }],
     ["/auth/set-password", { token: "t".repeat(43), password: "a long enough password" }],
+    ["/auth/setup-link", { token: "t".repeat(43) }],
     ["/auth/sign-up", { email: "someone@example.com", elapsedMs: 5000 }],
     ["/auth/password-reset", { email: "someone@example.com" }],
   ] as const) {

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @ConditionalOnProperty(name = "BOQLET_NATIVE_AUTH", havingValue = "false", matchIfMissing = true)
 class NativeAuthDisabledController {
-    @PostMapping({"/sign-in", "/set-password", "/sign-up", "/password-reset"})
+    @PostMapping({"/sign-in", "/set-password", "/setup-link", "/sign-up", "/password-reset"})
     void disabled() {
         throw IdentityService.failure(HttpStatus.NOT_FOUND, "native_auth_disabled", "This backend doesn't run native sign-in.");
     }

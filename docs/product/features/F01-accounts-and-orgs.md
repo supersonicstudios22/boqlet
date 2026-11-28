@@ -85,6 +85,12 @@ across several orgs and, with the pricing module, as a vendor. There are no logg
     Both answer `202` whatever the address, and are throttled (20 requests per address and 3
     per email in 15 minutes, `429 auth_throttled`). Closed, `/sign-up` says accounts come from
     setup links and invitations, and sign-in shows no sign-up link.
+    The set-password form names the address the link is for (`POST /auth/setup-link`) and checks
+    the 15-character rule on the page, in words ("12 / 15 characters"), not with the browser's
+    bubble. **Setting the password signs the account in** (`signIn` on `POST /auth/set-password`,
+    review C-28): the person goes straight on to onboarding, or back to the invitation, without
+    a second sign-in. A new account has no other session and a reset has just ended them, so the
+    single-session rule (P22) holds without a takeover question.
 
 ## Screens
 

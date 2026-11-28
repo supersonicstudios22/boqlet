@@ -95,8 +95,38 @@ public class NativeCredentials {
         }
     }
 
+    /**
+     * Sets the password and opens the account's session in one transaction (review C-28): a new account has
+     * no other session and a reset has just ended them, so P22 holds without a takeover question.
+     */
     @Transactional
-    public void setPassword(String rawToken, String password, String name) {
+    public com.boqlet.contract.model.Session setPasswordAndSignIn(String rawToken, String password, String name,
+                                                                 String cookie, String device) {
+        UUID user = setPassword(rawToken, password, name);
+        return sessions.open(new Login(user, secret(cookie), null), device, false);
+    }
+
+    /** Which address a setup, reset or invitation token is for, without consuming it (review C-28). */
+    public com.boqlet.contract.model.SetupLink setupLink(String rawToken) {
+        if (rawToken == null || !rawToken.matches("[A-Za-z0-9_-]{43}")) throw invalidLink();
+        var digest = hash(rawToken);
+        var link = db.query("""
+                SELECT email, purpose FROM native_setup_links WHERE token_hash = ? AND expires_at > now()
+                """, (row, index) -> new com.boqlet.contract.model.SetupLink(row.getString(1),
+                        com.boqlet.contract.model.SetupLink.PurposeEnum.fromValue(row.getString(2))), digest)
+                .stream().findFirst();
+        if (link.isPresent()) return link.get();
+        return db.query("""
+                SELECT lower(i.email) FROM org_invitations i JOIN orgs o ON o.id = i.org_id
+                WHERE i.token_hash = ? AND i.status = 'pending' AND i.expires_at > now() AND o.status = 'active'
+                """, (row, index) -> new com.boqlet.contract.model.SetupLink(row.getString(1),
+                        com.boqlet.contract.model.SetupLink.PurposeEnum.INVITATION), digest)
+                .stream().findFirst().orElseThrow(NativeCredentials::invalidLink);
+    }
+
+    /** Sets the password from a setup, reset or invitation token; the account's user id. */
+    @Transactional
+    public UUID setPassword(String rawToken, String password, String name) {
         if (rawToken == null || !rawToken.matches("[A-Za-z0-9_-]{43}") || password == null
                 || password.length() > 256 || password.codePointCount(0, password.length()) < 15
                 || password.codePointCount(0, password.length()) > 128 || password.isBlank()
@@ -132,7 +162,7 @@ public class NativeCredentials {
             db.update("UPDATE native_credentials SET password_hash = ? WHERE user_id = ?", encoded, user);
             int ended = db.update("UPDATE sessions SET status = 'ended', ended_at = now() WHERE user_id = ? AND status = 'active'", user);
             sessions.record(user, null, "user.password_reset", user, JsonNodeFactory.instance.objectNode().put("sessionsEnded", ended));
-            return;
+            return user;
         }
         UUID user = Ids.newId();
         int created = db.update("INSERT INTO users (id, auth_subject, email, name) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING",
@@ -141,6 +171,7 @@ public class NativeCredentials {
         db.update("INSERT INTO native_credentials (user_id, password_hash) VALUES (?, ?)", user, encoded);
         sessions.record(user, null, "user.password_set", user, JsonNodeFactory.instance.objectNode()
                 .put("via", operator == null ? "invitation" : operator.emailed() ? "sign_up" : "setup_link"));
+        return user;
     }
 
     /**

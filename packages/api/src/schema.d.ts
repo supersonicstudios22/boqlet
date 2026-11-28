@@ -1980,8 +1980,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Sets the password (P50) from a token: a one-hour setup or reset link issued on the server, or a pending organisation invitation (the person then signs in and accepts it). A setup or reset link is consumed; a reset ends the account's active sessions. The password is 15 to 128 characters, the name at most 120. `400 invalid_setup` for a used, expired or unknown token or a password or name out of range. */
+        /** @description Sets the password (P50) from a token: a one-hour setup or reset link issued on the server, or a pending organisation invitation (the person then signs in and accepts it). A setup or reset link is consumed; a reset ends the account's active sessions. The password is 15 to 128 characters, the name at most 120. `400 invalid_setup` for a used, expired or unknown token or a password or name out of range. With `signIn` (review C-28) the account is signed in in the same step: `201` sets the `boqlet_session` cookie and returns the session, as `POST /auth/sign-in` does. A new account has no other session and a reset has just ended them, so the single-session rule (P22) needs no takeover question here. */
         post: operations["setPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/setup-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Which address a setup, reset or invitation token is for (review C-28), so the set-password form can say whose account it makes. The token is sent in the body, not the URL, and is not consumed. `400 invalid_setup` for a used, expired or unknown token; refusals count against the address's set-password attempts (`429 auth_throttled`). */
+        post: operations["getSetupLink"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3015,6 +3032,11 @@ export interface components {
         };
         SignUpStatus: {
             open: boolean;
+        };
+        SetupLink: {
+            email: string;
+            /** @enum {string} */
+            purpose: "setup" | "reset" | "invitation";
         };
         Error: {
             /** @description machine code, e.g. revision_locked, invalid_transition, deadline_passed */
@@ -8474,16 +8496,78 @@ export interface operations {
                     token: string;
                     password: string;
                     name?: string | null;
+                    /**
+                     * @description sign the account in: `201` with the session instead of `204`
+                     * @default false
+                     */
+                    signIn?: boolean;
+                    /** @description the session's device, with `signIn` */
+                    deviceLabel?: string | null;
                 };
             };
         };
         responses: {
+            /** @description Password set and signed in (with `signIn`); the session cookie is set */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
             /** @description Password set */
             204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Not from the app's origin (`invalid_origin`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description This backend doesn't run native sign-in (`native_auth_disabled`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: components["responses"]["AuthThrottled"];
+        };
+    };
+    getSetupLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupLink"];
+                };
             };
             400: components["responses"]["BadRequest"];
             /** @description Not from the app's origin (`invalid_origin`) */

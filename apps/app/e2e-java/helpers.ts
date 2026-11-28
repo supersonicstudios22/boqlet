@@ -173,9 +173,12 @@ export async function setPasswordWithForm(page: Page, name: string, email: strin
   await hydrated(page);
   await page.locator('input[name="name"]').fill(name);
   await page.locator('input[name="password"]').fill(PASSWORD);
+  // Review C-28: the form names the address the link is for, and setting the password signs in.
+  await expect(page.getByTestId("link-email")).toHaveText(`For ${email}`);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/sign-in\?/);
-  await signInWithForm(page, email, opts);
+  if (opts.landing) await expect(page).toHaveURL(opts.landing);
+  else await expect(page.locator("html")).toHaveAttribute("data-session", "active");
+  await skipSplash(page);
 }
 
 /** The links in the mails Java has sent to `email` (MailHog), once its outbox has sent what's due. */

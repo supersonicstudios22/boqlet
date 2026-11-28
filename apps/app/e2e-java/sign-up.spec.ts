@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { PASSWORD, hydrated, mailLinks, newEmail, resetAuthLimits, setPasswordWithForm, setPublicSignUp, signInWithForm, unique, waitFor } from "./helpers";
+import { PASSWORD, hydrated, mailLinks, newEmail, resetAuthLimits, setPasswordWithForm, setPublicSignUp, unique, waitFor } from "./helpers";
 
 /**
  * Smoke against Java (P57): public sign-up from the sign-in page through the emailed link to the
@@ -85,6 +85,25 @@ test("P57: a forgotten password is reset from the sign-in page by email", async 
   await expect(page.locator('input[name="name"]')).toHaveCount(0);
   await page.locator('input[name="password"]').fill(PASSWORD);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/sign-in\?/);
-  await signInWithForm(page, email, { landing: /\/onboarding$/ });
+  // Review C-28: the new password signs in at once.
+  await expect(page).toHaveURL(/\/onboarding$/);
+});
+
+test("C-28: the password rule is checked in words on the page, not by the browser", async ({ page }) => {
+  await setPublicSignUp(true);
+  await resetAuthLimits();
+  const email = newEmail("short");
+  await page.goto("/sign-up");
+  await sendLinkForm(page, email);
+  await page.goto(await emailedLink(email, false));
+  await hydrated(page);
+  await expect(page.getByTestId("link-email")).toHaveText(`For ${email}`);
+  await page.locator('input[name="password"]').fill("twelve chars");
+  await expect(page.getByTestId("password-rule")).toHaveText("12 / 15 characters: use at least 15.");
+  await page.locator('button[type="submit"]').click();
+  await expect(page.getByTestId("password-rule")).toHaveText("The password needs at least 15 characters; this one has 12.");
+  await expect(page).toHaveURL(/\/sign-up\?token=/);
+  await page.locator('input[name="password"]').fill(PASSWORD);
+  await page.locator('button[type="submit"]').click();
+  await expect(page).toHaveURL(/\/onboarding$/);
 });
