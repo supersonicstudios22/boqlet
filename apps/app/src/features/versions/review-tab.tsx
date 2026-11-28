@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useBoqFormat } from "@/i18n/boq-format";
 import type { Boq, Run } from "@/api/hooks/boqs";
-import { useManualItems, useOverrides } from "@/api/hooks/edits";
+import { useManualItems, useOverrides, type LineOverride } from "@/api/hooks/edits";
 import { useLines } from "@/api/hooks/sheet";
 import { useReviewComment } from "@/api/hooks/versions";
 import { useErrorMessage } from "@/components/errors/use-error-message";
@@ -106,11 +106,13 @@ export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefin
         ) : (
           <ul className="flex flex-col gap-1">
             {edited.map((o) => (
-              <li key={o.lineKey}>
-                {describe.get(o.lineKey) ?? o.lineKey}
-                {o.quantity !== undefined && o.quantity !== null ? ` → ${boqFormat.quantity(o.quantity)}` : ""}
-                {o.reason ? <span className="text-muted-foreground"> · {o.reason}</span> : null}
-              </li>
+              <EditEntry
+                key={o.lineKey}
+                edit={o}
+                description={describe.get(o.lineKey) ?? o.lineKey}
+                quantity={o.quantity !== undefined && o.quantity !== null ? boqFormat.quantity(o.quantity) : null}
+                when={relative(o.createdAt)}
+              />
             ))}
           </ul>
         )}
@@ -121,5 +123,21 @@ export function ReviewTab({ boq, runs, base }: { boq: Boq; runs: Run[] | undefin
         <ChangesTab boq={boq} runs={runs} base={base} />
       </section>
     </div>
+  );
+}
+
+/** One line edit as the reviewer reads it (F09 §4, review C-13): the line, the new quantity, the reason, who edited it and when. */
+export function EditEntry({ edit, description, quantity, when }: { edit: LineOverride; description: string; quantity: string | null; when: string }) {
+  const t = useTranslations("boqs.review");
+  return (
+    <li data-testid="review-edit" data-line={edit.lineKey}>
+      {description}
+      {quantity !== null ? ` → ${quantity}` : ""}
+      {edit.reason ? <span className="text-muted-foreground"> · {edit.reason}</span> : null}
+      <span className="text-muted-foreground" data-testid="review-edit-by">
+        {" · "}
+        {t("editedBy", { name: edit.createdBy?.name ?? "none", when })}
+      </span>
+    </li>
   );
 }

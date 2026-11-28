@@ -798,7 +798,8 @@
     },
     "summary": "{questions, plural, =0 {No open questions} one {# open question} other {# open questions}} · {edits, plural, =0 {no line edits} one {# line edit} other {# line edits}} · {manual, plural, =0 {no manual lines} other {# manual lines}} · {warnings, plural, =0 {no warnings} one {# warning} other {# warnings}}",
     "edits": "Line edits and their reasons",
-    "noEdits": "No line edits."
+    "noEdits": "No line edits.",
+    "editedBy": "{name, select, none {} other {{name}, }}{when}"
   },
   "exports": {
     "working": "Working version {label}",
