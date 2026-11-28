@@ -332,6 +332,13 @@
           "items": {
             "$ref": "#/definitions/ManualItem"
           }
+        },
+        "lineKeyWords": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/LineKeyWords"
+          },
+          "description": "Words per line-key field (review C-24), for lines of one rule that would share a description. A field without an entry reads as its value (a number formatted, `true` as the field's name without `is_`)."
         }
       },
       "required": [
@@ -2045,6 +2052,21 @@
         "unit"
       ],
       "additionalProperties": false
+    },
+    "LineKeyWords": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "A template over `{value}`, the same syntax as a line text: `\"{value*1000} mm\"`, `\"{IF(value, \\\"external\\\", \\\"internal\\\")}\"`."
+        },
+        "none": {
+          "type": "string",
+          "description": "The words for a missing value; without them a missing value adds nothing."
+        }
+      },
+      "additionalProperties": false,
+      "description": "How a line-key value reads in a description (review C-24). When lines of one rule share a description, each gets the key values that tell them apart appended in words: \"Edge formwork to slabs, 127mm Slab on Grade\"."
     },
     "BoqLine": {
       "type": "object",

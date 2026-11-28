@@ -224,6 +224,7 @@ found. A manual item may take its quantity from a `formula` over answers and bui
 | `lineKey` | fields or expressions whose values split lines; same values are summed. The unit is always part of the key |
 | `bands` | split by numeric ranges of a field, e.g. height above 3.5 m; labels appended to the description |
 | `description` | template: `{type_name}`, `{thickness*1000}`, `{p.x}`, `{expr: ...}`; missing values render as "-" |
+| `lineKeyWords` (rule set) | words for line-key values (review C-24, D126): lines of one rule never share a description; where they would, each gets the key values that differ among them appended ("Edge formwork to slabs, 127mm Slab on Grade"). Per field a `value` template over `{value}` (as-modelled: `is_external` reads external / internal, `thickness` `{value*1000} mm`) and `none` words for a missing value (without them a missing value adds nothing); a field without words reads its value. Lines still alike are numbered "(1)", "(2)" in key order. Keys and quantities never change |
 | `factor`, `minimum` (per element or line), `rounding` (step, nearest/up/down, at element or line; `nearest` and `ROUND()` take halves away from zero, as Excel's ROUND: 0.125 at 0.01 is 0.13; `rounding` and `FLOOR` / `CEIL` / `ROUND` with a step are one helper, exact on decimal steps: `FLOOR(0.3, 0.1)` is 0.3, review A-23) | |
 | `onMissing` | flag (line kept, value missing noted), skip (element left out, warned), ask (blocking `missing_data` question), `{ "default": n }` (logged default) |
 | `claims` | double-count guard: two rules claiming the same name ("body", "finish_side_a") on one element give a `double_claim` question; two item rules measuring one element in the same family (area, volume...) of which one declares no claim give a `double_count` warning (BR-13, review A-20). Give every item rule a claim that says what it measures |
@@ -280,7 +281,7 @@ A firm's rules usually extend a base and state only the differences:
 }
 ```
 
-Merge rules: params merge by name; `sections` merge by id (a new title or intro replaces the parent's,
+Merge rules: params merge by name; `lineKeyWords` by field; `sections` merge by id (a new title or intro replaces the parent's,
 new sections come after the parent's, so a patch can group its own questions); items, derived and
 manual override by `id`, new ids are added;
 `remove: ["walls"]` drops ids from the parent. The engine flattens the chain at run time and

@@ -83,6 +83,8 @@ def flatten(target: dict, library: dict[str, dict]) -> dict:
         base["scope"] = target["scope"]
     if "setupSteps" in target:
         base["setupSteps"] = target["setupSteps"]
+    if target.get("lineKeyWords"):
+        base["lineKeyWords"] = {**base.get("lineKeyWords", {}), **target["lineKeyWords"]}
     if target.get("sections"):
         sections = {s["id"]: s for s in base.get("sections", [])}
         for s in target["sections"]:
@@ -1056,7 +1058,46 @@ class RuleEngine:
         return {n: self.params.get(n) for n in sorted(names)}
 
     # ---------------------------------------------------------------- finalize
+    def key_words(self, field: str, value, spec: dict | None) -> str | None:
+        """A line-key value in words (review C-24): the rule set's `lineKeyWords` template, else the value itself."""
+        spec = spec or {}
+        if value is None or value == "":
+            return spec.get("none")
+        if spec.get("value"):
+            return render_template(spec["value"], self.x, {"value": value}).strip() or None
+        if isinstance(value, bool):
+            name = field.split(":")[-1].removeprefix("is_").replace("_", " ")
+            return name if value else f"not {name}"
+        return value if isinstance(value, str) else fmt(round(value, 3) if isinstance(value, float) else value)
+
+    def distinguish(self, lines: list[dict]) -> None:
+        """Review C-24 (CAS-025, QS-016): lines of one rule never share a description. Where they would, each gets
+        the line-key values that differ among them in words ("Edge formwork to slabs, 127mm Slab on Grade"); a
+        line whose differing values are all missing gets nothing added (or the field's `none` words). Lines whose
+        words still coincide are numbered in key order. Deterministic; keys and quantities stay."""
+        spec = self.rules.get("lineKeyWords") or {}
+        groups: dict[tuple, list[dict]] = defaultdict(list)
+        for line in lines:
+            groups[(line["ruleId"], line["description"])].append(line)
+        for (_, description), same in groups.items():
+            if len(same) < 2:
+                continue
+            names = list(dict.fromkeys(name for line in same for name in line.get("keys", {})))
+            differing = [name for name in names if len({_key(line["keys"].get(name)) for line in same}) > 1]
+            for line in same:
+                words = [w for name in differing if (w := self.key_words(name, line["keys"].get(name), spec.get(name)))]
+                if words:
+                    line["description"] = f"{description}, {', '.join(words)}"
+            still: dict[str, list[dict]] = defaultdict(list)
+            for line in same:
+                still[line["description"]].append(line)
+            for text, alike in still.items():
+                if len(alike) > 1:
+                    for n, line in enumerate(sorted(alike, key=lambda x: x["key"]), 1):
+                        line["description"] = f"{text} ({n})"
+
     def finalize_lines(self):
+        self.distinguish(list(self.lines.values()))
         for line in self.lines.values():
             item = line.pop("_rule")
             parts = line.pop("_parts")
@@ -1193,6 +1234,7 @@ class RuleEngine:
                 self.log.info("derived", f"derived rule '{d['id']}' produced no lines (no matching sources)", ruleId=d["id"],
                     code="log.derived.no_sources", params=dict(ruleId=d['id']))
         lines = []
+        self.distinguish(list(out.values()))
         for line in out.values():
             if line["_missing"] == line["_count"]:
                 line["quantity"], line["source"] = None, "flagged"

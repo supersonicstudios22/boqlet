@@ -470,6 +470,17 @@ export interface RuleScope {
   exclude?: Selector[];
 }
 
+/**
+ * How a line-key value reads in a description (review C-24). When lines of one rule share a description, each
+ * gets the key values that tell them apart appended in words: "Edge formwork to slabs, 127mm Slab on Grade".
+ */
+export interface LineKeyWords {
+  /** A template over `{value}`, the same syntax as a line text: `"{value*1000} mm"`, `"{IF(value, \"external\", \"internal\")}"`. */
+  value?: string;
+  /** The words for a missing value; without them a missing value adds nothing. */
+  none?: string;
+}
+
 export interface RuleSetDefaults {
   rounding?: Rounding;
   onMissing?: OnMissing;
@@ -497,6 +508,11 @@ export interface RuleSet {
   items: ItemRule[];
   derived?: DerivedRule[];
   manual?: ManualItem[];
+  /**
+   * Words per line-key field (review C-24), for lines of one rule that would share a description. A field without
+   * an entry reads as its value (a number formatted, `true` as the field's name without `is_`).
+   */
+  lineKeyWords?: Record<string, LineKeyWords>;
 }
 
 /**
@@ -517,6 +533,8 @@ export interface RuleSetPatch {
   params?: Record<string, Param | { value: Param["value"]; setup?: string }>;
   /** Replaces the parent's setup wizard screens (F16 part 1c, EN-011). */
   setupSteps?: SetupStep[];
+  /** Merge by field with the parent's (review C-24). */
+  lineKeyWords?: Record<string, LineKeyWords>;
   /** Sections merge by id (title / intro override, new ones appended), so a patch can group its own questions. */
   sections?: RuleSection[];
   /** Replaces the parent's scope when present. */

@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "id": "as-modelled",
   "name": "As modelled (master template)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "meta": {
     "unitSystem": "metric",
     "locale": "en",
@@ -2588,5 +2588,14 @@
         "param": "include_provisional"
       }
     }
-  ]
+  ],
+  "lineKeyWords": {
+    "is_external": {
+      "value": "{IF(value, \"external\", \"internal\")}",
+      "none": "external or internal not stated"
+    },
+    "thickness": {
+      "value": "{value*1000} mm"
+    }
+  }
 }
