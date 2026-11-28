@@ -91,7 +91,8 @@ function StepRow({
   const p = step.params as Record<string, unknown>;
   const unit = step.unit ?? line.unit;
   const amount = (v: number, digits = 3) => format.number(v, { maximumFractionDigits: digits });
-  const withUnit = (v: unknown, u: string | undefined) => (typeof v === "number" ? `${amount(v, 6)}${u ? ` ${unitLabel(u)}` : ""}` : "—");
+  // Quantities and thresholds to 3 decimals with their unit (review C-11); a factor keeps 6.
+  const withUnit = (v: unknown, u: string | undefined) => (typeof v === "number" ? `${amount(v)}${u ? ` ${unitLabel(u)}` : ""}` : "—");
   const str = (k: string) => (typeof p[k] === "string" ? (p[k] as string) : "");
   const num = (k: string) => (typeof p[k] === "number" ? (p[k] as number) : 0);
   const count = num("count");
@@ -229,7 +230,7 @@ function StepRow({
                   </span>
                   {/* An element's share of the line; under a deduction it would read as the deducted amount. */}
                   {(step.kind === "start" || step.kind === "derive") && (
-                    <span className="shrink-0 tabular-nums text-muted-foreground">{e.quantity === null ? "—" : amount(e.quantity)}</span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">{e.quantity === null ? "—" : withUnit(e.quantity, unit)}</span>
                   )}
                 </li>
               ))}

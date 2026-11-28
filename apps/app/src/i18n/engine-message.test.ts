@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createFormatter, createTranslator } from "next-intl";
 import engine from "../../messages/en/engine.json";
-import { renderEngineMessage, type EngineMessage } from "./engine-message";
+import { labelUnits, renderEngineMessage, type EngineMessage } from "./engine-message";
 
 const t = createTranslator({ locale: "en", messages: { engine }, namespace: "engine", onError: () => {} });
 const format = createFormatter({ locale: "en" });
@@ -128,5 +128,23 @@ describe("TF-110: a message names the classification, not its id", () => {
     const m = { code: "item_text_blank", params: { system: "s3a-trades", lineKey: "k", description: "Roof", blank: "fire_rating" }, message: "x" };
     expect(render(withSystemName(m, new Map([["s3a-trades", "Trades with item texts"]]))).text).toBe("[Trades with item texts] “Roof”: no value for {fire_rating}.");
     expect(withSystemName(m, new Map())).toBe(m);
+  });
+});
+
+/** Review C-11 (UX-031): units in engine text read as in the sheet, m² not m2. */
+describe("labelUnits", () => {
+  it("writes the unit symbols of a measure log entry with superscripts", () => {
+    expect(labelUnits("Wall 1: volume 4.587 m3 from PSet_Revit_Dimensions.Volume; net area = (11 + 11) / 2 = 11 m2; density 2400 kg/m3")).toBe(
+      "Wall 1: volume 4.587 m³ from PSet_Revit_Dimensions.Volume; net area = (11 + 11) / 2 = 11 m²; density 2400 kg/m³",
+    );
+    expect(labelUnits("[area] area (main) = 11 -> 11 m2; 3 ft2, 2 yd3")).toBe("[area] area (main) = 11 -> 11 m²; 3 ft², 2 yd³");
+  });
+
+  it("leaves names and GlobalIds alone", () => {
+    for (const text of ["Room m2b", "2O2Fr$t4X7Zf8NOew3FK80", "Pset_m3.Volume", "Level m22"]) expect(labelUnits(text)).toBe(text);
+  });
+
+  it("applies to the engine's English fallback and to catalogue texts", () => {
+    expect(render({ code: "log.not_in_catalogue", message: "slab 12 m2 -> 3 m3" }).text).toBe("slab 12 m² -> 3 m³");
   });
 });

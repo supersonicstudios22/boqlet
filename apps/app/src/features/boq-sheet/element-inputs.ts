@@ -43,3 +43,8 @@ export function describeInput(
   if (input.question) parts.push(t("answered"));
   return parts.join(" · ");
 }
+
+/** An element's share of a line, and the shares' total: 3 decimals and the line's unit, never "5.250625" (review C-11). */
+export function shareText(value: number, unit: string, number: (value: number, options: Intl.NumberFormatOptions) => string, unitLabel: (unit: string) => string): string {
+  return `${number(value, { maximumFractionDigits: 3 })} ${unitLabel(unit)}`;
+}

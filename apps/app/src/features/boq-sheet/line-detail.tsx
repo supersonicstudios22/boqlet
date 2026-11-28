@@ -11,13 +11,13 @@ import { Button } from "@/components/ui/button";
 import { lexicon, toReadable, type Lexicon } from "@/features/library/lib/readable";
 import { cn } from "@/lib/utils";
 import { useOrg } from "@/features/orgs/org-context";
-import { useEngineMessage } from "@/i18n/engine-message";
+import { labelUnits, useEngineMessage } from "@/i18n/engine-message";
 import { HowCalculated } from "./how-calculated";
 import { SourceTag } from "./source-tag";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat } from "@/i18n/boq-format";
 import { InlineError } from "@/components/errors/inline-error";
-import { describeInput } from "./element-inputs";
+import { describeInput, shareText } from "./element-inputs";
 import { LoadingLines } from "@/components/loading";
 
 /** "… (from slot formwork_walls_formula)": the engine names the setting a formula came from. */
@@ -135,6 +135,8 @@ export function LineDetailBody({
   const format = useBoqFormat();
   const message = useEngineMessage();
   const num = (v: number) => format.quantity(v);
+  // An element's share and their total: 3 decimals, with the line's unit (review C-11).
+  const share = (v: number) => shareText(v, line.unit, format.number, unitLabel);
   const value = (v: unknown) => (typeof v === "boolean" ? (v ? t("yes") : t("no")) : typeof v === "number" ? num(v) : typeof v === "string" ? v : JSON.stringify(v));
   const slotLabel = (name: string) => lex.slotLabels.get(name) ?? slots[name]?.label ?? name;
 
@@ -222,7 +224,7 @@ export function LineDetailBody({
                             <div title={e.guid}>{e.name || e.guid}</div>
                             <div className="text-muted-foreground">
                               {e.model ? (modelNames.get(e.model) ?? e.model.slice(0, 8)) : null}
-                              {e.note ? ` · ${e.note}` : null}
+                              {e.note ? ` · ${labelUnits(e.note, unitLabel)}` : null}
                             </div>
                             {/* Its measured inputs and where each came from (review C-10). */}
                             {e.inputs?.length ? (
@@ -236,7 +238,7 @@ export function LineDetailBody({
                             ) : null}
                           </td>
                           <td className="py-1 text-right tabular-nums" data-testid="detail-share">
-                            {e.quantity === null ? t("missing") : num(e.quantity)}
+                            {e.quantity === null ? t("missing") : share(e.quantity)}
                           </td>
                         </tr>
                       ))}
@@ -245,7 +247,7 @@ export function LineDetailBody({
                       <tr>
                         <td className="py-1">{t("sumOfShares", { count: elements.length })}</td>
                         <td className="py-1 text-right font-semibold tabular-nums" data-testid="detail-share-sum">
-                          {num(sum)}
+                          {share(sum)}
                         </td>
                       </tr>
                     </tfoot>

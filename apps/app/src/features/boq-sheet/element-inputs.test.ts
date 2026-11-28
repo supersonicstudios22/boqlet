@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import boqs from "../../../messages/en/boqs.json";
 import library from "../../../messages/en/library.json";
 import { displayUnit } from "./model";
-import { describeInput, fieldUnit, type TraceInput } from "./element-inputs";
+import { describeInput, fieldUnit, shareText, type TraceInput } from "./element-inputs";
 
 const tr = createTranslator({ locale: "en", messages: { boqs }, namespace: "boqs.detail.input" }) as unknown as ((key: string, values?: Record<string, string | number>) => string) & { has(key: string): boolean };
 const t = Object.assign((key: string, values?: Record<string, string | number>) => tr(key, values), { has: (key: string) => tr.has(key) });
@@ -43,5 +43,15 @@ describe("describeInput", () => {
   it("has a sentence for every basis the engine writes", () => {
     const bases = ["property", "attribute", "layer_set", "mesh", "parts", "faces", "sides", "box", "extent", "up_faces", "surface", "vertical_faces", "volume_thickness", "volume_area", "plus_openings", "less_openings", "openings", "surface_volume", "box_sides", "same", "area_thickness", "face", "profile", "material", "name"];
     for (const b of bases) expect(t.has(`basis.${b}`), b).toBe(true);
+  });
+});
+
+/** Review C-11 (UX-031): the shares and their total are rounded and carry the line's unit. */
+describe("shareText", () => {
+  const number = (v: number, o: Intl.NumberFormatOptions) => new Intl.NumberFormat("en", o).format(v);
+  it("rounds to 3 decimals and adds the unit", () => {
+    expect(shareText(5.250625, "m2", number, displayUnit)).toBe("5.251 m²");
+    expect(shareText(12.483345, "m3", number, displayUnit)).toBe("12.483 m³");
+    expect(shareText(7, "nr", number, displayUnit)).toBe("7 nr");
   });
 });
