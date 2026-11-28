@@ -316,7 +316,7 @@ def export(result: dict, meta: dict) -> bytes:
                 f"derived or added by hand ({manual_count} manual line{'' if manual_count == 1 else 's'}).")
     ws["A4"].font = SMALL
     _header(ws, 5, ["Ref", "Description", "Unit", "Quantity", "Rate", "Amount", "Source", "Notes"],
-            [10, 60, 7, 12, 11, 14, 9, 36])
+            [10, 75, 7, 12, 11, 14, 9, 30])
     ws.freeze_panes = "A6"
     # Groups nest by the grouping code's path, every level, in the sheet's numeric order (F06 §3, TF-054).
     # A built-in grouping (C-07) puts each line under its storey or its rule, one level.
@@ -344,7 +344,8 @@ def export(result: dict, meta: dict) -> bytes:
             # The team's notes, edit reasons and the rule set's wording stay in the working workbook;
             # the recipient sees why a quantity is to be confirmed.
             notes = [to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []
-        elif description != l["description"]:
+        elif description != l["description"] and l["description"] not in description:
+            # An item text that wraps the measured description (C-23) already says it.
             notes = [*notes, f"Measured as: {l['description']}"]
         if not issue and (measured := l.get("overridden", {}).get("engineDescription")):
             notes = [*notes, f"Measured as: {measured}"]
