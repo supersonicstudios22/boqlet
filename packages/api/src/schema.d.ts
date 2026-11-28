@@ -3218,6 +3218,11 @@ export interface components {
             approvalRequired?: boolean;
             /** @description Share links show only saved versions, for everyone: a pinned link to a version that is not saved is refused (review A-46). Off when not set (no `default`: a partial settings PATCH would reset it, TF-191) */
             shareOnlySavedVersions?: boolean;
+            /**
+             * @description Who may create projects (review C-32): every member, or only owners, admins and people who lead a project in the org (`POST /orgs/{orgId}/projects` is then `403 forbidden` for others; a sample project stays open to everyone). `everyone` when not set (no `default`, TF-191)
+             * @enum {string}
+             */
+            projectCreation?: "everyone" | "leads_and_admins";
             /** @description Overrides the locale's separators (P35) */
             numberFormat?: {
                 /** @enum {string} */

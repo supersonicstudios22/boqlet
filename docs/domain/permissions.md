@@ -27,7 +27,7 @@ isn't built (P48), so the vendor sections below are specification only.
 | Delete org | ✓ | | | |
 | Invite / remove members, change roles | ✓ | ✓ | | |
 | Make someone owner | ✓ | | | |
-| Create projects | ✓ | ✓ | ✓ | ✓ |
+| Create projects (org setting `projectCreation`; with `leads_and_admins`, a library editor or member only while they lead an active project of the org; a sample project always, review C-32) | ✓ | ✓ | ✓ | ✓ |
 | See all projects | ✓ | ✓ | | |
 | Library: view org presets | ✓ | ✓ | ✓ | ✓ |
 | Library: create, edit, publish, archive org presets | ✓ | ✓ | ✓ | |

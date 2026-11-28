@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrg } from "@/features/orgs/org-context";
+import { useCanCreateProjects } from "@/features/projects/project-creation";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
 import { usePageTitle } from "@/lib/page-title";
@@ -18,7 +19,8 @@ import { usePageTitle } from "@/lib/page-title";
 export default function ProjectsPage() {
   const t = useTranslations("projects.list");
   const relativeTime = useRelativeTime();
-  const { org, can } = useOrg();
+  const { org } = useOrg();
+  const canCreate = useCanCreateProjects();
   usePageTitle(2, t("title"), org.name);
   const [status, setStatus] = useState<"active" | "archived">("active");
   const [q, setQ] = useState("");
@@ -27,7 +29,7 @@ export default function ProjectsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
         <h1 className="text-title flex-1">{t("title")}</h1>
-        {can("createProjects") && (
+        {canCreate && (
           <Button render={<Link href={`/${org.slug}/projects/new`} />} nativeButton={false}>
             {t("new")}
           </Button>

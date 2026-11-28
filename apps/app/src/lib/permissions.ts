@@ -22,6 +22,8 @@ export const ORG_ACTIONS = {
   manageMembers: ["owner", "admin"],
   makeOwner: ["owner"],
   createProjects: ["owner", "admin", "library_editor", "member"],
+  /** Create projects also when the org lets only owners, admins and project leads (`projectCreation`, review C-32). */
+  createProjectsWhenRestricted: ["owner", "admin"],
   seeAllProjects: ["owner", "admin"],
   viewLibrary: ["owner", "admin", "library_editor", "member"],
   editLibrary: ["owner", "admin", "library_editor"],

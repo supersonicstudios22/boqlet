@@ -3080,6 +3080,7 @@ components:
         publicLinksAllowed: { type: boolean, default: true }
         approvalRequired: { type: boolean, default: false, description: "Saving a version needs review and approval (F09 §4, P29). While on, only a project's lead or approvers share versions that are not saved (review A-46)" }
         shareOnlySavedVersions: { type: boolean, description: "Share links show only saved versions, for everyone: a pinned link to a version that is not saved is refused (review A-46). Off when not set (no `default`: a partial settings PATCH would reset it, TF-191)" }
+        projectCreation: { type: string, enum: [everyone, leads_and_admins], description: "Who may create projects (review C-32): every member, or only owners, admins and people who lead a project in the org (`POST /orgs/{orgId}/projects` is then `403 forbidden` for others; a sample project stays open to everyone). `everyone` when not set (no `default`, TF-191)" }
         numberFormat:
           type: object
           description: Overrides the locale's separators (P35)

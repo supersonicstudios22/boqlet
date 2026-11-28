@@ -10,6 +10,10 @@
     "emptyBody": "A project holds one building's models, bills of quantities and decisions. Create one, or explore a sample built from a real model.",
     "createFirst": "Create your first project",
     "trySample": "Try with a sample project",
+    "notAddedTitle": "You haven't been added to a project yet",
+    "notAddedAsk": "Projects show here once someone adds you. Ask {names} to add you to one.",
+    "notAddedAskAnyone": "Projects show here once someone adds you. Ask an owner or admin of {org} to add you to one.",
+    "notAddedSample": "Meanwhile, a sample project of your own shows how a bill of quantities is made from a model. Only you see it.",
     "attention": {
       "review_requested": "Review {boq} {revision}",
       "changes_requested": "Changes requested on {boq} {revision}",

@@ -67,10 +67,30 @@ public class Projects {
                 .blockingQuestions(row.getInt("open")), project, project);
     }
 
+    /**
+     * The org setting `projectCreation` (review C-32): `leads_and_admins` lets owners, admins and people who lead
+     * a project of the org create projects; everyone else is refused. A sample project (training) stays open.
+     */
+    private void requireProjectCreation(UUID org, UUID actor, OrgRole role, OrgSettings settings) {
+        if (settings.getProjectCreation() != OrgSettings.ProjectCreationEnum.LEADS_AND_ADMINS) return;
+        if (role == OrgRole.OWNER || role == OrgRole.ADMIN) return;
+        boolean leads = Boolean.TRUE.equals(database.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM project_members pm JOIN projects p ON p.id = pm.project_id
+                WHERE pm.org_id = ? AND pm.user_id = ? AND pm.role = 'lead' AND p.status = 'active')
+                """, Boolean.class, org, actor));
+        if (!leads) {
+            throw new com.boqlet.api.http.ApiException(HttpStatus.FORBIDDEN, "forbidden",
+                    "In this organisation, owners, admins and project leads create projects.",
+                    Map.of("setting", "projectCreation"));
+        }
+    }
+
     @Transactional
     public Project create(UUID org, UUID actor, ProjectCreate request) {
-        OrgSettings settings = orgs.lock(org, actor).org().getSettings();
+        var scope = orgs.lock(org, actor);
+        OrgSettings settings = scope.org().getSettings();
         boolean sample = request.getSample() == ProjectCreate.SampleEnum.DUPLEX;
+        if (!sample) requireProjectCreation(org, actor, scope.role(), settings);
         if (!sample) limits.checkCapacity(org, actor, "activeProjects", limits.activeProjects(org));
         UUID project = Ids.newId();
         UUID dictionary = Ids.newId();

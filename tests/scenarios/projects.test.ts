@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../support/env";
+import { invitationToken } from "../support/mail";
+import { allowProjects, allowSeats } from "../support/plans";
 import { STUDIO_SLUG, signUp, uniqueEmail, user, type TestUser } from "../support/users";
 
 /** F02 projects: acceptance criteria and behaviour, through the API only. */
@@ -118,6 +120,39 @@ describe("F02 projects", () => {
  * Review A-44 (LEAD-002, DEC-44): project defaults are versions, not "latest": a v2 of the firm's rule set shows as
  * available on the project and its BoQs, and moves them only by an explicit action; an archived default is flagged.
  */
+describe("C-32 who may create projects", () => {
+  it("with projectCreation leads_and_admins a member gets 403, a project lead and an admin may, and a sample stays open", async () => {
+    const { owner, org } = await freeOrg();
+    await allowSeats(org.id, 10);
+    await allowProjects(org.id, 10);
+    const join = async (name: string, role: "member" | "admin") => {
+      const email = uniqueEmail(name.toLowerCase());
+      await client(owner.token).POST("/orgs/{orgId}/invitations", { params: { path: { orgId: org.id } }, body: { email, role } });
+      const person = await signUp(name, email);
+      const token = await invitationToken(email);
+      expect((await client(person.token).POST("/invitations/{token}/accept", { params: { path: { token } } })).response.status).toBe(200);
+      return person;
+    };
+    const member = await join("Mira", "member");
+    const lead = await join("Luka", "member");
+    const admin = await join("Ada", "admin");
+    // The default (not set) is every member, as before.
+    expect((await createProject(member, org.id, "Before")).response.status).toBe(201);
+
+    const patched = await client(owner.token).PATCH("/orgs/{orgId}", { params: { path: { orgId: org.id } }, body: { settings: { projectCreation: "leads_and_admins" } } });
+    expect(patched.data!.settings.projectCreation).toBe("leads_and_admins");
+    const refused = await createProject(member, org.id, "Stray");
+    expect(refused.response.status).toBe(403);
+    expect(refused.error).toMatchObject({ code: "forbidden", details: { setting: "projectCreation" } });
+    // Mira led "Before": a lead of a project of the org may create; Luka leads nothing yet.
+    expect((await createProject(member, org.id, "Led by Mira")).response.status).toBe(201);
+    expect((await createProject(lead, org.id, "Stray too")).response.status).toBe(403);
+    expect((await createProject(lead, org.id, "Training", { sample: "duplex" })).response.status).toBe(201);
+    expect((await createProject(admin, org.id, "By the admin")).response.status).toBe(201);
+    expect((await createProject(owner, org.id, "By the owner")).response.status).toBe(201);
+  });
+});
+
 describe("A-44 project defaults and newer preset versions", () => {
   it("House A shows v2 available; moving its defaults gives v2 to new BoQs; existing BoQs move only by 'move to latest'", async () => {
     const [olivia, ivana] = await Promise.all([user("olivia"), user("ivana")]);

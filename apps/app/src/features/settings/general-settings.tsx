@@ -133,6 +133,17 @@ export function GeneralSettings() {
             <h2 className="label-caps">{t("workflow")}</h2>
             <Toggle id="org-links" checked={settings.publicLinksAllowed ?? true} onChange={(v) => set("publicLinksAllowed", v)} label={t("publicLinks")} disabled={!inPlan("shareLinks") && !(settings.publicLinksAllowed ?? true)} hint={inPlan("shareLinks") ? undefined : t("notInPlan")} />
             <Toggle id="org-saved-only" checked={settings.shareOnlySavedVersions ?? false} onChange={(v) => set("shareOnlySavedVersions", v)} label={t("savedOnly")} hint={t("savedOnlyHint")} />
+            <Field id="org-project-creation" label={t("projectCreation")} hint={t("projectCreationHint")}>
+              <NativeSelect
+                id="org-project-creation"
+                value={settings.projectCreation ?? "everyone"}
+                onChange={(e) => set("projectCreation", e.target.value as "everyone" | "leads_and_admins")}
+                data-testid="settings-project-creation"
+              >
+                <option value="everyone">{t("projectCreationEveryone")}</option>
+                <option value="leads_and_admins">{t("projectCreationLeads")}</option>
+              </NativeSelect>
+            </Field>
             <Toggle id="org-approval" checked={settings.approvalRequired ?? false} onChange={(v) => set("approvalRequired", v)} label={t("approval")} disabled={!inPlan("approvalWorkflow") && !settings.approvalRequired} hint={inPlan("approvalWorkflow") ? undefined : t("notInPlan")} />
             <Toggle id="org-four-eyes" checked={settings.fourEyes ?? false} onChange={(v) => set("fourEyes", v)} label={t("fourEyes")} disabled={!settings.approvalRequired || !inPlan("approvalWorkflow")} />
           </section>

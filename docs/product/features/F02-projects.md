@@ -24,7 +24,10 @@ who works on it.
 
 1. **Create:** checks `activeProjects` (`402`). Fields: name (required), code, client, country,
    address, currency (default org), unit system (default org), locale (default org). The creator
-   becomes `lead`.
+   becomes `lead`. Who may create is an org setting, `projectCreation` (review C-32, DEC-72):
+   `everyone` (the default, every org role) or `leads_and_admins` (owners, admins and people who
+   lead an active project of the org; anyone else gets `403 forbidden` with
+   `details.setting: "projectCreation"`). A sample project stays open to everyone.
 2. **Default presets:** rule set version, classification versions (zero or more, ordered:
    the first is the default grouping), dictionary versions (ordered, most general first).
    Defaults prefill new BoQs. Initial defaults: the org presets a library editor chose as
@@ -45,7 +48,10 @@ who works on it.
 5. **Dashboard** (`/{org}`): project cards with name, code, status, last activity, and counts:
    blocking questions, versions in review, BoQs confirmed / working. A "Needs you" list
    aggregates: reviews assigned to me, runs of mine that need input, new model versions for my BoQs,
-   failed jobs.
+   failed jobs. A member who sees only their own projects and has none yet reads "You haven't
+   been added to a project yet", with the org's owners and admins by name to ask, and the private
+   sample to learn with; "Start your first project" is the owners' and admins' empty state
+   (review C-32).
 6. **Project overview** (`/{org}/projects/{id}`): models with latest version and status, BoQs
    with status (working, with the last saved version's label, or confirmed), recent activity
    (from the audit log). Modules may add cards (extension point `project.overviewCards`).
