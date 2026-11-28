@@ -62,6 +62,33 @@ public class Decisions {
         return active(project).stream().filter(row -> kind == null || row.kind().equals(kind)).map(this::view).toList();
     }
 
+    /** A decision with its answer in words (review C-18): what the decisions CSV writes next to the stored value. */
+    public record Readable(Decision decision, String answer) {}
+
+    public List<Readable> readable(UUID project, UUID actor) {
+        var scope = projects.require(project, actor);
+        var terms = library.termLabels(scope.getOrgId(), project);
+        return active(project).stream().map(row -> new Readable(view(row), answerText(row, terms))).toList();
+    }
+
+    /** The answer as the app shows it: an option's label, a term's label, the special answers in words. */
+    static String answerText(Saved row, Map<String, String> terms) {
+        JsonNode answer = row.answer();
+        if (answer == null || answer.isNull()) return "Left as it is";
+        JsonNode control = row.question() == null ? null : row.question().path("answer");
+        String kind = control == null ? "" : control.path("kind").asText();
+        String value = answer.asText();
+        if (kind.equals("number") && value.equals("flag")) return "Flag the line";
+        if (kind.equals("rule") && value.equals("exclude")) return "Exclude from the BoQ";
+        if (kind.equals("choice")) {
+            for (JsonNode option : control.path("options")) {
+                if (option.path("value").equals(answer)) return option.path("label").asText(value);
+            }
+        }
+        if (kind.equals("term") || row.kind().equals("unknown_name")) return terms.getOrDefault(value, value);
+        return value;
+    }
+
     @Transactional
     public UpsertDecisions200Response save(UUID project, UUID actor, UpsertDecisionsRequest request, boolean dryRun) {
         var scope = dryRun ? projects.require(project, actor) : projects.lock(project, actor, "answerQuestions");
@@ -217,7 +244,12 @@ public class Decisions {
                 "kind", row.kind(), "answer", row.answer(), "decidedAt", row.decidedAt()));
         if (row.note() != null) value.put("note", row.note());
         value.put("summary", row.question() == null ? row.key() : row.question().path("message").asText(row.key()));
-        if (row.question() != null) value.set("answerType", row.question().get("answer"));
+        if (row.question() != null) {
+            value.set("answerType", row.question().get("answer"));
+            // the question's sentence as the Questions tab writes it (review C-18)
+            if (row.question().path("code").isTextual()) value.put("questionCode", row.question().path("code").asText());
+            if (row.question().path("params").isObject()) value.set("questionParams", row.question().get("params"));
+        }
         if (row.promoted() != null) value.put("promotedToPresetVersionId", row.promoted().toString());
         var actor = access.user(row.actor());
         if (actor != null) value.set("decidedBy", json.object(actor));

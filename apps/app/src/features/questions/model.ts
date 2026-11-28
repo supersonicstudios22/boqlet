@@ -1,4 +1,5 @@
-import type { Answer, AnswerType, Question, Term } from "@/api/hooks/decisions";
+import type { Answer, AnswerType, Decision, Question, Term } from "@/api/hooks/decisions";
+import type { EngineMessage } from "@/i18n/engine-message";
 
 /**
  * The questions tab's logic (F05 §1, §2, S12b), pure and tested: order, filters, which questions
@@ -174,4 +175,12 @@ export function searchTerms(terms: readonly Term[], q: string, category?: string
       return words.every((w) => hay.includes(w));
     })
     .slice(0, limit);
+}
+
+/**
+ * A decision's question as the Questions tab writes it (review C-18): the stored question's code and params, with
+ * its English (the summary) as the fallback, and the id for a decision whose question was never stored.
+ */
+export function decisionMessage(d: Pick<Decision, "questionId" | "summary" | "questionCode" | "questionParams">): EngineMessage {
+  return { code: d.questionCode ?? null, params: (d.questionParams as Record<string, unknown> | undefined) ?? null, message: d.summary ?? d.questionId };
 }

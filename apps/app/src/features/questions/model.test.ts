@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Question, Term } from "@/api/hooks/decisions";
-import { bulkKey, counts, describeAnswer, elementCount, termLabel, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
+import { bulkKey, counts, decisionMessage, describeAnswer, elementCount, termLabel, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
 
 const decision = (answer: string | number | boolean | null): NonNullable<Question["decision"]> => ({
   id: "d",
@@ -143,5 +143,15 @@ describe("review C-16: terms found by their other words", () => {
     expect(termLabel(seed[1]!, "de-AT")).toBe("Feuchtigkeitssperre");
     expect(termLabel(seed[1]!, "fr")).toBe("Damp-proof course / membrane");
     expect(termLabel(seed[1]!)).toBe("Damp-proof course / membrane");
+  });
+});
+
+describe("review C-18: a decision reads like its question", () => {
+  it("renders the stored question's code and params, the summary as the fallback, the id last", () => {
+    const params = { field: "material", raw: "Alu", count: 2, blocking: true };
+    expect(decisionMessage({ questionId: "name:material:Alu", summary: "What is 'Alu' (material)?", questionCode: "question.unknown_name", questionParams: params })).toEqual({
+      code: "question.unknown_name", params, message: "What is 'Alu' (material)?",
+    });
+    expect(decisionMessage({ questionId: "name:material:Alu" })).toEqual({ code: null, params: null, message: "name:material:Alu" });
   });
 });

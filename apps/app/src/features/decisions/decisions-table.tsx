@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { api } from "@/api/client";
 import { useDecisions, useTerms, type Answer, type Decision } from "@/api/hooks/decisions";
 import { useErrorMessage } from "@/components/errors/use-error-message";
@@ -15,7 +15,8 @@ import { useOrg } from "@/features/orgs/org-context";
 import { useProjectScope } from "@/features/projects/project-context";
 import { AnswerControl } from "@/features/questions/answer-control";
 import { useAnswerFlow } from "@/features/questions/answer-flow";
-import { describeAnswer } from "@/features/questions/model";
+import { decisionMessage, describeAnswer } from "@/features/questions/model";
+import { useEngineMessage } from "@/i18n/engine-message";
 import { PromoteDialog } from "@/features/questions/promote-dialog";
 import { LIMITS } from "@/lib/limits";
 import { InlineError } from "@/components/errors/inline-error";
@@ -36,6 +37,9 @@ export function DecisionsTable() {
   const decisions = useDecisions(project.id);
   const terms = useTerms(org.id, project.id);
   const flow = useAnswerFlow(project.id);
+  const locale = useLocale();
+  // review C-18: the question as the Questions tab writes it, not its id or the engine's English
+  const sentence = useEngineMessage();
   const [kind, setKind] = useState("");
   const [editing, setEditing] = useState<Decision | null>(null);
   const [promoting, setPromoting] = useState<string | null>(null);
@@ -100,24 +104,26 @@ export function DecisionsTable() {
         <Table data-testid="decisions-table">
           <TableHeader>
             <TableRow>
-              <TableHead>{t("kind")}</TableHead>
-              <TableHead>{t("question")}</TableHead>
-              <TableHead>{t("answer")}</TableHead>
-              <TableHead>{t("decided")}</TableHead>
-              <TableHead>{t("note")}</TableHead>
-              <TableHead>{t("used")}</TableHead>
+              <TableHead className="label-caps">{t("kind")}</TableHead>
+              <TableHead className="label-caps">{t("question")}</TableHead>
+              <TableHead className="label-caps">{t("answer")}</TableHead>
+              <TableHead className="label-caps">{t("decided")}</TableHead>
+              <TableHead className="label-caps">{t("note")}</TableHead>
+              <TableHead className="label-caps">{t("used")}</TableHead>
               <TableHead className="sr-only">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shown.map((d) => {
-              const shownAnswer = describeAnswer(d.answer, d.answerType, { terms: byId });
+              const shownAnswer = describeAnswer(d.answer, d.answerType, { terms: byId, locale });
               const termGone = d.kind === "unknown_name" && typeof d.answer === "string" && terms.isSuccess && !byId.has(d.answer);
               const promotable = orgCan("promoteDecisions") && d.kind === "unknown_name" && typeof d.answer === "string";
               return (
                 <TableRow key={d.id} data-testid="decision-row" data-question-id={d.questionId}>
                   <TableCell className="whitespace-nowrap">{tq.has(`kinds.${d.kind}`) ? tq(`kinds.${d.kind}`) : d.kind}</TableCell>
-                  <TableCell className="max-w-md whitespace-normal">{d.summary ?? d.questionId}</TableCell>
+                  <TableCell className="max-w-md whitespace-normal" data-testid="decision-question" title={d.questionId}>
+                    {sentence(decisionMessage(d)).text}
+                  </TableCell>
                   <TableCell className="whitespace-normal">
                     <span data-testid="decision-answer">{"text" in shownAnswer ? shownAnswer.text : tq(`special.${shownAnswer.special}`)}</span>
                     {termGone && (

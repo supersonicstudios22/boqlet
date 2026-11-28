@@ -3575,6 +3575,14 @@ components:
         answer: { type: [string, number, boolean, "null"] }
         note: { type: string }
         summary: { type: string, description: "Human summary of the question (raw name, element, line)" }
+        questionCode:
+          type: string
+          description: >-
+            The message code (`QuestionCode`) of the question it answers, as last asked, so it reads as in the Questions
+            tab (review C-18); a plain string, as a stored question may come from an older engine
+        questionParams:
+          $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/params"
+          description: The message params of that question (review C-18)
         decidedBy: { $ref: "#/components/schemas/UserRef" }
         decidedAt: { type: string, format: date-time }
         usedByLatestRuns: { type: boolean }

@@ -179,8 +179,16 @@ describe("decisions page (F05 §7)", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/csv");
     const lines = (await res.text()).trim().split(/\r?\n/);
-    const count = (await client(owner.token).GET("/projects/{projectId}/decisions", { params: { path: { projectId } } })).data!.length;
-    expect(lines).toHaveLength(count + 1);
+    const decisions = (await client(owner.token).GET("/projects/{projectId}/decisions", { params: { path: { projectId } } })).data!;
+    expect(lines).toHaveLength(decisions.length + 1);
+    // review C-18: ids and stored values for tools, the answer in words beside them; decisions carry their question's code
+    expect(lines[0]).toBe("kind,question,question_id,answer,answer_text,note,decided_by,decided_at,used_by_latest_runs,promoted");
+    const named = decisions.find((d) => d.kind === "unknown_name" && typeof d.answer === "string")!;
+    expect(named.questionCode).toBe("question.unknown_name");
+    expect(named.questionParams).toMatchObject({ raw: expect.any(String) });
+    const terms = (await client(owner.token).GET("/orgs/{orgId}/terms", { params: { path: { orgId } } })).data!;
+    const label = terms.find((t) => t.id === named.answer)!.label;
+    expect(lines.some((l) => l.includes(`,${named.answer},`) && l.includes(label))).toBe(true);
   });
 });
 

@@ -90,10 +90,13 @@ class ExportController implements ExportsApi {
 
     @Override
     public ResponseEntity<String> exportDecisionsCsv(UUID project) {
-        var out = new Csv().row("kind", "question", "question_id", "answer", "note", "decided_by", "decided_at", "used_by_latest_runs", "promoted");
-        for (var row : decisions.list(project, actor(), null)) {
+        // ids and stored values for tools, a readable column beside each for people (review C-18)
+        var out = new Csv().row("kind", "question", "question_id", "answer", "answer_text", "note", "decided_by", "decided_at",
+                "used_by_latest_runs", "promoted");
+        for (var readable : decisions.readable(project, actor())) {
+            var row = readable.decision();
             var answer = row.getAnswer().orElse(null);
-            out.row(row.getKind(), row.getSummary(), row.getQuestionId(), answer == null ? "(dismissed)" : answer,
+            out.row(row.getKind(), row.getSummary(), row.getQuestionId(), answer == null ? "(dismissed)" : answer, readable.answer(),
                     row.getNote(), row.getDecidedBy() == null ? "" : row.getDecidedBy().getName(), row.getDecidedAt(),
                     Boolean.TRUE.equals(row.getUsedByLatestRuns()) ? "yes" : "no", row.getPromotedToPresetVersionId().orElse(null) != null ? "yes" : "no");
         }

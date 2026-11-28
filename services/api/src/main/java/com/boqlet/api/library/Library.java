@@ -102,6 +102,13 @@ public class Library {
         return termsFor(catalog.visibleHeads(org, project), query, category);
     }
 
+    /** Each visible term's label by id, for text written outside the app (the decisions CSV, review C-18). */
+    public Map<String, String> termLabels(UUID org, UUID project) {
+        var out = new HashMap<String, String>();
+        termsFor(catalog.visibleHeads(org, project), null, null).forEach(term -> out.put(term.getId(), term.getLabel()));
+        return out;
+    }
+
     List<TermInfo> termsFor(List<PresetCatalog.Head> heads, String query, String category) {
         var terms = new TreeMap<String, TermInfo>();
         heads.stream().filter(head -> head.kind() == PresetKind.DICTIONARY && !head.archived() && head.published() != null)
