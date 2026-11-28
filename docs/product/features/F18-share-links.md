@@ -1,6 +1,6 @@
 # F18 Public share links
 
-> **Status (2026-11-28):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39). The line detail names the run's settings and models as the app does and shows the formula in words only; the 3D view finds a line's elements (review C-25, D127). The sheet numbers each line as the app does, marks derived, manual and to-confirm lines in a status gutter with a one-line legend, keeps an edited line's quantity on a phone screen and draws only the rows near the window above 500 lines (review C-26).
+> **Status (2026-11-28):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39). The line detail names the run's settings and models as the app does and shows the formula in words only; the 3D view finds a line's elements (review C-25, D127). The sheet numbers each line as the app does, marks derived, manual and to-confirm lines in a status gutter with a one-line legend, keeps an edited line's quantity on a phone screen and draws only the rows near the window above 500 lines (review C-26). The header has the wordmark, a colour block and the BoQ in display type; a working version says so in a note above the sheet instead of a watermark under the page; a link can show edited quantities without edit marks (review C-27, D128).
 > **Not built / differs:**
 > - The public sheet is a grouped table with search only (no filters); below 768 px only the cheap fixes are made (DEC-71: the quantity cell wraps, the page's padding narrows).
 > - The footer's sign-up link leads to the sign-up form only while public sign-up is open (P57); closed, the page says accounts come by invitation.
@@ -25,19 +25,25 @@ explanations and 3D view the firm sees (P26).
      the workbook to send unless the link says `excelProfile: working` (review C-22, D124): Cover and BoQ,
      with the Calculation when line detail is included; the working one keeps the sheets the other
      includes allow (Calculation and Lines with line detail, Log with the log; never Questions or Inputs).
+   - **Edit marks:** "Show edit marks and the measured value" (default on, P54 Q52). Off, an
+     edited quantity is shown as a plain quantity, and nothing on the page shows the measured value:
+     no mark, no element shares on that line, and its line detail says no explanation is shared
+     (review C-27, DEC-41, D128). Links made before the option read as on.
    - **Expires:** never, 7, 30 (default) or 90 days.
    - Optional **label** for the firm's own list ("For the client, permit set").
    The dialog shows the link with a copy button.
-2. **The public page** (`/s/{token}`): firm name, project name, BoQ name, revision label and
-   status (a "WORKING" watermark unless it is a saved version), date of the run. The sheet
+2. **The public page** (`/s/{token}`): a header with the wordmark, a colour block, firm and project
+   name and the BoQ name in display type, the revision label and date of the run; a working version
+   (not saved) says so in a note above the sheet (review C-27). The sheet
    read-only with grouping and search (F06 §4): No. (the position number, as the app and the
    link's Excel number it), the status marks of the app's sheet (derived, manual, to confirm,
    explained in a one-line legend; a line to confirm without a quantity says so), Description,
    Unit and Quantity (review C-26), the line detail (each element's measured
    inputs included, without the questions behind them; no measure log; review C-10), the 3D view, as
    included. Settings are named by their labels, elements by their model's file name, and the formula
-   is shown in words, not as written (review C-25). No questions, decisions, edits history, reviewers, member names, vendor or price
-   information. A small footer names the product (link to the sign-up page).
+   is shown in words, not as written (review C-25). An edited quantity is shown as edited, with the engine's measured value and no reason
+   or author (P54 Q52), unless the link turns edit marks off. No questions, decisions, edit reasons
+   or history, reviewers, member names, vendor or price information. On the free plan a small footer carries the "Made with" badge (link to the sign-up page).
 3. **Manage:** BoQ workspace › Share lists the BoQ's links: label, what, includes, created by,
    expires, views (count), last viewed, status. **Revoke** ends a link at once: the page then
    says "This link is no longer available" (`404`). Editing a link changes its includes and

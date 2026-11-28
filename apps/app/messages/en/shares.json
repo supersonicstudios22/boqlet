@@ -21,7 +21,9 @@
     "lineDetail": "How each line is calculated",
     "viewer": "The 3D view",
     "log": "The calculation log",
-    "excel": "Excel download"
+    "excel": "Excel download",
+    "editMarks": "Show edit marks and the measured value",
+    "noEditMarks": "no edit marks"
   },
   "excelProfile": "Excel to download",
   "excelProfiles": {
@@ -103,6 +105,8 @@
       "manual": "Added by hand",
       "flagged": "To confirm: not every element measured, or an open question",
       "measured": "Lines without a mark are measured from the model."
-    }
+    },
+    "workingBanner": "This version is still being worked on: its quantities can change.",
+    "noDetail": "No explanation is shared for this line."
   }
 }

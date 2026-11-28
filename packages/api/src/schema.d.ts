@@ -2675,6 +2675,11 @@ export interface components {
             excelProfile?: "issue" | "working";
             /** @description classification id */
             groupBy?: string;
+            /**
+             * @description An edited quantity is shown as edited, with the measured value (P54 Q52); off, the page shows the quantity only (review C-27, DEC-41). Links made before it read as on
+             * @default true
+             */
+            editMarks?: boolean;
         };
         ShareLinkCreate: {
             /** @enum {string} */

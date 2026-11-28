@@ -112,7 +112,7 @@ class ShareLinks {
                 INSERT INTO share_links(id, boq_id, mode, run_id, token_hash, options, label, created_by, expires_at)
                 VALUES (?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?)
                 """, id, boq, request.getMode().getValue(), run, hash(token),
-                json.object(options(request.getInclude(), new ShareInclude().lineDetail(true).viewer(true).log(false).excel(false))).toString(),
+                json.object(options(request.getInclude(), new ShareInclude().lineDetail(true).viewer(true).log(false).excel(false).editMarks(true))).toString(),
                 label(request.getLabel()), actor, request.getExpiresAt().orElse(null));
         var link = require(id);
         record(link, actor, "created");
@@ -268,7 +268,9 @@ class ShareLinks {
                 .log(Objects.requireNonNullElse(patch.getLog(), base.getLog()))
                 .excel(Objects.requireNonNullElse(patch.getExcel(), base.getExcel()))
                 .excelProfile(patch.getExcelProfile() == null ? base.getExcelProfile() : patch.getExcelProfile())
-                .groupBy(patch.getGroupBy() == null ? base.getGroupBy() : patch.getGroupBy());
+                .groupBy(patch.getGroupBy() == null ? base.getGroupBy() : patch.getGroupBy())
+                // Review C-27: on unless the link says otherwise (P54 Q52); older links have no value and read as on.
+                .editMarks(patch.getEditMarks() == null ? base.getEditMarks() : patch.getEditMarks());
     }
 
     private void record(Link link, UUID actor, String action) {

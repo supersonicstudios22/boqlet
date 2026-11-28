@@ -35,6 +35,11 @@ function Includes({ value, onChange, systems }: { value: ShareInclude; onChange:
           {t(`include.${k}`)}
         </label>
       ))}
+      {/* P54 Q52 by default; a firm may show its edited quantities as plain quantities (review C-27, DEC-41). */}
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={value.editMarks !== false} onChange={(e) => onChange({ ...value, editMarks: e.target.checked })} data-testid="share-include-editMarks" />
+        {t("include.editMarks")}
+      </label>
       {value.excel === true && (
         <label className="mt-1 flex flex-col gap-1">
           <span className="label-caps text-muted-foreground">{t("excelProfile")}</span>
@@ -77,7 +82,7 @@ export function ShareDialog({ boq, open, onOpenChange }: { boq: Boq; open: boole
   const workingBlocked = rev.status !== "issued" && rev.permissions?.shareWorking === false;
   const savedOnly = useOrg().org.settings?.shareOnlySavedVersions === true;
   const [mode, setMode] = useState<"pinned" | "latest_issued">(workingBlocked ? "latest_issued" : "pinned");
-  const [include, setInclude] = useState<ShareInclude>({ lineDetail: true, viewer: true, log: false, excel: false, ...(systems[0] ? { groupBy: systems[0].id } : {}) });
+  const [include, setInclude] = useState<ShareInclude>({ lineDetail: true, viewer: true, log: false, excel: false, editMarks: true, ...(systems[0] ? { groupBy: systems[0].id } : {}) });
   const [expiry, setExpiry] = useState<Expiry>("30");
   const [label, setLabel] = useState("");
   const [created, setCreated] = useState<string | null>(null);
@@ -199,7 +204,10 @@ export function LinkRow({ link, systems = [], showBoq }: { link: ShareLink; syst
   const [include, setInclude] = useState<ShareInclude>(link.include);
   const [expiry, setExpiry] = useState<Expiry | "keep">("keep");
   const live = link.status === "active" || link.status === "suspended" || link.status === "expired";
-  const included = (["lineDetail", "viewer", "log", "excel"] as const).filter((k) => link.include[k]).map((k) => t(`include.${k}`));
+  const included = [
+    ...(["lineDetail", "viewer", "log", "excel"] as const).filter((k) => link.include[k]).map((k) => t(`include.${k}`)),
+    ...(link.include.editMarks === false ? [t("include.noEditMarks")] : []),
+  ];
 
   return (
     <div className="flex flex-col gap-2 border-b border-border py-2" data-testid="share-link" data-status={link.status} data-label={link.label ?? ""}>

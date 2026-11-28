@@ -11,6 +11,7 @@ import { publicExport, usePublicLine, usePublicLines, usePublicShare } from "@/a
 import type { RunLine } from "@/api/hooks/sheet";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Wordmark } from "@/components/shell/wordmark";
+import { Poster } from "@/components/poster";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LineDetailBody } from "@/features/boq-sheet/line-detail";
@@ -55,7 +56,8 @@ export function PublicSharePage({ token }: { token: string }) {
   const lineButtons = useRef(new Map<string, HTMLButtonElement>());
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const focusDetail = useRef(false);
-  const detailShown = !!(selected && detail.data);
+  const selectedLine = selected ? lines.data?.find((l) => l.key === selected) : undefined;
+  const detailShown = !!(selected && (detail.data || (detail.isError && selectedLine)));
   useEffect(() => {
     if (detailShown && focusDetail.current) {
       focusDetail.current = false;
@@ -122,18 +124,17 @@ export function PublicSharePage({ token }: { token: string }) {
 
   return (
     <BoqFormatProvider settings={formats}>
-    <main id="main" className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-4 sm:p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
-      {working && (
-        <div aria-hidden className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
-          <span className="rotate-[-24deg] select-none text-[18vw] font-bold leading-none text-foreground/5">{t("working")}</span>
-        </div>
-      )}
-      <header className="relative z-10 flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-border pb-4">
-        <div className="flex flex-1 flex-col gap-1">
+    <main id="main" className="mx-auto flex max-w-[1400px] flex-col gap-6 p-4 sm:p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
+      {/* The share page's header (design-guidelines.md "The poster language", review C-27): the wordmark and a
+          colour block, the project and BoQ in display type; below it the calm sheet. */}
+      <header className="flex flex-wrap items-stretch gap-x-6 gap-y-4 border-b border-border pb-5" data-testid="share-header">
+        <Poster variant={1} className="hidden w-24 shrink-0 self-start sm:grid" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <Wordmark className="self-start text-[20px]" />
           <span className="label-caps text-muted-foreground">
             {s.firmName} · {s.projectName}
           </span>
-          <h1 className="text-title" data-testid="share-title">
+          <h1 className="display text-display-sm break-words sm:text-display" data-testid="share-title">
             {s.boqName}
           </h1>
           {shown && (
@@ -141,17 +142,12 @@ export function PublicSharePage({ token }: { token: string }) {
               <span className="label-caps rounded-[var(--radius)] border border-foreground px-1" data-testid="share-version">
                 {t("saved", { label: s.revisionLabel! })}
               </span>
-              {working && (
-                <span className="label-caps rounded-[var(--radius)] border border-[var(--status-attention)] px-1" title={t("workingHint")} data-testid="share-working">
-                  {t("working")}
-                </span>
-              )}
               {s.runAt && <span className="text-muted-foreground">{t("run", { date: format.dateTime(new Date(s.runAt), { dateStyle: "medium", timeStyle: "short" }) })}</span>}
             </p>
           )}
         </div>
         {shown && s.include.excel && (
-          <Button variant="outline" onClick={() => excel.mutate()} disabled={excel.isPending} data-testid="share-excel">
+          <Button variant="outline" className="self-end" onClick={() => excel.mutate()} disabled={excel.isPending} data-testid="share-excel">
             <Download aria-hidden />
             {t("excel")}
           </Button>
@@ -169,8 +165,15 @@ export function PublicSharePage({ token }: { token: string }) {
         </p>
       ) : (
         <>
-          <p className="relative z-10 max-w-3xl text-muted-foreground">{t("readOnly")}</p>
-          <div className="relative z-10 flex flex-col gap-4 lg:flex-row">
+          {/* A working version says so once, in words, above the sheet: no watermark under the line detail (review C-27). */}
+          {working && (
+            <p role="note" className="flex flex-wrap items-baseline gap-x-2 rounded-[var(--radius)] border border-[var(--status-attention)] px-3 py-2" data-testid="share-working">
+              <span className="label-caps">{t("working")}</span>
+              <span>{t("workingBanner")}</span>
+            </p>
+          )}
+          <p className="max-w-3xl text-muted-foreground">{t("readOnly")}</p>
+          <div className="flex flex-col gap-4 lg:flex-row">
             <section className="flex min-w-0 flex-1 flex-col gap-3">
               <div className="flex items-center gap-3">
                 <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search")} aria-label={t("search")} className="max-w-sm" data-testid="share-search" />
@@ -189,17 +192,23 @@ export function PublicSharePage({ token }: { token: string }) {
                 />
               )}
             </section>
-            {s.include.lineDetail && selected && detail.data && (
+            {s.include.lineDetail && detailShown && (
               <aside id="share-detail" aria-label={t("detail")} className="flex w-full flex-col gap-4 border-l border-border pl-5 lg:w-[440px] lg:shrink-0" data-testid="share-detail">
                 <div className="flex items-start gap-2">
                   <h2 ref={detailHeading} tabIndex={-1} className="text-title flex-1 outline-none">
-                    {textOf(detail.data, system)}
+                    {textOf((detail.data ?? selectedLine)!, system)}
                   </h2>
                   <Button variant="ghost" aria-label={t("close")} onClick={closeDetail}>
                     <X aria-hidden />
                   </Button>
                 </div>
-                <LineDetailBody
+                {/* A line the link explains nothing of (an edited line without edit marks, review C-27). */}
+                {!detail.data && (
+                  <p className="text-muted-foreground" data-testid="share-no-detail">
+                    {t("noDetail")}
+                  </p>
+                )}
+                {detail.data && <LineDetailBody
                   line={detail.data}
                   groupBy={system}
                   slots={slots}
@@ -211,12 +220,12 @@ export function PublicSharePage({ token }: { token: string }) {
                   describe={(key) => lines.data?.find((l) => l.key === key)?.description}
                   onSelect={setSelected}
                   showLog={s.include.log === true}
-                />
+                />}
               </aside>
             )}
           </div>
           {s.include.viewer && models.length > 0 && (
-            <section className="relative z-10 flex min-w-0 max-w-full flex-col gap-2">
+            <section className="flex min-w-0 max-w-full flex-col gap-2">
               <h2 className="label-caps">{t("viewer")}</h2>
               <ModelViewer models={models} lines={lines.data ?? []} publicToken={token} focusLine={selected} onOpenLine={(key) => setSelected(key)} className="h-[560px]" />
             </section>
@@ -224,18 +233,15 @@ export function PublicSharePage({ token }: { token: string }) {
         </>
       )}
 
-      <footer className="relative z-10 flex items-center gap-3 border-t border-border pt-4 text-muted-foreground">
-        {s.madeWithBadge ? (
-          <>
-            <span data-testid="share-badge">{t("madeWith")}</span>
-            <Link href="/sign-up" className="text-link hover:underline">
-              {t("madeWithCta")}
-            </Link>
-          </>
-        ) : (
-          <Wordmark />
-        )}
-      </footer>
+      {/* The wordmark is in the header; the footer carries the free plan's badge (F18 §5). */}
+      {s.madeWithBadge && (
+        <footer className="flex items-center gap-3 border-t border-border pt-4 text-muted-foreground">
+          <span data-testid="share-badge">{t("madeWith")}</span>
+          <Link href="/sign-up" className="text-link hover:underline">
+            {t("madeWithCta")}
+          </Link>
+        </footer>
+      )}
     </main>
     </BoqFormatProvider>
   );

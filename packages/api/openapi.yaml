@@ -2577,6 +2577,7 @@ components:
         excel: { type: boolean, default: false }
         excelProfile: { type: string, enum: [issue, working], description: "The Excel the page offers (review C-22, DEC-40): `issue` (Cover and BoQ, with the Calculation when `lineDetail`) or `working` (the audit sheets the other includes allow). `issue` when not set" }
         groupBy: { type: string, maxLength: 200, description: classification id }
+        editMarks: { type: boolean, default: true, description: "An edited quantity is shown as edited, with the measured value (P54 Q52); off, the page shows the quantity only (review C-27, DEC-41). Links made before it read as on" }
     ShareLinkCreate:
       type: object
       required: [mode]

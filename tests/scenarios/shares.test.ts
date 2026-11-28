@@ -90,7 +90,7 @@ describe("create and the public page (F18 §1–2)", () => {
   it("a pinned link: the full URL once, the token stored hashed", async () => {
     const res = await share(estimator, { mode: "pinned", label: "For the client", include: { lineDetail: true, viewer: true } });
     expect(res.response.status).toBe(201);
-    expect(res.data).toMatchObject({ mode: "pinned", status: "active", label: "For the client", include: { lineDetail: true, viewer: true, log: false, excel: false }, views: 0, revisionLabel: "A" });
+    expect(res.data).toMatchObject({ mode: "pinned", status: "active", label: "For the client", include: { lineDetail: true, viewer: true, log: false, excel: false, editMarks: true }, views: 0, revisionLabel: "A" });
     expect(res.data!.url).toMatch(/\/s\/[A-Za-z0-9_-]{43}$/);
     token = tokenOf(res.data!.url);
     const { data: list } = await as(lead).GET("/boqs/{boqId}/share-links", { params: { path: { boqId } } });
@@ -157,6 +157,29 @@ describe("create and the public page (F18 §1–2)", () => {
     const uuids = new Set(all.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) ?? []);
     expect([...uuids].filter((id) => !shared.modelVersionIds!.includes(id))).toEqual([]);
     for (const banned of ["Lena Sharer", "Erik Estimator", "Ana Approver", lead.email, SECRET_REASON, '"reason"', '"engineDescription"', '"decision', '"questions"', '"reviewComments"', '"createdBy"', '"price', '"rate"']) expect(all, banned).not.toContain(banned);
+  });
+
+  it("review C-27 (DEC-41): with edit marks off an edited quantity is a plain quantity, and nothing shows the measured value", async () => {
+    const res = await share(estimator, { mode: "pinned", label: "Plain", include: { lineDetail: true, viewer: true, editMarks: false } });
+    expect(res.data!.include).toMatchObject({ editMarks: false });
+    const plain = tokenOf(res.data!.url);
+    const lines = (await (await pub(plain, "/lines")).json()) as Schemas["LinesPage"];
+    const edited = lines.items.find((l) => l.key === editedKey)!;
+    expect(edited.quantity).toBe(1234);
+    expect(edited).not.toHaveProperty("overridden");
+    // its elements are there for the 3D view, without the shares that add up to the measured value
+    expect(edited.trace.elements.length).toBeGreaterThan(0);
+    expect(edited.trace.elements.every((e) => e.quantity === null)).toBe(true);
+    // the line's explanation would show the measured value: the link doesn't explain it
+    expect((await pub(plain, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).status).toBe(404);
+    const other = lines.items.find((l) => l.key !== editedKey && !l.excluded && l.trace.elements.length > 0)!;
+    expect(other.trace.elements.some((e) => typeof e.quantity === "number")).toBe(true);
+    expect((await pub(plain, `/lines/by-key?key=${encodeURIComponent(other.key)}`)).status).toBe(200);
+    // on again, the edit shows as before (P54 Q52)
+    const on = await as(estimator).PATCH("/share-links/{shareLinkId}", { params: { path: { shareLinkId: res.data!.id } }, body: { include: { editMarks: true } } });
+    expect(on.data!.include).toMatchObject({ editMarks: true, lineDetail: true });
+    const marked = (await (await pub(plain, "/lines")).json()) as Schemas["LinesPage"];
+    expect(marked.items.find((l) => l.key === editedKey)!.overridden).toMatchObject({ fields: ["quantity"], quantity: 1234 });
   });
 
   it("editing changes includes and expiry, never the token; the Excel when included", async () => {

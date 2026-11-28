@@ -27,7 +27,7 @@ vi.mock("@/components/ui/button", () => ({
   Button: (props: Record<string, unknown>) => <button {...Object.fromEntries(Object.entries(props).filter(([k]) => k !== "variant" && k !== "size"))} />,
 }));
 vi.mock("@/components/ui/input", () => ({ Input: (props: Record<string, unknown>) => <input {...(props as object)} /> }));
-vi.mock("@/components/shell/wordmark", () => ({ Wordmark: () => <span /> }));
+vi.mock("@/components/shell/wordmark", () => ({ Wordmark: () => <span data-testid="wordmark" /> }));
 vi.mock("@/i18n/units", () => ({ useUnit: () => (u: string) => u }));
 const seen = vi.hoisted(() => ({ detail: null as Record<string, unknown> | null, viewer: null as Record<string, unknown> | null }));
 vi.mock("@/features/viewer/model-viewer", () => ({
@@ -45,7 +45,7 @@ vi.mock("@/features/boq-sheet/line-detail", () => ({
 vi.mock("@/api/hooks/exports", () => ({ saveFile: () => {} }));
 
 const line = (key: string, description: string) => ({ key, description, unit: "m2", quantity: 12.5, source: "measured", codes: {} });
-const data = vi.hoisted(() => ({ lines: [] as unknown[], formats: {} as Record<string, unknown>, shareError: null as unknown, refetch: () => {} }));
+const data = vi.hoisted(() => ({ lines: [] as unknown[], formats: {} as Record<string, unknown>, shareError: null as unknown, refetch: () => {}, noDetail: false }));
 vi.mock("@/api/hooks/shares", () => ({
   publicExport: async () => new Blob(),
   usePublicShare: () => ({
@@ -55,7 +55,10 @@ vi.mock("@/api/hooks/shares", () => ({
     data: { firmName: "F", projectName: "P", boqName: "B", revisionLabel: "A", revisionStatus: "issued", runAt: null, include: { lineDetail: true, excel: false, viewer: false, log: false }, systems: [], modelVersionIds: [], madeWithBadge: false, ...data.formats },
   }),
   usePublicLines: () => ({ data: data.lines }),
-  usePublicLine: (_t: string, key: string | null) => ({ data: key ? (data.lines as { key: string }[]).find((l) => l.key === key) : undefined }),
+  usePublicLine: (_t: string, key: string | null) => ({
+    data: key && !data.noDetail ? (data.lines as { key: string }[]).find((l) => l.key === key) : undefined,
+    isError: !!key && data.noDetail,
+  }),
 }));
 
 const { PublicSharePage } = await import("./public-share");
@@ -66,6 +69,7 @@ let host: HTMLDivElement | null = null;
 afterEach(() => {
   data.formats = {};
   data.shareError = null;
+  data.noDetail = false;
   act(() => root?.unmount());
   host?.remove();
   root = host = null;
@@ -178,6 +182,43 @@ describe("review C-26 share sheet: numbers, marks, phone-safe quantities, large 
     const page = mount();
     expect(page.querySelector("[data-testid=share-sheet]")!.getAttribute("data-virtual")).toBe("false");
     expect(page.querySelectorAll("[data-testid=share-line]")).toHaveLength(500);
+  });
+});
+
+describe("review C-27 share page: header, working version, edit marks off", () => {
+  it("the header has the wordmark, a colour block and the BoQ in display type", () => {
+    data.lines = [line("a", "Wall")];
+    const page = mount();
+    const header = page.querySelector("[data-testid=share-header]")!;
+    expect(header.querySelector("[data-testid=wordmark]"), "the wordmark").not.toBeNull();
+    expect(header.querySelector("[aria-hidden][class*=aspect-square]"), "the poster block").not.toBeNull();
+    expect(page.querySelector("[data-testid=share-title]")!.className).toContain("display");
+  });
+
+  it("a working version says so above the sheet, with no watermark over the page", () => {
+    data.lines = [line("a", "Wall")];
+    data.formats = { revisionStatus: "draft" };
+    const page = mount();
+    expect(page.querySelector("[data-testid=share-working]")!.textContent).toContain(shares.public.workingBanner);
+    expect(page.querySelector(".fixed"), "no fixed watermark layer").toBeNull();
+    data.formats = {};
+  });
+
+  it("a saved version has no working note", () => {
+    data.lines = [line("a", "Wall")];
+    const page = mount();
+    expect(page.querySelector("[data-testid=share-working]")).toBeNull();
+  });
+
+  it("a line the link doesn't explain opens with a note instead of the calculation", () => {
+    data.lines = [line("a", "Wall")];
+    data.noDetail = true;
+    const page = mount();
+    act(() => page.querySelector<HTMLButtonElement>("[data-testid=share-line] button")!.click());
+    const detail = page.querySelector("[data-testid=share-detail]")!;
+    expect(detail.querySelector("[data-testid=share-no-detail]")!.textContent).toBe(shares.public.noDetail);
+    expect(detail.querySelector("h2")!.textContent).toBe("Wall");
+    expect(detail.querySelector("[data-testid=detail-body]")).toBeNull();
   });
 });
 

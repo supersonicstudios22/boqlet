@@ -79,6 +79,7 @@ class PublicShares {
         var link = links.publicLink(token);
         // The viewer finds a line's elements in the list, as the app's does (review C-25): each one's guid, model and share.
         boolean elements = enabled(link.view().getInclude().getViewer());
+        boolean marks = editMarks(link);
         var shown = links.shown(link.shownRun());
         if (shown == null) return new LinesPage(List.of()).total(0).nextCursor(null);
         int start = offset(cursor);
@@ -96,7 +97,7 @@ class PublicShares {
         int total = database.queryForObject("SELECT count(*) " + filter, Integer.class, run, search, search, search);
         var items = database.query("SELECT line::text, sort_index " + filter + " ORDER BY sort_index LIMIT ? OFFSET ?",
                 (row, index) -> {
-                    var line = json.read(line(row.getString(1), row.getInt(2), false, elements, numbers).toString(), RunLine.class);
+                    var line = json.read(line(row.getString(1), row.getInt(2), false, elements, numbers, marks).toString(), RunLine.class);
                     // the generated class starts `questions` as an empty list: the questions behind a line stay private (BR-56)
                     if (line.getToConfirm() != null) line.getToConfirm().setQuestions(null);
                     return line;
@@ -115,8 +116,12 @@ class PublicShares {
         var numbers = positions.numbers(run, grouping(link, shown));
         var detail = database.query("""
                 SELECT line::text, sort_index FROM run_lines WHERE run_id = ? AND line_key = ?
-                """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true, true, numbers).toString(), LineDetail.class),
-                run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
+                """, (row, index) -> {
+                    // Edit marks off (review C-27): an edited line's calculation would show the measured value, so it
+                    // has no shared explanation; the page says so.
+                    if (!editMarks(link) && quantityEdited(json.read(row.getString(1), ObjectNode.class).get("overridden"))) return null;
+                    return json.read(line(row.getString(1), row.getInt(2), true, true, numbers, true).toString(), LineDetail.class);
+                }, run, key).stream().filter(Objects::nonNull).findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
         if (detail.getToConfirm() != null) detail.getToConfirm().setQuestions(null);
         detail.setLog(null);
@@ -196,7 +201,7 @@ class PublicShares {
         return storage.downloadAttachment(key, BoqExports.XLSX, "BoQ.xlsx");
     }
 
-    private ObjectNode line(String value, int index, boolean detail, boolean elements, String[] numbers) {
+    private ObjectNode line(String value, int index, boolean detail, boolean elements, String[] numbers, boolean marks) {
         ObjectNode source = json.read(value, ObjectNode.class);
         JsonNode edit = source.get("overridden");
         // An excluded line is shown as excluded, like the sheet shows it (TF-033); why stays private (BR-56).
@@ -209,8 +214,10 @@ class PublicShares {
         if (source.get("toConfirm") instanceof ObjectNode confirm) confirm.retain("measured", "elements");
         source.putArray("notes"); // the team's notes stay private; the field is required (TF-085)
         // P54 Q52 (TF-086): an edited quantity is shown as edited, with the engine's value; who and why stay private.
-        if (edit != null && edit.path("fields").isArray()
-                && java.util.stream.StreamSupport.stream(edit.path("fields").spliterator(), false).anyMatch(f -> f.asText().equals("quantity"))) {
+        // Off (review C-27), the edited quantity is shown as the quantity: no mark, no measured value, no element
+        // shares (they add up to the measured value).
+        boolean edited = quantityEdited(edit);
+        if (marks && edited) {
             var shown = source.putObject("overridden");
             shown.putArray("fields").add("quantity");
             shown.set("engineQuantity", edit.get("engineQuantity"));
@@ -235,7 +242,7 @@ class PublicShares {
                     for (var element : trace.path("elements")) {
                         var item = summary.addObject();
                         item.set("guid", element.get("guid"));
-                        item.set("quantity", element.get("quantity"));
+                        item.set("quantity", edited && !marks ? null : element.get("quantity"));
                         if (element.has("model")) item.set("model", element.get("model"));
                     }
                 }
@@ -329,6 +336,14 @@ class PublicShares {
         if (link.view().getInclude().getGroupBy() != null) return link.view().getInclude().getGroupBy();
         var systems = shown.run().run().getClassifications();
         return systems == null || systems.isEmpty() ? null : systems.getFirst().getId();
+    }
+
+    /** Edit marks are shown unless the link turns them off (P54 Q52, review C-27). */
+    private static boolean editMarks(ShareLinks.Link link) { return !Boolean.FALSE.equals(link.view().getInclude().getEditMarks()); }
+
+    private static boolean quantityEdited(JsonNode edit) {
+        return edit != null && java.util.stream.StreamSupport.stream(edit.path("fields").spliterator(), false)
+                .anyMatch(field -> field.asText().equals("quantity"));
     }
 
     private static boolean enabled(Boolean value) { return Boolean.TRUE.equals(value); }
