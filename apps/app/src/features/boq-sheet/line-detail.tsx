@@ -114,6 +114,7 @@ export function LineDetailBody({
   describe,
   onSelect,
   showLog = true,
+  showRawFormula = true,
 }: {
   line: LineDetail;
   groupBy?: string | null;
@@ -125,6 +126,8 @@ export function LineDetailBody({
   describe: (key: string) => string | undefined;
   onSelect: (key: string) => void;
   showLog?: boolean;
+  /** The formula as written (the share page shows only the readable one, review C-25). */
+  showRawFormula?: boolean;
 }) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.detail");
@@ -177,15 +180,17 @@ export function LineDetailBody({
                   {toReadable(formula, lex)}
                 </p>
                 {slot && <p className="text-muted-foreground">{t("fromSetting", { name: slotLabel(slot) })}</p>}
-                <p className="font-mono text-muted-foreground">
-                  <span className="label-caps mr-2">{t("rawFormula")}</span>
-                  <code data-testid="detail-raw-formula">{line.trace.formula}</code>
-                </p>
+                {showRawFormula && (
+                  <p className="font-mono text-muted-foreground">
+                    <span className="label-caps mr-2">{t("rawFormula")}</span>
+                    <code data-testid="detail-raw-formula">{line.trace.formula}</code>
+                  </p>
+                )}
                 {line.trace.sourceLine && (
                   <p>
                     <span className="label-caps mr-2 text-muted-foreground">{t("derivedFrom")}</span>
-                    <button className="text-link hover:underline" onClick={() => onSelect(line.trace.sourceLine!)} data-testid="detail-source-line">
-                      {line.trace.sourceLine}
+                    <button className="text-link hover:underline" onClick={() => onSelect(line.trace.sourceLine!)} data-testid="detail-source-line" data-key={line.trace.sourceLine}>
+                      {describe(line.trace.sourceLine) ?? line.trace.sourceLine}
                     </button>
                   </p>
                 )}

@@ -1,6 +1,6 @@
 # F18 Public share links
 
-> **Status (2026-11-27):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39).
+> **Status (2026-11-28):** Built. Public read-only links (`apps/app/app/(public)/s/[token]`, Java `boq/ShareController`, `PublicShares`): revoke, expiry, "follow latest saved", `publicLinksAllowed`, noindex and `Referrer-Policy: no-referrer`, the "Made with" badge. Line detail opens on a share link (TF-085), from the keyboard too (TF-158); an edited quantity shows as edited with the engine's value and no reason (P54 Q52, TF-086); numbers follow the firm's format (TF-021); an expired link is revived by editing its expiry, and a past expiry is refused (Q46, TF-038); an archived BoQ gets no new or edited link, its existing ones can be revoked (D100, review A-39). The line detail names the run's settings and models as the app does and shows the formula in words only; the 3D view finds a line's elements (review C-25, D127).
 > **Not built / differs:**
 > - The public sheet is a plain grouped table (no virtualisation; search only).
 > - The footer's sign-up link leads to the sign-up form only while public sign-up is open (P57); closed, the page says accounts come by invitation.
@@ -32,7 +32,8 @@ explanations and 3D view the firm sees (P26).
    status (a "WORKING" watermark unless it is a saved version), date of the run. The sheet
    read-only with grouping, search and filters (F06 §4), the line detail (each element's measured
    inputs included, without the questions behind them; no measure log; review C-10), the 3D view, as
-   included. No questions, decisions, edits history, reviewers, member names, vendor or price
+   included. Settings are named by their labels, elements by their model's file name, and the formula
+   is shown in words, not as written (review C-25). No questions, decisions, edits history, reviewers, member names, vendor or price
    information. A small footer names the product (link to the sign-up page).
 3. **Manage:** BoQ workspace › Share lists the BoQ's links: label, what, includes, created by,
    expires, views (count), last viewed, status. **Revoke** ends a link at once: the page then
@@ -62,6 +63,9 @@ Owners and admins may revoke any link in the org (org settings › Share links l
   `BOQLET_PUBLIC_SHARE_REQUESTS_PER_MINUTE`, `429` with `Retry-After`, TF-087; DEC-67: one share view
   makes several calls, so the earlier 60 was too low; review B-17, FM-68), and return `404` for unknown,
   expired or revoked tokens and when `publicLinksAllowed` is off.
+- No internal id reaches a visitor: the only UUIDs in the public responses are the shared model
+  versions the viewer loads, which resolve only through the token (review C-25, D127; automated check).
+  Setting labels are sent, never the rule set's values or ids.
 - Pages carry `noindex, nofollow` and `Referrer-Policy: no-referrer`.
 - Geometry and Excel files are served through short-lived signed URLs issued per request.
 - Every view writes a lightweight view record (count, last viewed; no IP stored beyond the rate

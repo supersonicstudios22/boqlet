@@ -28,8 +28,19 @@ vi.mock("@/components/ui/button", () => ({
 vi.mock("@/components/ui/input", () => ({ Input: (props: Record<string, unknown>) => <input {...(props as object)} /> }));
 vi.mock("@/components/shell/wordmark", () => ({ Wordmark: () => <span /> }));
 vi.mock("@/i18n/units", () => ({ useUnit: () => (u: string) => u }));
-vi.mock("@/features/viewer/model-viewer", () => ({ ModelViewer: () => null }));
-vi.mock("@/features/boq-sheet/line-detail", () => ({ LineDetailBody: () => <div data-testid="detail-body" /> }));
+const seen = vi.hoisted(() => ({ detail: null as Record<string, unknown> | null, viewer: null as Record<string, unknown> | null }));
+vi.mock("@/features/viewer/model-viewer", () => ({
+  ModelViewer: (props: Record<string, unknown>) => {
+    seen.viewer = props;
+    return null;
+  },
+}));
+vi.mock("@/features/boq-sheet/line-detail", () => ({
+  LineDetailBody: (props: Record<string, unknown>) => {
+    seen.detail = props;
+    return <div data-testid="detail-body" />;
+  },
+}));
 vi.mock("@/api/hooks/exports", () => ({ saveFile: () => {} }));
 
 const line = (key: string, description: string) => ({ key, description, unit: "m2", quantity: 12.5, source: "measured", codes: {} });
@@ -92,6 +103,33 @@ describe("TF-158 share page: lines by keyboard", () => {
     act(() => close.click());
     expect(page.querySelector("[data-testid=share-detail]")).toBeNull();
     expect(document.activeElement).toBe(page.querySelectorAll("[data-testid=share-line]")[1]!.querySelector("button"));
+  });
+});
+
+describe("review C-25 share page: settings and models by name, never an id", () => {
+  it("the line detail gets the run's setting labels and model names, and no formula as written; the viewer names models", () => {
+    data.lines = [line("a", "Wall")];
+    data.formats = {
+      include: { lineDetail: true, viewer: true, excel: false, log: false },
+      modelVersionIds: ["9b1c0d6e-0000-4000-8000-000000000001"],
+      models: [{ versionId: "9b1c0d6e-0000-4000-8000-000000000001", name: "Duplex_A.ifc" }],
+      slots: { wall_recess_mode: { label: "Recesses in walls", type: "choice", optionLabels: { deduct: "Deduct" } } },
+    };
+    const page = mount();
+    act(() => page.querySelector<HTMLButtonElement>("[data-testid=share-line] button")!.click());
+    const props = seen.detail as { lex: { slotLabels: Map<string, string> }; slots: Record<string, { label: string }>; modelNames: Map<string, string>; showRawFormula: boolean };
+    expect(props.lex.slotLabels.get("wall_recess_mode")).toBe("Recesses in walls");
+    expect(props.slots.wall_recess_mode!.label).toBe("Recesses in walls");
+    expect(props.modelNames.get("9b1c0d6e-0000-4000-8000-000000000001")).toBe("Duplex_A.ifc");
+    expect(props.showRawFormula).toBe(false);
+    expect((seen.viewer as { models: { label: string }[] }).models.map((m) => m.label)).toEqual(["Duplex_A.ifc"]);
+  });
+
+  it("a model without a name is numbered", () => {
+    data.lines = [line("a", "Wall")];
+    data.formats = { include: { lineDetail: true, viewer: true, excel: false, log: false }, modelVersionIds: ["m1"], models: [] };
+    mount();
+    expect((seen.viewer as { models: { label: string }[] }).models.map((m) => m.label)).toEqual([shares.public.viewerModel.replace("{n}", "1")]);
   });
 });
 

@@ -104,6 +104,10 @@ describe("create and the public page (F18 §1–2)", () => {
     const shared = (await res.json()) as Schemas["PublicShare"];
     expect(shared).toMatchObject({ firmName: "Share Firm", projectName: "Shared Duplex", boqName: "Tender", revisionLabel: "A", revisionStatus: "draft", madeWithBadge: false });
     expect(shared.modelVersionIds).toHaveLength(1);
+    // Review C-25: models and settings by name, as the app shows them.
+    expect(shared.models).toEqual([{ versionId: shared.modelVersionIds![0], name: "Duplex_A.ifc" }]);
+    expect(Object.keys(shared.slots ?? {}).length).toBeGreaterThan(0);
+    expect(Object.values(shared.slots!).every((slot) => typeof slot.label === "string" && !("value" in slot))).toBe(true);
     // TF-021: the page formats numbers and dates like the firm.
     await as(lead).PATCH("/orgs/{orgId}", { params: { path: { orgId } }, body: { settings: { numberFormat: { decimal: ",", thousands: "." }, dateFormat: "dd.MM.yyyy" } } });
     const formatted = (await (await pub(token)).json()) as Schemas["PublicShare"];
@@ -111,6 +115,9 @@ describe("create and the public page (F18 §1–2)", () => {
     const lines = (await (await pub(token, "/lines")).json()) as Schemas["LinesPage"];
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);
+    // Review C-25: with the viewer, each line lists its elements (guid, model, share) so the 3D view counts them.
+    const measured = lines.items.find((l) => l.source === "measured" && l.trace.elements.length > 0)!;
+    expect(measured.trace.elements.every((e) => e.guid && e.model === shared.modelVersionIds![0] && Object.keys(e).every((k) => ["guid", "quantity", "model"].includes(k)))).toBe(true);
     // P54 Q52 (TF-086): the edit shows as an edit, with the engine's value, and nothing of who or why.
     const edited = lines.items.find((l) => l.key === editedKey)!;
     expect(edited.overridden).toMatchObject({ fields: ["quantity"], quantity: 1234, engineQuantity: expect.any(Number) });
@@ -138,6 +145,9 @@ describe("create and the public page (F18 §1–2)", () => {
     bodies.push(await (await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).text());
     bodies.push(await (await pub(token, "/scene")).text());
     const all = bodies.join("\n");
+    // Review C-25: no internal id either; the only UUIDs are the shared model versions the viewer loads.
+    const uuids = new Set(all.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) ?? []);
+    expect([...uuids].filter((id) => !shared.modelVersionIds!.includes(id))).toEqual([]);
     for (const banned of ["Lena Sharer", "Erik Estimator", "Ana Approver", lead.email, SECRET_REASON, '"reason"', '"engineDescription"', '"decision', '"questions"', '"reviewComments"', '"createdBy"', '"price', '"rate"']) expect(all, banned).not.toContain(banned);
   });
 

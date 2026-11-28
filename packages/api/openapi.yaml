@@ -2628,6 +2628,26 @@ components:
         systems: { type: array, items: { type: object, required: [id, name], properties: { id: { type: string }, name: { type: string } } }, description: The run's classifications (names for grouping) }
         include: { $ref: "#/components/schemas/ShareInclude" }
         modelVersionIds: { type: array, items: { type: string, format: uuid }, description: for the viewer when included }
+        models:
+          type: array
+          description: "The shared run's models in input order, with the line detail or the viewer (review C-25): the version the viewer loads and the line trace's `elements[].model` names, and the model's file name, so the page names a model instead of showing an id"
+          items:
+            type: object
+            required: [versionId, name]
+            properties:
+              versionId: { type: string, format: uuid }
+              name: { type: string }
+        slots:
+          type: object
+          description: "The shared run's rule-set settings by name, with the line detail (review C-25): how the page labels a setting, its unit and its options, as the app does. Never a setting's value (the line's trace carries the values it used) or the rule set's ids"
+          additionalProperties:
+            type: object
+            required: [label, type]
+            properties:
+              label: { type: string }
+              type: { type: string, enum: [number, choice, boolean, text, formula] }
+              unit: { type: string }
+              optionLabels: { type: object, additionalProperties: { type: string } }
         madeWithBadge: { type: boolean }
         numberFormat:
           type: object

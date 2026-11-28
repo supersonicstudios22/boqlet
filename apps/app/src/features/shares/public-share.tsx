@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { Download, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { Param } from "@ifc-boq/types";
 import { saveFile } from "@/api/hooks/exports";
 import { publicExport, usePublicLine, usePublicLines, usePublicShare } from "@/api/hooks/shares";
 import type { RunLine } from "@/api/hooks/sheet";
@@ -35,6 +36,7 @@ const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[sys
 export function PublicSharePage({ token }: { token: string }) {
   const unitLabel = useUnit();
   const t = useTranslations("shares.public");
+  const tl = useTranslations("library");
   const message = useErrorMessage();
   const share = usePublicShare(token);
   // BoQ values and the run date in the firm's format (TF-021, `PublicShare.numberFormat` / `dateFormat`;
@@ -74,7 +76,11 @@ export function PublicSharePage({ token }: { token: string }) {
   };
   const excel = useMutation({ mutationFn: async () => saveFile(await publicExport(token), `${share.data?.boqName ?? "boq"}_${share.data?.revisionLabel ?? ""}.xlsx`.replace(/[^\w.-]+/g, "-")), onError: () => {} });
   const system = share.data?.include.groupBy ?? share.data?.systems?.[0]?.id;
-  const lex = useMemo(() => lexicon({}, (name) => name), []);
+  // Review C-25: the run's setting labels and model names, so the detail reads like the app's (never ids).
+  // The share sends no setting values: a step's value comes from the line's trace.
+  const slots = useMemo(() => Object.fromEntries(Object.entries(share.data?.slots ?? {}).map(([k, v]) => [k, { ...v, value: undefined } as unknown as Param])), [share.data?.slots]);
+  const lex = useMemo(() => lexicon(slots, (name) => (tl.has(`names.${name}.label`) ? tl(`names.${name}.label`) : name)), [slots, tl]);
+  const modelNames = useMemo(() => new Map((share.data?.models ?? []).map((m) => [m.versionId, m.name])), [share.data?.models]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -91,7 +97,10 @@ export function PublicSharePage({ token }: { token: string }) {
     }
     return [...out.values()];
   }, [filtered, system]);
-  const models = useMemo(() => (share.data?.modelVersionIds ?? []).map((id, i) => ({ versionId: id, label: t("viewerModel", { n: i + 1 }) })), [share.data?.modelVersionIds, t]);
+  const models = useMemo(
+    () => (share.data?.modelVersionIds ?? []).map((id, i) => ({ versionId: id, traceId: id, label: modelNames.get(id) || t("viewerModel", { n: i + 1 }) })),
+    [share.data?.modelVersionIds, modelNames, t],
+  );
 
   // A link revoked, expired or never made answers 404: "no longer available". Anything else (the
   // network, a rate limit, the server) is not the link's fault: say so and offer to try again (TF-017).
@@ -248,10 +257,11 @@ export function PublicSharePage({ token }: { token: string }) {
                 <LineDetailBody
                   line={detail.data}
                   groupBy={system}
-                  slots={{}}
+                  slots={slots}
                   lex={lex}
                   libraryHref={null}
-                  modelNames={new Map()}
+                  modelNames={modelNames}
+                  showRawFormula={false}
                   systemNames={new Map((s.systems ?? []).map((x) => [x.id, x.name]))}
                   describe={(key) => lines.data?.find((l) => l.key === key)?.description}
                   onSelect={setSelected}

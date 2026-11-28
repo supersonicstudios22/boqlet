@@ -3,10 +3,12 @@ package com.boqlet.api.boq;
 import com.boqlet.api.billing.EntitlementService;
 import com.boqlet.api.db.Ids;
 import com.boqlet.api.db.StoredJson;
+import com.boqlet.api.library.PresetCatalog;
 import com.boqlet.api.storage.ObjectStorage;
 import com.boqlet.api.worker.WorkerClient;
 import com.boqlet.contract.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.net.URI;
@@ -26,9 +28,10 @@ class PublicShares {
     private final ObjectStorage storage;
     private final WorkerClient worker;
     private final RunIndex index;
+    private final PresetCatalog catalog;
 
     PublicShares(ShareLinks links, StoredJson json, EntitlementService limits, JdbcTemplate database,
-                 ObjectStorage storage, WorkerClient worker, RunIndex index) {
+                 ObjectStorage storage, WorkerClient worker, RunIndex index, PresetCatalog catalog) {
         this.links = links;
         this.json = json;
         this.limits = limits;
@@ -36,6 +39,7 @@ class PublicShares {
         this.storage = storage;
         this.worker = worker;
         this.index = index;
+        this.catalog = catalog;
     }
 
     PublicShare get(String token) {
@@ -58,7 +62,12 @@ class PublicShares {
             response.revisionLabel(shown.label()).revisionStatus(PublicShare.RevisionStatusEnum.fromValue(shown.status()))
                     .runAt(Objects.requireNonNullElse(run.getFinishedAt(), run.getCreatedAt()));
             if (run.getClassifications() != null) response.systems(run.getClassifications());
-            if (enabled(info.getInclude().getViewer())) response.modelVersionIds(versions(shown));
+            boolean detail = enabled(info.getInclude().getLineDetail());
+            boolean viewer = enabled(info.getInclude().getViewer());
+            if (viewer) response.modelVersionIds(versions(shown));
+            // Review C-25: the page names models and settings like the app does, never by an id.
+            if (viewer || detail) response.models(models(shown));
+            if (detail) response.slots(slots(run));
         }
         links.count(link);
         return response;
@@ -66,6 +75,8 @@ class PublicShares {
 
     LinesPage lines(String token, String cursor, String query) {
         var link = links.publicLink(token);
+        // The viewer finds a line's elements in the list, as the app's does (review C-25): each one's guid, model and share.
+        boolean elements = enabled(link.view().getInclude().getViewer());
         var shown = links.shown(link.shownRun());
         if (shown == null) return new LinesPage(List.of()).total(0).nextCursor(null);
         int start = offset(cursor);
@@ -80,7 +91,7 @@ class PublicShares {
         index.ensure(run);
         int total = database.queryForObject("SELECT count(*) " + filter, Integer.class, run, search, search, search);
         var items = database.query("SELECT line::text, sort_index " + filter + " ORDER BY sort_index LIMIT ? OFFSET ?",
-                (row, index) -> json.read(line(row.getString(1), row.getInt(2), false).toString(), RunLine.class),
+                (row, index) -> json.read(line(row.getString(1), row.getInt(2), false, elements).toString(), RunLine.class),
                 run, search, search, search, PAGE_SIZE, start);
         long next = (long) start + items.size();
         return new LinesPage(items).total(total).nextCursor(next < total ? Long.toString(next) : null);
@@ -94,7 +105,7 @@ class PublicShares {
         index.ensure(run);
         var detail = database.query("""
                 SELECT line::text, sort_index FROM run_lines WHERE run_id = ? AND line_key = ?
-                """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true).toString(), LineDetail.class),
+                """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true, true).toString(), LineDetail.class),
                 run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
         detail.setLog(null);
@@ -174,7 +185,7 @@ class PublicShares {
         return storage.downloadAttachment(key, BoqExports.XLSX, "BoQ.xlsx");
     }
 
-    private ObjectNode line(String value, int index, boolean detail) {
+    private ObjectNode line(String value, int index, boolean detail, boolean elements) {
         ObjectNode source = json.read(value, ObjectNode.class);
         JsonNode edit = source.get("overridden");
         // An excluded line is shown as excluded, like the sheet shows it (TF-033); why stays private (BR-56).
@@ -204,7 +215,16 @@ class PublicShares {
                 }
             }
             if (!detail) {
-                trace.putArray("elements");
+                var summary = JsonNodeFactory.instance.arrayNode();
+                if (elements) {
+                    for (var element : trace.path("elements")) {
+                        var item = summary.addObject();
+                        item.set("guid", element.get("guid"));
+                        item.set("quantity", element.get("quantity"));
+                        if (element.has("model")) item.set("model", element.get("model"));
+                    }
+                }
+                trace.set("elements", summary);
                 trace.remove("steps");
             }
         }
@@ -223,6 +243,62 @@ class PublicShares {
                 WHERE v.id = ? AND m.project_id = ? AND v.org_id = ? AND v.status = 'ready'
                 """, (row, index) -> row.getString(1), artifact, version, link.view().getProjectId(), link.org())
                 .stream().filter(Objects::nonNull).findFirst().orElseThrow(() -> BoqAccess.missing("model"));
+    }
+
+    /** Each shared model version with its file name (the app's `Run.models`), else its discipline, as the app's viewer names it. */
+    private static List<PublicShareModelsInner> models(ShareLinks.Shown shown) {
+        var names = new HashMap<String, String>();
+        if (shown.run().run().getModels() != null) {
+            for (var model : shown.run().run().getModels()) {
+                if (model.getId() != null && model.getFileName() != null) names.put(model.getId(), model.getFileName());
+            }
+        }
+        var out = new ArrayList<PublicShareModelsInner>();
+        for (var model : shown.run().snapshot().path("inputs").path("models")) {
+            String version = model.path("modelVersionId").asText();
+            out.add(new PublicShareModelsInner(UUID.fromString(version),
+                    names.getOrDefault(version, model.path("discipline").asText(""))));
+        }
+        return out;
+    }
+
+    /**
+     * The run's rule-set settings as the page labels them (review C-25): params merged along the version chain as
+     * the engine flattens them (by name, the child's fields over its parent's), then only label, type, unit and
+     * option texts. Values stay with the line traces that used them.
+     */
+    private Map<String, PublicShareSlotsValue> slots(Run run) {
+        var out = new TreeMap<String, PublicShareSlotsValue>();
+        UUID id = run.getSnapshotVersions() == null ? null : run.getSnapshotVersions().getRuleSetVersionId();
+        if (id == null) return out;
+        var rules = catalog.rules(catalog.version(id));
+        var chain = new ArrayList<ObjectNode>(rules.library());
+        Collections.reverse(chain);
+        chain.add(rules.doc());
+        var params = new LinkedHashMap<String, ObjectNode>();
+        for (var doc : chain) {
+            doc.path("params").properties().forEach(entry -> {
+                if (!(entry.getValue() instanceof ObjectNode fields)) return;
+                params.computeIfAbsent(entry.getKey(), name -> JsonNodeFactory.instance.objectNode()).setAll(fields);
+            });
+        }
+        params.forEach((name, param) -> {
+            PublicShareSlotsValue.TypeEnum type;
+            try {
+                type = PublicShareSlotsValue.TypeEnum.fromValue(param.path("type").asText());
+            } catch (IllegalArgumentException unknown) {
+                return;
+            }
+            var slot = new PublicShareSlotsValue(param.path("label").asText(""), type);
+            if (param.path("unit").isTextual()) slot.unit(param.path("unit").asText());
+            if (param.path("optionLabels") instanceof ObjectNode labels) {
+                var texts = new LinkedHashMap<String, String>();
+                labels.properties().forEach(option -> texts.put(option.getKey(), option.getValue().asText()));
+                slot.optionLabels(texts);
+            }
+            out.put(name, slot);
+        });
+        return out;
     }
 
     private static List<UUID> versions(ShareLinks.Shown shown) {

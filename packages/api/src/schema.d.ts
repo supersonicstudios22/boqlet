@@ -2742,6 +2742,24 @@ export interface components {
             include: components["schemas"]["ShareInclude"];
             /** @description for the viewer when included */
             modelVersionIds?: string[];
+            /** @description The shared run's models in input order, with the line detail or the viewer (review C-25): the version the viewer loads and the line trace's `elements[].model` names, and the model's file name, so the page names a model instead of showing an id */
+            models?: {
+                /** Format: uuid */
+                versionId: string;
+                name: string;
+            }[];
+            /** @description The shared run's rule-set settings by name, with the line detail (review C-25): how the page labels a setting, its unit and its options, as the app does. Never a setting's value (the line's trace carries the values it used) or the rule set's ids */
+            slots?: {
+                [key: string]: {
+                    label: string;
+                    /** @enum {string} */
+                    type: "number" | "choice" | "boolean" | "text" | "formula";
+                    unit?: string;
+                    optionLabels?: {
+                        [key: string]: string;
+                    };
+                };
+            };
             madeWithBadge?: boolean;
             /** @description The firm's separators (`OrgSettings.numberFormat`), so the page formats numbers like the firm (TF-021) */
             numberFormat?: {

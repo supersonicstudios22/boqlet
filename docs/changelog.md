@@ -10,6 +10,7 @@ as they were then (for example `apps/app/e2e/*`, deleted by P53, and `plan/`, no
 
 | Date | Commit | What |
 |---|---|---|
+| 2026-11-28 | WP-C6 C-25 | Share page line detail like the app's (D127, contract change): `PublicShare.models` (file names) and `slots` (setting labels, no values) replace `wall_recess_mode` and `01a2079c`; the formula in words only; a derived line's source by its description (in the app too); the share's line list keeps element guids with the viewer, so the 3D view says "3 elements of this line", not 0, and names the model. Tests: `public-share.test.tsx`, scenario `shares.test.ts` (no UUID in a public response but the shared model versions) |
 | 2026-11-28 | (this commit) | Review WP-C5 exit check: package done (C-21…C-24), **baseline recaptured** (run 20261128-164325: Ref position numbers and item texts in every run, split-line descriptions in S05/S07/S08/F01/F02; keys and quantities identical), PROGRESS.md row and baseline log, new items N-54…N-57, judgement calls DEC-147…DEC-152 |
 | 2026-11-28 | WP-C5 C-22/C-23 fix | The share page's Excel answered 500 for an org without a date format (a null `findFirst()` in `PublicShares.workbook`; `NativeWorkerTest` caught it); the scenario helper and the sheet scenario read Ref as the position number (C-23) |
 | 2026-11-28 | WP-C5 C-23 fix | With item texts the Duplex BoQ printed on 3 pages: no "Measured as" note when the item text already contains the measured description, and Description 75 / Notes 30 characters wide (168 in all); it prints on 2 landscape pages again (LibreOffice test) |
