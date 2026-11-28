@@ -2668,6 +2668,11 @@ export interface components {
             log?: boolean;
             /** @default false */
             excel?: boolean;
+            /**
+             * @description The Excel the page offers (review C-22, DEC-40): `issue` (Cover and BoQ, with the Calculation when `lineDetail`) or `working` (the audit sheets the other includes allow). `issue` when not set
+             * @enum {string}
+             */
+            excelProfile?: "issue" | "working";
             /** @description classification id */
             groupBy?: string;
         };
@@ -8075,6 +8080,16 @@ export interface operations {
                     format?: "xlsx";
                     /** @description a classification id of the run, or `~storey` / `~rule` (sections by storey or by the rule that measured the line, review C-07); Ref and the position numbers stay those of the first classification. Default: the first classification */
                     groupBy?: string;
+                    /**
+                     * @description Review C-22 (DEC-40): `issue` is the workbook to send (Cover with firm, client, project, BoQ, version and date; the BoQ; the Calculation with `includeCalculation`; no Log, Questions, Inputs, Lines or internal ids); `working` the audit workbook with every sheet. Both keep the hidden line keys, so either imports back. Default: `working` for a working version's run, `issue` for a saved version's run (its frozen file, BR-25; any other choice is a new file from the same stored run)
+                     * @enum {string}
+                     */
+                    profile?: "issue" | "working";
+                    /**
+                     * @description With `issue`: add the Calculation sheet (every line's formula and elements)
+                     * @default false
+                     */
+                    includeCalculation?: boolean;
                 };
             };
         };

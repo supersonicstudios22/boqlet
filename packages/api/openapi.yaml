@@ -1586,6 +1586,11 @@ paths:
               properties:
                 format: { type: string, enum: [xlsx], default: xlsx }
                 groupBy: { type: string, maxLength: 200, description: "a classification id of the run, or `~storey` / `~rule` (sections by storey or by the rule that measured the line, review C-07); Ref and the position numbers stay those of the first classification. Default: the first classification" }
+                profile:
+                  type: string
+                  enum: [issue, working]
+                  description: "Review C-22 (DEC-40): `issue` is the workbook to send (Cover with firm, client, project, BoQ, version and date; the BoQ; the Calculation with `includeCalculation`; no Log, Questions, Inputs, Lines or internal ids); `working` the audit workbook with every sheet. Both keep the hidden line keys, so either imports back. Default: `working` for a working version's run, `issue` for a saved version's run (its frozen file, BR-25; any other choice is a new file from the same stored run)"
+                includeCalculation: { type: boolean, default: false, description: "With `issue`: add the Calculation sheet (every line's formula and elements)" }
       responses:
         "202": { $ref: "#/components/responses/JobAccepted" }
 
@@ -2570,6 +2575,7 @@ components:
         viewer: { type: boolean, default: true }
         log: { type: boolean, default: false }
         excel: { type: boolean, default: false }
+        excelProfile: { type: string, enum: [issue, working], description: "The Excel the page offers (review C-22, DEC-40): `issue` (Cover and BoQ, with the Calculation when `lineDetail`) or `working` (the audit sheets the other includes allow). `issue` when not set" }
         groupBy: { type: string, maxLength: 200, description: classification id }
     ShareLinkCreate:
       type: object

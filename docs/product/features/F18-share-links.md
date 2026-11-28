@@ -21,7 +21,10 @@ explanations and 3D view the firm sees (P26).
      versions", nobody may. The dialog then offers the latest saved version and says why.
    - **Includes:** the sheet (always), grouped by the chosen classification with its item texts
      (P14); line detail with **How it is calculated** (F06 §5, default on); the **3D view**
-     (F07, default on); the calculation log (default off); **Excel download** (default off).
+     (F07, default on); the calculation log (default off); **Excel download** (default off). The Excel is
+     the workbook to send unless the link says `excelProfile: working` (review C-22, D124): Cover and BoQ,
+     with the Calculation when line detail is included; the working one keeps the sheets the other
+     includes allow (Calculation and Lines with line detail, Log with the log; never Questions or Inputs).
    - **Expires:** never, 7, 30 (default) or 90 days.
    - Optional **label** for the firm's own list ("For the client, permit set").
    The dialog shows the link with a copy button.

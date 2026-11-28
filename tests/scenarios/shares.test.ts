@@ -157,6 +157,20 @@ describe("create and the public page (F18 §1–2)", () => {
       { encoding: "utf8", input: Buffer.from(await workbook.arrayBuffer()) });
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).not.toContain(SECRET_REASON);
+    // Review C-22 (DEC-40): the page offers the workbook to send (Cover, BoQ, the Calculation with line detail)
+    // unless the link asks for the working one, which keeps the sheets the includes allow (here the log).
+    const sheets = async () => {
+      const download = await fetch((await pub(token, "/export")).headers.get("location")!);
+      const listed = spawnSync(python, ["-c",
+        "import io,sys,json; from openpyxl import load_workbook; wb=load_workbook(io.BytesIO(sys.stdin.buffer.read())); print(json.dumps([s.title for s in wb.worksheets if s.sheet_state == 'visible']))"],
+        { encoding: "utf8", input: Buffer.from(await download.arrayBuffer()) });
+      expect(listed.status, listed.stderr).toBe(0);
+      return JSON.parse(listed.stdout) as string[];
+    };
+    expect(await sheets()).toEqual(["Cover", "BoQ", "Calculation"]);
+    const working = await as(estimator).PATCH("/share-links/{shareLinkId}", { params: { path: { shareLinkId: id } }, body: { include: { excelProfile: "working" } } });
+    expect(working.data!.include).toMatchObject({ excel: true, log: true, excelProfile: "working" });
+    expect(await sheets()).toEqual(["Cover", "BoQ", "Calculation", "Lines", "Log"]);
     const detail = await (await pub(token, `/lines/by-key?key=${encodeURIComponent(editedKey)}`)).text();
     expect((JSON.parse(detail) as { log?: unknown[] }).log).toBeInstanceOf(Array);
     expect(detail).not.toContain(SECRET_REASON);

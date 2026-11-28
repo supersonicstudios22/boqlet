@@ -257,6 +257,10 @@ def export(result: dict, meta: dict) -> bytes:
         rank = {key: index for index, key in enumerate(order)}
         lines = sorted(lines, key=lambda line: rank.get(line["key"], len(rank)))
     text_systems = {system for line in lines for system, code in line["codes"].items() if code.get("text")}
+    # Review C-22 (DEC-40): "issue" is the workbook a firm sends: Cover, BoQ and, when asked, Calculation;
+    # no Log, Questions, Inputs, Lines or internal ids. "working" (the default) is the audit workbook.
+    # Both keep the hidden line keys and `_boqlet`, so either imports back.
+    issue = meta.get("profile") == "issue"
 
     # ------------------------------------------------------------------ BoQ
     ws = wb.active
@@ -269,10 +273,14 @@ def export(result: dict, meta: dict) -> bytes:
     ws["A1"].font = TITLE
     rule_meta = result["ruleSet"].get("meta") or {}
     left_out = pending_note(meta)
-    ws["A2"] = (f"Rules: {rule_meta.get('chainLabel') or result['ruleSet']['name']}  |  "
-                f"Grouping: {grouping_name or 'none'}  |  Status: {result['status']}  |  "
-                f"Generated {meta.get('generatedAt', datetime.now().isoformat(timespec='seconds'))}"
-                + ("  |  Changes after this run are not included (see Cover)" if left_out else ""))
+    generated = meta.get("generatedAt") or datetime.now().isoformat(timespec="seconds")
+    if issue:
+        ws["A2"] = (f"Grouping: {grouping_name or 'none'}  |  Date: {meta.get('date') or generated[:10]}"
+                    + ("  |  Changes after this run are not included (see Cover)" if left_out else ""))
+    else:
+        ws["A2"] = (f"Rules: {rule_meta.get('chainLabel') or result['ruleSet']['name']}  |  "
+                    f"Grouping: {grouping_name or 'none'}  |  Status: {result['status']}  |  Generated {generated}"
+                    + ("  |  Changes after this run are not included (see Cover)" if left_out else ""))
     ws["A2"].font = SMALL
     ws["A3"] = "Enter rates in the yellow column. Amounts and totals are formulas. Yellow rows are flagged: quantity to be confirmed."
     ws["A3"].font = SMALL
@@ -308,11 +316,15 @@ def export(result: dict, meta: dict) -> bytes:
         flagged = l["quantity"] is None or bool(l.get("toConfirm"))
         notes = [*([to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []), *l.get("notes", [])]
         description = _description(l, primary)
-        if description != l["description"]:
+        if issue:
+            # The team's notes, edit reasons and the rule set's wording stay in the working workbook;
+            # the recipient sees why a quantity is to be confirmed.
+            notes = [to_confirm_note(l["toConfirm"])] if l.get("toConfirm") else []
+        elif description != l["description"]:
             notes = [*notes, f"Measured as: {l['description']}"]
-        if measured := l.get("overridden", {}).get("engineDescription"):
+        if not issue and (measured := l.get("overridden", {}).get("engineDescription")):
             notes = [*notes, f"Measured as: {measured}"]
-        if reason := l.get("overridden", {}).get("reason"):
+        if not issue and (reason := l.get("overridden", {}).get("reason")):
             if not any(reason in note for note in notes):
                 notes = [*notes, "Reason: " + reason]
         _row(ws, r, [c["code"] if c else "", description, l["unit"], l["quantity"], None,
@@ -365,7 +377,22 @@ def export(result: dict, meta: dict) -> bytes:
     if meta.get("boqId"):
         annotate(wb, str(meta["boqId"]), primary, roundtrip_rows, grouping)
 
-    if meta.get("project") or meta.get("boq") or label or meta.get("watermark"):
+    if issue:
+        cover = wb.create_sheet("Cover", 0)
+        cover["A1"] = "Bill of Quantities"
+        cover["A1"].font = TITLE
+        cover.column_dimensions["A"].width = 24
+        cover.column_dimensions["B"].width = 82
+        details = [
+            ("Firm", meta.get("firm")), ("Client", meta.get("client")), ("Project", meta.get("project")),
+            ("Bill", meta.get("boq")), ("Version", label), ("Status", "WORKING" if working else None),
+            ("Date", meta.get("date") or generated[:10]), ("Grouping", grouping_name), ("Note", meta.get("issueNote")),
+            ("Not included", left_out),
+        ]
+        for row, (heading, value) in enumerate(((name, data) for name, data in details if data), 3):
+            _row(cover, row, [heading, value], wrap_cols=(2,))
+        wb.active = cover
+    elif meta.get("project") or meta.get("boq") or label or meta.get("watermark"):
         cover = wb.create_sheet("Cover", 0)
         cover["A1"] = "Bill of Quantities"
         cover["A1"].font = TITLE
@@ -385,7 +412,7 @@ def export(result: dict, meta: dict) -> bytes:
         wb.active = cover
 
     excluded = [line for line in lines if line.get("excluded")]
-    if excluded:
+    if excluded and not issue:
         we = wb.create_sheet("Excluded lines")
         _header(we, 1, ["Key", "Description", "Unit", "Quantity", "Reason"], [34, 60, 10, 14, 58])
         we.freeze_panes = "A2"
@@ -412,7 +439,8 @@ def export(result: dict, meta: dict) -> bytes:
             _row(wc, r, ["    " + describe_step(item), item["value"], item.get("unit"), "", ""], SMALL)
             r += 1
         for e in l["trace"]["elements"]:
-            note = "; ".join(x for x in [e.get("note"), *map(decision_note, e.get("decisions") or ())] if x)
+            # The answers an element rests on name internal question ids: the working workbook's.
+            note = "; ".join(x for x in [e.get("note"), *(() if issue else map(decision_note, e.get("decisions") or ()))] if x)
             _row(wc, r, ["    " + (e.get("name") or e["guid"]), e["quantity"], l["unit"], note, e["guid"]],
                  NORMAL, None, wrap_cols=(1, 4))
             wc.cell(row=r, column=2).number_format = _qfmt(e["quantity"])
@@ -513,7 +541,10 @@ def export(result: dict, meta: dict) -> bytes:
             r += 1
             _row(wi, r, [d["questionId"], json.dumps(d.get("answer")), "", d.get("note", "")])
 
-    if meta.get("publicShare"):
+    if issue:
+        for name in ("Lines", "Log", "Questions", "Inputs", *(() if meta.get("calculation") else ("Calculation",))):
+            del wb[name]
+    elif meta.get("publicShare"):
         del wb["Questions"]
         del wb["Inputs"]
         if not meta.get("publicLog"):

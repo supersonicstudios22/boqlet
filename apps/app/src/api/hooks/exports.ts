@@ -38,11 +38,28 @@ export async function downloadWhenDone(job: Job) {
   return meta;
 }
 
-/** F12: a run's BoQ Excel (the `export_xlsx` job), downloaded when it is written. */
+/**
+ * Review C-22 (DEC-40): which workbook. `working` is the audit workbook (every sheet), `issue` the one to send
+ * (Cover and BoQ), `issueCalculation` the one to send with the Calculation sheet.
+ */
+export type ExportChoice = "working" | "issue" | "issueCalculation";
+
+function exportBody(groupBy: string | null | undefined, choice: ExportChoice | undefined) {
+  return {
+    format: "xlsx" as const,
+    ...(groupBy ? { groupBy } : {}),
+    ...(choice ? { profile: choice === "working" ? ("working" as const) : ("issue" as const) } : {}),
+    ...(choice === "issueCalculation" ? { includeCalculation: true } : {}),
+  };
+}
+
+/** F12: a run's BoQ Excel (the `export_xlsx` job), downloaded when it is written. No choice: the run's default. */
 export function useExportRun(runId: string) {
   return useMutation({
-    mutationFn: async ({ groupBy }: { groupBy?: string | null }) =>
-      downloadWhenDone((await api.POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx", ...(groupBy ? { groupBy } : {}) }, headers: idempotencyHeaders(`exportRun:${runId}`, groupBy ?? null) })).data!),
+    mutationFn: async ({ groupBy, choice, run }: { groupBy?: string | null; choice?: ExportChoice; run?: string }) => {
+      const id = run ?? runId;
+      return downloadWhenDone((await api.POST("/runs/{runId}/exports", { params: { path: { runId: id } }, body: exportBody(groupBy, choice), headers: idempotencyHeaders(`exportRun:${id}`, { groupBy: groupBy ?? null, choice: choice ?? null }) })).data!);
+    },
   });
 }
 

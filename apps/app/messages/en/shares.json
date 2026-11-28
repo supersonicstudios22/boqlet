@@ -23,6 +23,11 @@
     "log": "The calculation log",
     "excel": "Excel download"
   },
+  "excelProfile": "Excel to download",
+  "excelProfiles": {
+    "issue": "To send: cover and bill (with the calculation when line detail is on)",
+    "working": "Working workbook (the sheets included above)"
+  },
   "groupBy": "Grouped by",
   "expires": "Expires",
   "expiry": {

@@ -322,3 +322,64 @@ def test_the_free_plan_watermark_is_on_every_printed_page_not_a_cell(duplex_pars
             assert sheet.oddHeader.center.text == "Made with boqlet (Free plan)", sheet.title
     cells = [cell.value for sheet in book for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str)]
     assert not any("Made with boqlet" in value for value in cells)
+
+
+def _issue_meta(**extra):
+    return {"boqId": "c-22", "profile": "issue", "firm": "Studio North", "client": "City of Example", "project": "Duplex",
+            "boq": "Tender", "revision": "B", "status": "issued", "date": "28 November 2026",
+            "generatedAt": "2026-11-28T09:00:00Z", "issuedBy": "A. Estimator", "issueNote": "For tender",
+            "locale": "en", "modelName": "duplex.ifc", "modelId": "sha256-of-the-file",
+            "classifications": [{"id": "acme-cost-codes", "name": "ACME cost codes"}], **extra}
+
+
+def test_an_issue_workbook_is_a_cover_and_the_bill_without_internal_ids(duplex_parsed):
+    """Review C-22 (PRD-012, CAS-015, DEC-40): the workbook a firm sends has its Cover (firm, client, project, bill,
+    version, a readable date), the BoQ and, when asked, the Calculation; no Log, Questions, Inputs or Lines, no rule
+    chain, run status, sha256 or locale. The hidden line keys and `_boqlet` stay for the round trip."""
+    import copy
+    result = copy.deepcopy(run(duplex_parsed))
+    first = result["lines"][0]
+    first["notes"] = ["the team's own note"]
+    first["overridden"] = {"fields": ["quantity"], "reason": "checked on site", "engineQuantity": 1}
+    book = load_workbook(BytesIO(export(result, _issue_meta())))
+    visible = [sheet.title for sheet in book.worksheets if sheet.sheet_state == "visible"]
+    assert visible == ["Cover", "BoQ"] and "_boqlet" in book.sheetnames
+    cover = {row[0]: row[1] for row in book["Cover"].iter_rows(min_row=3, values_only=True) if row[0]}
+    assert cover == {"Firm": "Studio North", "Client": "City of Example", "Project": "Duplex", "Bill": "Tender",
+                     "Version": "B", "Date": "28 November 2026", "Grouping": "ACME cost codes", "Note": "For tender"}
+    boq = book["BoQ"]
+    assert boq["A2"].value == "Grouping: ACME cost codes  |  Date: 28 November 2026"
+    texts = " ".join(str(cell.value) for sheet in book.worksheets if sheet.sheet_state == "visible"
+                     for row in sheet.iter_rows() for cell in row if cell.value is not None)
+    for internal in ("Rules:", "sha256", "Locale", "the team's own note", "checked on site", "Measured as", "complete"):
+        assert internal not in texts, internal
+    assert boq.column_dimensions["I"].hidden
+
+    with_calculation = load_workbook(BytesIO(export(result, _issue_meta(calculation=True))))
+    assert [s.title for s in with_calculation.worksheets if s.sheet_state == "visible"] == ["Cover", "BoQ", "Calculation"]
+
+
+def test_the_working_profile_is_the_audit_workbook_unchanged(duplex_parsed):
+    result = run(duplex_parsed)
+    meta = {k: v for k, v in _issue_meta().items() if k != "profile"}
+    working = load_workbook(BytesIO(export(result, {**meta, "profile": "working"})))
+    default = load_workbook(BytesIO(export(result, meta)))
+    assert working.sheetnames == default.sheetnames == ["Cover", "BoQ", "_boqlet", "Calculation", "Lines", "Log", "Questions", "Inputs"]
+    assert working["BoQ"]["A2"].value.startswith("Rules: ")
+
+
+def test_an_unedited_issue_workbook_imports_as_nothing_to_apply_and_an_edit_reads_back(duplex_parsed):
+    """Review C-22: the issue workbook goes through the edits import like the working one."""
+    from ifc_boq.sheets import boq_import
+    result = run(duplex_parsed)
+    data = export(result, _issue_meta())
+    info = {"boqId": "c-22", "primary": "acme-cost-codes", "lines": result["lines"]}
+    assert boq_import.read(data, info) == {"overrides": [], "manualItems": [], "problems": []}
+    book = load_workbook(BytesIO(data))
+    sheet = book["BoQ"]
+    row = next(r for r in range(6, sheet.max_row + 1) if sheet.cell(r, 9).value)
+    sheet.cell(row, 2).value = "Edited by the client"
+    edited = BytesIO()
+    book.save(edited)
+    report = boq_import.read(edited.getvalue(), info)
+    assert [o["edit"] for o in report["overrides"]] == [{"lineKey": sheet.cell(row, 9).value, "description": "Edited by the client"}]

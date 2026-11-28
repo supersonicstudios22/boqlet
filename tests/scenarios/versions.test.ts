@@ -4,6 +4,7 @@ import { API_URL, client, authentication } from "../support/env";
 import { invitationToken } from "../support/mail";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { setPlan } from "../support/plans";
+import { xlsxRows } from "../support/xlsx";
 import { signUp, uniqueEmail, type TestUser } from "../support/users";
 
 /**
@@ -294,8 +295,8 @@ describe("review and approval (F09 §4, approvalRequired on)", () => {
 });
 
 describe("frozen exports and the audit CSV (F12, FE-032)", () => {
-  async function exportOf(runId: string) {
-    const { data: job } = await as(lead).POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx" } });
+  async function exportOf(runId: string, profile?: "issue" | "working") {
+    const { data: job } = await as(lead).POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx", ...(profile ? { profile } : {}) } });
     const deadline = Date.now() + 60_000;
     for (;;) {
       const { data } = await as(lead).GET("/jobs/{jobId}", { params: { path: { jobId: job!.id } } });
@@ -314,6 +315,25 @@ describe("frozen exports and the audit CSV (F12, FE-032)", () => {
     expect(response.status).toBe(302);
     const { data: audit } = await as(lead).GET("/projects/{projectId}/audit", { params: { path: { projectId }, query: { action: "export.downloaded" } } });
     expect(audit!.items.some((a) => a.entityId === frozen)).toBe(true);
+  });
+
+  it("review C-22 (DEC-40): a saved version's frozen file is the one to send; its working workbook is a new file of the same run", async () => {
+    const saved = (await as(lead).GET("/boqs/{boqId}/revisions", { params: { path: { boqId } } })).data!.find((r) => r.label === "A")!;
+    const frozen = saved.frozen!.exportIds![0]!;
+    const sheetsOf = async (exportId: string) => {
+      const workbook = await xlsxRows(lead, exportId, "BoQ");
+      return { a2: String(workbook[1]?.[0] ?? ""), log: await xlsxRows(lead, exportId, "Log").then(() => true, () => false) };
+    };
+    expect(await sheetsOf(frozen)).toMatchObject({ log: false });
+    expect((await sheetsOf(frozen)).a2).not.toContain("Rules:");
+    expect(await exportOf(saved.frozen!.runId!, "issue")).toBe(frozen);
+    const working = await exportOf(saved.frozen!.runId!, "working");
+    expect(working).not.toBe(frozen);
+    const { data: meta } = await as(lead).GET("/exports/{exportId}", { params: { path: { exportId: working } } });
+    expect(meta!.kind).toBe("issued_boq_xlsx");
+    expect(meta!.fileName).toMatch(/_RevA_.*_working\.xlsx$/);
+    expect(await sheetsOf(working)).toMatchObject({ log: true });
+    expect((await as(lead).GET("/revisions/{revisionId}", { params: { path: { revisionId: saved.id } } })).data!.frozen!.exportIds).toEqual([frozen]);
   });
 
   it("the working version's export is a new WORKING file recorded on the working version", async () => {

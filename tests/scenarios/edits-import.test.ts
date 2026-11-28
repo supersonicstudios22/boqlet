@@ -40,8 +40,8 @@ async function job(jobId: string) {
   }
 }
 
-async function exported(file: string) {
-  const { data: started } = await api().POST("/runs/{runId}/exports", { params: { path: { runId: boq.currentRevision.currentRun!.id } }, body: { format: "xlsx", groupBy: systemId } });
+async function exported(file: string, profile?: "issue" | "working") {
+  const { data: started } = await api().POST("/runs/{runId}/exports", { params: { path: { runId: boq.currentRevision.currentRun!.id } }, body: { format: "xlsx", groupBy: systemId, ...(profile ? { profile } : {}) } });
   const done = await job(started!.id);
   const exportId = (done.output as { exportId: string }).exportId;
   const res = await fetch(`${API_URL}/exports/${exportId}/download`, { headers: await authentication(owner.token) });
@@ -171,6 +171,36 @@ describe("a text edit in Excel (F12-AC4, TF-008)", () => {
     const applied = await api().POST("/boqs/{boqId}/overrides/batch", { params: { path: { boqId: boq.id } }, body: { overrides: [report.overrides[0]!.edit] } });
     expect(applied.response.status).toBe(200);
     expect(applied.data!.overrides![0]).toMatchObject({ lineKey: key, description: "Edited in Excel" });
+  });
+});
+
+/**
+ * Review C-22 (DEC-40): the workbook to send has a Cover and the bill only, and imports back like the working one.
+ */
+describe("the workbook to send (review C-22)", () => {
+  it("is the Cover and the BoQ with the firm's name, and an edit in it is proposed like one in the working workbook", async () => {
+    const file = path.join(tmp, "issue.xlsx");
+    await exported(file, "issue");
+    const code = [
+      "import json, sys", "from openpyxl import load_workbook",
+      "wb = load_workbook(sys.argv[1]); ws = wb['BoQ']",
+      "cover = {r[0]: r[1] for r in wb['Cover'].iter_rows(min_row=3, max_col=2, values_only=True) if r[0]}",
+      "visible = [s.title for s in wb.worksheets if s.sheet_state == 'visible']",
+      "row = next(r for r in range(6, ws.max_row + 1) if ws.cell(r, 9).value)",
+      "key = ws.cell(row, 9).value; a2 = ws['A2'].value; ws.cell(row, 2, 'Edited by the client'); wb.save(sys.argv[1])",
+      "print(json.dumps({'key': key, 'visible': visible, 'cover': cover, 'a2': a2}))",
+    ].join("\n");
+    const res = spawnSync(python, ["-c", code, file], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+    expect(res.status, res.stderr).toBe(0);
+    const { key, visible, cover, a2 } = JSON.parse(res.stdout) as { key: string; visible: string[]; cover: Record<string, string>; a2: string };
+    expect(visible).toEqual(["Cover", "BoQ"]);
+    expect(cover).toMatchObject({ Firm: "Import Firm", Bill: boq.name });
+    expect(cover.Date).toMatch(/\d/);
+    expect(a2).not.toContain("Rules:");
+    const { report } = await importFile(file);
+    expect(report.problems).toEqual([]);
+    expect(report.manualItems).toEqual([]);
+    expect(report.overrides).toEqual([expect.objectContaining({ change: "description", edit: { lineKey: key, description: "Edited by the client" } })]);
   });
 });
 

@@ -66,8 +66,20 @@ public class BoqExports {
         return group != null && BUILT_IN_GROUPINGS.contains(group);
     }
 
-    @Transactional
+    /** Review C-22 (DEC-40): the workbook to send, and the audit workbook with every sheet. */
+    static final String ISSUE = "issue", WORKING = "working";
+
     public Job startRun(UUID runId, UUID actor, String groupBy) {
+        return startRun(runId, actor, groupBy, null, false);
+    }
+
+    /**
+     * A run's Excel. `profile` null is the default for the run (DEC-40): `working` for a working version's run, the
+     * frozen `issue` file for a saved version's run. Another profile of a saved version's run (or `issue` with the
+     * Calculation) is a new file written from the same stored run, with the version's label, note and time.
+     */
+    @Transactional
+    public Job startRun(UUID runId, UUID actor, String groupBy, String profile, boolean calculation) {
         var run = runs.visible(runId, actor);
         var systems = run.run().getClassifications() == null ? List.<PublicShareSystemsInner>of() : run.run().getClassifications();
         if (groupBy != null && !builtIn(groupBy) && systems.stream().noneMatch(system -> groupBy.equals(system.getId()))) {
@@ -85,6 +97,13 @@ public class BoqExports {
                 ORDER BY r.number LIMIT 1
                 """, (row, index) -> new Frozen(row.getObject("job_id", UUID.class), row.getString("status"),
                         row.getObject("revision_id", UUID.class)), runId.toString(), runId).stream().findFirst().orElse(null);
+        if (frozen != null && (WORKING.equals(profile) || calculation)) {
+            var saved = boqs.revision(frozen.revision(), actor);
+            var version = saved.revision();
+            var other = schedule(saved, run, actor, groupBy, true, version.label(), version.issueNote(), version.issued(),
+                    version.issuer(), profile == null ? ISSUE : profile, calculation);
+            return jobs.get(other.job(), actor);
+        }
         if (frozen != null && Set.of("failed", "cancelled").contains(frozen.status())) {
             // P54 Q49 (TF-057): a saved version's Excel that couldn't be built is built again from its stored run and
             // the version's own label, note, issuer and time, so the file is the one saving would have written.
@@ -101,7 +120,8 @@ public class BoqExports {
         if (!runId.equals(scope.revision().run()) || scope.revision().status() == RevisionStatus.ISSUED) {
             scope = boqs.revision(run.run().getRevisionId(), actor);
         }
-        var entry = schedule(scope, run, actor, groupBy, false, scope.revision().label(), null, null);
+        var entry = schedule(scope, run, actor, groupBy, false, scope.revision().label(), null, null, actor,
+                profile == null ? WORKING : profile, calculation);
         return jobs.get(entry.job(), actor);
     }
 
@@ -112,14 +132,25 @@ public class BoqExports {
 
     private record Frozen(UUID job, String status, UUID revision) {}
 
+    /** A saved version's frozen file is the issue workbook (DEC-40); any other export starts as the working one. */
     Scheduled schedule(BoqAccess.Scope scope, RunCatalog.Entry run, UUID actor, String groupBy, boolean frozen,
                        String label, String note, OffsetDateTime issued, UUID issuer) {
+        return schedule(scope, run, actor, groupBy, frozen, label, note, issued, issuer, frozen ? ISSUE : WORKING, false);
+    }
+
+    Scheduled schedule(BoqAccess.Scope scope, RunCatalog.Entry run, UUID actor, String groupBy, boolean frozen,
+                       String label, String note, OffsetDateTime issued, UUID issuer, String profile, boolean calculation) {
         if (run.resultKey() == null) throw BoqAccess.failure(HttpStatus.CONFLICT, "no_run", "Generate the BoQ before exporting.");
         var project = scope.project();
         var revision = scope.revision();
         var currentId = run.run().getId();
-        var settings = orgs.require(project.getOrgId(), actor).org().getSettings();
+        var org = orgs.require(project.getOrgId(), actor).org();
+        var settings = org.getSettings();
         var metadata = new LinkedHashMap<String, Object>();
+        metadata.put("profile", profile);
+        if (ISSUE.equals(profile) && calculation) metadata.put("calculation", true);
+        metadata.put("firm", org.getName());
+        if (project.getClient() != null && !project.getClient().isBlank()) metadata.put("client", project.getClient());
         metadata.put("project", project.getName());
         metadata.put("boq", scope.bill().name());
         metadata.put("boqId", scope.bill().id().toString());
@@ -153,8 +184,15 @@ public class BoqExports {
         }
         OffsetDateTime time = issued == null ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : issued;
         OffsetDateTime ran = Optional.ofNullable(run.run().getFinishedAt()).orElse(run.run().getCreatedAt());
+        // The issue Cover's date: when the version was saved, else when the run finished; in the firm's format.
+        metadata.put("date", readableDate(issued == null ? ran : issued, settings.getDateFormat(),
+                Optional.ofNullable(project.getLocale()).orElse(settings.getDefaultLocale())));
         String file = fileName(project.getCode() == null ? project.getName() : project.getCode(), scope.bill().name(), label,
                 time.toLocalDate(), ran);
+        // A file other than the default for its run says which it is: a saved version's working workbook, a working
+        // version's issue workbook (the frozen file and the sheet's Excel keep their names).
+        String suffix = profile.equals(frozen ? ISSUE : WORKING) && !calculation ? "" : "_" + profile + (calculation ? "-calculation" : "");
+        file = file.substring(0, file.length() - ".xlsx".length()) + suffix + ".xlsx";
         return enqueue(project, actor, revision.id(), frozen ? "issued_boq_xlsx" : "boq_xlsx", "run", currentId,
                 file, Map.of("resultKey", run.resultKey(), "meta", metadata));
     }
@@ -275,6 +313,28 @@ public class BoqExports {
     static String fileName(String project, String boq, String label, java.time.LocalDate date, OffsetDateTime run) {
         String name = fileName(project, boq, label, date);
         return name.substring(0, name.length() - ".xlsx".length()) + "_run" + RUN_TIME.format(run) + ".xlsx";
+    }
+
+    private static final java.util.regex.Pattern DATE_TOKENS = java.util.regex.Pattern.compile("yyyy|yy|MM|M|dd|d");
+
+    /**
+     * A day as the firm writes dates (review C-22): the org's `dateFormat` with the app's tokens (yyyy, yy, MM, M, dd,
+     * d; everything else as written, `boq-format.ts`), else the locale's long date ("28 November 2026"). UTC.
+     */
+    static String readableDate(OffsetDateTime when, String pattern, String locale) {
+        var day = when.atZoneSameInstant(java.time.ZoneOffset.UTC).toLocalDate();
+        if (pattern != null && !pattern.isBlank()) {
+            return DATE_TOKENS.matcher(pattern.strip()).replaceAll(token -> switch (token.group()) {
+                case "yyyy" -> String.format("%04d", day.getYear());
+                case "yy" -> String.format("%02d", day.getYear() % 100);
+                case "MM" -> String.format("%02d", day.getMonthValue());
+                case "M" -> Integer.toString(day.getMonthValue());
+                case "dd" -> String.format("%02d", day.getDayOfMonth());
+                default -> Integer.toString(day.getDayOfMonth());
+            });
+        }
+        Locale tag = locale == null || locale.isBlank() ? Locale.ENGLISH : Locale.forLanguageTag(locale);
+        return java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.LONG).withLocale(tag).format(day);
     }
 
     private static final java.time.format.DateTimeFormatter RUN_TIME =

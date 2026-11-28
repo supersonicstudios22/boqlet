@@ -3,7 +3,7 @@ import type { Schemas } from "@ifc-boq/api";
 import { client } from "../support/env";
 import { duplexBytes, uploadVersion, waitForVersion } from "../support/models";
 import { signUp, uniqueEmail, user, type TestUser } from "../support/users";
-import { xlsxRows } from "../support/xlsx";
+import { xlsxPageHeaders, xlsxRows } from "../support/xlsx";
 
 /**
  * F14-AC1, BR-61 (TF-005, TF-132): the limits of docs/product/plans-and-limits.md that the other files
@@ -109,12 +109,16 @@ describe("limits on a Free org (F14-AC1)", () => {
     limited(await api.PATCH("/orgs/{orgId}", { params: { path: { orgId } }, body: { settings: { fourEyes: true } } }), "approvalWorkflow");
   });
 
-  it("exportWatermark: the Free export carries 'Made with boqlet' on its cover", async () => {
+  it("exportWatermark: the Free export carries 'Made with boqlet' on every printed page, not in a cell (review C-21)", async () => {
     const { data: started } = await api.POST("/runs/{runId}/exports", { params: { path: { runId } }, body: { format: "xlsx" } });
     const done = await job(started!.id);
     expect(done.status).toBe("succeeded");
-    const cover = await xlsxRows(owner, (done.output as { exportId: string }).exportId, "Cover");
-    expect(cover.flat()).toContain("Made with boqlet");
+    const exportId = (done.output as { exportId: string }).exportId;
+    const headers = await xlsxPageHeaders(owner, exportId);
+    expect(Object.keys(headers)).toContain("BoQ");
+    for (const [sheet, text] of Object.entries(headers)) expect(text, sheet).toBe("Made with boqlet (Free plan)");
+    const cover = await xlsxRows(owner, exportId, "Cover");
+    expect(cover.flat().some((v) => typeof v === "string" && v.includes("Made with boqlet"))).toBe(false);
   });
 });
 

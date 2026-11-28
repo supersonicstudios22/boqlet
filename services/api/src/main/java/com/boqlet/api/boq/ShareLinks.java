@@ -267,6 +267,7 @@ class ShareLinks {
                 .viewer(Objects.requireNonNullElse(patch.getViewer(), base.getViewer()))
                 .log(Objects.requireNonNullElse(patch.getLog(), base.getLog()))
                 .excel(Objects.requireNonNullElse(patch.getExcel(), base.getExcel()))
+                .excelProfile(patch.getExcelProfile() == null ? base.getExcelProfile() : patch.getExcelProfile())
                 .groupBy(patch.getGroupBy() == null ? base.getGroupBy() : patch.getGroupBy());
     }
 

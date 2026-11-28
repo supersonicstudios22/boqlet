@@ -804,13 +804,20 @@
   },
   "exports": {
     "working": "Working version {label}",
-    "workingHint": "An Excel of the working version says WORKING in its title. Saved versions keep the file written when they were saved.",
+    "workingHint": "The working workbook has every sheet (calculation, log, questions, inputs) and says WORKING in its title; the workbook to send has a cover and the bill. Saved versions keep the file written when they were saved: the one to send.",
     "groupBy": "Group by",
+    "profile": "Workbook",
+    "profiles": {
+      "working": "Working workbook (all sheets)",
+      "issue": "To send: cover and bill",
+      "issueCalculation": "To send, with the calculation"
+    },
     "excel": "Export Excel",
     "exporting": "Writing the Excel…",
     "exported": "{file} is downloaded",
     "saved": "Saved version {label}",
     "workingFiles": "Files of version {label}",
+    "savedWorking": "Working workbook of this version",
     "none": "No files yet. Use “Export Excel” on the working version; each saved version keeps its own file here.",
     "file": "File",
     "kind": "Kind",

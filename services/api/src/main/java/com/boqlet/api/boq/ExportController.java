@@ -57,7 +57,9 @@ class ExportController implements ExportsApi {
     public ResponseEntity<Job> exportRun(UUID run, UUID idempotencyKey, ExportRunRequest request) {
         UUID actor = actor();
         return ResponseEntity.accepted().body(idempotency.once(actor, idempotencyKey, 202, Job.class,
-                () -> runs.visible(run, actor), () -> exports.startRun(run, actor, request == null ? null : request.getGroupBy())));
+                () -> runs.visible(run, actor), () -> exports.startRun(run, actor, request == null ? null : request.getGroupBy(),
+                        request == null || request.getProfile() == null ? null : request.getProfile().getValue(),
+                        request != null && Boolean.TRUE.equals(request.getIncludeCalculation()))));
     }
 
     @Override

@@ -33,3 +33,15 @@ export async function xlsxRows(u: TestUser, exportId: string, sheet: string): Pr
     rmSync(dir, { recursive: true, force: true });
   }
 }
+
+/** The centre of each visible sheet's page header (where the Free-plan watermark is, review C-21), read with openpyxl. */
+export async function xlsxPageHeaders(u: TestUser, exportId: string): Promise<Record<string, string | null>> {
+  const code = [
+    "import json, sys", "from openpyxl import load_workbook",
+    "import io", "book = load_workbook(io.BytesIO(sys.stdin.buffer.read()))",
+    "print(json.dumps({s.title: s.oddHeader.center.text for s in book.worksheets if s.sheet_state == 'visible'}))",
+  ].join("\n");
+  const res = spawnSync(python, ["-c", code], { encoding: "utf8", input: await exportBytes(u, exportId), env: { ...process.env, PYTHONUTF8: "1" } });
+  if (res.status !== 0) throw new Error(`page headers: ${res.stderr}`);
+  return JSON.parse(res.stdout) as Record<string, string | null>;
+}

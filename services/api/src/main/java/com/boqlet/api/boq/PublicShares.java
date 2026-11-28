@@ -131,6 +131,12 @@ class PublicShares {
         var run = shown.run().run();
         var metadata = new LinkedHashMap<String, Object>();
         metadata.put("publicShare", true);
+        // Review C-22 (DEC-40): the page offers the workbook to send unless the link says otherwise; its
+        // Calculation follows "line detail". The working workbook keeps the sheets the other includes allow.
+        boolean issue = options.getExcelProfile() == null || options.getExcelProfile() == ShareInclude.ExcelProfileEnum.ISSUE;
+        metadata.put("profile", issue ? BoqExports.ISSUE : BoqExports.WORKING);
+        if (issue && enabled(options.getLineDetail())) metadata.put("calculation", true);
+        metadata.put("firm", link.firm());
         metadata.put("publicLog", enabled(options.getLog()));
         metadata.put("publicLineDetail", enabled(options.getLineDetail()));
         metadata.put("project", link.view().getProjectName());
@@ -138,6 +144,9 @@ class PublicShares {
         metadata.put("revision", shown.label());
         metadata.put("status", "issued".equals(shown.status()) ? "issued" : "working");
         metadata.put("generatedAt", Objects.requireNonNullElse(run.getFinishedAt(), run.getCreatedAt()).toString());
+        metadata.put("date", BoqExports.readableDate(Objects.requireNonNullElse(run.getFinishedAt(), run.getCreatedAt()),
+                database.query("SELECT settings->>'dateFormat' FROM orgs WHERE id = ?", (row, index) -> row.getString(1), link.org())
+                        .stream().findFirst().orElse(null), null));
         metadata.put("classifications", run.getClassifications() == null ? List.of() : run.getClassifications());
         metadata.put("watermark", limits.enabled(link.org(), "exportWatermark"));
         if (options.getGroupBy() != null) metadata.put("groupBy", options.getGroupBy());

@@ -1,6 +1,6 @@
 # F12 Exports
 
-> **Status (2026-11-28):** Built. The workbook prints landscape, one page wide, with repeated headers and a footer; the Free-plan watermark is the header of every printed page (review C-21). The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
+> **Status (2026-11-28):** Built. Two workbooks: the one to send (`issue`: Cover, BoQ, optional Calculation) and the working one (every sheet); a saved version's frozen file is the one to send (review C-22, D124). The workbook prints landscape, one page wide, with repeated headers and a footer; the Free-plan watermark is the header of every printed page (review C-21). The sheet's Excel never exports a stale run silently: with edits or answers waiting it asks "Generate and export" or "Export the last run", whose cover says what it leaves out; run Excel names carry the run's time (review A-41). Run Excel, frozen version Excel, change-report Excel and Excel edits import (`apps/app/src/features/exports`, Java `boq/BoqExports`, engine `export_xlsx.py`, `sheets/boq_import.py`). The workbook follows the sheet's order and positions (TF-049), nests sections by the full code path with subtotals (TF-054) and shows each quantity with its own decimals (TF-055); the edits import keeps new rows in their group (TF-051).
 > **Not built / differs:**
 > - F12-AC1 is half automated: since review B-11 CI opens the run, saved-version and change-report workbooks in LibreOffice (printed to PDF, saved again with every formula recalculated; the recalculated amounts, subtotals and total equal the engine's, protection and the edits import survive). Opening them in Microsoft Excel is still a check by hand.
 
@@ -9,12 +9,31 @@
 | Export | Content | Produced by | Trigger |
 |---|---|---|---|
 | **BoQ Excel** (per run) | Sheet grouped by a chosen classification, or by storey or "measured as" (`groupBy` `~storey` / `~rule`, review C-07; Ref and the numbers stay the first classification's, and the edits import reads those sections as headings): ref, description, unit, quantity, source, notes; nested sections as the sheet, each with its line count and, when the unit is shared, its quantity; amounts as SUBTOTAL formulas; a "Lines" sheet with every column; a "Trace" sheet (line → elements); a "Questions" sheet; cover sheet: project, BoQ, revision, run time, presets and versions, status (WORKING watermark unless it is a saved version; free-plan watermark per entitlements) | engine `export_xlsx.export` (extended: EN-006) | `POST /runs/{runId}/exports` |
-| **Saved version Excel** | Same, with version label, save date, who saved it, note; frozen when saved (BR-25) | engine | when the version is saved |
+| **Saved version Excel** | The workbook to send (`issue`, review C-22) with version label, save date and note; frozen when saved (BR-25). Its working workbook is written on request from the same stored run (`profile: working`, file name `..._working.xlsx`) | engine | when the version is saved |
 | **Change report Excel** | Line changes with before/after/Δ/Δ%/causes; element changes | engine | `POST /diffs/{diffId}/export` |
 | **Decisions CSV** | Project decisions table | backend | decisions page |
 | **Audit CSV** | Filtered audit events | backend | audit page |
 
 ## Behaviour
+
+- **Two workbooks** (review C-22, DEC-40, D124): `profile` on `POST /runs/{runId}/exports`.
+  - **To send** (`issue`): a Cover with the firm (org name), client (project), project, BoQ,
+    version, the date in the firm's date format (when the version was saved, else when the run
+    finished), the note and anything left out; the BoQ sheet, whose second row reads only the
+    grouping and the date, whose Notes say only why a quantity is to be confirmed (no team notes,
+    edit reasons or "Measured as"); with `includeCalculation` the Calculation sheet, without the
+    question ids of the answers an element rests on. No Log, Questions, Inputs, Lines or Excluded
+    lines; no rule-set chain, run status, file hash or locale.
+  - **Working** (`working`): the audit workbook with every sheet, as before.
+  - Both keep the hidden line-key column and the `_boqlet` sheet, so either imports back.
+  - Defaults: the working version's run exports `working` (the sheet's Excel button always does);
+    a saved version's run answers its frozen file, which is `issue`. Any other choice for a saved
+    version (`working`, or `issue` with the Calculation) is a new file of kind `issued_boq_xlsx` from the
+    same stored run, its name ending `_working` or `_issue-calculation`; the frozen file stays the
+    one in `frozen.exportIds`. Saved versions from before this change keep the file they were saved with.
+  - The Exports tab offers "Working workbook (all sheets)", "To send: cover and bill" and "To send,
+    with the calculation" for the working version, and "Working workbook of this version" for each saved
+    one. The share dialog offers which Excel the share page gives (F18).
 
 - **Description column:** the line's item text in the export's grouping classification when
   its code has one (P14), else the rule set's line text. Item texts wrap in the cell. The

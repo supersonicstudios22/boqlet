@@ -11,7 +11,7 @@ import { api } from "@/api/client";
 import { keys } from "@/api/keys";
 import type { Boq } from "@/api/hooks/boqs";
 import { useRevisions } from "@/api/hooks/diffs";
-import { saveFile, useExportRun } from "@/api/hooks/exports";
+import { saveFile, useExportRun, type ExportChoice } from "@/api/hooks/exports";
 import { useErrorMessage } from "@/components/errors/use-error-message";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ type Export = Schemas["Export"];
  * S12g (F12): exports of this BoQ. The working version's Excel on demand (grouped by a chosen
  * classification, WORKING in its title), and the files frozen with each saved version (BR-25: always
  * the same file), with the change reports written from the Changes tab. Downloads go through the API.
+ * Review C-22 (DEC-40): the working version exports the working workbook unless "to send" is chosen; a
+ * saved version's file is the one to send, and its working workbook can be written from the same run.
  */
 export function ExportsTab({ boq }: { boq: Boq }) {
   const t = useTranslations("boqs.exports");
@@ -42,6 +44,7 @@ export function ExportsTab({ boq }: { boq: Boq }) {
   const run = boq.currentRevision.currentRun;
   const systems = run?.classifications ?? [];
   const [groupBy, setGroupBy] = useState<string | null>(systems[0]?.id ?? null);
+  const [choice, setChoice] = useState<ExportChoice>("working");
   const exporting = useExportRun(run?.id ?? "");
   const download = useMutation({
     mutationFn: async (e: Export) => {
@@ -53,7 +56,14 @@ export function ExportsTab({ boq }: { boq: Boq }) {
   const working = boq.status === "working" ? boq.currentRevision : undefined;
   const exportExcel = () => {
     const id = toast.loading(t("exporting"));
-    exporting.mutate({ groupBy }, { onSuccess: (e) => toast.success(t("exported", { file: e.fileName }), { id }), onError: (err) => toast.error(message(err), { id }) });
+    exporting.mutate({ groupBy, choice }, { onSuccess: (e) => toast.success(t("exported", { file: e.fileName }), { id }), onError: (err) => toast.error(message(err), { id }) });
+  };
+  const exportSaved = (runId: string) => {
+    const id = toast.loading(t("exporting"));
+    exporting.mutate(
+      { run: runId, choice: "working" },
+      { onSuccess: (e) => toast.success(t("exported", { file: e.fileName }), { id }), onError: (err) => toast.error(message(err), { id }) },
+    );
   };
 
   return (
@@ -75,6 +85,16 @@ export function ExportsTab({ boq }: { boq: Boq }) {
                 </NativeSelect>
               </label>
             )}
+            <label className="flex flex-col gap-1">
+              <span className="label-caps text-muted-foreground">{t("profile")}</span>
+              <NativeSelect value={choice} onChange={(e) => setChoice(e.target.value as ExportChoice)} data-testid="exports-profile">
+                {(["working", "issue", "issueCalculation"] as const).map((c) => (
+                  <option key={c} value={c}>
+                    {t(`profiles.${c}`)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
             <Button onClick={exportExcel} disabled={!run || exporting.isPending} data-testid="exports-new">
               <Download aria-hidden />
               {t("excel")}
@@ -93,7 +113,15 @@ export function ExportsTab({ boq }: { boq: Boq }) {
         if (r.status !== "issued" && files.length === 0) return null;
         return (
           <section key={r.id} className="flex flex-col gap-3" data-testid="exports-revision" data-label={r.label} data-status={r.status}>
-            <h3 className="label-caps">{r.status === "issued" ? t("saved", { label: r.label }) : t("workingFiles", { label: r.label })}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="label-caps">{r.status === "issued" ? t("saved", { label: r.label }) : t("workingFiles", { label: r.label })}</h3>
+              {r.status === "issued" && r.currentRun && (
+                <Button variant="ghost" size="sm" onClick={() => exportSaved(r.currentRun!.id)} disabled={exporting.isPending} data-testid="exports-saved-working">
+                  <Download aria-hidden />
+                  {t("savedWorking")}
+                </Button>
+              )}
+            </div>
             {files.length === 0 ? (
               <p className="text-muted-foreground">{t("none")}</p>
             ) : (

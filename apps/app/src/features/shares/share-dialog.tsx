@@ -35,6 +35,18 @@ function Includes({ value, onChange, systems }: { value: ShareInclude; onChange:
           {t(`include.${k}`)}
         </label>
       ))}
+      {value.excel === true && (
+        <label className="mt-1 flex flex-col gap-1">
+          <span className="label-caps text-muted-foreground">{t("excelProfile")}</span>
+          <NativeSelect value={value.excelProfile ?? "issue"} onChange={(e) => onChange({ ...value, excelProfile: e.target.value as "issue" | "working" })} data-testid="share-excel-profile">
+            {(["issue", "working"] as const).map((p) => (
+              <option key={p} value={p}>
+                {t(`excelProfiles.${p}`)}
+              </option>
+            ))}
+          </NativeSelect>
+        </label>
+      )}
       {systems.length > 1 && (
         <label className="mt-1 flex flex-col gap-1">
           <span className="label-caps text-muted-foreground">{t("groupBy")}</span>
