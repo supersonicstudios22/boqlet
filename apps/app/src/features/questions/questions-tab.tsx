@@ -213,7 +213,8 @@ export function QuestionsTab({ boq }: { boq: Boq }) {
             </ul>
           )}
           {groups.info.length > 0 && (
-            <details className="mt-3" data-testid="questions-info">
+            // collapsed below the questions that matter; open when there are none, so the tab never looks empty
+            <details className="mt-3" open={groups.main.length === 0} data-testid="questions-info">
               <summary className="cursor-pointer py-2 text-muted-foreground">{t("infoGroup", { count: groups.info.length })}</summary>
               <ul className="flex flex-col">{groups.info.map(row)}</ul>
             </details>
