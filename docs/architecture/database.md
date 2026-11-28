@@ -27,6 +27,7 @@ starts. PostgreSQL 16 everywhere (`postgres:16-alpine`).
 | `V14__provider_session_revocation` | `provider_session_revocations` (OIDC rollback only) |
 | `V15__native_credentials` | `native_credentials`, `native_setup_links`, `native_auth_limits` |
 | `V16__limit_event_actions` | *`admin_org_rows`* replaced (limit-event actions) |
+| `V26__run_log_measure_by_guid` | index `run_log_measure_by_guid` on `run_log_entries (run_id, entry->>'guid')` for measure-stage entries (a line's detail lists its elements' measuring, review C-10) |
 | `V23__plan_admin_and_public_sign_up` | `platform_settings` (one row: plan price `currency`, `public_sign_up`); columns `plans.description`, `position`, `price_amount`, `price_period`, `updated_at` (Free: 1 seat, `ownedOrgsPerUser` 1); `native_setup_links.nonce` (emailed links); `email_outbox.org_id` nullable (sign-up and reset mail; P57) |
 
 `R__Sync_system_presets` (Java, repeatable, D81) runs after them whenever a file under `presets/` changes (its checksum
@@ -103,7 +104,7 @@ Not built: `billing_events` (no billing provider, D7).
 | `run_line_elements` | run_id, line_key, guid, model_version_id, quantity numeric null | idx(run_id, guid), idx(run_id, line_key) |
 | `run_questions` | run_id, question_id, kind, blocking, message, code, params jsonb, answer_type jsonb, guids text[], field, raw, occurrences, suggestion jsonb | pk(run_id, question_id) |
 | `run_warnings` | run_id, seq, code, message, params jsonb, guids text[], rule_id | pk(run_id, seq) |
-| `run_log_entries` | run_id, seq, stage, level, message, code, params jsonb, rule_id, line_key, guid, data jsonb | pk(run_id, seq), idx(run_id, stage), idx(run_id, line_key), idx(run_id, guid) |
+| `run_log_entries` | run_id, seq, stage, level, message, code, params jsonb, rule_id, line_key, guid, data jsonb | pk(run_id, seq), idx(run_id, stage), idx(run_id, line_key), idx(run_id, guid) where stage = measure (V26) |
 | `run_diffs` | id, from_run_id, to_run_id, job_id, diff_key, summary jsonb | unique(from_run_id, to_run_id) |
 
 Size note: a large run (50k lines, 500k line-element links, 200k log entries) is ~1 GB with

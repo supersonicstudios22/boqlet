@@ -776,6 +776,9 @@ class NativeWorkerTest {
         String key = lines.path("items").get(0).path("key").asText();
         var details = perform(get(runPath + "/lines/by-key").param("key", key), cookie, 200);
         assertThat(details.path("trace").path("formula").asText()).isNotBlank();
+        // review C-10: how its elements were measured, by their GlobalIds
+        assertThat(details.path("elementLog").isArray()).isTrue();
+        details.path("elementLog").forEach(entry -> assertThat(entry.path("stage").asText()).isEqualTo("measure"));
         assertThat(perform(get(runPath + "/coverage"), cookie, 200).path("measured").size()).isPositive();
         perform(get(runPath + "/questions"), cookie, 200);
         perform(get(runPath + "/warnings"), cookie, 200);

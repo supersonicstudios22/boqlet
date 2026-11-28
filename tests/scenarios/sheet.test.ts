@@ -150,6 +150,18 @@ describe("line detail (F06 §5)", () => {
     expect(data!.log!.every((e) => e.lineKey === withLog.key)).toBe(true);
   });
 
+  it("names how its elements were measured: their inputs and measure-stage log entries (review C-10)", async () => {
+    const wall = lines.find((l) => l.ruleId === "walls" && l.source === "measured" && l.trace.elements.length > 0)!;
+    const { data } = await lineOf(wall.key);
+    const guids = new Set(data!.trace.elements.map((e) => e.guid));
+    expect(data!.elementLog!.length).toBeGreaterThan(0);
+    expect(data!.elementLog!.every((e) => e.stage === "measure" && guids.has(e.guid!))).toBe(true);
+    expect(data!.elementLogMore).toBe(false);
+    const inputs = data!.trace.elements.flatMap((e) => e.inputs ?? []);
+    expect(inputs.length).toBeGreaterThan(0);
+    expect(inputs.every((i) => typeof i.value === "number" && typeof i.field === "string")).toBe(true);
+  });
+
   it("answers 404 for an unknown key", async () => {
     const { response } = await lineOf("no-such-line");
     expect(response.status).toBe(404);

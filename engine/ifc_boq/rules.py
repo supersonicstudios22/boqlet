@@ -15,16 +15,38 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter, defaultdict
+from functools import cache
 from itertools import combinations
 
 from . import user_regex
 from .expr import Expr, fmt, step_round
 from .log import CalcLog
 from .measure import scale_label
+from .paths import SCHEMAS
 from .templates import render as render_template
 from .trace_steps import collect, quantity_delta, slot, step
 from .units import DIMENSION, PER_SI, unit_problem
 
+
+@cache
+def measured_fields() -> frozenset[str]:
+    """The MeasuredField names (measured.ts): a trace input names only these, since the API reads `field` as that enum."""
+    doc = json.loads((SCHEMAS / "measured-element.schema.json").read_text(encoding="utf-8"))
+    return frozenset(doc["definitions"]["MeasuredField"]["enum"])
+
+
+def part_sources(el: dict, single: bool) -> dict:
+    """A layer or material part's sources (C-10): its thickness is the layer's, its volumes the element's area
+    times it, unless it is the element's only layer (its own volumes, A-14)."""
+    out = {**(el.get("sources") or {}), "thickness": {"basis": "layer_set"}}
+    if not single:
+        out["net_volume"] = {"basis": "area_thickness", "uses": ["net_area", "thickness"]}
+        out["gross_volume"] = {"basis": "area_thickness", "uses": ["gross_area", "thickness"]}
+    return out
+
+
+# the names a formula reads, with `src.` (a derived line's element) but not `p.` or `building.` (C-10)
+FIELD_NAME = re.compile(r"(?<![\w.])(?:src\.)?([A-Za-z_]\w*)")
 UNIT_SCALE_FIELDS = {"net_volume": "volume", "net_area": "area", "length": "length"}   # MeasuredElement.unit_scale
 
 UNIT_DEFAULT = {"count": "nr", "length": "m", "area": "m2", "volume": "m3", "mass": "kg", "perimeter": "m"}
@@ -287,6 +309,7 @@ class RuleEngine:
         self.questions: list[dict] = []
         self.warnings: list[dict] = []
         self._asked: dict[str, dict] = {}          # missing_data questions by id (one per rule and element)
+        self._input_fields: dict[tuple, list[str]] = {}   # (kind, rule id) -> measured fields its quantity reads (C-10)
         self.lines: dict[tuple, dict] = {}
         self.lines_by_rule: dict[str, list[dict]] = defaultdict(list)
         self.matched: set[str] = set()
@@ -311,6 +334,92 @@ class RuleEngine:
         if isinstance(v, dict) and "param" in v:
             return self.params.get(v["param"])
         return v
+
+    # ---------------------------------------------------------------- measured inputs (review C-10)
+    def input_fields(self, key: tuple, spec) -> list[str]:
+        """The measured fields a quantity reads, in order: an area's surface field, a volume, a length, the fields
+        a mass is computed from, the names a formula uses (not `p.` slots). Per rule, once a run."""
+        cached = self._input_fields.get(key)
+        if cached is not None:
+            return cached
+        out: list[str] = []
+
+        def add(*fields):
+            out.extend(f for f in fields if f not in out)
+
+        def walk(q):
+            q = self.val(q)
+            if isinstance(q, str):
+                add(*FIELD_NAME.findall(q))
+                return
+            if not isinstance(q, dict):
+                return
+            k = q.get("kind")
+            if k == "perimeter":
+                add("perimeter")
+            elif k == "length":
+                add({"girth": "profile_girth", "perimeter": "perimeter"}.get(self.val(q.get("basis")) or "axis", "length"))
+            elif k == "area":
+                surface, start = self.val(q.get("surface")) or "main", self.val(q.get("start")) or "gross"
+                if surface in ("footprint", "developed"):
+                    add(f"{surface}_area")
+                elif surface == "edges":
+                    add("perimeter", "thickness")
+                else:
+                    add("gross_area" if start == "gross" or q.get("deductions") else "net_area")
+            elif k == "volume":
+                add("gross_volume" if (self.val(q.get("start")) or "net") == "gross" or q.get("deductions") else "net_volume")
+            elif k == "mass":
+                basis = self.val(q.get("basis")) or "volume_density"
+                add(*{"nominal_per_length": ("length", "nominal_mass_per_length"),
+                      "volume_density": ("net_volume", "density")}.get(basis, ("mass",)))
+            elif k == "choose":
+                pick = self.val(q.get("pick"))
+                if pick in (q.get("options") or {}):
+                    walk(q["options"][pick])
+            elif k == "when":
+                walk(q.get("then"))
+                walk(q.get("else"))
+            elif k == "formula":
+                walk(q.get("expr"))
+
+        walk(spec)
+        self._input_fields[key] = out
+        return out
+
+    @staticmethod
+    def inputs(fields: list[str], el: dict) -> list[dict]:
+        """An element's measured inputs for a trace (C-10): each field the quantity reads and those it was computed
+        from or checked against (`MeasuredSource.uses`), with its value, provenance and source. A value that only
+        repeats another (the outer edge of an element without openings, a gross area with nothing to add) is left
+        out for the one it repeats. Fields the measure stage did not fill are left out."""
+        sources, provenance = el.get("sources") or {}, el.get("provenance") or {}
+        out: list[dict] = []
+        seen: set[str] = set()
+
+        def number(v):
+            return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+        def visit(field: str) -> None:
+            if field in seen or (field not in sources and field not in provenance) or field not in measured_fields():
+                return
+            seen.add(field)
+            v, src = el.get(field), sources.get(field) or {}
+            if not number(v):
+                return
+            uses = src.get("uses") or []
+            repeats = src.get("basis") == "same" or (src.get("basis") == "plus_openings" and uses and number(el.get(uses[0]))
+                                                     and abs(el[uses[0]] - v) <= 1e-9 * max(1.0, abs(v)))
+            if not repeats:
+                out.append({"field": field, "value": round(float(v), 6),
+                            **({"provenance": provenance[field]} if field in provenance else {}),
+                            **{k: src[k] for k in ("basis", "from", "geometry", "stated", "question") if k in src}})
+            for u in uses:
+                visit(u)
+
+        for f in fields:
+            visit(f)
+        return out
 
     def formula_text(self, v) -> str:
         """An expression for traces; a formula slot shows where it came from."""
@@ -568,7 +677,8 @@ class RuleEngine:
                             (el["net_area"] * t if el.get("net_area") is not None else None),
                             "gross_volume": el.get("gross_volume") if single else
                             (el["gross_area"] * t if el.get("gross_area") is not None else None),
-                            "_part": f"layer {l['index'] + 1} {l['material_raw']}"})
+                            "_part": f"layer {l['index'] + 1} {l['material_raw']}",
+                            "sources": part_sources(el, single)})
             return out
         if bd == "face" and el.get("faces"):
             # a side split between rooms shares its openings in proportion (measure.side_faces): each face
@@ -581,7 +691,9 @@ class RuleEngine:
                      "is_external": f.get("is_external", el.get("is_external")),
                      "layer_material": f.get("layer_material"), "layer_material_raw": f.get("layer_material_raw"),
                      "_open_share": (f.get("gross_area") or 0) / side_gross[f["side"]] if side_gross[f["side"]] else 1.0,
-                     "_part": f"face {f['side']}" + (f" {f['space_name']}" if f.get("space_name") else "")} for f in el["faces"]]
+                     "_part": f"face {f['side']}" + (f" {f['space_name']}" if f.get("space_name") else ""),
+                     "sources": {**(el.get("sources") or {}), "gross_area": {"basis": "face", "from": f["side"]},
+                                 "net_area": {"basis": "face", "from": f["side"]}}} for f in el["faces"]]
         if bd == "material" and el.get("layers"):
             # each material its own volumes, as layers (review A-24: every group used to keep the element's
             # gross volume, so the groups summed to N x the element); one group is the element itself
@@ -594,7 +706,7 @@ class RuleEngine:
                      (el["net_area"] * t if el.get("net_area") is not None else None),
                      "gross_volume": el.get("gross_volume") if single else
                      (el["gross_area"] * t if el.get("gross_area") is not None else None),
-                     "_part": f"material {m}"} for m, t in groups.items()]
+                     "_part": f"material {m}", "sources": part_sources(el, single)} for m, t in groups.items()]
         if bd == "child" and el.get("child_guids"):
             return [{**self.by_guid[c], "_part": f"child {self.by_guid[c].get('name')}"} for c in el["child_guids"] if c in self.by_guid]
         return [el]
@@ -904,9 +1016,11 @@ class RuleEngine:
                     "_unit_scale": {}, "_questions": set()}
             self.lines[lk] = line
             self.lines_by_rule[rid].append(line)
+        inputs = self.inputs(self.input_fields(("item", rid), item["quantity"]), part)   # a part's own (C-10)
         line["trace"]["elements"].append({"guid": el["guid"], "model": el.get("model_id"),
                                           "name": (el.get("name") or "") + (f" [{part['_part']}]" if part.get("_part") else ""),
                                           "quantity": None if v is None else round(v, 6), "note": note or expl,
+                                          **({"inputs": inputs} if inputs else {}),
                                           **({"decisions": [self.trace_decision(q) for q in decided]} if decided else {})})
         collect(line, part_steps, el["guid"])
         line["_parts"].append(part)
@@ -1056,6 +1170,8 @@ class RuleEngine:
                                  "quantity": None if v is None else round(v, 6), "note": txt}
                         if model_id := sctx.get("model_id"):
                             trace["model"] = model_id
+                        if guid and (inputs := self.inputs(self.input_fields(("derived", d["id"]), d["quantity"]), sctx)):
+                            trace["inputs"] = inputs
                         line["trace"]["elements"].append(trace)
                         code = "derive.excluded" if srcline.get("_excluded") else "derive.missing" if v is None else "derive"
                         collect(line, [step("derive", code, v, {

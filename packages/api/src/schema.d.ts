@@ -4023,6 +4023,9 @@ export interface components {
         LineDetail: components["schemas"]["RunLine"] & {
             readableFormula?: string;
             log?: components["schemas"]["LogEntry"][];
+            /** @description How the line's elements were measured (review C-10): the measure-stage log entries of its elements (by GlobalId), in log order, at most 200; `elementLogMore` says there are more (the Log tab lists them all, filtered by element). */
+            elementLog?: components["schemas"]["LogEntry"][];
+            elementLogMore?: boolean;
             reviewComments?: components["schemas"]["ReviewComment"][];
         };
         /** @description An engine Question (boq-result.schema.json, Question) joined with the project's decision for it. Its fields are listed one by one because the generated Question schema allows no other properties, so an allOf with it could never validate (FE-010, like RunLine). */
@@ -4546,6 +4549,32 @@ export interface components {
             /** @description When they answered (ISO 8601). */
             at?: string;
         };
+        /** @enum {string} */
+        Provenance: "reported" | "geometry" | "derived" | "user";
+        /**
+         * @description How a measured value was found (review C-10). Stated: `property` (a property or quantity set; `from` names "Set.Property"), `attribute` (the element's own attribute, e.g. OverallHeight), `layer_set` (the material layer set's total). Geometry: `mesh` (the closed body's volume), `parts` (its parts' bodies), `faces` (the mean of its two measured faces), `sides` (volume / mean side area), `box` (an oriented-box extent), `extent` (an axis-aligned extent), `up_faces` (the faces looking up), `surface` (an open surface model's area), `vertical_faces` (the faces standing up, less contacts). Computed: `volume_thickness`, `volume_area`, `plus_openings` (net + the openings), `less_openings`, `openings` (the openings' edges), `surface_volume` (a prism's perimeter from its surface and volume), `box_sides` (2 x (length + width) x height), `same` (repeats the field in `uses`). A breakdown part's own: `area_thickness` (a layer's volume: the element's area x the layer's thickness), `face` (one face's area; `from` its side). `profile` (nominal kg/m of the section in `from`), `material` (the density of the dictionary term in `from`), `name` (read from the element's name).
+         * @enum {string}
+         */
+        MeasuredBasis: "property" | "attribute" | "layer_set" | "mesh" | "parts" | "faces" | "sides" | "box" | "extent" | "up_faces" | "surface" | "vertical_faces" | "volume_thickness" | "volume_area" | "plus_openings" | "less_openings" | "openings" | "surface_volume" | "box_sides" | "same" | "area_thickness" | "face" | "profile" | "material" | "name";
+        /** @description One measured input of an element's quantity (review C-10): a field the line's quantity reads, or one it was computed from or checked against, with its value and where it came from (its `MeasuredSource`, flattened). */
+        TraceInput: {
+            field: components["schemas"]["MeasuredField"];
+            /** @description The value used, in SI units (m, m2, m3, kg, kg/m, kg/m3). */
+            value: number;
+            provenance?: components["schemas"]["Provenance"];
+            /** @description How it was found; absent for a value measured outside the main path (a room, an aggregate of parts). */
+            basis?: components["schemas"]["MeasuredBasis"];
+            /** @description The set and property it was read from ("PSet_Revit_Dimensions.Volume"), a profile or a material term. */
+            from?: string;
+            /** @description The fields it was computed from or checked against (an area from volume / thickness). */
+            uses?: components["schemas"]["MeasuredField"][];
+            /** @description The geometry's value, when a stated value is used and the geometry differs. */
+            geometry?: number;
+            /** @description The stated value, when the geometry's is used instead (a contradiction, a unit error). */
+            stated?: number;
+            /** @description The `contradiction` question whose answer chose the value. */
+            question?: string;
+        };
         /** @description One step of a line's "How it is calculated" (P25, F06 §5, EN-013), in the order they apply: start (gross, or the elements' sum), add, deduct, factor, round, derive (a derived line's source), edit (a person's quantity edit), result. The UI writes each step as a sentence from `code`. */
         TraceStep: {
             /** @enum {string} */
@@ -4578,6 +4607,8 @@ export interface components {
                 model?: string;
                 /** @description The decisions that changed how this element was measured (review A-06): a `contradiction` answer (which value was used), a `missing_data` value. `by` / `at`: who answered and when, when the job input carries them (`Decision.decidedBy`, `decidedAt`). */
                 decisions?: components["schemas"]["TraceDecision"][];
+                /** @description The element's measured inputs and where each came from (review C-10); absent for a breakdown part and a line-scope derived line. */
+                inputs?: components["schemas"]["TraceInput"][];
             }[];
             sourceLine?: string;
             /** @description "How it is calculated" in steps (P25, F06 §5, EN-013): the values of the steps before `result` add up to it. */

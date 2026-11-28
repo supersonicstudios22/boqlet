@@ -293,6 +293,118 @@
           },
           "description": "Where each numeric value came from, keyed by MeasuredField."
         },
+        "sources": {
+          "type": "object",
+          "properties": {
+            "storey_elevation": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "length": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "width": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "height": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "thickness": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "depth": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "diameter": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "cross_section_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "slope": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "elevation_base": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "elevation_top": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "profile_girth": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "gross_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "net_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "footprint_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "developed_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "vertical_face_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "floor_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "ceiling_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "wall_area": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "wall_area_net": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "skirting_length": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "gross_volume": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "net_volume": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "perimeter": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "perimeter_outer": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "perimeter_openings": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "mass": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "nominal_mass_per_length": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "density": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "bar_diameter": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "bar_count": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "bar_length": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "insulation_thickness": {
+              "$ref": "#/definitions/MeasuredSource"
+            },
+            "connection_count": {
+              "$ref": "#/definitions/MeasuredSource"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Each numeric value's source in detail (review C-10), keyed by MeasuredField; fields measured outside the main path (rooms, aggregates) may have none."
+        },
         "warnings": {
           "type": "array",
           "items": {
@@ -644,6 +756,114 @@
         "derived",
         "user"
       ]
+    },
+    "MeasuredSource": {
+      "type": "object",
+      "properties": {
+        "basis": {
+          "$ref": "#/definitions/MeasuredBasis"
+        },
+        "from": {
+          "type": "string",
+          "description": "The set and property it was read from (\"PSet_Revit_Dimensions.Volume\"), a profile or a material term."
+        },
+        "uses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MeasuredField"
+          },
+          "description": "The fields it was computed from or checked against (an area from volume / thickness)."
+        },
+        "geometry": {
+          "type": "number",
+          "description": "The geometry's value, when a stated value is used and the geometry differs."
+        },
+        "stated": {
+          "type": "number",
+          "description": "The stated value, when the geometry's is used instead (a contradiction, a unit error)."
+        },
+        "question": {
+          "type": "string",
+          "description": "The `contradiction` question whose answer chose the value."
+        }
+      },
+      "required": [
+        "basis"
+      ],
+      "additionalProperties": false,
+      "description": "Where one measured value came from (review C-10): what a line's \"How it is calculated\" shows per element."
+    },
+    "MeasuredBasis": {
+      "type": "string",
+      "enum": [
+        "property",
+        "attribute",
+        "layer_set",
+        "mesh",
+        "parts",
+        "faces",
+        "sides",
+        "box",
+        "extent",
+        "up_faces",
+        "surface",
+        "vertical_faces",
+        "volume_thickness",
+        "volume_area",
+        "plus_openings",
+        "less_openings",
+        "openings",
+        "surface_volume",
+        "box_sides",
+        "same",
+        "area_thickness",
+        "face",
+        "profile",
+        "material",
+        "name"
+      ],
+      "description": "How a measured value was found (review C-10). Stated: `property` (a property or quantity set; `from` names \"Set.Property\"), `attribute` (the element's own attribute, e.g. OverallHeight), `layer_set` (the material layer set's total). Geometry: `mesh` (the closed body's volume), `parts` (its parts' bodies), `faces` (the mean of its two measured faces), `sides` (volume / mean side area), `box` (an oriented-box extent), `extent` (an axis-aligned extent), `up_faces` (the faces looking up), `surface` (an open surface model's area), `vertical_faces` (the faces standing up, less contacts). Computed: `volume_thickness`, `volume_area`, `plus_openings` (net + the openings), `less_openings`, `openings` (the openings' edges), `surface_volume` (a prism's perimeter from its surface and volume), `box_sides` (2 x (length + width) x height), `same` (repeats the field in `uses`). A breakdown part's own: `area_thickness` (a layer's volume: the element's area x the layer's thickness), `face` (one face's area; `from` its side). `profile` (nominal kg/m of the section in `from`), `material` (the density of the dictionary term in `from`), `name` (read from the element's name)."
+    },
+    "MeasuredField": {
+      "type": "string",
+      "enum": [
+        "storey_elevation",
+        "length",
+        "width",
+        "height",
+        "thickness",
+        "depth",
+        "diameter",
+        "cross_section_area",
+        "slope",
+        "elevation_base",
+        "elevation_top",
+        "profile_girth",
+        "gross_area",
+        "net_area",
+        "footprint_area",
+        "developed_area",
+        "vertical_face_area",
+        "floor_area",
+        "ceiling_area",
+        "wall_area",
+        "wall_area_net",
+        "skirting_length",
+        "gross_volume",
+        "net_volume",
+        "perimeter",
+        "perimeter_outer",
+        "perimeter_openings",
+        "mass",
+        "nominal_mass_per_length",
+        "density",
+        "bar_diameter",
+        "bar_count",
+        "bar_length",
+        "insulation_thickness",
+        "connection_count"
+      ],
+      "description": "Numeric fields rules may use as variables in formulas, selectors and bands. Written out explicitly so the JSON Schema (for the Python engine) can list them; the check below fails to compile if this list drifts from MeasuredElement."
     }
   }
 }

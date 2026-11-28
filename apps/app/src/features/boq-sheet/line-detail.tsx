@@ -17,6 +17,7 @@ import { SourceTag } from "./source-tag";
 import { useUnit } from "@/i18n/units";
 import { useBoqFormat } from "@/i18n/boq-format";
 import { InlineError } from "@/components/errors/inline-error";
+import { describeInput } from "./element-inputs";
 import { LoadingLines } from "@/components/loading";
 
 /** "… (from slot formwork_walls_formula)": the engine names the setting a formula came from. */
@@ -127,6 +128,9 @@ export function LineDetailBody({
 }) {
   const unitLabel = useUnit();
   const t = useTranslations("boqs.detail");
+  const ti = useTranslations("boqs.detail.input");
+  const tl = useTranslations("library");
+  const fieldLabel = (f: string) => (tl.has(`names.${f}.label`) ? tl(`names.${f}.label`) : f);
   // BoQ values in the firm's format (TF-021).
   const format = useBoqFormat();
   const message = useEngineMessage();
@@ -220,6 +224,16 @@ export function LineDetailBody({
                               {e.model ? (modelNames.get(e.model) ?? e.model.slice(0, 8)) : null}
                               {e.note ? ` · ${e.note}` : null}
                             </div>
+                            {/* Its measured inputs and where each came from (review C-10). */}
+                            {e.inputs?.length ? (
+                              <ul className="text-muted-foreground" aria-label={t("inputsLabel")} data-testid="detail-inputs">
+                                {e.inputs.map((input) => (
+                                  <li key={input.field} data-testid="detail-input" data-field={input.field} data-basis={input.basis ?? ""}>
+                                    {describeInput(input, ti as unknown as Parameters<typeof describeInput>[1], fieldLabel, (v) => format.number(v, { maximumFractionDigits: 3 }), unitLabel)}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
                           </td>
                           <td className="py-1 text-right tabular-nums" data-testid="detail-share">
                             {e.quantity === null ? t("missing") : num(e.quantity)}
@@ -278,6 +292,23 @@ export function LineDetailBody({
                 </Section>
               )}
 
+              {showLog && line.elementLog && (
+                <Section title={t("elementLog")}>
+                  {line.elementLog.length === 0 ? (
+                    <p className="text-muted-foreground">{t("noElementLog")}</p>
+                  ) : (
+                    <ol className="flex flex-col gap-1" data-testid="detail-element-log">
+                      {line.elementLog.map((e) => (
+                        <li key={e.seq} className="flex gap-2" data-guid={e.guid ?? ""}>
+                          <span className="w-10 shrink-0 text-right tabular-nums text-muted-foreground">{e.seq}</span>
+                          <span className={e.level === "warning" ? "border-l-2 border-[var(--status-attention)] pl-2" : undefined}>{message(e).text}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {line.elementLogMore && <p className="text-muted-foreground" data-testid="detail-element-log-more">{t("elementLogMore", { count: line.elementLog.length })}</p>}
+                </Section>
+              )}
               {showLog && <Section title={t("log")}>
                 {(line.log ?? []).length === 0 ? (
                   <p className="text-muted-foreground">{t("noLog")}</p>

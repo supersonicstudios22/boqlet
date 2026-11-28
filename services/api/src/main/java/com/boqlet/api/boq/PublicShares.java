@@ -98,6 +98,7 @@ class PublicShares {
                 run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
         detail.setLog(null);
+        detail.setElementLog(null);
         if (enabled(link.view().getInclude().getLog())) {
             detail.setLog(database.query("""
                     SELECT jsonb_build_object('seq',entry->'seq','stage',entry->'stage','level',entry->'level','code',entry->'code',
@@ -187,6 +188,10 @@ class PublicShares {
             for (var element : trace.path("elements")) {
                 // the decisions an element rests on name who answered (A-06): private, like notes (BR-56)
                 if (element instanceof ObjectNode item) item.remove(List.of("note", "decisions"));
+                // its measured inputs stay (C-10), without the question that chose a value (N-07)
+                for (var input : element.path("inputs")) {
+                    if (input instanceof ObjectNode fields) fields.remove("question");
+                }
             }
             if (!detail) {
                 trace.putArray("elements");

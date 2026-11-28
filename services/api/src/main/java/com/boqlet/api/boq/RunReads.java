@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 class RunReads {
+    /** At most this many measure-stage log entries of a line's elements in its detail (review C-10). */
+    static final int ELEMENT_LOG = 200;
+
     private final Runs runs;
     private final BoqAccess access;
     private final StoredJson json;
@@ -179,6 +182,14 @@ class RunReads {
                 """, (row, index) -> json.read(row.getString(1), LineDetailAllOfLog.class), id, key);
         var detail = json.read(line.toString(), LineDetail.class);
         detail.setLog(log);
+        // how its elements were measured (review C-10): their measure-stage entries, which carry a guid, not a line key
+        var measured = database.query("""
+                SELECT entry::text FROM run_log_entries WHERE run_id = ? AND entry->>'stage' = 'measure'
+                    AND entry->>'guid' IN (SELECT guid FROM run_line_elements WHERE run_id = ? AND line_key = ?)
+                ORDER BY seq LIMIT ?
+                """, (row, index) -> json.read(row.getString(1), LineDetailAllOfLog.class), id, id, key, ELEMENT_LOG + 1);
+        detail.setElementLog(measured.size() > ELEMENT_LOG ? measured.subList(0, ELEMENT_LOG) : measured);
+        detail.setElementLogMore(measured.size() > ELEMENT_LOG);
         detail.setReadableFormula(line.path("trace").path("formula").asText());
         detail.setReviewComments(access.comments(run.run().getRevisionId(), key));
         return detail;

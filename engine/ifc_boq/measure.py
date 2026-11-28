@@ -145,6 +145,25 @@ def _number(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
 
 
+def source(basis: str, from_: str | None = None, uses: tuple[str, ...] | list[str] | None = None,
+           geometry: float | None = None, stated: float | None = None, question: str | None = None) -> dict:
+    """Where a measured value came from (review C-10, `MeasuredSource` in measured.ts): how it was found
+    (`basis`), the set and property it was read from, the fields it was computed from or checked against,
+    the other source's value when it differs from the one used, and the answer that chose it."""
+    out: dict = {"basis": basis}
+    if from_:
+        out["from"] = from_
+    if uses:
+        out["uses"] = list(uses)
+    if geometry is not None:
+        out["geometry"] = round(float(geometry), 6)
+    if stated is not None:
+        out["stated"] = round(float(stated), 6)
+    if question:
+        out["question"] = question
+    return out
+
+
 def find_reported(el: dict, kind: str, skipped: list | None = None):
     """First reported value for a quantity kind: (value, "Set.Prop") or (None, None).
     A net value larger than the gross one of the same set (NetArea > GrossArea, NetSideArea >
@@ -297,6 +316,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         cls = el["ifcClassBase"]
         notes: list[str] = []
         prov: dict[str, str] = {}
+        src: dict[str, dict] = {}        # field -> where its value came from (review C-10)
         decided: list[str] = []          # contradiction answers that decided how it is measured (A-06)
         type_cls = types.get(el.get("typeId"), {}).get("ifcClass", "")
         cls_note = None
@@ -372,23 +392,27 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         skipped_areas: list[tuple[str, float, float]] = []
         rep = {k: find_reported(el, k, skipped_areas if k == "area" else None)
                for k in ("volume", "area", "length", "width", "height", "thickness", "perimeter", "mass")}
-        for src, net, gross in skipped_areas:
-            notes.append(f"{src} {fmt(round(net, 3))} m2 is larger than the gross {fmt(round(gross, 3))} m2: impossible, not used")
+        for where, net, gross in skipped_areas:
+            notes.append(f"{where} {fmt(round(net, 3))} m2 is larger than the gross {fmt(round(gross, 3))} m2: impossible, not used")
 
         # thickness
         thickness = None
         if layer_set and layer_set.get("totalThickness"):
             thickness, prov["thickness"] = layer_set["totalThickness"], "reported"
+            src["thickness"] = source("layer_set")
             t_note = "material layer set"
         elif fam == "planar" and rep["thickness"][0]:
             thickness, prov["thickness"] = rep["thickness"][0], "reported"
+            src["thickness"] = source("property", rep["thickness"][1])
             t_note = rep["thickness"][1]
         elif fam == "planar" and obb:
             thickness, prov["thickness"] = min(obb), "geometry"
+            src["thickness"] = source("box")
             t_note = "smallest oriented-box extent"
         elif fam == "planar" and ext:
             thickness = min(ext[2], min(ext[0], ext[1])) if cls not in PLANAR_VERTICAL else min(ext[0], ext[1])
             prov["thickness"] = "geometry"
+            src["thickness"] = source("extent")
             t_note = "smallest geometry extent"
         else:
             t_note = None
@@ -415,6 +439,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 if answers.get(qid) == "geometry":
                     t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area; answer to {qid}); "
                               f"{t_note} said {fmt(thickness)}")
+                    src["thickness"] = source("sides", src["thickness"].get("from"), stated=thickness, question=qid)
                     thickness, prov["thickness"] = t_geo, "geometry"
                 elif answers.get(qid) != "reported" and prefer_geometry:
                     ask(qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note,
@@ -423,10 +448,14 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                                  f"geometry used")
                     t_note = (f"{fmt(round(t_geo, 4))} m from geometry (volume / mean side area); {t_note} said "
                               f"{fmt(thickness)}, " + ("contradicted by the thin axis" if stated_quantity else "outside 0.5-2x the geometry"))
+                    src["thickness"] = source("sides", src["thickness"].get("from"), stated=thickness)
                     thickness, prov["thickness"] = t_geo, "geometry"
                 elif answers.get(qid) != "reported":
                     ask(qid, "thickness", cls, type_name or el.get("name"), el["id"], thickness, t_geo, t_note)
                     notes.append(f"thickness {fmt(thickness)} m ({t_note}) but the geometry is {fmt(round(t_geo, 3))} m thick")
+                    src["thickness"]["geometry"] = round(t_geo, 6)
+                else:
+                    src["thickness"].update(geometry=round(t_geo, 6), question=qid)
 
         # volume
         net_volume, v_note = None, None
@@ -434,6 +463,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         unit_scaled: dict[str, float] = {}   # field -> stated / measured, for stated values taken as unit errors
         if rep["volume"][0]:
             net_volume, prov["net_volume"] = rep["volume"][0], "reported"
+            src["net_volume"] = source("property", rep["volume"][1])
             v_note = f"{fmt(net_volume)} m3 from {rep['volume'][1]}"
             if geo_vol:
                 diff = (geo_vol - net_volume) / net_volume
@@ -443,13 +473,19 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 scale = unit_scale(net_volume, geo_vol) if g.get("hasBody") and closed is not False else None
                 if (sure or scale) and answers.get(qid) in ("geometry", "reported"):
                     decided.append(qid)
+                if abs(diff) > TOLERANCE:
+                    src["net_volume"]["geometry"] = round(geo_vol, 6)
+                    if (sure or scale) and answers.get(qid) == "reported":
+                        src["net_volume"]["question"] = qid
                 if sure and answers.get(qid) == "geometry":
+                    src["net_volume"] = source("mesh", rep["volume"][1], stated=net_volume, question=qid)
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
                     v_note += f"; geometry used (answer to {qid})"
                     if scale:
                         unit_scaled["net_volume"] = scale
                 elif scale and answers.get(qid) != "reported":
                     stated = net_volume
+                    src["net_volume"] = source("mesh", rep["volume"][1], stated=stated)
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
                     unit_scaled["net_volume"] = scale
                     note = _unit_error(log, el, "volume", stated, geo_vol, scale, rep["volume"][1])
@@ -459,6 +495,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                          rep["volume"][1], used="geometry", scale=scale)
                 elif sure and answers.get(qid) != "reported" and implausible(net_volume, geo_vol):
                     stated = net_volume
+                    src["net_volume"] = source("mesh", rep["volume"][1], stated=stated)
                     net_volume, prov["net_volume"] = geo_vol, "geometry"
                     v_note += "; outside 0.5-2x the geometry: geometry used"
                     notes.append(f"geometry volume differs from reported by {diff:+.1%}; geometry used (implausible)")
@@ -478,6 +515,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                              rep["volume"][1])
         elif geo_vol and closed is not False:
             net_volume, prov["net_volume"] = geo_vol, "geometry"
+            src["net_volume"] = source("mesh" if g.get("volume") else "parts")
             v_note = f"{fmt(round(geo_vol, 4))} m3 from geometry"
             if g.get("watertight") is False:
                 v_note += " (closed mesh with T-junctions)"
@@ -501,6 +539,10 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         if fam in ("planar", "assembly") or cls in ("IfcRoof",):
             if wall_faces:
                 net_area, prov["net_area"] = side_mean, "geometry"
+                differs = bool(rep["area"][0] and abs(rep["area"][0] - side_mean) > TOLERANCE * side_mean)
+                src["net_area"] = source("faces", rep["area"][1] if differs else None,
+                                         uses=[f for f in ("net_volume", "thickness") if f in src],
+                                         stated=rep["area"][0] if differs else None)
                 a_note = (f"net area = mean of the measured faces = ({fmt(round(sides['a'], 3))} + "
                           f"{fmt(round(sides['b'], 3))}) / 2 = {fmt(round(net_area, 3))} m2 (openings cut)")
                 if net_volume:
@@ -512,6 +554,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     a_note += f" (reported {rep['area'][1]} = {fmt(round(rep['area'][0], 3))} not used)"
             elif cls in PLANAR_VERTICAL and net_volume and thickness:
                 net_area, prov["net_area"] = (net_volume + recess_vol) / thickness, "derived"
+                src["net_area"] = source("volume_thickness", uses=("net_volume", "thickness"))
                 a_note = f"net area = volume / thickness = {fmt(round(net_volume + recess_vol, 4))} / {fmt(thickness)} = {fmt(round(net_area, 3))} m2"
                 if recess_vol:
                     a_note += f" (recess volume {fmt(round(recess_vol, 4))} m3 added back)"
@@ -519,6 +562,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     a_note += f" (reported {rep['area'][1]} = {fmt(round(rep['area'][0], 3))} ignored: inconsistent with volume)"
             elif rep["area"][0]:
                 net_area, prov["net_area"] = rep["area"][0], "reported"
+                src["net_area"] = source("property", rep["area"][1])
                 a_note = f"net area {fmt(round(net_area, 3))} m2 from {rep['area'][1]}"
                 # the geometry's own area: a clear plate's mean side (net of openings; a gross source
                 # is compared with the side plus its openings)
@@ -530,6 +574,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     decided.append(qid)
                 if scale and answers.get(qid) != "reported":
                     stated = net_area
+                    src["net_area"] = source("faces", rep["area"][1], stated=stated, question=qid if answers.get(qid) == "geometry" else None)
                     net_area, prov["net_area"] = side_mean, "geometry"
                     unit_scaled["net_area"] = scale
                     note = _unit_error(log, el, "area", stated, geo_area, scale, rep["area"][1])
@@ -545,7 +590,11 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                     a_note += f"; geometry {fmt(round(geo_area, 3))} m2 ({diff:+.1%})"
                     use_geo = answers.get(qid) == "geometry" or (answers.get(qid) != "reported" and implausible(stated, geo_area))
                     if use_geo:
+                        src["net_area"] = source("faces", rep["area"][1], stated=stated,
+                                                 question=qid if answers.get(qid) == "geometry" else None)
                         net_area, prov["net_area"] = side_mean, "geometry"
+                    else:
+                        src["net_area"].update(geometry=round(geo_area, 6), **({"question": qid} if answers.get(qid) == "reported" else {}))
                         a_note += f": {fmt(round(net_area, 3))} m2 from geometry used"
                     if answers.get(qid) not in ("geometry", "reported"):
                         ask(qid, "area", cls, type_name or el.get("name"), el["id"], stated, geo_area,
@@ -555,31 +604,38 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             elif net_volume and thickness and volume_contradicted and side_mean:
                 # never derive an area from a volume the geometry contradicts: the measured sides instead
                 net_area, prov["net_area"] = side_mean, "geometry"
+                src["net_area"] = source("faces")
                 a_note = (f"net area {fmt(round(net_area, 3))} m2 = mean side area from geometry "
                           f"(not volume / thickness: the stated volume is contradicted)")
             elif net_volume and thickness:
                 net_area, prov["net_area"] = (net_volume + recess_vol) / thickness, "derived"
+                src["net_area"] = source("volume_thickness", uses=("net_volume", "thickness"))
                 a_note = f"net area = volume / thickness = {fmt(round(net_area, 3))} m2"
             elif cls == "IfcRoof" and closed and (g.get("upFaces") or {}).get("area"):
                 # a roof with its own closed body and no layer set (A-15): its faces looking up are the
                 # developed area, their projection the plan area, volume / area the thickness
                 up = g["upFaces"]
                 net_area, prov["net_area"] = up["area"], "geometry"
+                src["net_area"] = source("up_faces")
                 roof_plan = up["plan"]
                 a_note = (f"net area {fmt(round(net_area, 3))} m2 = the faces looking up (plan {fmt(round(roof_plan, 3))} m2; "
                           f"no layer set)")
                 if thickness is None and net_volume:
                     thickness, prov["thickness"] = net_volume / net_area, "geometry"
+                    src["thickness"] = source("volume_area", uses=("net_volume", "net_area"))
                     t_note = "volume / area of the faces looking up"
             elif closed is False and "SurfaceModel" in g.get("representationTypes", []) and g.get("surfaceArea"):
                 net_area, prov["net_area"] = g["surfaceArea"], "geometry"
+                src["net_area"] = source("surface")
                 a_note = f"net area {fmt(round(net_area, 3))} m2 = one-sided area of the open surface model"
             if net_area is not None:
                 gross_area = net_area + open_area
                 prov["gross_area"] = "derived"
+                src["gross_area"] = source("plus_openings", uses=("net_area",))
         gross_volume = None
         if net_volume is not None:
             gross_volume = net_volume + sum((o["area"] or 0) * (thickness or 0) for o in ops if o["kind"] != "recess") + recess_vol
+            src["gross_volume"] = source("plus_openings", uses=("net_volume", "thickness") if ops else ("net_volume",))
 
         # linear dimensions
         geo_len = None
@@ -594,6 +650,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         length, l_note = rep["length"][0], None
         if length:
             prov["length"] = "reported"
+            src["length"] = source("property", rep["length"][1])
             l_note = f"length {fmt(round(length, 4))} m from {rep['length'][1]}"
             qid = contradiction_id("length", cls, type_name or el.get("name"))
             scale = unit_scale(length, geo_len) if g.get("hasBody") and closed is not False else None
@@ -601,6 +658,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                 decided.append(qid)
             if scale and answers.get(qid) != "reported":
                 stated = length
+                src["length"] = source("box", rep["length"][1], stated=stated, question=qid if answers.get(qid) == "geometry" else None)
                 length, prov["length"] = geo_len, "geometry"
                 unit_scaled["length"] = scale
                 notes.append(_unit_error(log, el, "length", stated, geo_len, scale, rep["length"][1]))
@@ -609,23 +667,30 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
                          rep["length"][1], used="geometry", scale=scale)
         elif geo_len is not None:
             length, prov["length"] = geo_len, "geometry"
+            src["length"] = source("box" if obb else "extent")
         width = el["attributes"].get("OverallWidth") or rep["width"][0]
         height = el["attributes"].get("OverallHeight") or rep["height"][0]
         if height:
             prov["height"] = "reported"
+            src["height"] = source("attribute", "OverallHeight") if el["attributes"].get("OverallHeight") else source("property", rep["height"][1])
         elif ext:
             height, prov["height"] = ext[2], "geometry"
+            src["height"] = source("extent")
+        if width:
+            src["width"] = source("attribute", "OverallWidth") if el["attributes"].get("OverallWidth") else source("property", rep["width"][1])
 
         # perimeter: reported, else for a closed slab-like prism S = 2V/t + P*t  ->  P = (S - 2V/t) / t
         # (includes the edges of openings, which is what edge formwork needs)
         perimeter, p_note = rep["perimeter"][0], None
         if perimeter:
             prov["perimeter"] = "reported"
+            src["perimeter"] = source("property", rep["perimeter"][1])
         elif (fam == "planar" and cls not in PLANAR_VERTICAL and closed and g.get("volume") and g.get("surfaceArea")
               and thickness and not g.get("bodyCount")):
             p = (g["surfaceArea"] - 2 * g["volume"] / thickness) / thickness
             if p > 0:
                 perimeter, prov["perimeter"] = p, "geometry"
+                src["perimeter"] = source("surface_volume", uses=("thickness",))
                 p_note = f"perimeter = (surface {fmt(round(g['surfaceArea'], 3))} - 2 x volume / thickness) / thickness = {fmt(round(p, 3))} m"
         # the perimeter split (A-13): the edges of the openings through the element (plan size of each;
         # recesses do not reach the edge) and the rest, the outer edge. A reported perimeter is taken as
@@ -636,17 +701,22 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             if perim_openings and perimeter - perim_openings > 0:
                 perim_outer = perimeter - perim_openings
                 prov["perimeter_outer"], prov["perimeter_openings"] = "derived", "derived"
+                src["perimeter_outer"] = source("less_openings", uses=("perimeter",))
+                src["perimeter_openings"] = source("openings")
                 if prov["perimeter"] == "reported":
                     notes.append(f"reported perimeter {fmt(round(perimeter, 3))} m taken as the outer edge and the edges of openings "
                                  f"({fmt(round(perim_openings, 3))} m): outer {fmt(round(perim_outer, 3))} m")
             elif perim_openings:
                 perim_outer = perimeter
                 prov["perimeter_outer"], prov["perimeter_openings"] = prov["perimeter"], "derived"
+                src["perimeter_outer"] = source("same", uses=("perimeter",))
+                src["perimeter_openings"] = source("openings")
                 notes.append(f"perimeter {fmt(round(perimeter, 3))} m is not longer than its openings' edges "
                              f"({fmt(round(perim_openings, 3))} m): taken as the outer edge")
             else:
                 perim_outer = perimeter
                 prov["perimeter_outer"] = prov["perimeter"]
+                src["perimeter_outer"] = source("same", uses=("perimeter",))
 
         # faces standing up (formwork to the sides and ends of a footing, A-10): from the closed mesh, less
         # the part against another solid; else (a parse from before A-10, no mesh) the sides of the box
@@ -655,11 +725,13 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
         if cls in VERTICAL_FACE_CLASSES:
             if vf and closed:
                 vertical_area, prov["vertical_face_area"] = max(0.0, vf["area"] - vf["contact"]), "geometry"
+                src["vertical_face_area"] = source("vertical_faces")
                 vf_note = (f"vertical faces {fmt(round(vf['area'], 3))} m2"
                            + (f" less {fmt(round(vf['contact'], 3))} m2 against other elements" if vf["contact"] else "")
                            + f" = {fmt(round(vertical_area, 3))} m2")
             elif length and width and height:
                 vertical_area, prov["vertical_face_area"] = 2 * (length + width) * height, "derived"
+                src["vertical_face_area"] = source("box_sides", uses=("length", "width", "height"))
                 vf_note = (f"vertical faces = 2 x (length + width) x height = 2 x ({fmt(round(length, 3))} + "
                            f"{fmt(round(width, 3))}) x {fmt(round(height, 3))} = {fmt(round(vertical_area, 3))} m2 (no mesh faces)")
 
@@ -742,8 +814,18 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             "openings": ops, "layers": layers,
             "host_guid": el.get("hostId"), "parent_guid": el.get("parentId"), "child_guids": el.get("childIds", []),
             "props": props, "ifc_classifications": ifc_codes,
-            "provenance": prov, "warnings": notes,
+            "provenance": prov, "sources": src, "warnings": notes,
         }
+        if m["footprint_area"] is not None:
+            src["footprint_area"] = source("up_faces") if roof_plan is not None else source("same", uses=("net_area",))
+        if m["developed_area"] is not None:
+            src["developed_area"] = source("same", uses=("net_area",))
+        if rep["mass"][0]:
+            src["mass"] = source("property", rep["mass"][1])
+        if nmpl:
+            src["nominal_mass_per_length"] = source("profile", profile)
+        if density:
+            src["density"] = source("material", mat["term"] if mat else None)
         if unit_scaled:
             m["unit_scale"] = unit_scaled
         if decided:
@@ -752,6 +834,7 @@ def build(parsed: dict, rv: Resolver, log: CalcLog, model_id: str | None = None,
             if m.get(k) is None:
                 m[k] = v
                 prov[k] = "derived"
+                src[k] = source("name")
         out.append(m)
 
         bits = [cls_note or cls]

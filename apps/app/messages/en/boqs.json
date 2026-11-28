@@ -436,7 +436,50 @@
     "yes": "yes",
     "no": "no",
     "showIn3d": "Show in 3D",
-    "measuredAs": "Measured as: {text}"
+    "measuredAs": "Measured as: {text}",
+    "inputsLabel": "Measured inputs",
+    "elementLog": "How its elements were measured",
+    "noElementLog": "No measuring entries for its elements.",
+    "elementLogMore": "The first {count} entries; the Log tab lists them all (filter by element).",
+    "input": {
+      "value": "{field} {value}",
+      "geometry": "geometry {value}",
+      "stated": "the file said {value}{from, select, none {} other { ({from})}}",
+      "answered": "chosen by your answer",
+      "provenance": {
+        "reported": "stated in the file",
+        "geometry": "from the geometry",
+        "derived": "computed",
+        "user": "your value"
+      },
+      "basis": {
+        "property": "from {from}",
+        "attribute": "from the attribute {from}",
+        "layer_set": "from the material layer set",
+        "mesh": "from the closed body",
+        "parts": "from its parts' bodies",
+        "faces": "mean of its two measured faces",
+        "sides": "volume ÷ mean face area",
+        "box": "from its oriented box",
+        "extent": "from its bounding box",
+        "up_faces": "its faces looking up",
+        "surface": "area of its open surface",
+        "vertical_faces": "its faces standing up, less contacts",
+        "volume_thickness": "volume ÷ thickness",
+        "volume_area": "volume ÷ area",
+        "plus_openings": "net + its openings",
+        "less_openings": "less its openings' edges",
+        "openings": "the edges of its openings",
+        "surface_volume": "from its surface and volume",
+        "box_sides": "2 × (length + width) × height",
+        "same": "the same value",
+        "area_thickness": "area × layer thickness",
+        "face": "face {from}",
+        "profile": "nominal for {from}",
+        "material": "density of {from}",
+        "name": "read from its name"
+      }
+    }
   },
   "how": {
     "noSteps": "This run has no step-by-step explanation. Generate the BoQ again to see one.",

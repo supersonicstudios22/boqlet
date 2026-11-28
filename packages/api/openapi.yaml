@@ -3854,6 +3854,14 @@ components:
           properties:
             readableFormula: { type: string }
             log: { type: array, items: { $ref: "../types/schema/boq-result.schema.json#/definitions/LogEntry" } }
+            elementLog:
+              type: array
+              description: >-
+                How the line's elements were measured (review C-10): the measure-stage log entries of its elements
+                (by GlobalId), in log order, at most 200; `elementLogMore` says there are more (the Log tab lists
+                them all, filtered by element).
+              items: { $ref: "../types/schema/boq-result.schema.json#/definitions/LogEntry" }
+            elementLogMore: { type: boolean }
             reviewComments: { type: array, items: { $ref: "#/components/schemas/ReviewComment" } }
     QuestionWithDecision:
       type: object

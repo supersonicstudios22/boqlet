@@ -231,6 +231,13 @@
                                 <replace file="${project.build.directory}/contract/types/schema/boq-result.schema.json"
                                          token="&quot;decisions&quot;: {"
                                          value="&quot;decisions&quot;: { &quot;x-field-extra-annotation&quot;: &quot;@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)&quot;,"/>
+                                <!-- Likewise an element's measured inputs and an input's `uses` (review C-10). -->
+                                <replace file="${project.build.directory}/contract/types/schema/boq-result.schema.json"
+                                         token="&quot;inputs&quot;: {"
+                                         value="&quot;inputs&quot;: { &quot;x-field-extra-annotation&quot;: &quot;@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)&quot;,"/>
+                                <replace file="${project.build.directory}/contract/types/schema/boq-result.schema.json"
+                                         token="&quot;uses&quot;: {"
+                                         value="&quot;uses&quot;: { &quot;x-field-extra-annotation&quot;: &quot;@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)&quot;,"/>
                             </target>
                         </configuration>
                     </execution>

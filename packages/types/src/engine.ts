@@ -21,7 +21,7 @@
  */
 
 import type { ElementFamily } from "./families";
-import type { BuildingMeasures, Unit } from "./measured";
+import type { BuildingMeasures, MeasuredField, MeasuredSource, Provenance, Unit } from "./measured";
 import type { OurRuleType, RuleSet, Selector } from "./rules";
 import type { ClassificationInput, LineCode } from "./classification";
 import type { DictionaryInput } from "./dictionary";
@@ -128,6 +128,24 @@ export interface TraceDecision {
   at?: string;
 }
 
+/**
+ * One measured input of an element's quantity (review C-10): a field the line's quantity reads, or one it was
+ * computed from or checked against, with its value and where it came from (its `MeasuredSource`, flattened).
+ */
+export interface TraceInput {
+  field: MeasuredField;
+  /** The value used, in SI units (m, m2, m3, kg, kg/m, kg/m3). */
+  value: number;
+  provenance?: Provenance;
+  /** How it was found; absent for a value measured outside the main path (a room, an aggregate of parts). */
+  basis?: MeasuredSource["basis"];
+  from?: MeasuredSource["from"];
+  uses?: MeasuredSource["uses"];
+  geometry?: MeasuredSource["geometry"];
+  stated?: MeasuredSource["stated"];
+  question?: MeasuredSource["question"];
+}
+
 /** An engine decision with a questionId of `override:{lineKey}`. */
 export interface LineOverrideEdit {
   quantity?: number | null;
@@ -196,6 +214,8 @@ export interface BoqLine {
        * job input carries them (`Decision.decidedBy`, `decidedAt`).
        */
       decisions?: TraceDecision[];
+      /** The element's measured inputs and where each came from (review C-10); absent for a breakdown part and a line-scope derived line. */
+      inputs?: TraceInput[];
     }[];
     sourceLine?: string;           // derived lines: the line they were derived from
     /** "How it is calculated" in steps (P25, F06 §5, EN-013): the values of the steps before `result` add up to it. */

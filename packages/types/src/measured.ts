@@ -20,6 +20,40 @@ export type Unit = RegisteredUnit | (string & {});
 
 export type Provenance = "reported" | "geometry" | "derived" | "user";
 
+/**
+ * How a measured value was found (review C-10). Stated: `property` (a property or quantity set; `from` names
+ * "Set.Property"), `attribute` (the element's own attribute, e.g. OverallHeight), `layer_set` (the material
+ * layer set's total). Geometry: `mesh` (the closed body's volume), `parts` (its parts' bodies), `faces` (the
+ * mean of its two measured faces), `sides` (volume / mean side area), `box` (an oriented-box extent), `extent`
+ * (an axis-aligned extent), `up_faces` (the faces looking up), `surface` (an open surface model's area),
+ * `vertical_faces` (the faces standing up, less contacts). Computed: `volume_thickness`, `volume_area`,
+ * `plus_openings` (net + the openings), `less_openings`, `openings` (the openings' edges), `surface_volume`
+ * (a prism's perimeter from its surface and volume), `box_sides` (2 x (length + width) x height), `same`
+ * (repeats the field in `uses`). A breakdown part's own: `area_thickness` (a layer's volume: the element's area x
+ * the layer's thickness), `face` (one face's area; `from` its side). `profile` (nominal kg/m of the section in `from`), `material` (the density of
+ * the dictionary term in `from`), `name` (read from the element's name).
+ */
+export type MeasuredBasis =
+  | "property" | "attribute" | "layer_set"
+  | "mesh" | "parts" | "faces" | "sides" | "box" | "extent" | "up_faces" | "surface" | "vertical_faces"
+  | "volume_thickness" | "volume_area" | "plus_openings" | "less_openings" | "openings" | "surface_volume"
+  | "box_sides" | "same" | "area_thickness" | "face" | "profile" | "material" | "name";
+
+/** Where one measured value came from (review C-10): what a line's "How it is calculated" shows per element. */
+export interface MeasuredSource {
+  basis: MeasuredBasis;
+  /** The set and property it was read from ("PSet_Revit_Dimensions.Volume"), a profile or a material term. */
+  from?: string;
+  /** The fields it was computed from or checked against (an area from volume / thickness). */
+  uses?: MeasuredField[];
+  /** The geometry's value, when a stated value is used and the geometry differs. */
+  geometry?: number;
+  /** The stated value, when the geometry's is used instead (a contradiction, a unit error). */
+  stated?: number;
+  /** The `contradiction` question whose answer chose the value. */
+  question?: string;
+}
+
 export interface Face {
   side: "a" | "b" | "top" | "bottom" | "edge" | "end";
   gross_area: number;
@@ -218,6 +252,8 @@ export interface MeasuredElement {
   /* ---- trust ------------------------------------------------------- */
   /** Where each numeric value came from, keyed by MeasuredField. */
   provenance: Partial<Record<string, Provenance>>;
+  /** Each numeric value's source in detail (review C-10), keyed by MeasuredField; fields measured outside the main path (rooms, aggregates) may have none. */
+  sources?: Partial<Record<MeasuredField, MeasuredSource>>;
   /** Reported vs geometry disagreements found during verification. */
   warnings: string[];
   /**
