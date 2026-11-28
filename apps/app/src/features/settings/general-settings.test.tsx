@@ -28,6 +28,8 @@ vi.mock("@/components/field", () => ({ Field: plain("div") }));
 vi.mock("@/components/native-select", () => ({ NativeSelect: plain("select") }));
 vi.mock("@/components/ui/button", () => ({ Button: plain("div") }));
 vi.mock("@/components/ui/input", () => ({ Input: plain("input") }));
+// Review C-29: country and currency are pickers (their own test, code-pickers.test.tsx).
+vi.mock("@/features/orgs/code-pickers", () => ({ CountryPicker: plain("input"), CurrencyPicker: plain("input") }));
 vi.mock("@/components/ui/alert-dialog", () => {
   const D = plain("div");
   return { AlertDialog: D, AlertDialogAction: D, AlertDialogCancel: D, AlertDialogContent: D, AlertDialogDescription: D, AlertDialogFooter: D, AlertDialogHeader: D, AlertDialogTitle: D, AlertDialogTrigger: D };
