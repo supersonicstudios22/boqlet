@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Question, Term } from "@/api/hooks/decisions";
-import { bulkKey, counts, describeAnswer, elementCount, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
+import { bulkKey, counts, describeAnswer, elementCount, termLabel, filterQuestions, initialValue, searchTerms, selectable, sortQuestions, splitByEffect, termPath } from "./model";
 
 const decision = (answer: string | number | boolean | null): NonNullable<Question["decision"]> => ({
   id: "d",
@@ -118,5 +118,30 @@ describe("review C-15: questions with no effect, one count", () => {
     expect(elementCount(q("a", { guids: ["g1", "g2", "g1"], occurrences: 5 }))).toBe(2);
     expect(elementCount(q("b", { occurrences: 3 }))).toBe(3);
     expect(elementCount(q("c"))).toBeUndefined();
+  });
+});
+
+describe("review C-16: terms found by their other words", () => {
+  const seed: Term[] = [
+    { id: "membrane", label: "Membrane", category: "material" },
+    { id: "membrane.damp_proof", label: "Damp-proof course / membrane", category: "material", parent: "membrane", labels: { de: "Feuchtigkeitssperre" }, aliases: ["dpc", "damp proofing"] },
+    { id: "finish.laminate", label: "Laminate", category: "material", aliases: ["Laminat"] },
+    { id: "bituminous", label: "Bituminous material: asphalt, macadam", category: "material", aliases: ["bitumen"] },
+    { id: "wall.external", label: "External wall", category: "element_type", aliases: ["ext"] },
+  ];
+  it("matches aliases, translations and accent-folded words", () => {
+    expect(searchTerms(seed, "damp").map((t) => t.id)).toEqual(["membrane.damp_proof"]);
+    expect(searchTerms(seed, "DPC").map((t) => t.id)).toEqual(["membrane.damp_proof"]);
+    expect(searchTerms(seed, "feuchtigkeit").map((t) => t.id)).toEqual(["membrane.damp_proof"]);
+    expect(searchTerms(seed, "laminat").map((t) => t.id)).toEqual(["finish.laminate"]);
+    expect(searchTerms(seed, "bitumen").map((t) => t.id)).toEqual(["bituminous"]);
+    expect(searchTerms(seed, "ext", "element_type").map((t) => t.id)).toEqual(["wall.external"]);
+    expect(searchTerms([{ id: "x", label: "Béton", category: "material" }], "beton").map((t) => t.id)).toEqual(["x"]);
+  });
+  it("labels a term in the user's language when the dictionary has it", () => {
+    expect(termLabel(seed[1]!, "de")).toBe("Feuchtigkeitssperre");
+    expect(termLabel(seed[1]!, "de-AT")).toBe("Feuchtigkeitssperre");
+    expect(termLabel(seed[1]!, "fr")).toBe("Damp-proof course / membrane");
+    expect(termLabel(seed[1]!)).toBe("Damp-proof course / membrane");
   });
 });

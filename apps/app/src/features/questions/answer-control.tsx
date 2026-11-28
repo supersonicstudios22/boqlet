@@ -1,13 +1,13 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Answer, AnswerType, Term } from "@/api/hooks/decisions";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { searchTerms, termPath } from "./model";
+import { searchTerms, termLabel, termPath } from "./model";
 import { SearchPicker, type PickItem } from "./search-picker";
 import { LIMITS } from "@/lib/limits";
 
@@ -66,19 +66,21 @@ export function AnswerControl({
 
 function TermPicker({ category, terms, value, onPick, disabled, label, testId }: { category?: string; terms: readonly Term[]; value: string | undefined; onPick: (v: string) => void; disabled?: boolean; label: string; testId?: string }) {
   const t = useTranslations("questions.answer");
+  const locale = useLocale();
   const byId = useMemo(() => new Map(terms.map((x) => [x.id, x])), [terms]);
   const toItem = (term: Term): PickItem => {
-    const path = termPath(term.id, byId);
-    return { value: term.id, label: term.label, ...(path.length > 1 ? { hint: path.slice(0, -1).join(" › ") } : {}) };
+    const path = termPath(term.id, byId, locale);
+    return { value: term.id, label: termLabel(term, locale), ...(path.length > 1 ? { hint: path.slice(0, -1).join(" › ") } : {}) };
   };
   const inCategory = useMemo(() => terms.filter((x) => !category || x.category === category), [terms, category]);
   const items = useMemo(() => {
     const list = inCategory.map(toItem);
-    // A decision whose term no longer exists still shows its id.
-    if (value && !byId.has(value)) list.unshift({ value, label: value });
+    // A decision whose term no longer exists still shows its id; one outside the category ("Not relevant") its label.
+    const known = byId.get(value ?? "");
+    if (value && !inCategory.some((x) => x.id === value)) list.unshift(known ? toItem(known) : { value, label: value });
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inCategory, value, byId]);
+  }, [inCategory, value, byId, locale]);
   return (
     <SearchPicker
       items={items}

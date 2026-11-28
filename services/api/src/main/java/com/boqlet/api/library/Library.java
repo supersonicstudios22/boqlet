@@ -109,13 +109,27 @@ public class Library {
                 .forEach(head -> {
                     for (JsonNode term : catalog.version(head.published()).doc().path("terms")) {
                         String id = term.path("id").asText();
-                        terms.put(id, new TermInfo(id, term.path("label").asText(), term.path("category").asText())
-                                .layer(head.layer()).parent(term.path("broader").asText(null)));
+                        var info = new TermInfo(id, term.path("label").asText(), term.path("category").asText())
+                                .layer(head.layer()).parent(term.path("broader").asText(null));
+                        // translations and aliases for the term search (review C-16)
+                        term.path("labels").properties().forEach(label -> {
+                            if (label.getValue().isTextual()) info.putLabelsItem(label.getKey(), label.getValue().asText());
+                        });
+                        for (JsonNode alias : term.path("aliases")) if (alias.isTextual()) info.addAliasesItem(alias.asText());
+                        terms.put(id, info);
                     }
                 });
         String text = query == null ? "" : query.strip().toLowerCase(Locale.ROOT);
         return terms.values().stream().filter(term -> (category == null || category.equals(term.getCategory()))
-                && (term.getId().toLowerCase(Locale.ROOT).contains(text) || term.getLabel().toLowerCase(Locale.ROOT).contains(text))).toList();
+                && searchText(term).contains(text)).toList();
+    }
+
+    /** What `q` matches: the id, the label, its translations and the aliases (review C-16). */
+    private static String searchText(TermInfo term) {
+        var text = new StringBuilder(term.getId()).append(' ').append(term.getLabel());
+        if (term.getLabels() != null) term.getLabels().values().forEach(label -> text.append(' ').append(label));
+        if (term.getAliases() != null) term.getAliases().forEach(alias -> text.append(' ').append(alias));
+        return text.toString().toLowerCase(Locale.ROOT);
     }
 
     List<PresetVersionInfo> versions(UUID id, UUID actor) {

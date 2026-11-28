@@ -3670,6 +3670,12 @@ export interface components {
             category: string;
             parent?: string;
             layer?: components["schemas"]["PresetLayer"];
+            /** @description The label per locale (BCP 47), when the dictionary gives translations */
+            labels?: {
+                [key: string]: string;
+            };
+            /** @description Other words for the term (synonyms, abbreviations, other languages); the term search matches them (review C-16) */
+            aliases?: string[];
         };
         /** @description Mirrors TableReadResponse in packages/types/src/api.ts */
         TableReadResponse: {
@@ -4045,6 +4051,7 @@ export interface components {
             affectedLines?: components["schemas"]["affectedLines"];
             affectedLineCount?: components["schemas"]["affectedLineCount"];
             noEffect?: components["schemas"]["noEffect"];
+            candidates?: components["schemas"]["candidates"];
             decision?: components["schemas"]["Decision"];
             /** @description The project's answer differs from the one this run was generated with (answered, changed or cleared after the run): it applies on the next run (F05 §1, §3). */
             answeredAfterRun: boolean;
@@ -4336,6 +4343,8 @@ export interface components {
             labels?: {
                 [key: string]: string;
             };
+            /** @description Other words for the term, in any language: synonyms, abbreviations, trade names ("dpc", "damp proofing", "Feuchtigkeitssperre"). The term search matches them (review C-16); names are still resolved by entries. */
+            aliases?: string[];
             /** @description Parent term. Rules can match a term and everything under it (selector op "under"). */
             broader?: string;
             /** @description Values rules may use, e.g. density for mass-by-volume. User-editable. */
@@ -4704,6 +4713,8 @@ export interface components {
         affectedLineCount: number;
         /** @description True when no answer changes a number or a code under the current rules (a name in a field no rule reads): the Questions tab lists it under "For information", collapsed (review C-15). */
         noEffect: boolean;
+        /** @description For unknown_name: up to 3 term ids that fit the name, best first, from the words of the name against the terms' labels, translations and aliases, and from the elements' IFC data (class, IsExternal) (review C-16). Offered as one-click answers; never used without an answer. */
+        candidates: string[];
         /**
          * @description Existing warning codes are also used by consumers to filter warnings.
          * @enum {string}

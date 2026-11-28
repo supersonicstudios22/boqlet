@@ -40,6 +40,12 @@ export interface Term {
   category: TermCategory;
   label: string;
   labels?: Record<string, string>;   // per locale
+  /**
+   * Other words for the term, in any language: synonyms, abbreviations, trade names ("dpc", "damp proofing",
+   * "Feuchtigkeitssperre"). The term search matches them (review C-16); names are still resolved by entries.
+   * @maxItems 50
+   */
+  aliases?: string[];
   /** Parent term. Rules can match a term and everything under it (selector op "under"). */
   broader?: string;
   /** Values rules may use, e.g. density for mass-by-volume. User-editable. */

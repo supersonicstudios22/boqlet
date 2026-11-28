@@ -103,19 +103,27 @@ export function initialValue(q: Pick<Question, "answer" | "decision" | "suggesti
   return { value: undefined, suggested: false };
 }
 
+/** A term's label in the user's language when the dictionary has it, else its label (review C-16). */
+export function termLabel(term: Pick<Term, "label" | "labels">, locale?: string): string {
+  if (!locale || !term.labels) return term.label;
+  return term.labels[locale] ?? term.labels[locale.split("-")[0]!] ?? term.label;
+}
+
 /** A term's place in the hierarchy, root first: "Concrete › In-situ concrete". */
-export function termPath(id: string, byId: ReadonlyMap<string, Term>): string[] {
+export function termPath(id: string, byId: ReadonlyMap<string, Term>, locale?: string): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (let t = byId.get(id); t && !seen.has(t.id); t = t.parent ? byId.get(t.parent) : undefined) {
     seen.add(t.id);
-    out.unshift(t.label);
+    out.unshift(termLabel(t, locale));
   }
   return out.length ? out : [id];
 }
 
 export interface AnswerLookups {
   terms?: ReadonlyMap<string, Term>;
+  /** The UI language, for terms' translated labels. */
+  locale?: string;
   rules?: ReadonlyMap<string, string>;
   codes?: ReadonlyMap<string, string>;
 }
@@ -131,7 +139,7 @@ export function describeAnswer(answer: Answer, type: AnswerType | undefined, loo
   if (type?.kind === "rule" && answer === "exclude") return { special: "exclude" };
   switch (type?.kind) {
     case "term":
-      return { text: lookups.terms?.has(value) ? termPath(value, lookups.terms).join(" › ") : value };
+      return { text: lookups.terms?.has(value) ? termPath(value, lookups.terms, lookups.locale).join(" › ") : value };
     case "choice":
       return { text: type.options.find((o) => o.value === value)?.label ?? value };
     case "rule":
@@ -145,15 +153,24 @@ export function describeAnswer(answer: Answer, type: AnswerType | undefined, loo
   }
 }
 
-/** Searches terms by label, id or a broader term's label; the category narrows when given. */
+/** The term the "Not relevant" answer picks (review C-16): the seed's `unspecified`, logged like any answer. */
+export const NOT_RELEVANT = "unspecified";
+
+const folded = (text: string) => text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/**
+ * Searches terms by id, label, translations, aliases (synonyms, abbreviations, other languages) and the broader
+ * terms' labels (review C-16); every word must appear, accents ignored. The category narrows when given.
+ */
 export function searchTerms(terms: readonly Term[], q: string, category?: string, limit = 50): Term[] {
   const byId = new Map(terms.map((t) => [t.id, t]));
-  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const words = folded(q.trim()).split(/\s+/).filter(Boolean);
   return terms
     .filter((t) => !category || t.category === category)
     .filter((t) => {
       if (!words.length) return true;
-      const hay = `${t.id} ${termPath(t.id, byId).join(" ")}`.toLowerCase();
+      const own = [t.id, ...termPath(t.id, byId), ...Object.values(t.labels ?? {}), ...(t.aliases ?? [])];
+      const hay = folded(own.join(" "));
       return words.every((w) => hay.includes(w));
     })
     .slice(0, limit);

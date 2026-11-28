@@ -3499,6 +3499,14 @@ components:
         category: { type: string }
         parent: { type: string }
         layer: { $ref: "#/components/schemas/PresetLayer" }
+        labels:
+          type: object
+          additionalProperties: { type: string }
+          description: The label per locale (BCP 47), when the dictionary gives translations
+        aliases:
+          type: array
+          items: { type: string }
+          description: Other words for the term (synonyms, abbreviations, other languages); the term search matches them (review C-16)
     TableReadResponse:
       type: object
       description: Mirrors TableReadResponse in packages/types/src/api.ts
@@ -3886,6 +3894,7 @@ components:
         affectedLines: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/affectedLines" }
         affectedLineCount: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/affectedLineCount" }
         noEffect: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/noEffect" }
+        candidates: { $ref: "../types/schema/boq-result.schema.json#/definitions/Question/properties/candidates" }
         decision: { $ref: "#/components/schemas/Decision" }
         answeredAfterRun:
           type: boolean

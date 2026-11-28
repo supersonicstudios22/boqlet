@@ -1,6 +1,6 @@
 {
   "question": {
-    "unknown_name": "What is “{raw}” ({field, select, material {material} layer_material {layer material} type_name {type name} space_name {space name} other {{field}}})?",
+    "unknown_name": "{placeholder, select, true {“{raw}” ({field, select, material {material} layer_material {layer material} type_name {type name} space_name {space name} other {{field}}}) looks like a placeholder and is treated as not relevant until you answer. What is it?} other {What is “{raw}” ({field, select, material {material} layer_material {layer material} type_name {type name} space_name {space name} other {{field}}})?}}",
     "unmatched": "{count} × {ifcClass} “{name}” not measured by any rule. Assign a rule or exclude.",
     "contradiction": "{count} × {ifcClass} “{typeName}”: {quantity, select, thickness {the file says {reported, number} {unit} thick} other {the file gives the {quantity, select, volume {volume} area {area} length {length} other {{quantity}}} as {reported, number} {unit}}}; the geometry measures {geometry, number} {unit} ({examplePercent}{same, select, true {} other {; {minPercent} to {maxPercent} across the {count}}}). {unitError, select, true {The stated value looks like a unit error (×{scale}), so the measured value is used until you answer.} other {Until you answer, the {used, select, geometry {measured} other {stated}} value is used{joins, select, true { (a stated volume usually allows for joins)} other {}}.}} Which should we use?",
     "unclassified": "[{system}] No code for “{description}”.",

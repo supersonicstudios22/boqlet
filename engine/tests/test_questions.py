@@ -59,3 +59,72 @@ def test_affected_lines_are_capped_in_boq_order():
     assert questions[0]["affectedLineCount"] == AFFECTED_LINES + 5
     assert "affectedLines" not in questions[1]
     assert questions[2]["affectedLines"] == [] and questions[2]["affectedLineCount"] == 0
+
+
+# ------------------------------------------------------------------ C-16: names that can always be answered
+from ifc_boq.names import UNSPECIFIED, Resolver, TermIndex  # noqa: E402
+
+import pytest  # noqa: E402
+
+
+def seed_resolver() -> Resolver:
+    return Resolver([presets.load_dictionary("global-seed")], presets.resolution())
+
+
+@pytest.mark.parametrize("field, raw, cls, term", [
+    # the S09 and S07 names that blocked: everyday materials, abbreviations, placeholders
+    ("layer_material", "Damp-proofing", "IfcWall", "membrane.damp_proof"),
+    ("material", "Laminate, Ivory, Matte", "IfcSlab", "finish.laminate"),
+    ("type_name", "Wall-Ext_102Bwk-75Ins-100LBlk-12P", "IfcWall", "wall.external"),
+    ("type_name", "Wall-Partn_12P-70MStd-12P", "IfcWall", "wall.partition"),
+    ("type_name", "Int Wall 100", "IfcWall", "wall.internal"),
+    ("layer_material", "SH_resin Floor", "IfcSlab", "finish.resin"),
+    ("layer_material", "Carpet (1)", "IfcSlab", "finish.carpet"),
+    ("material", "Softwood, Lumber", "IfcMember", "timber.lumber"),
+    ("material", "Vinyl sheet", "IfcCovering", "finish.vinyl"),
+    ("material", "Air", "IfcWall", UNSPECIFIED), ("layer_material", "Default", "IfcSlab", UNSPECIFIED),
+    ("type_name", "<By Category>", "IfcDoor", UNSPECIFIED),
+    # what the new entries must not take
+    ("material", "Laminated glass", "IfcWindow", "glass"), ("layer_material", "Misc. Air Layers - Air Space", "IfcWall", "air_gap"),
+    ("type_name", "Interior Door 900", "IfcDoor", None), ("material", "Render", "IfcWall", "finish.plaster"),
+])
+def test_the_seed_resolves_everyday_names_abbreviations_and_placeholders(field, raw, cls, term):
+    assert seed_resolver().resolve(field, raw, {"ifc_class": cls})["term"] == term
+
+
+def test_terms_that_fit_a_name_come_from_its_words_and_the_ifc_data():
+    index = TermIndex(seed_resolver().terms)
+    assert index.candidates("Wall-Ext_102Bwk", "element_type")[0] == "wall.external"
+    assert index.candidates("Damp course", "material")[0] == "membrane.damp_proof"
+    assert index.candidates("Bitumen felt", "material")[0] == "bituminous"
+    # no word fits, but every element is an IfcWall and IsExternal says which kind
+    assert index.candidates("Type A", "element_type", external=False, walls=True)[0] == "wall.internal"
+    assert index.candidates("Type A", "element_type", external=True, walls=True)[0] == "wall.external"
+    assert index.candidates("Type A", "element_type") == []
+    assert UNSPECIFIED not in index.candidates("Default none", "other")
+    assert len(index.candidates("concrete wall steel brick block", "material")) == 3
+
+
+def layered(material: str) -> dict:
+    parsed = doc(slab(layer_thickness=0.2), layer_thickness=0.2)
+    parsed["catalogues"]["materials"][0]["name"] = material
+    return parsed
+
+
+def test_a_placeholder_layer_is_asked_without_blocking_and_suggests_not_relevant():
+    r = run(layered("Default"))
+    (q,) = [q for q in r["questions"] if q["id"] == "name:layer_material:Default"]
+    assert q["blocking"] is False and q["suggestion"] == UNSPECIFIED and q["params"]["placeholder"] is True
+    assert "looks like a placeholder" in q["message"]
+    answered = run(layered("Default"), decisions=[{"questionId": q["id"], "answer": UNSPECIFIED}])
+    assert q["id"] not in {x["id"] for x in answered["questions"]}
+
+
+def test_a_blocking_name_answered_not_relevant_stops_blocking_and_is_logged():
+    r = run(layered("Glurk 42"))
+    (q,) = [q for q in r["questions"] if q["id"] == "name:layer_material:Glurk 42"]
+    assert q["blocking"] is True and "suggestion" not in q
+    answered = run(layered("Glurk 42"), decisions=[{"questionId": q["id"], "answer": UNSPECIFIED}])
+    assert q["id"] not in {x["id"] for x in answered["questions"]}
+    assert q["id"] in answered["answeredQuestionIds"]
+    assert any(e.get("code") == "log.decision.answer_applied" and e["params"]["questionId"] == q["id"] for e in answered["log"])

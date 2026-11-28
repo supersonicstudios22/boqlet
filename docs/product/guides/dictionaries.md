@@ -179,6 +179,16 @@ dictionary** (on by default when answering several at once) writes it into the p
 too. A library editor, admin or owner can **Promote…** an answer to the company dictionary, so no
 project using it is asked again.
 
+The term search finds a meaning by its label, its translations and its **aliases** (other words for
+it: synonyms, abbreviations, other languages, such as "dpc" or "Feuchtigkeitssperre" for the damp-proof
+course; a term's `aliases` in the dictionary JSON). Up to three meanings that fit the name are offered
+as one-click answers, from the words of the name and the elements' IFC data (an IfcWall's IsExternal
+offers External or Internal wall). **Not relevant** answers any name question with the term
+`unspecified`: the name stops blocking, the answer is a logged decision like any other, and no rule
+selects the elements by it. Authoring-tool placeholders ("Default", "<By Category>", "Generic", a bare
+"Air") are `unspecified` in the shipped seed already; the run still asks about them, without blocking,
+with **Not relevant** suggested, so you can say what they really are.
+
 ## Common tasks
 
 | You want to… | Do this |

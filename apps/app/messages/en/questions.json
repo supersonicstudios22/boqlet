@@ -22,6 +22,8 @@
   "infoGroup": "For information: {count, plural, one {# question} other {# questions}} whose answer changes nothing under the current rules",
   "answerFor": "Answer: {question}",
   "dismiss": "Leave it",
+  "notRelevant": "Not relevant",
+  "candidates": "Terms that fit this name",
   "clear": "Clear",
   "promoteAction": "Promote…",
   "promoteAgain": "Promote again…",

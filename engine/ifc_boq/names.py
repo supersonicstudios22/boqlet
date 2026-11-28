@@ -167,6 +167,58 @@ class Resolver:
         return None
 
 
+UNSPECIFIED = "unspecified"      # "Not relevant": a placeholder name, or a person's answer that no term applies (C-16)
+CANDIDATES = 3
+
+
+def words(text: str | None) -> list[str]:
+    """The words of a name, accent-folded and lower case: CamelCase, "_", "-" and digits split them ("Wall-Ext_102Bwk"
+    -> wall, ext, bwk). Single letters are dropped."""
+    spaced = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", fold(text, True, False))
+    return [w for w in re.split(r"[^a-z]+", spaced.lower()) if len(w) > 1]
+
+
+class TermIndex:
+    """Which terms fit a name (review C-16): the name's words against each term's id, label, translations and
+    aliases, plus what the elements' IFC data says (class, IsExternal). Used to offer answers, never to resolve."""
+
+    def __init__(self, terms: dict[str, dict]):
+        self.terms = {k: t for k, t in terms.items() if not t.get("deprecated") and k != UNSPECIFIED}
+        self.vocab: dict[str, set[str]] = {}
+        self.phrases: dict[str, list[str]] = {}
+        for k, t in self.terms.items():
+            texts = [t.get("label") or "", *(t.get("labels") or {}).values(), *(t.get("aliases") or [])]
+            self.vocab[k] = {w for x in [k.replace(".", " ").replace("_", " "), *texts] for w in words(x)}
+            self.phrases[k] = [p for p in (" ".join(words(x)) for x in texts) if " " in p]
+
+    def candidates(self, raw: str, category: str | None, external: bool | None = None, walls: bool = False,
+                   limit: int = CANDIDATES) -> list[str]:
+        """Up to `limit` term ids, best first. `walls`: every element of the name is an IfcWall; `external`: their
+        IsExternal when they all agree."""
+        name = words(raw)
+        joined = f" {' '.join(name)} "
+        scored = []
+        for k, t in self.terms.items():
+            if category and t.get("category") != category:
+                continue
+            vocab = self.vocab[k]
+            score = 0
+            for w in name:
+                if w in vocab:
+                    score += 2
+                elif len(w) >= 4 and any(len(v) >= 4 and (v.startswith(w) or w.startswith(v)) for v in vocab):
+                    score += 1
+            score += sum(2 for p in self.phrases[k] if f" {p} " in joined)
+            # the IFC data: the class says "a wall", IsExternal decides between an external and an internal one
+            if walls and (k == "wall" or k.startswith("wall.")):
+                score += 1
+                if external is not None and k in ("wall.external", "wall.internal"):
+                    score += 3 if (k == "wall.external") == external else -3
+            if score > 0:
+                scored.append((-score, -k.count("."), k))
+        return [k for *_, k in sorted(scored)[:limit]]
+
+
 def decision_entries(decisions: list[dict]) -> list[dict]:
     """Answers to unknown_name questions become exact-match entries in the decision layer."""
     out = []

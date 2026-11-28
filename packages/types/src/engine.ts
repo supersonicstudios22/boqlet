@@ -293,6 +293,12 @@ export interface Question {
    * the Questions tab lists it under "For information", collapsed (review C-15).
    */
   noEffect?: boolean;
+  /**
+   * For unknown_name: up to 3 term ids that fit the name, best first, from the words of the name against the
+   * terms' labels, translations and aliases, and from the elements' IFC data (class, IsExternal) (review C-16).
+   * Offered as one-click answers; never used without an answer.
+   */
+  candidates?: string[];
 }
 
 /** A line a question's answer can move (review C-15). */

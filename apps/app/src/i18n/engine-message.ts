@@ -36,6 +36,8 @@ const DERIVED: Record<string, (p: Record<string, unknown>, format: Format, t: Tr
       scale: typeof p.scale === "string" ? p.scale : "",
     };
   },
+  // a placeholder name the seed treats as not relevant (review C-16)
+  "question.unknown_name": (p) => ({ placeholder: p.placeholder === true ? "true" : "false" }),
   "question.double_claim": (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
   double_count: (p) => ({ ruleCount: Array.isArray(p.rules) ? p.rules.length : 0 }),
   // Copies of one GlobalId in several models that disagree (review A-18): what differs, and each copy's values.

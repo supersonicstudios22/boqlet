@@ -357,7 +357,9 @@ def test_marker_objects_are_excluded_not_counted():
     ("108 mm tegl", "masonry.brick"), ("13 mm gipsplate innvendig kledning", "board.plasterboard"), ("10 mm puss", "finish.plaster"),
     ("Layer-Mineralull         20 mm", "insulation.mineral_wool"), ("148 mm enkelt bindingsverk heltre isolert", "timber"),
     ("12 mm spon", "board"), ("EPDM", "membrane.epdm"), ("Bricks", "masonry.brick"), ("Cast-In-Place", "concrete.in_situ"),
-    ("C4000", "concrete"), ("A500 grade B", "metal.steel"), ("19 mm kledning", None), ("Default", None)])
+    ("C4000", "concrete"), ("A500 grade B", "metal.steel"), ("19 mm kledning", None),
+    # review C-16: an authoring tool's placeholder is "not relevant" until answered (the run still asks)
+    ("Default", "unspecified")])
 def test_library_style_material_names(raw, term):
     """Material libraries name by category_subtype_detail; '_' must not hide the words."""
     rv = Resolver([presets.load_dictionary("global-seed")], presets.resolution())

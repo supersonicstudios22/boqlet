@@ -92,6 +92,10 @@ describe("engine messages (F15 §4, contract change C01)", () => {
     expect(render({ code: "question.unknown_name", params: { field: "material", raw: "Beton", count: 3, blocking: true }, message: "" }).text).toBe(
       "What is “Beton” (material)?",
     );
+    // Review C-16: a placeholder is treated as not relevant meanwhile, and still asked
+    expect(render({ code: "question.unknown_name", params: { field: "layer_material", raw: "Default", count: 2, blocking: false, placeholder: true }, message: "" }).text).toBe(
+      "“Default” (layer material) looks like a placeholder and is treated as not relevant until you answer. What is it?",
+    );
     // WP-A5 A-18: both copies' values, in the order the engine sends them
     expect(render({ code: "question.duplicate_conflict", params: EXAMPLES["question.duplicate_conflict"], message: "" }).text).toBe(
       "IfcWall “CL_W1” is in 2 models under one GlobalId, and the copies differ in type and area: architecture “Foundation”, 24.292 m²; structure “CL_W1”, 45.252 m². Which copy should be measured? Unanswered, the structure copy is used.",

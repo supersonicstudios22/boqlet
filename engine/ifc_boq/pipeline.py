@@ -35,7 +35,7 @@ from .federation import combine
 from .log import CalcLog
 from .measure import build as measure
 from .measure import building_measures, merge_question, public_question
-from .names import Resolver, decision_entries
+from .names import UNSPECIFIED, Resolver, TermIndex, decision_entries
 from .overrides import apply_final, apply_quantity, from_decisions
 from .plausibility import element_warnings, line_warnings, unhosted_warnings
 from .rules import RuleEngine, enabled_view, flatten, integrity, referenced_fields, unmatched_id
@@ -352,21 +352,35 @@ def get_boq(parsed: dict, rules: dict, classifications: list[tuple[dict, dict]],
     refs = referenced_fields(enabled_view(flat), [m for _, m in classifications])
     field_needed = {"material": "material" in refs, "layer_material": "material" in refs or "layers" in refs,
                     "type_name": "element_type" in refs, "space_name": "space_type" in refs}
+    terms = TermIndex(rv.terms)
+    by_guid = {e["guid"]: e for e in elements}
     for (field, raw), r in sorted(distinct.items(), key=lambda kv: (kv[0][0], kv[0][1] or "")):
-        if r["term"] or not raw or not _worth_asking(r, resolution, rv.expr):
+        # a placeholder ("Default", "<By Category>") the seed treats as not relevant is still asked, never blocking (C-16)
+        placeholder = r["term"] == UNSPECIFIED and r.get("layer") == "global"
+        if (r["term"] and not placeholder) or not raw or not _worth_asking(r, resolution, rv.expr):
             continue
         needed = field_needed.get(field, False)
-        blocking = resolution.get("unresolved", "ask") == "ask" and needed
+        blocking = not placeholder and resolution.get("unresolved", "ask") == "ask" and needed
+        category = "element_type" if field == "type_name" else ("space" if field == "space_name" else "material")
+        guids = list(name_guids.get((field, raw), {}))
+        els = [by_guid[g] for g in guids if g in by_guid]
+        external = {e.get("is_external") for e in els}
+        walls = field == "type_name" and bool(els) and all(e["ifc_class"] == "IfcWall" for e in els)
+        offered = terms.candidates(raw, category, next(iter(external)) if walls and len(external) == 1 else None, walls)
+        params = {"field": field, "raw": raw, "count": r["count"], "blocking": blocking}
+        if placeholder:
+            params["placeholder"] = True
         questions.append({"id": f"name:{field}:{raw}", "kind": "unknown_name", "blocking": blocking,
-                          "field": field, "raw": raw, "occurrences": r["count"],
-                          "guids": list(name_guids.get((field, raw), {})),
+                          "field": field, "raw": raw, "occurrences": r["count"], "guids": guids,
                           **({} if needed else {"noEffect": True}),
-                          "code": "question.unknown_name", "params": {"field": field, "raw": raw, "count": r["count"],
-                                                                     "blocking": blocking},
-                          "message": f"What is '{raw}' ({field.replace('_', ' ')})?"
+                          **({"suggestion": UNSPECIFIED} if placeholder else {}),
+                          **({"candidates": offered} if offered else {}),
+                          "code": "question.unknown_name", "params": params,
+                          "message": (f"'{raw}' ({field.replace('_', ' ')}) looks like a placeholder and is treated as not "
+                                      f"relevant until you answer. What is it?" if placeholder
+                                      else f"What is '{raw}' ({field.replace('_', ' ')})?")
                                      + ("" if needed else " Not used by the current rules."),
-                          "answer": {"kind": "term", "category": "element_type" if field == "type_name" else
-                                     ("space" if field == "space_name" else "material")}})
+                          "answer": {"kind": "term", "category": category}})
 
     # 5. classification -----------------------------------------------------------------
     if progress:

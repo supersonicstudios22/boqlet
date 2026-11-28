@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useBoqFormat } from "@/i18n/boq-format";
 import { useGenerate, type Boq } from "@/api/hooks/boqs";
 import { useQuestions, type Answer, type Question } from "@/api/hooks/decisions";
@@ -17,7 +17,7 @@ import { useUnit } from "@/i18n/units";
 import { cn } from "@/lib/utils";
 import { AnswerControl, type AnswerContext } from "./answer-control";
 import { useAnswerFlow } from "./answer-flow";
-import { counts, describeAnswer, elementCount, filterQuestions, initialValue, kindsOf, selectable, splitByEffect, type AnswerState } from "./model";
+import { counts, describeAnswer, elementCount, filterQuestions, initialValue, kindsOf, NOT_RELEVANT, selectable, splitByEffect, termPath, type AnswerState } from "./model";
 import { PromoteDialog } from "./promote-dialog";
 import { useAnswerContext } from "./use-answer-context";
 import { InlineError } from "@/components/errors/inline-error";
@@ -222,8 +222,12 @@ function QuestionRow({
   const more = (q.affectedLineCount ?? affected.length) - Math.min(affected.length, SHOWN_LINES);
   const source = typeof q.params?.source === "string" ? q.params.source : undefined;
   const [value, setValue] = useState<Answer | undefined>(initial.value);
+  const locale = useLocale();
   const answered = q.decision;
-  const shownAnswer = answered ? describeAnswer(answered.answer, q.answer, { terms: new Map(context.terms.map((x) => [x.id, x])) }) : null;
+  const byId = new Map(context.terms.map((x) => [x.id, x]));
+  const shownAnswer = answered ? describeAnswer(answered.answer, q.answer, { terms: byId, locale }) : null;
+  // review C-16: terms that fit the name, one click each; "Not relevant" for any name question
+  const offered = !answered && q.kind === "unknown_name" ? (q.candidates ?? []).filter((id) => byId.has(id)) : [];
   return (
     <li className={cn("grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 border-b border-border py-3 lg:grid-cols-[auto_auto_minmax(0,1fr)_minmax(14rem,28rem)]", answered && "text-muted-foreground")} data-testid="question-row" data-question-id={q.id} data-answered={answered ? "true" : "false"}>
       <input
@@ -297,6 +301,20 @@ function QuestionRow({
               if (commit && !(answered && JSON.stringify(answered.answer) === JSON.stringify(v))) onAnswer(v);
             }}
           />
+          {offered.length > 0 && (
+            <span className="flex flex-wrap items-center gap-1" role="group" aria-label={t("candidates")} data-testid="question-candidates">
+              {offered.map((id) => (
+                <Button key={id} variant="outline" size="sm" disabled={busy} onClick={() => onAnswer(id)} title={termPath(id, byId, locale).join(" › ")} data-testid="question-candidate" data-term={id}>
+                  {termPath(id, byId, locale).at(-1)}
+                </Button>
+              ))}
+            </span>
+          )}
+          {!answered && q.kind === "unknown_name" && q.suggestion !== NOT_RELEVANT && (
+            <Button variant="ghost" disabled={busy} onClick={() => onAnswer(NOT_RELEVANT)} data-testid="not-relevant">
+              {t("notRelevant")}
+            </Button>
+          )}
           {!answered && !q.blocking && (
             <Button variant="ghost" disabled={busy} onClick={() => onAnswer(null)} data-testid="dismiss">
               {t("dismiss")}

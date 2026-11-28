@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "id": "global-seed",
   "name": "Global seed dictionary",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "layer": "global",
   "locales": [
     "en",
@@ -47,7 +47,13 @@
         "de": "Estrich",
         "sr": "Cementna košuljica"
       },
-      "broader": "concrete"
+      "broader": "concrete",
+      "aliases": [
+        "screed",
+        "Estrich",
+        "chape",
+        "massetto"
+      ]
     },
     {
       "id": "masonry",
@@ -62,13 +68,22 @@
         "de": "Ziegel",
         "sr": "Opeka"
       },
-      "broader": "masonry"
+      "broader": "masonry",
+      "aliases": [
+        "brickwork",
+        "bwk"
+      ]
     },
     {
       "id": "masonry.block",
       "category": "material",
       "label": "Concrete block",
-      "broader": "masonry"
+      "broader": "masonry",
+      "aliases": [
+        "blockwork",
+        "blk",
+        "cmu"
+      ]
     },
     {
       "id": "masonry.block.aac",
@@ -80,7 +95,11 @@
       "id": "masonry.mortar",
       "category": "material",
       "label": "Mortar / grout",
-      "broader": "masonry"
+      "broader": "masonry",
+      "aliases": [
+        "grout",
+        "mortar"
+      ]
     },
     {
       "id": "metal",
@@ -104,7 +123,13 @@
       "id": "metal.steel.stud",
       "category": "product",
       "label": "Light-gauge steel stud",
-      "broader": "metal.steel"
+      "broader": "metal.steel",
+      "aliases": [
+        "metal stud",
+        "mstd",
+        "steel stud",
+        "drywall stud"
+      ]
     },
     {
       "id": "metal.aluminium",
@@ -128,7 +153,13 @@
       "id": "timber.lumber",
       "category": "material",
       "label": "Dimensional lumber",
-      "broader": "timber"
+      "broader": "timber",
+      "aliases": [
+        "softwood",
+        "hardwood",
+        "lumber",
+        "sawn timber"
+      ]
     },
     {
       "id": "timber.plywood",
@@ -155,7 +186,14 @@
         "de": "Gipskartonplatte",
         "sr": "Gips-karton ploča"
       },
-      "broader": "board"
+      "broader": "board",
+      "aliases": [
+        "gypsum board",
+        "drywall",
+        "plasterboard",
+        "Gipskarton",
+        "gyproc"
+      ]
     },
     {
       "id": "insulation",
@@ -164,13 +202,25 @@
       "labels": {
         "de": "Dämmung",
         "sr": "Izolacija"
-      }
+      },
+      "aliases": [
+        "ins",
+        "insul",
+        "thermal insulation"
+      ]
     },
     {
       "id": "insulation.rigid",
       "category": "material",
       "label": "Rigid insulation (EPS/XPS/PIR)",
-      "broader": "insulation"
+      "broader": "insulation",
+      "aliases": [
+        "EPS",
+        "XPS",
+        "PIR",
+        "PUR",
+        "foam board"
+      ]
     },
     {
       "id": "insulation.semi_rigid",
@@ -182,12 +232,22 @@
       "id": "insulation.mineral_wool",
       "category": "material",
       "label": "Mineral wool",
-      "broader": "insulation"
+      "broader": "insulation",
+      "aliases": [
+        "rock wool",
+        "glass wool",
+        "Mineralwolle"
+      ]
     },
     {
       "id": "membrane",
       "category": "material",
-      "label": "Membrane"
+      "label": "Membrane",
+      "aliases": [
+        "waterproofing",
+        "sheet membrane",
+        "felt"
+      ]
     },
     {
       "id": "membrane.epdm",
@@ -199,7 +259,13 @@
       "id": "membrane.vapour_control",
       "category": "material",
       "label": "Vapour control layer",
-      "broader": "membrane"
+      "broader": "membrane",
+      "aliases": [
+        "vapour barrier",
+        "vapor barrier",
+        "VCL",
+        "Dampfbremse"
+      ]
     },
     {
       "id": "membrane.root_barrier",
@@ -210,7 +276,11 @@
     {
       "id": "finish",
       "category": "material",
-      "label": "Finish"
+      "label": "Finish",
+      "aliases": [
+        "coating",
+        "surface finish"
+      ]
     },
     {
       "id": "finish.ceramic_tile",
@@ -220,29 +290,56 @@
         "de": "Fliese",
         "sr": "Keramička pločica"
       },
-      "broader": "finish"
+      "broader": "finish",
+      "aliases": [
+        "tile",
+        "tiling",
+        "porcelain",
+        "Fliese"
+      ]
     },
     {
       "id": "finish.paint",
       "category": "material",
       "label": "Paint",
-      "broader": "finish"
+      "broader": "finish",
+      "aliases": [
+        "paint",
+        "decoration",
+        "emulsion"
+      ]
     },
     {
       "id": "finish.plaster",
       "category": "material",
       "label": "Plaster / render",
-      "broader": "finish"
+      "broader": "finish",
+      "aliases": [
+        "plaster",
+        "render",
+        "stucco",
+        "Putz"
+      ]
     },
     {
       "id": "glass",
       "category": "material",
-      "label": "Glass"
+      "label": "Glass",
+      "aliases": [
+        "glazing",
+        "Glas"
+      ]
     },
     {
       "id": "air_gap",
       "category": "material",
-      "label": "Air gap"
+      "label": "Air gap",
+      "aliases": [
+        "air",
+        "air space",
+        "cavity",
+        "ventilated cavity"
+      ]
     },
     {
       "id": "landscape.grass",
@@ -259,19 +356,36 @@
       "id": "wall.party",
       "category": "element_type",
       "label": "Party / separating wall",
-      "broader": "wall"
+      "broader": "wall",
+      "aliases": [
+        "separating wall",
+        "demising wall",
+        "Wohnungstrennwand"
+      ]
     },
     {
       "id": "wall.partition",
       "category": "element_type",
       "label": "Partition",
-      "broader": "wall"
+      "broader": "wall",
+      "aliases": [
+        "partn",
+        "ptn",
+        "stud wall",
+        "drywall partition",
+        "Trennwand"
+      ]
     },
     {
       "id": "wall.lining",
       "category": "element_type",
       "label": "Wall lining / furring",
-      "broader": "wall"
+      "broader": "wall",
+      "aliases": [
+        "furring",
+        "lining",
+        "Vorsatzschale"
+      ]
     },
     {
       "id": "wall.foundation",
@@ -283,7 +397,14 @@
       "id": "wall.external",
       "category": "element_type",
       "label": "External wall",
-      "broader": "wall"
+      "broader": "wall",
+      "aliases": [
+        "ext",
+        "exterior wall",
+        "outer wall",
+        "facade wall",
+        "Aussenwand"
+      ]
     },
     {
       "id": "space.bathroom",
@@ -355,7 +476,12 @@
     {
       "id": "bituminous",
       "category": "material",
-      "label": "Bituminous material: asphalt, macadam"
+      "label": "Bituminous material: asphalt, macadam",
+      "aliases": [
+        "bitumen",
+        "asphalt",
+        "tarmac"
+      ]
     },
     {
       "id": "landscape",
@@ -371,7 +497,107 @@
     {
       "id": "non_physical",
       "category": "material",
-      "label": "Not a building material (display, marker or zone objects)"
+      "label": "Not a building material (display, marker or zone objects)",
+      "aliases": [
+        "marker",
+        "display object",
+        "zone"
+      ]
+    },
+    {
+      "id": "membrane.damp_proof",
+      "category": "material",
+      "label": "Damp-proof course / membrane",
+      "labels": {
+        "de": "Feuchtigkeitssperre"
+      },
+      "broader": "membrane",
+      "aliases": [
+        "damp proofing",
+        "damp-proofing",
+        "dpc",
+        "dpm",
+        "damp-proof course",
+        "damp-proof membrane",
+        "tanking"
+      ]
+    },
+    {
+      "id": "finish.laminate",
+      "category": "material",
+      "label": "Laminate",
+      "broader": "finish",
+      "aliases": [
+        "laminate flooring",
+        "laminat",
+        "Laminat"
+      ]
+    },
+    {
+      "id": "finish.vinyl",
+      "category": "material",
+      "label": "Vinyl / resilient flooring",
+      "broader": "finish",
+      "aliases": [
+        "vinyl",
+        "LVT",
+        "PVC flooring",
+        "resilient"
+      ]
+    },
+    {
+      "id": "finish.carpet",
+      "category": "material",
+      "label": "Carpet",
+      "labels": {
+        "de": "Teppich"
+      },
+      "broader": "finish",
+      "aliases": [
+        "carpet tile",
+        "Teppich",
+        "tepih",
+        "moquette"
+      ]
+    },
+    {
+      "id": "finish.resin",
+      "category": "material",
+      "label": "Resin floor",
+      "broader": "finish",
+      "aliases": [
+        "epoxy",
+        "resin",
+        "poured floor"
+      ]
+    },
+    {
+      "id": "wall.internal",
+      "category": "element_type",
+      "label": "Internal wall",
+      "broader": "wall",
+      "aliases": [
+        "int",
+        "interior wall",
+        "inner wall",
+        "Innenwand"
+      ]
+    },
+    {
+      "id": "unspecified",
+      "category": "other",
+      "label": "Not relevant",
+      "labels": {
+        "de": "Nicht relevant"
+      },
+      "aliases": [
+        "placeholder",
+        "default",
+        "none",
+        "n/a",
+        "ignore",
+        "not applicable"
+      ]
     }
   ],
   "entries": [
@@ -530,6 +756,47 @@
       },
       "term": "landscape.grass",
       "source": "seed"
+    },
+    {
+      "id": "placeholder-names",
+      "field": [
+        "material",
+        "layer_material",
+        "type_name"
+      ],
+      "match": {
+        "exact": [
+          "Default",
+          "<By Category>",
+          "By Category",
+          "Generic",
+          "None",
+          "<None>",
+          "Undefined",
+          "Unnamed",
+          "Unknown",
+          "New Material",
+          "Material"
+        ]
+      },
+      "term": "unspecified",
+      "source": "seed",
+      "note": "Authoring-tool placeholders: treated as not relevant until answered; the run asks, without blocking (review C-16)."
+    },
+    {
+      "id": "placeholder-air",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "exact": [
+          "Air"
+        ]
+      },
+      "term": "unspecified",
+      "source": "seed",
+      "note": "A bare \"Air\" material: treated as not relevant until answered (map it to air_gap where it is a cavity); the run asks, without blocking (review C-16, DEC-32)."
     },
     {
       "id": "pfx-steel",
@@ -1078,7 +1345,7 @@
       "id": "rx-partition",
       "field": "type_name",
       "match": {
-        "regex": "(partition|pregradn|trennwand|tabique)"
+        "regex": "(partition|pregradn|trennwand|tabique)|\\b(partn|ptn)\\b"
       },
       "when": "ifc_class = \"IfcWall\"",
       "term": "wall.partition",
@@ -1118,10 +1385,20 @@
       "id": "rx-external-wall",
       "field": "type_name",
       "match": {
-        "regex": "(exterior|external|fasad|au[sß]enwand)"
+        "regex": "(exterior|external|fasad|au[sß]enwand)|\\b(ext|extn)\\b"
       },
       "when": "ifc_class = \"IfcWall\"",
       "term": "wall.external",
+      "source": "seed"
+    },
+    {
+      "id": "rx-internal-wall",
+      "field": "type_name",
+      "match": {
+        "regex": "(interior|internal|innenwand|unutra[sš]nj)|\\b(int|intl)\\b"
+      },
+      "term": "wall.internal",
+      "when": "ifc_class = \"IfcWall\"",
       "source": "seed"
     },
     {
@@ -1185,6 +1462,90 @@
         "regex": "\\b(hall(way)?|corridor|foyer|lobby|hodnik|entry|entrance|predsoblje|ulaz|flur|diele)\\b"
       },
       "term": "space.circulation",
+      "source": "seed"
+    },
+    {
+      "id": "rx-damp-proof",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "(damp[ -]?proof\\w*|\\bdp[cm]\\b|feuchtigkeitssperre|hidroizolacij|tanking)"
+      },
+      "term": "membrane.damp_proof",
+      "source": "seed"
+    },
+    {
+      "id": "rx-laminate",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\blaminat(e|o)?\\b"
+      },
+      "term": "finish.laminate",
+      "source": "seed"
+    },
+    {
+      "id": "rx-vinyl",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\b(vinyl|lvt|pvc[ -]?(floor\\w*|belag))\\b"
+      },
+      "term": "finish.vinyl",
+      "source": "seed"
+    },
+    {
+      "id": "rx-carpet",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\b(carpet|teppich|tepih|moquette|alfombra)\\b"
+      },
+      "term": "finish.carpet",
+      "source": "seed"
+    },
+    {
+      "id": "rx-resin-floor",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\b(resin|epoxy)\\b.*\\bfloor|\\bfloor\\w*\\b.*\\b(resin|epoxy)\\b"
+      },
+      "term": "finish.resin",
+      "source": "seed"
+    },
+    {
+      "id": "rx-lumber",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\blumber\\b"
+      },
+      "term": "timber.lumber",
+      "source": "seed"
+    },
+    {
+      "id": "rx-softwood",
+      "field": [
+        "material",
+        "layer_material"
+      ],
+      "match": {
+        "regex": "\\b(softwood|hardwood)\\b"
+      },
+      "term": "timber",
       "source": "seed"
     }
   ],

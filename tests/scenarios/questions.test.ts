@@ -274,3 +274,19 @@ describe("contradiction thresholds are resolution settings (review WP-A1, A-04)"
     expect(Date.parse(named!.at!)).not.toBeNaN();
   }, 360_000);
 });
+
+describe("names that can always be answered (review WP-C4, C-16)", () => {
+  it("finds terms by their aliases and translations, and returns both", async () => {
+    const api = client(owner.token);
+    const search = async (q: string) => (await api.GET("/orgs/{orgId}/terms", { params: { path: { orgId }, query: { q } } })).data!;
+    const byAlias = await search("dpc");
+    const damp = byAlias.find((t) => t.id === "membrane.damp_proof");
+    expect(damp, JSON.stringify(byAlias)).toBeDefined();
+    expect(damp!.aliases).toContain("dpc");
+    expect(damp!.labels).toMatchObject({ de: "Feuchtigkeitssperre" });
+    expect((await search("feuchtigkeit")).map((t) => t.id)).toContain("membrane.damp_proof");
+    expect((await search("bitumen")).map((t) => t.id)).toContain("bituminous");
+    // the term "Not relevant" answers any name question
+    expect((await search("not relevant")).map((t) => t.id)).toContain("unspecified");
+  });
+});
