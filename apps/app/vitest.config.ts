@@ -24,7 +24,7 @@ export default defineConfig({
   },
   test: {
     // Hoisted to the workspace root: transformed here, so their React imports get the aliases above.
-    server: { deps: { inline: ["next-intl", "use-intl"] } },
+    server: { deps: { inline: ["next-intl", "use-intl", "@tanstack/react-virtual"] } },
     include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
     environment: "node",
     testTimeout: 30_000,

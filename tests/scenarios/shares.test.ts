@@ -115,6 +115,14 @@ describe("create and the public page (F18 §1–2)", () => {
     const lines = (await (await pub(token, "/lines")).json()) as Schemas["LinesPage"];
     expect(lines.items.length).toBeGreaterThan(10);
     expect(lines.items.find((l) => l.key === editedKey)!.quantity).toBe(1234);
+    // Review C-26: each line carries its position number, the same as the app's sheet numbers it.
+    const boq = (await as(lead).GET("/boqs/{boqId}", { params: { path: { boqId } } })).data!;
+    const own = (await as(lead).GET("/runs/{runId}/lines", { params: { path: { runId: boq.currentRevision.currentRun!.id }, query: { limit: 20000 } } })).data!;
+    const numbered = new Map(own.items.map((l) => [l.key, l.positionNo]));
+    expect(lines.items.filter((l) => !l.excluded && l.positionNo !== numbered.get(l.key)).map((l) => [l.key, l.positionNo, numbered.get(l.key)])).toEqual([]);
+    expect(lines.items.filter((l) => !l.excluded).every((l) => !!l.positionNo)).toBe(true);
+    // A line to confirm says how much of it was measured, never which questions (BR-56).
+    expect(lines.items.every((l) => !l.toConfirm || Object.keys(l.toConfirm).every((k) => k === "measured" || k === "elements"))).toBe(true);
     // Review C-25: with the viewer, each line lists its elements (guid, model, share) so the 3D view counts them.
     const measured = lines.items.find((l) => l.source === "measured" && l.trace.elements.length > 0)!;
     expect(measured.trace.elements.every((e) => e.guid && e.model === shared.modelVersionIds![0] && Object.keys(e).every((k) => ["guid", "quantity", "model"].includes(k)))).toBe(true);

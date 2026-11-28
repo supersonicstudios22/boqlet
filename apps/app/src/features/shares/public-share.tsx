@@ -13,15 +13,13 @@ import { useErrorMessage } from "@/components/errors/use-error-message";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineDetailBody } from "@/features/boq-sheet/line-detail";
 import { lexicon } from "@/features/library/lib/readable";
 import { ModelViewer } from "@/features/viewer/model-viewer";
-import { cn } from "@/lib/utils";
-import { useUnit } from "@/i18n/units";
 import { BoqFormatProvider, useBoqFormat, type BoqFormatSettings } from "@/i18n/boq-format";
 import { InlineError } from "@/components/errors/inline-error";
 import { LoadingLines } from "@/components/loading";
+import { ShareTable, type ShareGroup } from "./share-table";
 import { isApiError } from "@/api/errors";
 import { usePageTitle } from "@/lib/page-title";
 
@@ -34,7 +32,6 @@ const textOf = (l: RunLine, system: string | undefined) => (system ? l.codes[sys
  * detail and the 3D view and the Excel as the link includes. Nothing else of the firm's (BR-56).
  */
 export function PublicSharePage({ token }: { token: string }) {
-  const unitLabel = useUnit();
   const t = useTranslations("shares.public");
   const tl = useTranslations("library");
   const message = useErrorMessage();
@@ -84,10 +81,10 @@ export function PublicSharePage({ token }: { token: string }) {
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return (lines.data ?? []).filter((l) => !term || textOf(l, system).toLowerCase().includes(term) || l.description.toLowerCase().includes(term) || Object.values(l.codes).some((c) => c.code.toLowerCase().includes(term)));
+    return (lines.data ?? []).filter((l) => !term || textOf(l, system).toLowerCase().includes(term) || l.description.toLowerCase().includes(term) || Object.values(l.codes).some((c) => c.code.toLowerCase().includes(term)) || !!l.positionNo?.toLowerCase().includes(term));
   }, [lines.data, q, system]);
   const groups = useMemo(() => {
-    const out = new Map<string, { code: string; title: string; lines: RunLine[] }>();
+    const out = new Map<string, ShareGroup>();
     for (const l of filtered) {
       const top = system ? l.codes[system]?.path[0] : undefined;
       const key = top?.code ?? "";
@@ -125,7 +122,7 @@ export function PublicSharePage({ token }: { token: string }) {
 
   return (
     <BoqFormatProvider settings={formats}>
-    <main id="main" className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
+    <main id="main" className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-4 sm:p-6" data-testid="public-share" data-working={working ? "true" : "false"}>
       {working && (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
           <span className="rotate-[-24deg] select-none text-[18vw] font-bold leading-none text-foreground/5">{t("working")}</span>
@@ -181,67 +178,15 @@ export function PublicSharePage({ token }: { token: string }) {
               </div>
               {lines.data && filtered.length === 0 && <p className="text-muted-foreground">{t("noLines")}</p>}
               {filtered.length > 0 && (
-                <Table data-testid="share-sheet">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="label-caps">{t("description")}</TableHead>
-                      <TableHead className="label-caps">{t("unit")}</TableHead>
-                      <TableHead className="label-caps text-right">{t("quantity")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {groups.map((g) => [
-                      system ? (
-                        <TableRow key={`g:${g.code}`} className="bg-muted/50 hover:bg-muted/50">
-                          <TableCell colSpan={3} className="label-caps">
-                            {g.code ? `${g.code} ${g.title}` : "—"}
-                          </TableCell>
-                        </TableRow>
-                      ) : null,
-                      ...g.lines.map((l) => (
-                        <TableRow
-                          key={l.key}
-                          className={cn(s.include.lineDetail && "cursor-pointer", selected === l.key && "bg-selection")}
-                          onClick={() => s.include.lineDetail && setSelected(l.key)}
-                          data-testid="share-line"
-                          data-key={l.key}
-                          data-source={l.source}
-                        >
-                          {/* Wraps, so Unit and Quantity stay on narrow screens (TF-172). */}
-                          <TableCell className="max-w-[520px] min-w-40 whitespace-normal break-words">
-                            {s.include.lineDetail ? (
-                              <button
-                                type="button"
-                                ref={(el) => {
-                                  if (el) lineButtons.current.set(l.key, el);
-                                  else lineButtons.current.delete(l.key);
-                                }}
-                                onClick={() => openLine(l.key)}
-                                aria-expanded={selected === l.key}
-                                aria-controls={selected === l.key ? "share-detail" : undefined}
-                                className="w-full rounded-[var(--radius)] text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                {textOf(l, system)}
-                              </button>
-                            ) : (
-                              textOf(l, system)
-                            )}
-                          </TableCell>
-                          <TableCell>{unitLabel(l.unit)}</TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {l.quantity === null ? "—" : format.quantity(l.quantity)}
-                            {/* P54 Q52 (TF-086): an edited quantity says so, with the engine's value. */}
-                            {l.overridden?.fields?.includes("quantity") && (
-                              <span className="block text-xs text-muted-foreground" data-testid="share-edited">
-                                {t("edited", { engine: l.overridden.engineQuantity == null ? "—" : format.quantity(l.overridden.engineQuantity) })}
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )),
-                    ])}
-                  </TableBody>
-                </Table>
+                <ShareTable
+                  groups={groups}
+                  grouped={!!system}
+                  textOf={(l) => textOf(l, system)}
+                  lineDetail={!!s.include.lineDetail}
+                  selected={selected}
+                  onOpen={(key, focus) => (focus ? openLine(key) : setSelected(key))}
+                  lineButtons={lineButtons}
+                />
               )}
             </section>
             {s.include.lineDetail && selected && detail.data && (

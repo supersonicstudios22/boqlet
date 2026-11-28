@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import shares from "../../../messages/en/shares.json";
 import common from "../../../messages/en/common.json";
 import errors from "../../../messages/en/errors.json";
+import boqs from "../../../messages/en/boqs.json";
 import { ApiError } from "@/api/errors";
 
 /*
@@ -14,7 +15,7 @@ import { ApiError } from "@/api/errors";
 vi.mock("next-intl", async () => {
   const { createTranslator } = await import("use-intl/core");
   return {
-    useTranslations: (namespace: string) => createTranslator({ locale: "en", messages: { shares, common, errors } as never, namespace: namespace as never }),
+    useTranslations: (namespace: string) => createTranslator({ locale: "en", messages: { shares, common, errors, boqs } as never, namespace: namespace as never }),
     useLocale: () => "en",
   };
 });
@@ -130,6 +131,53 @@ describe("review C-25 share page: settings and models by name, never an id", () 
     data.formats = { include: { lineDetail: true, viewer: true, excel: false, log: false }, modelVersionIds: ["m1"], models: [] };
     mount();
     expect((seen.viewer as { models: { label: string }[] }).models.map((m) => m.label)).toEqual([shares.public.viewerModel.replace("{n}", "1")]);
+  });
+});
+
+describe("review C-26 share sheet: numbers, marks, phone-safe quantities, large sheets", () => {
+  it("each line shows its position number and its mark; a line to confirm without a quantity says so; a legend explains the marks", () => {
+    data.lines = [
+      { ...line("a", "Wall"), positionNo: "B.02.1" },
+      { ...line("b", "Slab"), positionNo: "B.02.2", source: "flagged", quantity: null },
+      { ...line("c", "Skirting"), positionNo: "B.02.3", source: "derived" },
+    ];
+    const page = mount();
+    const rows = [...page.querySelectorAll("[data-testid=share-line]")];
+    expect(rows.map((r) => r.querySelector("[data-testid=share-position]")!.textContent)).toEqual(["B.02.1", "B.02.2", "B.02.3"]);
+    expect(rows.map((r) => r.querySelector("[data-testid=status-mark]")?.getAttribute("data-mark") ?? null)).toEqual([null, "flagged", "derived"]);
+    expect(rows[1]!.querySelector("[data-testid=share-to-confirm]")!.textContent).toBe(shares.public.toConfirm);
+    expect(rows[0]!.querySelector("[data-testid=share-to-confirm]")).toBeNull();
+    expect(page.querySelector("[data-testid=share-legend]")!.textContent).toContain(shares.public.legend.flagged);
+  });
+
+  it("no legend when every line is measured; the quantity cell wraps, the number doesn't", () => {
+    data.lines = [{ ...line("a", "Wall"), overridden: { fields: ["quantity"], quantity: 12.5, engineQuantity: 44.91 } }];
+    const page = mount();
+    expect(page.querySelector("[data-testid=share-legend]")).toBeNull();
+    const cell = page.querySelector("[data-testid=share-quantity]")!;
+    expect(cell.className).toContain("whitespace-normal");
+    expect(cell.className).not.toContain("whitespace-nowrap");
+    expect(cell.querySelector("span")!.className).toContain("whitespace-nowrap");
+    expect(cell.querySelector("[data-testid=share-edited]")).not.toBeNull();
+  });
+
+  it("above 500 lines only the rows near the window are drawn", () => {
+    // jsdom lays nothing out: every element measures as a 41 px row.
+    const height = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(41);
+    onTestFinished(() => height.mockRestore());
+    data.lines = Array.from({ length: 800 }, (_, i) => line(`k${i}`, `Line ${i}`));
+    const page = mount();
+    expect(page.querySelector("[data-testid=share-sheet]")!.getAttribute("data-virtual")).toBe("true");
+    const drawn = page.querySelectorAll("[data-testid=share-line]").length;
+    expect(drawn).toBeGreaterThan(0);
+    expect(drawn).toBeLessThan(200);
+  });
+
+  it("at 500 lines or fewer every row is drawn", () => {
+    data.lines = Array.from({ length: 500 }, (_, i) => line(`k${i}`, `Line ${i}`));
+    const page = mount();
+    expect(page.querySelector("[data-testid=share-sheet]")!.getAttribute("data-virtual")).toBe("false");
+    expect(page.querySelectorAll("[data-testid=share-line]")).toHaveLength(500);
   });
 });
 

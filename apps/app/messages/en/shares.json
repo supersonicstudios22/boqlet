@@ -79,10 +79,13 @@
     "run": "Generated {date}",
     "search": "Search lines",
     "lines": "{count, plural, one {# line} other {# lines}}",
+    "no": "No.",
+    "mark": "Mark",
     "description": "Description",
     "unit": "Unit",
     "quantity": "Quantity",
     "edited": "Edited (measured: {engine})",
+    "toConfirm": "To confirm",
     "noLines": "No lines match.",
     "detail": "How it is calculated",
     "close": "Close",
@@ -94,6 +97,12 @@
     "madeWith": "Made with boqlet",
     "madeWithCta": "Try it",
     "readOnly": "Read-only. Quantities are taken from the models only: work not modelled as objects is included only where derived or added by hand.",
-    "viewerModel": "Model {n}"
+    "viewerModel": "Model {n}",
+    "legend": {
+      "derived": "Derived from another line",
+      "manual": "Added by hand",
+      "flagged": "To confirm: not every element measured, or an open question",
+      "measured": "Lines without a mark are measured from the model."
+    }
   }
 }

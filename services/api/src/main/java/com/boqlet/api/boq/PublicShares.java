@@ -29,9 +29,10 @@ class PublicShares {
     private final WorkerClient worker;
     private final RunIndex index;
     private final PresetCatalog catalog;
+    private final BoqExports positions;
 
     PublicShares(ShareLinks links, StoredJson json, EntitlementService limits, JdbcTemplate database,
-                 ObjectStorage storage, WorkerClient worker, RunIndex index, PresetCatalog catalog) {
+                 ObjectStorage storage, WorkerClient worker, RunIndex index, PresetCatalog catalog, BoqExports positions) {
         this.links = links;
         this.json = json;
         this.limits = limits;
@@ -40,6 +41,7 @@ class PublicShares {
         this.worker = worker;
         this.index = index;
         this.catalog = catalog;
+        this.positions = positions;
     }
 
     PublicShare get(String token) {
@@ -89,9 +91,16 @@ class PublicShares {
                 """;
         UUID run = shown.run().run().getId();
         index.ensure(run);
+        // Each line's position number in the page's grouping, as the app and the share's Excel number it (review C-26).
+        var numbers = positions.numbers(run, grouping(link, shown));
         int total = database.queryForObject("SELECT count(*) " + filter, Integer.class, run, search, search, search);
         var items = database.query("SELECT line::text, sort_index " + filter + " ORDER BY sort_index LIMIT ? OFFSET ?",
-                (row, index) -> json.read(line(row.getString(1), row.getInt(2), false, elements).toString(), RunLine.class),
+                (row, index) -> {
+                    var line = json.read(line(row.getString(1), row.getInt(2), false, elements, numbers).toString(), RunLine.class);
+                    // the generated class starts `questions` as an empty list: the questions behind a line stay private (BR-56)
+                    if (line.getToConfirm() != null) line.getToConfirm().setQuestions(null);
+                    return line;
+                },
                 run, search, search, search, PAGE_SIZE, start);
         long next = (long) start + items.size();
         return new LinesPage(items).total(total).nextCursor(next < total ? Long.toString(next) : null);
@@ -103,11 +112,13 @@ class PublicShares {
         if (!enabled(link.view().getInclude().getLineDetail()) || shown == null) throw BoqAccess.missing("line");
         UUID run = shown.run().run().getId();
         index.ensure(run);
+        var numbers = positions.numbers(run, grouping(link, shown));
         var detail = database.query("""
                 SELECT line::text, sort_index FROM run_lines WHERE run_id = ? AND line_key = ?
-                """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true, true).toString(), LineDetail.class),
+                """, (row, index) -> json.read(line(row.getString(1), row.getInt(2), true, true, numbers).toString(), LineDetail.class),
                 run, key).stream().findFirst().orElseThrow(() -> BoqAccess.missing("line"));
         detail.setReviewComments(null);
+        if (detail.getToConfirm() != null) detail.getToConfirm().setQuestions(null);
         detail.setLog(null);
         detail.setElementLog(null);
         if (enabled(link.view().getInclude().getLog())) {
@@ -185,13 +196,17 @@ class PublicShares {
         return storage.downloadAttachment(key, BoqExports.XLSX, "BoQ.xlsx");
     }
 
-    private ObjectNode line(String value, int index, boolean detail, boolean elements) {
+    private ObjectNode line(String value, int index, boolean detail, boolean elements, String[] numbers) {
         ObjectNode source = json.read(value, ObjectNode.class);
         JsonNode edit = source.get("overridden");
         // An excluded line is shown as excluded, like the sheet shows it (TF-033); why stays private (BR-56).
         source.retain("key", "ruleId", "ruleKind", "description", "unit", "quantity", "source",
-                "family", "keys", "trace", "codes", "location", "tags", "excluded");
+                "family", "keys", "trace", "codes", "location", "tags", "excluded", "toConfirm");
         source.put("sortIndex", index);
+        if (index < numbers.length && numbers[index] != null) source.put("positionNo", numbers[index]);
+        // A line to confirm is marked so, and says how many of its elements were measured (review C-26);
+        // the questions behind it stay private (BR-56).
+        if (source.get("toConfirm") instanceof ObjectNode confirm) confirm.retain("measured", "elements");
         source.putArray("notes"); // the team's notes stay private; the field is required (TF-085)
         // P54 Q52 (TF-086): an edited quantity is shown as edited, with the engine's value; who and why stay private.
         if (edit != null && edit.path("fields").isArray()
@@ -307,6 +322,13 @@ class PublicShares {
             versions.add(UUID.fromString(model.path("modelVersionId").asText()));
         }
         return versions;
+    }
+
+    /** The share's grouping system: the link's, else the run's first classification; none numbers 1, 2, 3. */
+    private static String grouping(ShareLinks.Link link, ShareLinks.Shown shown) {
+        if (link.view().getInclude().getGroupBy() != null) return link.view().getInclude().getGroupBy();
+        var systems = shown.run().run().getClassifications();
+        return systems == null || systems.isEmpty() ? null : systems.getFirst().getId();
     }
 
     private static boolean enabled(Boolean value) { return Boolean.TRUE.equals(value); }
